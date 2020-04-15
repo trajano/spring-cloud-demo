@@ -6,3 +6,6 @@ build
 .idea
 .settings
 .vscode
+.classpath
+.project
+.settings/

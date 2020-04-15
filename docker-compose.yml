@@ -1,12 +1,12 @@
 version: "3.7"
-services: 
+services:
   config:
     image: trajano/cloud-config
     environment:
-      SPRING_ZIPKIN_BASE-URL: http://zipkin:9411/
-      SPRING_ZIPKIN_BASE_URL: http://zipkin:9411/
+      SPRING_ZIPKIN_BASE-URL: http://tracing:9411/
+      SPRING_ZIPKIN_SERVICE_NAME: config
     networks:
-      - management
+      - default
       - intranet
     deploy:
       replicas: 1
@@ -22,9 +22,52 @@ services:
         - traefik.http.routers.config.middlewares=default,strip-prefix@file
         - traefik.http.routers.config.service=config
         - traefik.http.services.config.loadbalancer.server.port=8080
+  eureka:
+    image: trajano/cloud-eureka
+    environment:
+      SPRING_ZIPKIN_BASE-URL: http://tracing:9411/
+      SPRING_ZIPKIN_SERVICE_NAME: config
+    networks:
+      - default
+      - intranet
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 10s
+      labels:
+        - intranet=true
+        - traefik.enable=true
+        - traefik.http.routers.config.entryPoints=http
+        - traefik.http.routers.config.middlewares=default,strip-prefix@file
+        - traefik.http.routers.config.service=config
+        - traefik.http.services.config.loadbalancer.server.port=8080
+  tracing:
+    image: alpine/socat
+    command: tcp-listen:9411,fork TCP:zipkin:9411
+    healthcheck:
+      test: socat /dev/null TCP:zipkin:9411
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 10s
+    networks:
+      - default
+      - management
 
 networks:
   management:
     external: true
   intranet:
     external: true
+#volumes:
+#  elasticsearch-data:
+#    driver_opts:
+#      type: nfs
+#      o: "addr=192.168.1.1,rw,nfsvers=3"
+#      device: ":/mnt/sda1/elasticsearch"
