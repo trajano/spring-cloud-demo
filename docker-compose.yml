@@ -1,0 +1,30 @@
+version: "3.7"
+services: 
+  config:
+    image: trajano/cloud-config
+    environment:
+      SPRING_ZIPKIN_BASE-URL: http://zipkin:9411/
+      SPRING_ZIPKIN_BASE_URL: http://zipkin:9411/
+    networks:
+      - management
+      - intranet
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 10s
+      labels:
+        - intranet=true
+        - traefik.enable=true
+        - traefik.http.routers.config.entryPoints=http
+        - traefik.http.routers.config.middlewares=default,strip-prefix@file
+        - traefik.http.routers.config.service=config
+        - traefik.http.services.config.loadbalancer.server.port=8080
+
+networks:
+  management:
+    external: true
+  intranet:
+    external: true

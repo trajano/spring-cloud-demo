@@ -1,0 +1,11 @@
+allprojects {
+    repositories {
+        jcenter() 
+    }
+}
+
+group = 'net.trajano.spring'
+
+subprojects {
+    version = '1.0'
+}
