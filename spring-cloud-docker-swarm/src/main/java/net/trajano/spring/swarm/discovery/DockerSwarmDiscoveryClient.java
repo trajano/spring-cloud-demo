@@ -12,10 +12,12 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.io.Closeable;
 import java.io.EOFException;
@@ -33,7 +35,7 @@ import static com.github.dockerjava.api.model.EndpointResolutionMode.DNSRR;
 import static com.github.dockerjava.api.model.EndpointResolutionMode.VIP;
 
 @Slf4j
-public class DockerSwarmDiscoveryClient implements DiscoveryClient, InitializingBean, DisposableBean {
+public class DockerSwarmDiscoveryClient implements ReactiveDiscoveryClient, InitializingBean, DisposableBean {
 
     @Autowired
     private DockerClient2 dockerClient;
@@ -218,20 +220,19 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
      * {@inheritDoc}
      */
     @Override
-    public List<ServiceInstance> getInstances(final String serviceId) {
-        if (!services.containsKey(serviceId)) {
-            return Collections.emptyList();
-        }
-        return services.get(serviceId);
+    public Flux<ServiceInstance> getInstances(final String serviceId) {
+        return Flux
+            .defer(() -> Flux.fromIterable(
+                services.computeIfAbsent(serviceId, k -> List.of())));
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<String> getServices() {
-
-        return new ArrayList<>(services.keySet());
+    public Flux<String> getServices() {
+        return Flux.defer(() -> Mono.justOrEmpty(services.keySet())
+            .flatMapIterable(s -> s));
     }
 
     private boolean isServiceDiscoverable(Service service) {

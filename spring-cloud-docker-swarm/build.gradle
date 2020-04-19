@@ -6,10 +6,10 @@ plugins {
 sourceCompatibility = '11'
 
 ext {
-    //set('springBootVersion', "2.2.6.RELEASE")
-    set('springBootVersion', "2.1.6.RELEASE")
-//    set('springCloudVersion', "Hoxton.SR3")
-    set('springCloudVersion', "Greenwich.SR4")
+    set('springBootVersion', "2.2.6.RELEASE")
+//    set('springBootVersion', "2.1.6.RELEASE")
+    set('springCloudVersion', "Hoxton.SR3")
+//    set('springCloudVersion', "Greenwich.SR4")
 }
 
 dependencies {

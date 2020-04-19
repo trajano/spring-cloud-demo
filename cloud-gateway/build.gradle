@@ -1,6 +1,6 @@
 plugins {
-    id 'org.springframework.boot' version '2.1.6.RELEASE'
-//    id 'org.springframework.boot' version '2.2.6.RELEASE'
+//    id 'org.springframework.boot' version '2.1.6.RELEASE'
+    id 'org.springframework.boot' version '2.2.6.RELEASE'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'com.google.cloud.tools.jib' version '2.2.0'
     id 'java'
@@ -13,8 +13,8 @@ springBoot {
 sourceCompatibility = '11'
 
 ext {
-//    set('springCloudVersion', "Hoxton.SR3")
-    set('springCloudVersion', "Greenwich.SR4")
+    set('springCloudVersion', "Hoxton.SR3")
+//    set('springCloudVersion', "Greenwich.SR4")
 }
 
 dependencies {
@@ -24,8 +24,8 @@ dependencies {
     runtimeOnly 'org.springframework.boot:spring-boot-starter-actuator'
     runtimeOnly 'org.springframework.cloud:spring-cloud-starter-sleuth'
     runtimeOnly 'org.springframework.cloud:spring-cloud-starter-zipkin'
-    runtimeOnly 'org.springframework.cloud:spring-cloud-loadbalancer'
-//    runtimeOnly 'org.springframework.cloud:spring-cloud-starter-loadbalancer:2.2.2.RELEASE'
+//    runtimeOnly 'org.springframework.cloud:spring-cloud-loadbalancer'
+    runtimeOnly 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
     runtimeOnly 'com.github.ben-manes.caffeine:caffeine'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
