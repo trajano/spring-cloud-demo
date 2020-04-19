@@ -38,6 +38,8 @@ services:
       SPRING_CLOUD_CONFIG_URI: http://configserver:8080/
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 3211:8080
     networks:
       - default
       - intranet
@@ -106,6 +108,7 @@ services:
           memory: 32M
       labels:
         - spring.service.discoverable=true
+        - spring.service.port=80
 
 networks:
   management:

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 
 import java.io.Closeable;
@@ -35,6 +36,9 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
 
     @Autowired
     private DockerClient2 dockerClient;
+
+    @Autowired
+    private ApplicationEventPublisher publisher;
 
     /**
      * Specifies a comma separated list of networks to look for services that contain the service labels.
@@ -83,9 +87,8 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
                 .parallelStream()
                 .map(ContainerNetwork::getNetworkID)
                 .collect(Collectors.toSet());
-            System.out.println(networkIDsToScan);
         }
-
+        log.debug("networkIDs to scan={}", networkIDsToScan);
         refreshAllServices();
     }
 
@@ -93,11 +96,15 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
         final Instant listServicesExecutedOn = Instant.now();
         log.debug("Refreshing all services on {}", listServicesExecutedOn);
 
-        dockerClient.listServicesCmd()
+        long count = dockerClient.listServicesCmd()
             .exec()
             .stream()
             .filter(this::isServiceDiscoverable)
-            .forEach(this::refresh);
+            .mapToLong(this::refresh)
+            .sum();
+//        if (count > 0) {
+//            publisher.publishEvent(new RefreshRoutesEvent(this));
+//        }
         eventsClosable = buildListener(listServicesExecutedOn);
     }
 
@@ -117,16 +124,19 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
                 public void onNext(final Event event) {
                     log.debug("event={}", event);
                     final String serviceID = event.getActor().getAttributes().get("name");
+                    long count = 0;
                     if ("remove".equals(event.getAction())) {
-                        removeService(serviceID);
+                        count += removeService(serviceID);
                     } else {
                         final Service service = dockerClient.inspectServiceCmd(serviceID).exec();
                         if (isServiceDiscoverable(service)) {
-                            refresh(service);
+                            count += refresh(service);
                         } else {
-                            removeService(serviceID);
+                            count += removeService(serviceID);
                         }
                     }
+                    log.debug("services={} changes={}", getServices(), count);
+
                 }
 
                 @Override
@@ -138,11 +148,11 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
             });
     }
 
-    private void removeService(String serviceID) {
-        services.remove(serviceID);
+    private long removeService(String serviceID) {
+        return services.remove(serviceID).size();
     }
 
-    private void refresh(final Service service) {
+    private long refresh(final Service service) {
         final Stream<? extends ServiceInstance> instances;
         if (service.getSpec().getEndpointSpec().getMode() == VIP) {
             instances = getServiceInstancesVip(service);
@@ -151,12 +161,14 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
         } else {
             throw new IllegalArgumentException(String.format("Unsupported mode %s", service.getSpec().getEndpointSpec().getMode()));
         }
-        instances.forEach(
-            serviceInstance -> {
-                services.computeIfAbsent(serviceInstance.getServiceId(), k -> new ArrayList<>())
-                    .add(serviceInstance);
-            }
-        );
+        return instances
+            .peek(
+                serviceInstance -> {
+                    services.computeIfAbsent(serviceInstance.getServiceId(), k -> new ArrayList<>())
+                        .add(serviceInstance);
+                }
+            )
+            .count();
     }
 
     /**
