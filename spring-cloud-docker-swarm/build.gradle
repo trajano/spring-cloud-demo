@@ -15,6 +15,7 @@ dependencies {
     compileOnly 'org.springframework.boot:spring-boot'
     compileOnly 'org.springframework.boot:spring-boot-autoconfigure'
     compileOnly 'org.springframework.cloud:spring-cloud-commons'
+    compileOnly 'org.springframework.cloud:spring-cloud-config-server'
     compileOnly 'org.springframework.cloud:spring-cloud-context'
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'

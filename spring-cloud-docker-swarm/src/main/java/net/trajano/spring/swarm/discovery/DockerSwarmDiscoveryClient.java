@@ -14,7 +14,6 @@ import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 
 import java.io.Closeable;
 import java.io.EOFException;
@@ -22,7 +21,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -70,7 +68,6 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
      */
     @Override
     public void afterPropertiesSet() {
-
         if (dockerDiscoveryNetworks != null) {
             networkIDsToScan = Arrays
                 .stream(dockerDiscoveryNetworks.split(","))
@@ -86,6 +83,7 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
                 .parallelStream()
                 .map(ContainerNetwork::getNetworkID)
                 .collect(Collectors.toSet());
+            System.out.println(networkIDsToScan);
         }
 
         refreshAllServices();
@@ -94,6 +92,7 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
     private void refreshAllServices() {
         final Instant listServicesExecutedOn = Instant.now();
         log.debug("Refreshing all services on {}", listServicesExecutedOn);
+
         dockerClient.listServicesCmd()
             .exec()
             .stream()
@@ -106,7 +105,7 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
 
         return dockerClient.eventsCmd2()
             .withEventTypeFilter(EventType2.SERVICE)
-            .withSince(DateTimeFormatter.ISO_INSTANT.format(since))
+//            .withSince(DateTimeFormatter.ISO_INSTANT.format(since))
             .withEventFilter(
                 "create",
                 "update",
@@ -116,7 +115,8 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
 
                 @Override
                 public void onNext(final Event event) {
-                    final String serviceID = event.getActor().getId();
+                    log.debug("event={}", event);
+                    final String serviceID = event.getActor().getAttributes().get("name");
                     if ("remove".equals(event.getAction())) {
                         removeService(serviceID);
                     } else {
@@ -221,7 +221,7 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
             .map(endpointVirtualIP -> endpointVirtualIP.getAddr().split("/")[0])
             .map(ipAddress -> new DefaultServiceInstance(
                 dockerService.getId() + "_" + ipAddress,
-                dockerService.getId(),
+                computeServiceID(dockerService),
                 ipAddress,
                 servicePort,
                 serviceSecure,
@@ -250,12 +250,26 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
             })
             .map(ipAddress -> new DefaultServiceInstance(
                 dockerService.getId() + "_" + ipAddress.getHostAddress(),
-                dockerService.getId(),
+                computeServiceID(dockerService),
                 ipAddress.getHostAddress(),
                 servicePort,
                 serviceSecure,
                 dockerService.getSpec().getLabels()));
 
+    }
+
+    private static String computeServiceID(Service service) {
+        final ServiceSpec serviceSpec = service.getSpec();
+        return serviceSpec.getLabels().computeIfAbsent("spring.service.id",
+            k -> {
+                final String namespace = serviceSpec.getLabels().get("com.docker.stack.namespace");
+                final String name = serviceSpec.getName();
+                if (namespace != null && name.startsWith(namespace + "_")) {
+                    return name.substring(namespace.length() + 1);
+                } else {
+                    return name;
+                }
+            });
     }
 
     private boolean isNetworkConsidered(Service s) {
