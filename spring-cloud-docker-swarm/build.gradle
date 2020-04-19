@@ -6,8 +6,10 @@ plugins {
 sourceCompatibility = '11'
 
 ext {
-    set('springBootVersion', "2.2.6.RELEASE")
-    set('springCloudVersion', "Hoxton.SR3")
+    //set('springBootVersion', "2.2.6.RELEASE")
+    set('springBootVersion', "2.1.6.RELEASE")
+//    set('springCloudVersion', "Hoxton.SR3")
+    set('springCloudVersion', "Greenwich.SR4")
 }
 
 dependencies {
@@ -20,6 +22,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
     implementation'org.springframework.cloud:spring-cloud-gateway-core'
+    implementation'org.springframework.cloud:spring-cloud-loadbalancer'
     implementation 'com.github.docker-java:docker-java-transport-okhttp:3.2.1'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'

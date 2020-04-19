@@ -2,3 +2,9 @@ logging:
   level:
     net.trajano.spring.swarm: DEBUG
     org.springframework.cloud.gateway: WARN
+spring:
+  cloud:
+    loadbalancer:
+      cache:
+        ttl: 5s
+        enabled: false

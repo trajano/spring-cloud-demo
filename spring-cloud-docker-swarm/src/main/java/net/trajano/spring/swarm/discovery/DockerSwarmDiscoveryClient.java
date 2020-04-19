@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 
@@ -92,6 +93,19 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
         refreshAllServices();
     }
 
+//    @Override
+//    public Flux<List<ServiceInstance>> get() {
+//        return Flux.generate(() -> {
+//
+//            }
+//        );
+//    }
+
+//    @Override
+//    public String getServiceId() {
+//        return null;
+//    }
+
     private void refreshAllServices() {
         final Instant listServicesExecutedOn = Instant.now();
         log.debug("Refreshing all services on {}", listServicesExecutedOn);
@@ -122,7 +136,7 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
 
                 @Override
                 public void onNext(final Event event) {
-                    log.debug("event={}", event);
+                    log.trace("event={}", event);
                     final String serviceID = event.getActor().getAttributes().get("name");
                     long count = 0;
                     if ("remove".equals(event.getAction())) {
@@ -136,20 +150,29 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
                         }
                     }
                     log.debug("services={} changes={}", getServices(), count);
-
+                    if (count > 0) {
+                        publisher.publishEvent(new RefreshRoutesEvent(this));
+                    }
                 }
 
                 @Override
                 public void onError(final Throwable e) {
                     if (e instanceof EOFException) {
                         refreshAllServices();
+                    } else {
+                        log.error("stream error", e);
                     }
                 }
             });
     }
 
     private long removeService(String serviceID) {
-        return services.remove(serviceID).size();
+        final List<ServiceInstance> remove = services.remove(serviceID);
+        if (remove == null) {
+            return 0;
+        } else {
+            return remove.size();
+        }
     }
 
     private long refresh(final Service service) {
@@ -260,6 +283,7 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient, Initializing
                     return Stream.empty();
                 }
             })
+            .peek(ipAddress -> log.debug("ip={}", ipAddress))
             .map(ipAddress -> new DefaultServiceInstance(
                 dockerService.getId() + "_" + ipAddress.getHostAddress(),
                 computeServiceID(dockerService),

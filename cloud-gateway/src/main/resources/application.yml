@@ -6,12 +6,7 @@ spring:
       enabled: true
       discovery:
         locator:
-          url-expression: "uri"
-          enabled: true  # default false
-logging:
-  level:
-    net.trajano.spring.swarm: DEBUG
-    org:
-      springframework:
-        cloud:
-          gateway: DEBUG
+          enabled: true
+    loadbalancer:
+      ribbon:
+        enabled: false

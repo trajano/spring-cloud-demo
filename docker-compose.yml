@@ -9,10 +9,10 @@ services:
     networks:
       - default
       - intranet
-    ports:
-      - 3111:8080
-    volumes:
-      - /d/p/spring-cloud-demo/cloud-config/src/main/resources/config:/config:ro
+#    ports:
+#      - 3111:8080
+#    volumes:
+#      - /d/p/spring-cloud-demo/cloud-config/src/main/resources/config:/config:ro
     deploy:
       replicas: 2
       update_config:
@@ -50,7 +50,7 @@ services:
       restart_policy:
         condition: any
         delay: 10s
-        max_attempts: 1
+        max_attempts: 2
       labels:
         - intranet=true
         - traefik.enable=true
@@ -102,6 +102,8 @@ services:
   whoami:
     image: containous/whoami
     deploy:
+      replicas: 2
+      endpoint_mode: dnsrr
       resources:
         limits:
           cpus: '0.5'

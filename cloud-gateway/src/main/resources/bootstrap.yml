@@ -2,3 +2,4 @@ spring:
   cloud:
     config:
       uri: http://configserver:8080/
+      failFast: true
