@@ -1,6 +1,6 @@
 version: "3.7"
 services:
-  config:
+  configserver:
     image: trajano/cloud-config
     environment:
       SPRING_ZIPKIN_BASE-URL: http://tracing:9411/
@@ -9,7 +9,7 @@ services:
       - default
       - intranet
     deploy:
-      replicas: 1
+      replicas: 2
       update_config:
         order: start-first
       restart_policy:
@@ -22,11 +22,16 @@ services:
         - traefik.http.routers.config.middlewares=default,strip-prefix@file
         - traefik.http.routers.config.service=config
         - traefik.http.services.config.loadbalancer.server.port=8080
-  eureka:
-    image: trajano/cloud-eureka
+  api:
+    image: trajano/cloud-gateway
     environment:
       SPRING_ZIPKIN_BASE-URL: http://tracing:9411/
-      SPRING_ZIPKIN_SERVICE_NAME: config
+      SPRING_ZIPKIN_SERVICE_NAME: gateway
+      SPRING_CLOUD_GATEWAY_DISCOVERY_LOCATOR_ENABLED: "true"
+#      SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED: "true"
+      SPRING_CLOUD_CONFIG_URI: http://configserver:8080/
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - default
       - intranet
@@ -37,13 +42,40 @@ services:
       restart_policy:
         condition: any
         delay: 10s
+        max_attempts: 1
       labels:
         - intranet=true
         - traefik.enable=true
-        - traefik.http.routers.config.entryPoints=http
-        - traefik.http.routers.config.middlewares=default,strip-prefix@file
-        - traefik.http.routers.config.service=config
-        - traefik.http.services.config.loadbalancer.server.port=8080
+        - traefik.http.routers.gateway.entryPoints=http
+        - traefik.http.routers.gateway.middlewares=default,strip-prefix@file
+        - traefik.http.routers.gateway.service=gateway
+        - traefik.http.services.gateway.loadbalancer.server.port=8080
+  eureka:
+    image: trajano/cloud-eureka
+    environment:
+      SPRING_ZIPKIN_BASE-URL: http://tracing:9411/
+      SPRING_ZIPKIN_SERVICE_NAME: eureka
+      SERVER_PORT: "8761"
+      EUREKA_INTANCE_HOSTNAME: eureka
+      EUREKA_CLIENT_REGISTERWITHEUREKA: "false"
+      EUREKA_CLIENT_SERVERURL_DEFAULTZONE: http://eureka:8761/eureka/
+    networks:
+      - default
+      - intranet
+    deploy:
+      replicas: 0
+      update_config:
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 10s
+      labels:
+        - intranet=true
+        - traefik.enable=true
+        - traefik.http.routers.eureka.entryPoints=http
+        - traefik.http.routers.eureka.middlewares=default
+        - traefik.http.routers.eureka.service=config
+        - traefik.http.services.eureka.loadbalancer.server.port=8761
   tracing:
     image: alpine/socat
     command: tcp-listen:9411,fork TCP:zipkin:9411

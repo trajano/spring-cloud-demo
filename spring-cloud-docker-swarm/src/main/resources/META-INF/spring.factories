@@ -1,0 +1,4 @@
+org.springframework.boot.env.EnvironmentPostProcessor=net.trajano.spring.swarm.profile.DockerSwarmEnvironmentPostProcessor
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+net.trajano.spring.swarm.discovery.DockerSwarmDiscoveryClientAutoConfiguration,\
+net.trajano.spring.swarm.discovery.DockerClientProvider

@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: gateway
+#  cloud:
+#    gateway:
+#      discovery:
+#        locator: enabled
+logging:
+  level:
+    net.trajano.spring.swarm: DEBUG

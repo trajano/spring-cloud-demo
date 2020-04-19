@@ -1,0 +1,1 @@
+docker service create --publish 5000:5000 registry:2
