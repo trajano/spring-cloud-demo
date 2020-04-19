@@ -2,7 +2,6 @@ package net.trajano.spring.swarm.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.annotation.CheckForNull;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -53,7 +52,6 @@ public class ConfigSpec implements Serializable {
     /**
      * @see #labels
      */
-    @CheckForNull
     public Map<String, String> getLabels() {
         return labels;
     }

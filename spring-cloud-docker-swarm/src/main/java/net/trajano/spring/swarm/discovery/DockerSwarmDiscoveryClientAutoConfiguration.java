@@ -13,7 +13,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-@Configuration(proxyBeanMethods = false)
+//@Configuration(proxyBeanMethods = false)
+@Configuration
 @ConditionalOnDockerSwarmEnabled
 @AutoConfigureBefore({SimpleDiscoveryClientAutoConfiguration.class,
     DiscoveryClientConfigServiceBootstrapConfiguration.class,
