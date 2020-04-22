@@ -1,0 +1,123 @@
+version: "3.7"
+services:
+  configserver:
+    image: trajano/cloud-config
+    environment:
+      SPRING_ZIPKIN_BASE-URL: http://tracing:9411/
+      SPRING_ZIPKIN_SERVICE_NAME: config
+      SPRING_PROFILES_ACTIVE: native
+    networks:
+      - default
+      - intranet
+    ports:
+      - 3111:8080
+    volumes:
+      - /d/p/spring-cloud-demo/cloud-config/src/main/resources/config:/config:ro
+    deploy:
+      replicas: 2
+      update_config:
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 10s
+      labels:
+        - spring.service.discoverable=true
+        - intranet=true
+        - traefik.enable=true
+        - traefik.http.routers.config.middlewares=strip-prefix@file
+        - traefik.http.services.config.loadbalancer.server.port=8080
+  api:
+    image: trajano/cloud-gateway
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://configserver:8080/
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - 3211:8080
+    networks:
+      - default
+      - intranet
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 2
+      labels:
+        - intranet=true
+        - traefik.enable=true
+        - traefik.http.routers.api.rule=PathPrefix(`/v1`)
+        - traefik.http.routers.api.middlewares=strip-prefix@file
+        # - traefik.http.routers.api.service=api
+        - traefik.http.services.api.loadbalancer.server.port=8080
+  eureka:
+    image: trajano/cloud-eureka
+    environment:
+      SPRING_ZIPKIN_BASE-URL: http://tracing:9411/
+      SPRING_ZIPKIN_SERVICE_NAME: eureka
+      SERVER_PORT: "8761"
+      EUREKA_INTANCE_HOSTNAME: eureka
+      EUREKA_CLIENT_REGISTERWITHEUREKA: "false"
+      EUREKA_CLIENT_SERVERURL_DEFAULTZONE: http://eureka:8761/eureka/
+    networks:
+      - default
+      - intranet
+    deploy:
+      replicas: 0
+      update_config:
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 10s
+      labels:
+        - intranet=true
+        - traefik.enable=true
+        - traefik.http.services.eureka.loadbalancer.server.port=8761
+  tracing:
+    image: alpine/socat
+    command: tcp-listen:9411,fork TCP:zipkin:9411
+    healthcheck:
+      test: socat /dev/null TCP:zipkin:9411
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 10s
+    networks:
+      - default
+      - management
+  auth:
+    image: trajano/cloud-auth
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://configserver:8080/
+    deploy:
+      labels:
+        - spring.service.discoverable=true
+  whoami:
+    image: containous/whoami
+    deploy:
+      replicas: 2
+      endpoint_mode: dnsrr
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 32M
+      labels:
+        - spring.service.discoverable=true
+        - spring.service.port=80
+
+networks:
+  management:
+    external: true
+  intranet:
+    external: true
+#volumes:
+#  elasticsearch-data:
+#    driver_opts:
+#      type: nfs
+#      o: "addr=192.168.1.1,rw,nfsvers=3"
+#      device: ":/mnt/sda1/elasticsearch"

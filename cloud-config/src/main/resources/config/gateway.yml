@@ -8,3 +8,13 @@ spring:
       cache:
         ttl: 5s
         enabled: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 434054152947-a0tdkv2u4oiebstd6i46urvorkspqptu.apps.googleusercontent.com
+            client-secret: v6R-MtfKDY3V-9UGcDnROXbU
+management:
+  endpoint.gateway.enabled: true
+  endpoints.web.exposure.include: "*"

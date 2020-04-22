@@ -1,4 +1,5 @@
 rootProject.name = 'spring-cloud-demo'
+include 'cloud-auth'
 include 'cloud-config'
 include 'cloud-eureka'
 include 'cloud-gateway'

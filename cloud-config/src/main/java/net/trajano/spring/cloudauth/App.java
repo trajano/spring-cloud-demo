@@ -1,11 +1,8 @@
-package net.trajano.spring.cloudconfig;
+package net.trajano.spring.cloudauth;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.config.server.EnableConfigServer;
-
-import javax.annotation.PostConstruct;
 
 @SpringBootApplication
 @EnableConfigServer
