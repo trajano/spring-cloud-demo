@@ -18,7 +18,7 @@ ext {
 }
 
 dependencies {
-    runtimeOnly project(':spring-cloud-docker-swarm')
+    implementation project(':spring-cloud-docker-swarm')
     runtimeOnly 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
     runtimeOnly 'org.springframework.boot:spring-boot-starter-actuator'

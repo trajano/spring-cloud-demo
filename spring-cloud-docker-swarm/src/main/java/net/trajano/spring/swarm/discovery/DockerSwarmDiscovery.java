@@ -198,23 +198,18 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
      * @return number of instances created
      */
     private long refresh(@NotNull final Service service) {
-        final Stream<? extends ServiceInstance> instances;
+        final Stream<? extends ServiceInstance> instanceStream;
         if (service.getSpec().getEndpointSpec().getMode() == VIP) {
-            instances = getServiceInstancesVip(service);
+            instanceStream = getServiceInstancesVip(service);
         } else if (service.getSpec().getEndpointSpec().getMode() == DNSRR) {
-            instances = getServiceInstancesDnsRR(service);
+            instanceStream = getServiceInstancesDnsRR(service);
         } else {
             throw new IllegalArgumentException(String.format("Unsupported mode %s", service.getSpec().getEndpointSpec().getMode()));
         }
-        return instances
-            .peek(
-                serviceInstance -> {
-                    discoveryToDockerServiceIdMap.put(serviceInstance.getServiceId(), service.getId());
-                    services.computeIfAbsent(service.getId(), k -> new ArrayList<>())
-                        .add(serviceInstance);
-                }
-            )
-            .count();
+        discoveryToDockerServiceIdMap.put(computeDiscoveryServiceId(service), service.getId());
+        final List<ServiceInstance> instances = instanceStream.collect(Collectors.toList());
+        services.put(service.getId(), instances);
+        return instances.size();
     }
 
     /**
@@ -272,6 +267,14 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
                 dockerService.getSpec().getLabels()));
     }
 
+    /**
+     * Build the service instance when endpoint mode is DNSRR.  When DNSRR is enabled, the IP address cannot be
+     * determined from the service spec and Docker does not notify when the Tasks are up as such only the
+     * DNS name is used as the host which also means that every request will incur a DNS lookup.
+     *
+     * @param dockerService docker service
+     * @return service instance stream
+     */
     private Stream<? extends ServiceInstance> getServiceInstancesDnsRR(final Service dockerService) {
 
         final int servicePort = Integer.parseInt(dockerService.getSpec().getLabels().getOrDefault("spring.service.port", "8080"));
@@ -284,19 +287,10 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
             .map(NetworkAttachmentConfig::getAliases)
             .flatMap(Collection::stream)
             .distinct()
-            .flatMap(networkAlias -> {
-                try {
-                    final InetAddress[] ipAddresses = InetAddress.getAllByName(networkAlias);
-                    return Arrays.stream(ipAddresses);
-                } catch (UnknownHostException e1) {
-                    return Stream.empty();
-                }
-            })
-            .peek(ipAddress -> log.debug("ip={}", ipAddress))
-            .map(ipAddress -> new DefaultServiceInstance(
-                dockerService.getId() + "_" + ipAddress.getHostAddress(),
+            .map(alias -> new DefaultServiceInstance(
+                dockerService.getId() + "_" + alias,
                 computeDiscoveryServiceId(dockerService),
-                ipAddress.getHostAddress(),
+                alias,
                 servicePort,
                 serviceSecure,
                 dockerService.getSpec().getLabels()));
