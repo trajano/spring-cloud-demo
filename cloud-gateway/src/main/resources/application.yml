@@ -4,15 +4,12 @@ spring:
   cloud:
     gateway:
       default-filters:
-#        - TokenRelay
+        - TokenRelay
         - RemoveRequestHeader=Cookie
       enabled: true
       discovery:
         locator:
-#          url-expression: "uri"
           enabled: true
     loadbalancer:
       ribbon:
         enabled: false
-#server:
-#  forward-headers-strategy: native

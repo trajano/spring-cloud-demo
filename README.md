@@ -6,6 +6,8 @@ This provide:
 
 ## Discovery Client
 
+The Docker Swarm `DiscoveryClient` and `ReactiveDiscoveryClient` is meant to be used when the service is expected to not know what other services exist.  The best use case for this would be Spring Cloud Gateway.  It is not meant to replace Docker Swarm's load balancing or internal DNS registrations.  As such do not use it to discover the `configserver` it is best that services look that up using the DNS.     
+
 This is done through labels:
 
     spring.service.id: myservice
@@ -26,17 +28,26 @@ Service instance uses HTTPS.  Defaults to `false`
 
 It uses the following application properties
 
-    docker.discovery.enabled: "true"
+    docker.swarm.discovery.enabled: "true"
     
 Enables functionality
 
-    docker.discovery.networks: "mynetwork,othernetwork"
+    docker.swarm.discovery.daemon-uri: "unix:///var/run/docker.sock"
     
-Specifies a comma separated list of networks to look for services that contain the service defintions.  If not specified it will use all the networks that the container has access to.
+This is the Docker daemon URI.  This defaults to `unix:///var/run/docker.sock` which is expected to be on a manager node.  **tecnativa/docker-socket-proxy** can be used to proxy the daemon from the manager node to worker nodes for better scaling and security as it will ensure read-only operations are performed on the Docker daemon.
 
-    docker.discovery.use-container-labels: "false"
+    docker.swarm.discovery.networks: "mynetwork,othernetwork"
     
-Allows reading the labels from the container (as opposed to the service).  This is used for non-swarm configurations and is false by default.
+Specifies a comma separated list of networks to look for services that contain the service labels. If not specified it will use all the networks that the container has access to.
+
+## Note
+
+* This cannot be used to detect the config server.  In a swarm, it is best that the config server is referenced directly by setting the following in bootstrap.yml of the service or through the environment variable.
+
+    ```yaml
+    spring:
+      cloud.config.uri: http://configserver:8080/
+    ```
 
 ## Testing notes
 

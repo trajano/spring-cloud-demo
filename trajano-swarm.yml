@@ -29,7 +29,9 @@ services:
   api:
     image: trajano/cloud-gateway
     environment:
-      SPRING_CLOUD_CONFIG_URI: http://configserver:8080/
+#      SPRING_CLOUD_CONFIG_URI: http://configserver:8080/
+      SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED: "true"
+      DOCKER_SWARM_DISCOVERY_ENABLED: "true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
@@ -93,8 +95,13 @@ services:
   auth:
     image: trajano/cloud-auth
     environment:
-      SPRING_CLOUD_CONFIG_URI: http://configserver:8080/
+      SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED: "true"
+#      SPRING_CLOUD_CONFIG_URI: http://configserver:8080/
     deploy:
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 2
       labels:
         - spring.service.discoverable=true
   whoami:

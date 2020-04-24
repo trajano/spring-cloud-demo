@@ -11,6 +11,14 @@ import java.util.Set;
 @Data
 public class DockerSwarmDiscoveryProperties {
     /**
+     * This is the docker daemon URI.  This defaults to {@code unix:///var/run/docker.sock} which is expected to be on
+     * a manager node.  {@code tecnativa/docker-socket-proxy} can be used to proxy the daemon from the manager node
+     * to worker nodes for better scaling and security as it will ensure read-only operations are performed on the
+     * Docker daemon.
+     */
+    private String daemonUri = "unix:///var/run/docker.sock";
+
+    /**
      * Specifies a comma separated list of networks to look for services that contain the service labels.
      * If not specified it will use all the networks that the container has access to.
      */
@@ -27,4 +35,5 @@ public class DockerSwarmDiscoveryProperties {
     public boolean hasNetworks() {
         return networks != null && !networks.isBlank();
     }
+
 }

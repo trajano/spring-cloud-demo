@@ -3,6 +3,7 @@ package net.trajano.spring.cloudgateway;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.server.adapter.ForwardedHeaderTransformer;
 
@@ -10,6 +11,7 @@ import java.security.Security;
 
 @SpringBootApplication
 @EnableAutoConfiguration
+@EnableDiscoveryClient
 public class App {
 //    @Bean
 //    public ForwardedHeaderTransformer forwardedHeaderTransformer() {

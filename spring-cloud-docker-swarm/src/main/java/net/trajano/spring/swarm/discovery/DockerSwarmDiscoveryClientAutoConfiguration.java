@@ -8,6 +8,7 @@ import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
+import org.springframework.cloud.config.client.ConfigServiceBootstrapConfiguration;
 import org.springframework.cloud.config.client.DiscoveryClientConfigServiceBootstrapConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,9 +20,10 @@ import org.springframework.context.annotation.Configuration;
 @AutoConfigureAfter({
     DockerSwarmDiscoveryAutoConfiguration.class
 })
-@AutoConfigureBefore({SimpleDiscoveryClientAutoConfiguration.class,
-    DiscoveryClientConfigServiceBootstrapConfiguration.class,
-    CommonsClientAutoConfiguration.class})
+@AutoConfigureBefore({
+    SimpleDiscoveryClientAutoConfiguration.class,
+    CommonsClientAutoConfiguration.class
+})
 @Slf4j
 public class DockerSwarmDiscoveryClientAutoConfiguration {
 

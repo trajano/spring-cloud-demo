@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
-@ConditionalOnProperty(value = "spring.cloud.dockerswarm.discovery.enabled", matchIfMissing = true)
+@ConditionalOnProperty(value = "docker.swarm.discovery.enabled", matchIfMissing = true)
 public @interface ConditionalOnDockerSwarmDiscoveryEnabled {
 }

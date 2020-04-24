@@ -5,25 +5,24 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnReactiveDiscoveryEnabled;
-import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
-import org.springframework.cloud.config.client.DiscoveryClientConfigServiceBootstrapConfiguration;
+import org.springframework.cloud.client.ReactiveCommonsClientAutoConfiguration;
+import org.springframework.cloud.client.discovery.composite.reactive.ReactiveCompositeDiscoveryClientAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
-//@Configuration
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnReactiveDiscoveryEnabled
 @ConditionalOnDockerSwarmDiscoveryEnabled
 @AutoConfigureAfter({
-    DockerSwarmDiscoveryAutoConfiguration.class
+    DockerSwarmDiscoveryAutoConfiguration.class,
+    ReactiveCompositeDiscoveryClientAutoConfiguration.class
 })
-@AutoConfigureBefore({SimpleDiscoveryClientAutoConfiguration.class,
-    DiscoveryClientConfigServiceBootstrapConfiguration.class,
-    CommonsClientAutoConfiguration.class})
+@AutoConfigureBefore({
+    ReactiveCommonsClientAutoConfiguration.class
+})
 @Slf4j
 public class DockerSwarmReactiveDiscoveryClientAutoConfiguration {
 
