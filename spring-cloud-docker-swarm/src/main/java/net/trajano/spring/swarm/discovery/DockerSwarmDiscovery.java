@@ -10,7 +10,6 @@ import net.trajano.spring.swarm.client.EventType2;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
@@ -20,8 +19,6 @@ import javax.validation.constraints.NotNull;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,6 +28,7 @@ import java.util.stream.Stream;
 
 import static com.github.dockerjava.api.model.EndpointResolutionMode.DNSRR;
 import static com.github.dockerjava.api.model.EndpointResolutionMode.VIP;
+import static net.trajano.spring.swarm.discovery.DockerSwarmDiscoveryUtil.computeDiscoveryServiceId;
 
 /**
  *
@@ -135,7 +133,7 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
                     } else {
                         final Service service = dockerClient.inspectServiceCmd(serviceID).exec();
                         if (isReplicaCountZero(service)) {
-                            log.debug("{} replica count = 0, removing service {}", count, serviceID);
+                            log.debug("replica count = 0, removing service {}", serviceID);
                             count += removeService(serviceID);
                         } else if (isServiceDiscoverable(service)) {
                             count += refresh(service);
@@ -153,8 +151,10 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
                 public void onError(final Throwable e) {
                     if (e instanceof EOFException) {
                         refreshAllServices();
+                    } else if (e instanceof IllegalStateException && "closed".equals(e.getMessage())) {
+                        log.trace("accessing a closed stream, may occur when shutting down", e);
                     } else {
-                        log.error("stream error", e);
+                        log.error("Stream error", e);
                     }
                 }
             });
@@ -175,14 +175,16 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
     /**
      * Remove a service.
      *
-     * @param discoveryServiceID discovery service ID
+     * @param dockerServiceID docker service ID
      * @return number of instances that were removed.
      */
-    private long removeService(final String discoveryServiceID) {
-        final String dockerServiceID = discoveryToDockerServiceIdMap.get(discoveryServiceID);
-        if (dockerServiceID == null) {
-            return 0L;
-        }
+    private long removeService(final String dockerServiceID) {
+        discoveryToDockerServiceIdMap
+            .entrySet()
+            .stream()
+            .filter(e -> dockerServiceID.equals(e.getValue())).findAny()
+            .map(Map.Entry::getKey)
+            .ifPresent(s -> discoveryToDockerServiceIdMap.remove(s, dockerServiceID));
         final List<ServiceInstance> remove = services.remove(dockerServiceID);
         if (remove == null) {
             return 0L;
@@ -248,9 +250,6 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
 
     private Stream<? extends ServiceInstance> getServiceInstancesVip(final Service dockerService) {
 
-        final int servicePort = Integer.parseInt(dockerService.getSpec().getLabels().getOrDefault("spring.service.port", "8080"));
-        final boolean serviceSecure = Boolean.parseBoolean(dockerService.getSpec().getLabels().getOrDefault("spring.service.secure", "false"));
-
         final EndpointVirtualIP[] virtualIPs = dockerService.getEndpoint().getVirtualIPs();
         if (virtualIPs == null) {
             return Stream.empty();
@@ -258,13 +257,7 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
         return Arrays.stream(virtualIPs)
             .filter(endpointVirtualIP -> networkIDsToScan.contains(endpointVirtualIP.getNetworkID()))
             .map(endpointVirtualIP -> endpointVirtualIP.getAddr().split("/")[0])
-            .map(ipAddress -> new DefaultServiceInstance(
-                dockerService.getId() + "_" + ipAddress,
-                computeDiscoveryServiceId(dockerService),
-                ipAddress,
-                servicePort,
-                serviceSecure,
-                dockerService.getSpec().getLabels()));
+            .map(ipAddress -> new DockerSwarmServiceInstance(dockerService, ipAddress));
     }
 
     /**
@@ -277,8 +270,6 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
      */
     private Stream<? extends ServiceInstance> getServiceInstancesDnsRR(final Service dockerService) {
 
-        final int servicePort = Integer.parseInt(dockerService.getSpec().getLabels().getOrDefault("spring.service.port", "8080"));
-        final boolean serviceSecure = Boolean.parseBoolean(dockerService.getSpec().getLabels().getOrDefault("spring.service.secure", "false"));
         final List<NetworkAttachmentConfig> taskNetworks = dockerService.getSpec().getTaskTemplate().getNetworks();
 
         return taskNetworks
@@ -287,38 +278,8 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
             .map(NetworkAttachmentConfig::getAliases)
             .flatMap(Collection::stream)
             .distinct()
-            .map(alias -> new DefaultServiceInstance(
-                dockerService.getId() + "_" + alias,
-                computeDiscoveryServiceId(dockerService),
-                alias,
-                servicePort,
-                serviceSecure,
-                dockerService.getSpec().getLabels()));
+            .map(alias -> new DockerSwarmServiceInstance(dockerService, alias));
 
     }
 
-    @NotNull
-    private static String computeDiscoveryServiceId(@NotNull final Service service) {
-        final ServiceSpec serviceSpec = service.getSpec();
-        return serviceSpec.getLabels().computeIfAbsent("spring.service.id",
-            k -> {
-                final String namespace = serviceSpec.getLabels().get("com.docker.stack.namespace");
-                final String name = serviceSpec.getName();
-                if (namespace != null && name.startsWith(namespace + "_")) {
-                    return name.substring(namespace.length() + 1);
-                } else {
-                    return name;
-                }
-            });
-    }
-
-    private boolean isNetworkConsidered(Service s) {
-        final Set<String> networksForService = s.getSpec()
-            .getNetworks()
-            .stream()
-            .map(NetworkAttachmentConfig::getTarget)
-            .collect(Collectors.toSet());
-        networksForService.retainAll(networkIDsToScan);
-        return !networksForService.isEmpty();
-    }
 }

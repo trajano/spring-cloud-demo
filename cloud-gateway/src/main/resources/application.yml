@@ -3,10 +3,16 @@ spring:
     name: gateway
   cloud:
     gateway:
+      default-filters:
+#        - TokenRelay
+        - RemoveRequestHeader=Cookie
       enabled: true
       discovery:
         locator:
+#          url-expression: "uri"
           enabled: true
     loadbalancer:
       ribbon:
         enabled: false
+#server:
+#  forward-headers-strategy: native
