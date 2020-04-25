@@ -10,8 +10,6 @@ import org.springframework.web.server.adapter.ForwardedHeaderTransformer;
 import java.security.Security;
 
 @SpringBootApplication
-@EnableAutoConfiguration
-@EnableDiscoveryClient
 public class App {
 //    @Bean
 //    public ForwardedHeaderTransformer forwardedHeaderTransformer() {

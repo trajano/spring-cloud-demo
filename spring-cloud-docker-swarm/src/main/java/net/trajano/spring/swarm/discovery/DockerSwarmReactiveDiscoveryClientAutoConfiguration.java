@@ -26,17 +26,9 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 public class DockerSwarmReactiveDiscoveryClientAutoConfiguration {
 
-    /**
-     * Specifies a comma separated list of networks to look for services that contain the service labels.
-     * If not specified it will use all the networks that the container has access to.
-     */
-    @Value("${docker.discovery.networks:#{null}}")
-    private String dockerDiscoveryNetworks;
-
     @Bean
     @ConditionalOnMissingBean
     public DockerSwarmReactiveDiscoveryClient dockerSwarmReactiveDiscoveryClient(final DockerSwarmDiscovery dockerSwarmDiscovery) {
-        log.warn("Building client");
         return new DockerSwarmReactiveDiscoveryClient(dockerSwarmDiscovery);
     }
 }

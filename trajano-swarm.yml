@@ -30,8 +30,9 @@ services:
     image: trajano/cloud-gateway
     environment:
 #      SPRING_CLOUD_CONFIG_URI: http://configserver:8080/
-      SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED: "true"
-      DOCKER_SWARM_DISCOVERY_ENABLED: "true"
+      - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=true
+      # - DOCKER_SWARM_DISCOVERY_ENABLED=true
+      # DEBUG: "true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
@@ -45,8 +46,8 @@ services:
         order: start-first
       restart_policy:
         condition: any
-        delay: 10s
-        max_attempts: 2
+        delay: 60s
+        max_attempts: 1
       labels:
         - intranet=true
         - traefik.enable=true
@@ -101,7 +102,7 @@ services:
       restart_policy:
         condition: any
         delay: 10s
-        max_attempts: 2
+        max_attempts: 1
       labels:
         - spring.service.discoverable=true
   whoami:
