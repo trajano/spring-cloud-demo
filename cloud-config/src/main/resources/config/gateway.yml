@@ -6,9 +6,12 @@ logging:
     org.springframework: DEBUG
 spring:
   cloud:
+    gateway:
+      discovery:
+        locator:
+          include-expression: metadata['spring.gateway.expose'] != 'false'
     loadbalancer:
       cache:
-        ttl: 5s
         enabled: false
   security:
     oauth2:

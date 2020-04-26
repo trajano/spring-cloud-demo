@@ -1,33 +1,26 @@
 plugins {
-//    id 'org.springframework.boot' version '2.1.6.RELEASE'
     id 'org.springframework.boot' version '2.2.6.RELEASE'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'com.google.cloud.tools.jib' version '2.2.0'
     id 'java'
 }
 
-springBoot {
-    buildInfo()
-}
-
 sourceCompatibility = '11'
 
 ext {
     set('springCloudVersion', "Hoxton.SR3")
-//    set('springCloudVersion', "Greenwich.SR4")
 }
 
 dependencies {
-    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-    implementation 'org.springframework.cloud:spring-cloud-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-    implementation project(':spring-cloud-docker-swarm')
+    // implementation 'org.springframework.cloud:spring-cloud-starter-security'
+    implementation 'org.springframework.security:spring-security-config'
+    implementation 'org.springframework.security:spring-security-oauth2-resource-server'
+    implementation 'org.springframework.security:spring-security-oauth2-jose'
+    implementation 'org.springframework.security:spring-security-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
     runtimeOnly 'org.springframework.cloud:spring-cloud-starter-config'
     runtimeOnly 'org.springframework.boot:spring-boot-starter-actuator'
-    runtimeOnly 'org.springframework.cloud:spring-cloud-starter-sleuth'
     runtimeOnly 'org.springframework.cloud:spring-cloud-starter-zipkin'
-    implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
-    runtimeOnly 'com.github.ben-manes.caffeine:caffeine'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
@@ -38,9 +31,7 @@ dependencyManagement {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
 }
-bootJar {
-    requiresUnpack '**/spring-cloud-docker-swarm-*.jar'
-}
+
 test {
     useJUnitPlatform()
 }
@@ -50,9 +41,6 @@ jib {
         image = 'openjdk:11-jre'
     }
     to {
-        image = "trajano/cloud-gateway"
-    }
-    container {
-        ports = ['8080']
+        image = "trajano/sample-service"
     }
 }

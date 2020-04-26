@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: sample
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+
+debug: true
+

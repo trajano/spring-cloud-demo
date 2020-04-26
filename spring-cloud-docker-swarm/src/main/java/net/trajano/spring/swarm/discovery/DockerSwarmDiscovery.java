@@ -11,6 +11,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 
@@ -92,6 +93,8 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
         refreshAllServices();
     }
 
+    private boolean initialRefresh = true;
+
     private void refreshAllServices() {
         final Instant listServicesExecutedOn = Instant.now();
         log.debug("Refreshing all services on {}", listServicesExecutedOn);
@@ -104,9 +107,10 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
             .mapToLong(this::refresh)
             .sum();
         eventsClosable = buildListener(listServicesExecutedOn);
-//        if (count > 0) {
-//            publisher.publishEvent(new RefreshRoutesEvent(this));
-//        }
+        if (count > 0 && !initialRefresh) {
+            publisher.publishEvent(new InstanceRegisteredEvent<Void>(this, null));
+        }
+        initialRefresh = false;
     }
 
     private ResultCallback<Event> buildListener(final Instant since) {
@@ -140,9 +144,9 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
                         }
                     }
                     log.debug("{} changes detected, services={}", count, discoveryToDockerServiceIdMap.keySet());
-//                    if (count > 0) {
-//                        publisher.publishEvent(new RefreshRoutesEvent(this));
-//                    }
+                    if (count > 0) {
+                        publisher.publishEvent(new InstanceRegisteredEvent<Void>(this, null));
+                    }
                 }
 
                 @Override

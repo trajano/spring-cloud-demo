@@ -6,32 +6,14 @@ spring:
       default-filters:
         - TokenRelay
         - RemoveRequestHeader=Cookie
-      enabled: true
       discovery:
         locator:
           enabled: true
           predicates:
             - Path='/*/'+serviceId+'/**'
-      routes:
-        - id: httpbin
-          uri: https://httpbin.org
-          predicates:
-            - Path=/get/**
           filters:
-            - RewritePath=/get,/anything
-        - id: httpbin
-          uri: https://httpbin.org
-          predicates:
-            - Path=/actuator/**
-          filters:
-            - RewritePath=/actuator,/anything
-        - id: httpbin
-          uri: https://httpbin.org
-          predicates:
-            - Path=/services/**
-          filters:
-            - RewritePath=/services,/anything
-#            - RewritePath=/get(?<segment>/?.*), /anything/$\{segment}
+            - StripPrefix=2
+      enabled: true
     loadbalancer:
       ribbon:
         enabled: false
