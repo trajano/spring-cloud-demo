@@ -4,12 +4,34 @@ spring:
   cloud:
     gateway:
       default-filters:
-#        - TokenRelay
+        - TokenRelay
         - RemoveRequestHeader=Cookie
       enabled: true
       discovery:
         locator:
           enabled: true
+          predicates:
+            - Path='/*/'+serviceId+'/**'
+      routes:
+        - id: httpbin
+          uri: https://httpbin.org
+          predicates:
+            - Path=/get/**
+          filters:
+            - RewritePath=/get,/anything
+        - id: httpbin
+          uri: https://httpbin.org
+          predicates:
+            - Path=/actuator/**
+          filters:
+            - RewritePath=/actuator,/anything
+        - id: httpbin
+          uri: https://httpbin.org
+          predicates:
+            - Path=/services/**
+          filters:
+            - RewritePath=/services,/anything
+#            - RewritePath=/get(?<segment>/?.*), /anything/$\{segment}
     loadbalancer:
       ribbon:
         enabled: false

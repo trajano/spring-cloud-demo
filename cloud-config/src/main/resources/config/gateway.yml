@@ -1,6 +1,7 @@
 logging:
   level:
     net.trajano.spring.swarm: DEBUG
+    # org.springframework.cloud.gateway: DEBUG
     # org.springframework.cloud.gateway: WARN
     org.springframework: DEBUG
 spring:

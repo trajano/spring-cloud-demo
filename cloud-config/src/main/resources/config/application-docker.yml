@@ -2,5 +2,3 @@ spring:
   main.banner-mode: "off"
   zipkin:
     base-url: http://tracing:9411/
-server:
-  forward-headers-strategy: NATIVE

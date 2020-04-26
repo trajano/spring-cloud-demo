@@ -21,7 +21,7 @@ services:
         condition: any
         delay: 10s
       labels:
-        - spring.service.discoverable=true
+#        - spring.service.discoverable=true
         - intranet=true
         - traefik.enable=true
         - traefik.http.routers.config.middlewares=strip-prefix@file
@@ -29,10 +29,8 @@ services:
   api:
     image: trajano/cloud-gateway
     environment:
-#      SPRING_CLOUD_CONFIG_URI: http://configserver:8080/
-      - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=true
-      # - DOCKER_SWARM_DISCOVERY_ENABLED=true
-      # DEBUG: "true"
+      - SPRING_CLOUD_CONFIG_URI=http://configserver:8080
+#      - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
@@ -53,7 +51,6 @@ services:
         - traefik.enable=true
         - traefik.http.routers.api.rule=PathPrefix(`/v1`)
         - traefik.http.routers.api.middlewares=strip-prefix@file
-        # - traefik.http.routers.api.service=api
         - traefik.http.services.api.loadbalancer.server.port=8080
   eureka:
     image: trajano/cloud-eureka
@@ -90,14 +87,15 @@ services:
       restart_policy:
         condition: any
         delay: 10s
+#      labels:
+#        - spring.service.discoverable=true
     networks:
       - default
       - management
   auth:
     image: trajano/cloud-auth
     environment:
-      SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED: "true"
-#      SPRING_CLOUD_CONFIG_URI: http://configserver:8080/
+      - SPRING_CLOUD_CONFIG_URI=http://configserver:8080
     deploy:
       restart_policy:
         condition: any
@@ -105,6 +103,8 @@ services:
         max_attempts: 1
       labels:
         - spring.service.discoverable=true
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock:ro
   whoami:
     image: containous/whoami
     deploy:
