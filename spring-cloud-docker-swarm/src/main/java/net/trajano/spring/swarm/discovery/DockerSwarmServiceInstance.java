@@ -3,8 +3,6 @@ package net.trajano.spring.swarm.discovery;
 import com.github.dockerjava.api.model.Service;
 import org.springframework.cloud.client.DefaultServiceInstance;
 
-import javax.validation.constraints.NotNull;
-
 import static net.trajano.spring.swarm.discovery.DockerSwarmDiscoveryUtil.computeDiscoveryServiceId;
 
 /**
@@ -13,8 +11,8 @@ import static net.trajano.spring.swarm.discovery.DockerSwarmDiscoveryUtil.comput
 public class DockerSwarmServiceInstance extends DefaultServiceInstance {
 
     public DockerSwarmServiceInstance(
-        @NotNull final Service service,
-        @NotNull final String host
+         final Service service,
+         final String host
     ) {
 
         super(service.getId() + "_" + host,

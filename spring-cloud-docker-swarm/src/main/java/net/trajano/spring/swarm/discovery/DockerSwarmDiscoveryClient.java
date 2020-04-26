@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +12,7 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient {
 
     private final DockerSwarmDiscovery dockerSwarmDiscovery;
 
-    public DockerSwarmDiscoveryClient(@NotNull DockerSwarmDiscovery dockerSwarmDiscovery) {
+    public DockerSwarmDiscoveryClient( DockerSwarmDiscovery dockerSwarmDiscovery) {
         this.dockerSwarmDiscovery = dockerSwarmDiscovery;
     }
 

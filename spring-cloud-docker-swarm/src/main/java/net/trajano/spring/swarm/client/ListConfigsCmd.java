@@ -1,7 +1,6 @@
 package net.trajano.spring.swarm.client;
 
 import com.github.dockerjava.api.command.DockerCmdSyncExec;
-import com.github.dockerjava.api.command.ListSecretsCmd;
 import com.github.dockerjava.api.command.SyncDockerCmd;
 
 import java.util.List;

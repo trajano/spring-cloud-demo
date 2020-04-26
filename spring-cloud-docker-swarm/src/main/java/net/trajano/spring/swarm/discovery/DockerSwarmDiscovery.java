@@ -11,11 +11,9 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 
-import javax.validation.constraints.NotNull;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
@@ -142,9 +140,9 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
                         }
                     }
                     log.debug("{} changes detected, services={}", count, discoveryToDockerServiceIdMap.keySet());
-                    if (count > 0) {
-                        publisher.publishEvent(new RefreshRoutesEvent(this));
-                    }
+//                    if (count > 0) {
+//                        publisher.publishEvent(new RefreshRoutesEvent(this));
+//                    }
                 }
 
                 @Override
@@ -199,7 +197,7 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
      * @param service service
      * @return number of instances created
      */
-    private long refresh(@NotNull final Service service) {
+    private long refresh(final Service service) {
         final Stream<? extends ServiceInstance> instanceStream;
         if (service.getSpec().getEndpointSpec().getMode() == VIP) {
             instanceStream = getServiceInstancesVip(service);

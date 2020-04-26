@@ -3,7 +3,6 @@ package net.trajano.spring.swarm.discovery;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import javax.validation.constraints.NotNull;
 import java.util.Optional;
 import java.util.Set;
 
@@ -24,7 +23,7 @@ public class DockerSwarmDiscoveryProperties {
      */
     private String networks;
 
-    @NotNull
+
     public Set<String> getNetworks() {
         return Optional.ofNullable(networks)
             .map(r -> r.split(","))

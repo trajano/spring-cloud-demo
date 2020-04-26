@@ -4,7 +4,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.ReactiveCommonsClientAutoConfiguration;
 import org.springframework.cloud.config.client.ConfigServicePropertySourceLocator;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -23,9 +22,4 @@ import org.springframework.context.annotation.Import;
     ReactiveCommonsClientAutoConfiguration.class
 })
 public class DockerSwarmDiscoveryClientConfigServiceBootstrapConfiguration {
-    @Bean
-    public StackWalker log() {
-        System.out.println("DockerSwarmDiscoveryClientConfigServiceBootstrapConfiguration");
-        return StackWalker.getInstance();
-    }
 }
