@@ -17,15 +17,6 @@ public class App {
         return new ForwardedHeaderTransformer();
     }
 
-//    @Bean
-//    public Customizer<ReactiveResilience4JCircuitBreakerFactory> slowCustomizer() {
-//        return factory -> {
-//            factory.configure(builder -> builder
-//                .timeLimiterConfig(TimeLimiterConfig.custom().timeoutDuration(Duration.ofSeconds(2)).build())
-//                .circuitBreakerConfig(CircuitBreakerConfig.ofDefaults()), "slow", "slowflux");
-//        };
-//    }
-
     @Bean
     public RouteLocator routes(RouteLocatorBuilder builder) {
         return builder.routes()

@@ -16,8 +16,6 @@ public class SecurityConfig {
             .authorizeExchange(exchanges -> exchanges
                 .pathMatchers("/auth/**").permitAll()
                 .pathMatchers("/actuator/**").permitAll()
-                    .pathMatchers("/v1/actuator/**").permitAll()
-                .pathMatchers("/v1/auth/**").permitAll()
 
 //                .pathMatchers("/whoami").permitAll()
 

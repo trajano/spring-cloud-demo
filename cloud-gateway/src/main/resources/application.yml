@@ -15,7 +15,6 @@ spring:
             - RemoveRequestHeader='Cookie'
             - TokenRelay
             - "CircuitBreaker"
-            # - "CircuitBreaker='slowCustomizer'"
             - "StripPrefix=metadata['spring.gateway.strip-prefix'] ?: 2"
       enabled: true
       routes:
@@ -23,6 +22,7 @@ spring:
           predicates:
             - Path='/*/auth/**'
           filters:
+            - "PreserveHostHeader"
             - "StripPrefix=1"
           uri: http://auth:8080
 #            - "CircuitBreaker"

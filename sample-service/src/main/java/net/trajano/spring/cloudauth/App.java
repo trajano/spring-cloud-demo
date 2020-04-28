@@ -30,16 +30,6 @@ public class App {
         return claims;
     }
 
-//    @GetMapping("/")
-//    public Map<String, Object> index(@RequestHeader("X-B3-Traceid") String traceId) {
-//        final Map<String, Object> claims = Map.of(
-//            //"claims", jwt.getClaims(),
-//            "trace", traceId
-//        );
-//        System.out.println(claims);
-//        return claims;
-//    }
-
     @RequestMapping(value = "/user")
     public Principal user(Principal principal) {
         return principal;

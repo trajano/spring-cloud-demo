@@ -5,10 +5,5 @@ spring:
   security:
     oauth2:
       resourceserver:
-#        opaquetoken:
-#          client-id: spring-cloud-demo
-#          client-secret:  spring-cloud-demo-secret
-#          introspection-uri: http://auth:8080/auth/realms/spring-cloud-demo/protocol/openid-connect/token/introspect
         jwt:
-#          issuer-uri: 'https://i.trajano.net/v1/auth/realms/spring-cloud-demo'
           jwk-set-uri: 'http://auth:8080/auth/realms/spring-cloud-demo/protocol/openid-connect/certs'
