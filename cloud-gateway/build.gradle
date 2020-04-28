@@ -26,6 +26,7 @@ dependencies {
     runtimeOnly 'org.springframework.boot:spring-boot-starter-actuator'
     runtimeOnly 'org.springframework.cloud:spring-cloud-starter-sleuth'
     runtimeOnly 'org.springframework.cloud:spring-cloud-starter-zipkin'
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
     implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
     runtimeOnly 'com.github.ben-manes.caffeine:caffeine'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {

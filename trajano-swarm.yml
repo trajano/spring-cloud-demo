@@ -1,7 +1,8 @@
 version: "3.7"
 services:
   configserver:
-    image: trajano/cloud-config
+    # image: trajano/cloud-config
+    image: springcloud/configserver
     environment:
       SPRING_ZIPKIN_BASE-URL: http://tracing:9411/
       SPRING_ZIPKIN_SERVICE_NAME: config
@@ -9,8 +10,6 @@ services:
     networks:
       - default
       - intranet
-    ports:
-      - 3111:8080
     volumes:
       - /d/p/spring-cloud-demo/cloud-config/src/main/resources/config:/config:ro
     deploy:
@@ -22,16 +21,18 @@ services:
         delay: 10s
       labels:
         - spring.service.discoverable=true
+        - spring.service.port=8888
         - spring.gateway.expose=false
-        - intranet=true
-        - traefik.enable=true
-        - traefik.http.routers.config.middlewares=strip-prefix@file
-        - traefik.http.services.config.loadbalancer.server.port=8080
+#        - intranet=true
+#        - traefik.enable=true
+#        - traefik.http.routers.config.middlewares=strip-prefix@file
+#        - traefik.http.services.config.loadbalancer.server.port=8080
   api:
     image: trajano/cloud-gateway
     environment:
-      - SPRING_CLOUD_CONFIG_URI=http://configserver:8080
-#      - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=true
+#      - SPRING_CLOUD_CONFIG_URI=http://configserver:8080
+      - SPRING_CLOUD_CONFIG_FAILFAST=true
+      - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
@@ -97,20 +98,52 @@ services:
   auth:
     image: trajano/cloud-auth
     environment:
-      - SPRING_CLOUD_CONFIG_URI=http://configserver:8080
+      - DB_VENDOR=postgres
+      - DB_ADDR=keycloakdb
+      - DB_USER=keycloak
+      - DB_PASSWORD=password
+      - ZIPKIN_COLLECTOR_HTTP_SERVICE_HOST=tracing
+      - ZIPKIN_COLLECTOR_HTTP_SERVICE_PORT=9411
+    networks:
+      - default
+      - auth
+    ports:
+      - 3111:8080
     deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 500m
       restart_policy:
         condition: any
         delay: 10s
         max_attempts: 1
       labels:
         - spring.service.discoverable=true
+        - spring.gateway.strip-prefix=1
+  #    volumes:
+  #      - /var/run/docker.sock:/var/run/docker.sock:ro
+  keycloakdb:
+    image: postgres
+    environment:
+      - POSTGRES_DB=keycloak
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=password
+    networks:
+      - auth
+    deploy:
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 1
+#      labels:
+#        - spring.service.discoverable=true
   #    volumes:
   #      - /var/run/docker.sock:/var/run/docker.sock:ro
   sample:
     image: trajano/sample-service
     environment:
-      - SPRING_CLOUD_CONFIG_URI=http://configserver:8080
+      - SPRING_CLOUD_CONFIG_URI=http://configserver:8888
     deploy:
       restart_policy:
         condition: any
@@ -118,8 +151,8 @@ services:
         max_attempts: 1
       labels:
         - spring.service.discoverable=true
-  uaa:
-    image: cfidentity/uaa
+#  uaa:
+#    image: cfidentity/uaa
 
   whoami:
     image: containous/whoami
@@ -139,6 +172,8 @@ networks:
     external: true
   intranet:
     external: true
+  auth:
+    internal: true
 #volumes:
 #  elasticsearch-data:
 #    driver_opts:

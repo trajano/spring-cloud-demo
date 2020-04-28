@@ -1,50 +1,20 @@
 plugins {
-    id 'org.springframework.boot' version '2.2.6.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
-    id 'com.google.cloud.tools.jib' version '2.2.0'
-    id 'java'
+//    id 'com.bmuschko.docker-remote-api' version '6.4.0'
 }
 
-sourceCompatibility = '11'
-
-ext {
-    set('springCloudVersion', "Hoxton.SR3")
+//import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+//import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
+task dockerBuildImage(type: Exec) {
+//    inputDir = projectDir
+//    images.add('trajano/cloud-auth')
+    commandLine "docker", "build", ".", "-t", "trajano/cloud-auth"
 }
 
-dependencies {
-//    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.cloud:spring-cloud-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-//    implementation 'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.2.6.RELEASE'
-//    implementation 'org.springframework.security:spring-security-oauth2-client'
-//    implementation 'org.springframework.security:spring-security-oauth2-jose'
-//    implementation 'org.springframework.cloud:spring-cloud-loadbalancer'
-    implementation 'org.springframework.security:spring-security-config'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    runtimeOnly 'org.springframework.cloud:spring-cloud-starter-config'
-    runtimeOnly 'org.springframework.boot:spring-boot-starter-actuator'
-    runtimeOnly 'org.springframework.cloud:spring-cloud-starter-zipkin'
-    testImplementation('org.springframework.boot:spring-boot-starter-test') {
-        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
-    }
-//    runtimeOnly project(':spring-cloud-docker-swarm')
+task dockerPushImage(type: Exec) {
+    dependsOn dockerBuildImage
+    commandLine "docker", "push", "trajano/cloud-auth"
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-    }
-}
-
-test {
-    useJUnitPlatform()
-}
-tasks.build.dependsOn tasks.jib
-jib {
-    from {
-        image = 'openjdk:11-jre'
-    }
-    to {
-        image = "trajano/cloud-auth"
-    }
+task build {
+    dependsOn tasks.dockerPushImage
 }

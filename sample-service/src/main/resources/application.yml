@@ -1,10 +1,8 @@
 spring:
   application:
     name: sample
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-
+#        opaquetoken:
+#          client-id: spring-cloud-demo
+#          client-secret:  spring-cloud-demo-secret
+#          introspection-uri: http://auth:8080/auth/realms/spring-cloud-demo/protocol/openid-connect/token/introspect
 debug: true
-

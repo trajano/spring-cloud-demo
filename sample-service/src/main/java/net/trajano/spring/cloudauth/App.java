@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
+import java.util.Map;
 
 @SpringBootApplication
 @RestController
-//@EnableOAuth2Client
 public class App {
 
     public static void main(String[] args) {
@@ -21,9 +21,24 @@ public class App {
     }
 
     @GetMapping("/")
-    public String index(@RequestHeader("X-B3-Traceid") String traceId, @AuthenticationPrincipal Jwt jwt) {
-        return String.format("Hello, %s %s!", jwt.getSubject(), traceId);
+    public Map<String, Object> index(@RequestHeader("X-B3-Traceid") String traceId, @AuthenticationPrincipal Jwt jwt) {
+        final Map<String, Object> claims = Map.of(
+            "claims", jwt.getClaims(),
+            "trace", traceId
+        );
+        System.out.println(claims);
+        return claims;
     }
+
+//    @GetMapping("/")
+//    public Map<String, Object> index(@RequestHeader("X-B3-Traceid") String traceId) {
+//        final Map<String, Object> claims = Map.of(
+//            //"claims", jwt.getClaims(),
+//            "trace", traceId
+//        );
+//        System.out.println(claims);
+//        return claims;
+//    }
 
     @RequestMapping(value = "/user")
     public Principal user(Principal principal) {

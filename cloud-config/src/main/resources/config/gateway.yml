@@ -1,15 +1,12 @@
 logging:
   level:
     net.trajano.spring.swarm: DEBUG
-    # org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.sleuth: WARN
     # org.springframework.cloud.gateway: WARN
     org.springframework: DEBUG
 spring:
   cloud:
-    gateway:
-      discovery:
-        locator:
-          include-expression: metadata['spring.gateway.expose'] != 'false'
     loadbalancer:
       cache:
         enabled: false
@@ -17,10 +14,31 @@ spring:
     oauth2:
       client:
         registration:
-          google:
-            client-id: 434054152947-a0tdkv2u4oiebstd6i46urvorkspqptu.apps.googleusercontent.com
-            client-secret: v6R-MtfKDY3V-9UGcDnROXbU
-docker.discovery.networks: spring_default
+          keycloak:
+            client-id: spring-cloud-demo
+            client-secret:  spring-cloud-demo-secret
+            clientName: Keycloak
+            authorization-grant-type: authorization_code
+            redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'
+            scope:
+              - openid
+              - profile
+              - email
+#          google:
+#            client-id: 434054152947-a0tdkv2u4oiebstd6i46urvorkspqptu.apps.googleusercontent.com
+#            client-secret: v6R-MtfKDY3V-9UGcDnROXbU
+
+        provider:
+          keycloak:
+            authorization-uri: 'https://i.trajano.net/v1/auth/realms/spring-cloud-demo/protocol/openid-connect/auth'
+            token-uri: 'http://auth:8080/auth/realms/spring-cloud-demo/protocol/openid-connect/token'
+            jwk-set-uri: 'http://auth:8080/auth/realms/spring-cloud-demo/protocol/openid-connect/certs'
+            user-info-uri: 'http://auth:8080/auth/realms/spring-cloud-demo/protocol/openid-connect/userinfo'
+            user-name-attribute: preferred_username
+
+docker.swarm:
+  discovery:
+    networks: spring_default
 management:
   endpoint.gateway.enabled: true
   endpoints.web.exposure.include: "*"
