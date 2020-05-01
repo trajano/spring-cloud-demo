@@ -15,10 +15,8 @@ public class SecurityConfig {
         http
             .authorizeExchange(exchanges -> exchanges
                 .pathMatchers("/auth/**").permitAll()
+                .pathMatchers("/*/auth/**").permitAll()
                 .pathMatchers("/actuator/**").permitAll()
-
-//                .pathMatchers("/whoami").permitAll()
-
                 .anyExchange().authenticated()
             )
             .oauth2Login();
