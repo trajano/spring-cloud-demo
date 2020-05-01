@@ -1,13 +1,12 @@
 package net.trajano.spring.swarm.discovery;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Configuration;
-
-import javax.annotation.PostConstruct;
 
 /**
  * This replaces the {@link ApplicationEventPublisher} on the {@link DockerSwarmDiscovery} with the one provided in the
@@ -18,7 +17,7 @@ import javax.annotation.PostConstruct;
 @Configuration
 @ConditionalOnBean(DockerSwarmDiscovery.class)
 @Slf4j
-public class DockerSwarmDiscoveryWatchAutoConfiguration {
+public class DockerSwarmDiscoveryWatchAutoConfiguration implements InitializingBean {
 
     @Autowired
     private DockerSwarmDiscovery dockerSwarmDiscovery;
@@ -26,8 +25,8 @@ public class DockerSwarmDiscoveryWatchAutoConfiguration {
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
-    @PostConstruct
-    public void injectPublisher() {
+    @Override
+    public void afterPropertiesSet() throws Exception {
         dockerSwarmDiscovery.setApplicationEventPublisher(applicationEventPublisher);
     }
 
