@@ -10,13 +10,11 @@ import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnDockerSwarmDiscoveryEnabled
 @EnableConfigurationProperties
-@EnableScheduling
 @Slf4j
 public class DockerSwarmDiscoveryAutoConfiguration {
 

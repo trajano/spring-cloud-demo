@@ -715,7 +715,7 @@
         "https://i.trajano.net/v1/*"
       ],
       "webOrigins": [
-        "https://i.trajano.net"
+        "*"
       ],
       "notBefore": 0,
       "bearerOnly": false,

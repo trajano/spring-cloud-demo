@@ -1,7 +1,7 @@
 logging:
   level:
     net.trajano.spring.swarm: DEBUG
-#    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway: DEBUG
     org.springframework.cloud.sleuth: WARN
     # org.springframework.cloud.gateway: WARN
 #    org.springframework: DEBUG
@@ -10,9 +10,20 @@ spring:
 #    discovery:
 #      reactive:
 #        enabled: false
-    loadbalancer:
-      cache:
-        enabled: false
+#    loadbalancer:
+#      cache:
+#        enabled: false
+    gateway:
+      routes:
+        - id: auth_route
+          predicates:
+            - Path=/*/auth/**
+          filters:
+            - "PreserveHostHeader"
+            - "StripPrefix=1"
+            - "CircuitBreaker"
+#          uri: lb://auth
+          uri: http://auth:8080
   security:
     oauth2:
       client:
@@ -27,10 +38,6 @@ spring:
               - openid
               - profile
               - email
-#          google:
-#            client-id: 434054152947-a0tdkv2u4oiebstd6i46urvorkspqptu.apps.googleusercontent.com
-#            client-secret: v6R-MtfKDY3V-9UGcDnROXbU
-
         provider:
           keycloak:
             authorization-uri: 'https://i.trajano.net/v1/auth/realms/spring-cloud-demo/protocol/openid-connect/auth'

@@ -8,12 +8,12 @@ task dockerBuildImage(type: Exec) {
 //    inputDir = projectDir
 //    images.add('trajano/cloud-auth')
     environment "DOCKER_BUILDKIT", "1"
-    commandLine "docker", "build", ".", "-t", "trajano/cloud-auth"
+    commandLine "docker", "build", ".", "-t", "trajano/cloud-vue-app"
 }
 
 task dockerPushImage(type: Exec) {
     dependsOn dockerBuildImage
-    commandLine "docker", "push", "trajano/cloud-auth"
+    commandLine "docker", "push", "trajano/cloud-vue-app"
 }
 
 task build {

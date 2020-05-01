@@ -3,12 +3,11 @@ spring:
     name: gateway
   cloud:
     gateway:
-      default-filters: {}
       discovery:
         locator:
           enabled: true
           include-expression: metadata['spring.gateway.expose'] != 'false'
-          url-expression: 'uri'
+#          url-expression: 'uri'
           predicates:
             - Path='/*/'+serviceId+'/**'
           filters:
@@ -16,32 +15,6 @@ spring:
             - TokenRelay
             - "CircuitBreaker"
             - "StripPrefix=metadata['spring.gateway.strip-prefix'] ?: 2"
-      enabled: true
-      routes:
-        - id: auth_route
-          predicates:
-            - Path='/*/auth/**'
-          filters:
-            - "PreserveHostHeader"
-            - "StripPrefix=1"
-          uri: http://auth:8080
-#            - "CircuitBreaker"
-#        - id: auth2
-#          #          uri: http://auth:8080
-#          uri: http://whoami
-#          order: 2
-#          predicates:
-#            - Path='/auth/**'
-#          filters:
-#            - "CircuitBreaker"
-#            - "StripPrefix=1"
-#        - id: auth
-#          uri: http://auth:8080
-#          predicates:
-#            - Path='/auth/**'
-#          filters:
-#            - "CircuitBreaker"
-#            - "StripPrefix=1"
     loadbalancer:
       ribbon:
         enabled: false
