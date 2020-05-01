@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Import;
     // @EnableDiscoveryClient, the import
     // selector doesn't run before the
     // bootstrap phase
-    DockerClientConfiguration.class,
     DockerSwarmDiscoveryAutoConfiguration.class,
     DockerSwarmReactiveDiscoveryClientAutoConfiguration.class,
     ReactiveCommonsClientAutoConfiguration.class

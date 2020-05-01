@@ -12,7 +12,7 @@ public class DockerSwarmDiscoveryClient implements DiscoveryClient {
 
     private final DockerSwarmDiscovery dockerSwarmDiscovery;
 
-    public DockerSwarmDiscoveryClient( DockerSwarmDiscovery dockerSwarmDiscovery) {
+    public DockerSwarmDiscoveryClient(final DockerSwarmDiscovery dockerSwarmDiscovery) {
         this.dockerSwarmDiscovery = dockerSwarmDiscovery;
     }
 

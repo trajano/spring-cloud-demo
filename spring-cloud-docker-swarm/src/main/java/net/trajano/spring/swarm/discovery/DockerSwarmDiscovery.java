@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.core.env.Environment;
 
 import java.io.Closeable;
@@ -33,18 +34,20 @@ import static net.trajano.spring.swarm.discovery.DockerSwarmDiscoveryUtil.comput
  *
  */
 @Slf4j
-public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
+public class DockerSwarmDiscovery implements InitializingBean, DisposableBean, ApplicationEventPublisherAware {
 
     private final DockerSwarmDiscoveryProperties properties;
 
     @Autowired
     private DockerClient2 dockerClient;
 
-    @Autowired
     private ApplicationEventPublisher publisher;
 
     @Autowired
     private Environment environment;
+
+    @Autowired
+    private DockerSwarmWatchTask dockerSwarmWatchTask;
 
     private Closeable eventsClosable;
 
@@ -108,7 +111,7 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
             .sum();
         eventsClosable = buildListener(listServicesExecutedOn);
         if (count > 0 && !initialRefresh) {
-            publisher.publishEvent(new InstanceRegisteredEvent<Void>(this, null));
+            dockerSwarmWatchTask.publish();
         }
         initialRefresh = false;
     }
@@ -145,7 +148,9 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
                     }
                     log.debug("{} changes detected, services={}", count, discoveryToDockerServiceIdMap.keySet());
                     if (count > 0) {
-                        publisher.publishEvent(new InstanceRegisteredEvent<Void>(this, null));
+                        System.out.println("publishing to " + publisher);
+                        dockerSwarmWatchTask.publish();
+//                        publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceID));
                     }
                 }
 
@@ -284,4 +289,8 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean {
 
     }
 
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
+        this.publisher = publisher;
+    }
 }

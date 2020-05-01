@@ -37,6 +37,11 @@ Enables functionality
     
 Specifies a comma separated list of networks to look for services that contain the service defintions.  If not specified it will use all the networks that the container has access to.
 
+    docker.swarm.discovery.watch-delay: 100
+    
+Number of milliseconds representing how long a delay before trying to update the routes again.
+
+
 ## Note
 
 * This cannot be used to detect the config server.  In a swarm, it is best that the config server is referenced directly by setting the following in bootstrap.yml of the service or through the environment variable.

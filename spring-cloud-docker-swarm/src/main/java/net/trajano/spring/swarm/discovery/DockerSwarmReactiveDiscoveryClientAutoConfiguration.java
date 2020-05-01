@@ -11,7 +11,7 @@ import org.springframework.cloud.client.discovery.composite.reactive.ReactiveCom
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration(proxyBeanMethods = false)
+@Configuration(proxyBeanMethods = true)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnReactiveDiscoveryEnabled
 @ConditionalOnDockerSwarmDiscoveryEnabled
