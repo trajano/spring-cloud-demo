@@ -3,15 +3,11 @@ package net.trajano.spring.cloudgateway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
-import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.support.ConfigurationService;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.event.EventListener;
 import org.springframework.web.server.adapter.ForwardedHeaderTransformer;
 
 import java.security.Security;
@@ -29,21 +25,6 @@ public class App {
 
     @Autowired
     private ConfigurationService configurationService;
-
-    @EventListener(RefreshRoutesEvent.class)
-    public void listen(RefreshRoutesEvent e) {
-        System.out.println(e + " pub" + configurationService.getPublisher());
-    }
-
-    @EventListener(InstanceRegisteredEvent.class)
-    public void listen(InstanceRegisteredEvent e) {
-        System.out.println("> " + e + " pub" + publisher);
-    }
-
-    @EventListener(ApplicationEvent.class)
-    public void listen(ApplicationEvent e) {
-        System.out.println(">> " + e + " pub" + (publisher == configurationService.getPublisher()));
-    }
 
     @Bean
     public RouteLocator routes(RouteLocatorBuilder builder) {

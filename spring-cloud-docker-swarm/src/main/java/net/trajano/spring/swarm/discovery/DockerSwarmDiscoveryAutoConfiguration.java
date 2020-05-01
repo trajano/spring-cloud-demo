@@ -4,17 +4,15 @@ import com.github.dockerjava.okhttp.OkHttpDockerCmdExecFactory;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.spring.swarm.client.DockerClient2;
 import net.trajano.spring.swarm.client.DockerClientImpl2;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@Configuration(proxyBeanMethods = true)
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnDockerSwarmDiscoveryEnabled
 @EnableConfigurationProperties
@@ -44,15 +42,6 @@ public class DockerSwarmDiscoveryAutoConfiguration {
             .withDockerCmdExecFactory(
                 new OkHttpDockerCmdExecFactory()
             );
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public DockerSwarmWatchTask dockerSwarmWatchTask(
-        final DockerSwarmDiscoveryProperties properties,
-        final ApplicationEventPublisher applicationEventPublisher,
-        final ObjectProvider<TaskScheduler> taskSchedulerProvider) {
-        return new DockerSwarmWatchTask(properties, applicationEventPublisher, taskSchedulerProvider);
     }
 
 }

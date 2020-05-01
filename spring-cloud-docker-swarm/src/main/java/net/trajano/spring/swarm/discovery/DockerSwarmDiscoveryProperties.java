@@ -24,9 +24,9 @@ public class DockerSwarmDiscoveryProperties {
     private String networks;
 
     /**
-     * Specifies the number of milliseconds to wait between event publishing.
+     * Specifies the number of milliseconds to wait between event publishing.  Defaults to 1 second.
      */
-    private long watchDelay = 100;
+    private long watchDelay = 1000;
 
     public Set<String> getNetworks() {
         return Optional.ofNullable(networks)

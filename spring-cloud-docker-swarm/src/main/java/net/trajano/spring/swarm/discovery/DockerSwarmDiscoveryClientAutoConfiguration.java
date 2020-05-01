@@ -11,7 +11,7 @@ import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAu
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration(proxyBeanMethods = true)
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
 @ConditionalOnBlockingDiscoveryEnabled
 @ConditionalOnDockerSwarmDiscoveryEnabled

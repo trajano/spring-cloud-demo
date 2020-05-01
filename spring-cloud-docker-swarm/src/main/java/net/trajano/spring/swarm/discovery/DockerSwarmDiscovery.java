@@ -46,9 +46,6 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean, A
     @Autowired
     private Environment environment;
 
-    @Autowired
-    private DockerSwarmWatchTask dockerSwarmWatchTask;
-
     private Closeable eventsClosable;
 
     /**
@@ -111,7 +108,7 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean, A
             .sum();
         eventsClosable = buildListener(listServicesExecutedOn);
         if (count > 0 && !initialRefresh) {
-            dockerSwarmWatchTask.publish();
+            publisher.publishEvent(new InstanceRegisteredEvent<>(this, ""));
         }
         initialRefresh = false;
     }
@@ -148,9 +145,7 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean, A
                     }
                     log.debug("{} changes detected, services={}", count, discoveryToDockerServiceIdMap.keySet());
                     if (count > 0) {
-                        System.out.println("publishing to " + publisher);
-                        dockerSwarmWatchTask.publish();
-//                        publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceID));
+                        publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceID));
                     }
                 }
 
