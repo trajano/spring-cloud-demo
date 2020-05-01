@@ -20,6 +20,8 @@ import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -93,8 +95,6 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean, A
         refreshAllServices();
     }
 
-    private boolean initialRefresh = true;
-
     private void refreshAllServices() {
         final Instant listServicesExecutedOn = Instant.now();
         log.debug("Refreshing all services on {}", listServicesExecutedOn);
@@ -107,17 +107,16 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean, A
             .mapToLong(this::refresh)
             .sum();
         eventsClosable = buildListener(listServicesExecutedOn);
-        if (count > 0 && !initialRefresh) {
-            publisher.publishEvent(new InstanceRegisteredEvent<>(this, ""));
+        if (count > 0) {
+            publisher.publishEvent(new InstanceRegisteredEvent<Void>(this, null));
         }
-        initialRefresh = false;
     }
 
     private ResultCallback<Event> buildListener(final Instant since) {
 
         return dockerClient.eventsCmd2()
             .withEventTypeFilter(EventType2.SERVICE)
-//            .withSince(DateTimeFormatter.ISO_INSTANT.format(since))
+            .withSince(DateTimeFormatter.ISO_INSTANT.format(since.truncatedTo(ChronoUnit.SECONDS)))
             .withEventFilter(
                 "create",
                 "update",
