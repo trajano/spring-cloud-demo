@@ -21,7 +21,7 @@ public class SecurityConfig {
                 .anyExchange().authenticated()
             )
             .oauth2Login();
-//        http.headers().frameOptions().mode(XFrameOptionsServerHttpHeadersWriter.Mode.SAMEORIGIN);
+        http.headers().frameOptions().mode(XFrameOptionsServerHttpHeadersWriter.Mode.SAMEORIGIN);
         http.cors();
         http.csrf().disable();
         return http.build();
