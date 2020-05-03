@@ -1,4 +1,0 @@
-spring:
-  application:
-    name: auth
-debug: true

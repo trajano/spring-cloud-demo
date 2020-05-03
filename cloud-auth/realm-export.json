@@ -770,10 +770,12 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "spring-cloud-demo-secret",
       "redirectUris": [
-        "https://i.trajano.net/"
+        "https://i.trajano.net/",
+        "http://localhost:8080/"
       ],
       "webOrigins": [
-        "https://i.trajano.net"
+        "https://i.trajano.net",
+        "http://localhost:8080"
       ],
       "notBefore": 0,
       "bearerOnly": false,

@@ -29,8 +29,9 @@ spring:
       client:
         registration:
           keycloak:
-            client-id: spring-cloud-demo
-            client-secret:  spring-cloud-demo-secret
+            client-id: vue-test-app
+#            client-id: spring-cloud-demo
+#            client-secret:  spring-cloud-demo-secret
             clientName: Keycloak
             authorization-grant-type: authorization_code
             redirect-uri: '{baseUrl}/login/oauth2/code/{registrationId}'

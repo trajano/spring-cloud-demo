@@ -32,9 +32,13 @@ keycloak.init({ onLoad: initOptions.onLoad }).success((auth) =>{
     } else {
       Vue.$log.info("Authenticated");
     }
- 
+
+    keycloak.loadUserInfo();
     new Vue({
       render: h => h(App),
+      data: {
+        keycloak
+      },
     }).$mount('#app')
   
 
