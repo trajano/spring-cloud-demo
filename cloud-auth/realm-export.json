@@ -771,6 +771,7 @@
       "secret": "spring-cloud-demo-secret",
       "redirectUris": [
         "https://i.trajano.net/",
+        "https://i.trajano.net/v1/login/oauth2/code/keycloak",
         "http://localhost:8080/"
       ],
       "webOrigins": [
