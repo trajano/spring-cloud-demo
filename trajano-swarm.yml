@@ -119,8 +119,29 @@ services:
       - DB_ADDR=keycloakdb
       - DB_USER=keycloak
       - DB_PASSWORD=password
-      - ZIPKIN_COLLECTOR_HTTP_SERVICE_HOST=tracing
-      - ZIPKIN_COLLECTOR_HTTP_SERVICE_PORT=9411
+      - KEYCLOAK_FRONTEND_URL=https://i.trajano.net/v1/auth
+    networks:
+      - default
+      - auth
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 500m
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 1
+      labels:
+        - spring.service.discoverable=true
+        - spring.gateway.strip-prefix=1
+  auth-admin:
+    image: trajano/cloud-auth
+    environment:
+      - DB_VENDOR=postgres
+      - DB_ADDR=keycloakdb
+      - DB_USER=keycloak
+      - DB_PASSWORD=password
     networks:
       - default
       - auth
@@ -135,9 +156,6 @@ services:
         condition: any
         delay: 10s
         max_attempts: 1
-      labels:
-        - spring.service.discoverable=true
-        - spring.gateway.strip-prefix=1
   #    volumes:
   #      - /var/run/docker.sock:/var/run/docker.sock:ro
   keycloakdb:

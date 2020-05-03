@@ -24,6 +24,15 @@ spring:
             - "CircuitBreaker"
           uri: http://auth:8080
           order: -2
+        - id: auth_resources_route
+          predicates:
+            - Path=/*/auth/resources/**
+          filters:
+            - "PreserveHostHeader"
+            - "StripPrefix=1"
+            - "CircuitBreaker"
+          uri: http://auth:8080
+          order: -2
         - id: auth_route
           predicates:
             - Path=/*/auth/**
