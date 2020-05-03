@@ -116,7 +116,7 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean, A
 
         return dockerClient.eventsCmd2()
             .withEventTypeFilter(EventType2.SERVICE)
-            .withSince(DateTimeFormatter.ISO_INSTANT.format(since.truncatedTo(ChronoUnit.SECONDS)))
+//            .withSince(DateTimeFormatter.ISO_INSTANT.format(since.truncatedTo(ChronoUnit.SECONDS)))
             .withEventFilter(
                 "create",
                 "update",

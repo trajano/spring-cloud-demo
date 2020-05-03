@@ -10,10 +10,10 @@ import java.security.Security;
 @SpringBootApplication
 public class App {
 
-    @Bean
-    public ForwardedHeaderTransformer forwardedHeaderTransformer() {
-        return new ForwardedHeaderTransformer();
-    }
+//    @Bean
+//    public ForwardedHeaderTransformer forwardedHeaderTransformer() {
+//        return new ForwardedHeaderTransformer();
+//    }
 
     public static void main(String[] args) {
         Security.setProperty("networkaddress.cache.ttl", "1");

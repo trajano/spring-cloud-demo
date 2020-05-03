@@ -16,6 +16,9 @@ export default {
   name: 'HelloWorld',
   props: {
     msg: String
+  },
+  mounted() {
+    localStorage["vue-token"]
   }
 }
 </script>

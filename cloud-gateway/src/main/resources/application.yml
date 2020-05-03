@@ -8,13 +8,14 @@ spring:
           enabled: true
           include-expression: metadata['spring.gateway.expose'] != 'false'
 #          url-expression: 'uri'
-          predicates:
-            - Path='/*/'+serviceId+'/**'
+#          predicates:
+#            - Path='/*/'+serviceId+'/**'
           filters:
-            - RemoveRequestHeader='Cookie'
+#            - RemoveRequestHeader='Cookie'
             - TokenRelay
             - "CircuitBreaker"
-            - "StripPrefix=metadata['spring.gateway.strip-prefix'] ?: 2"
+            - "StripPrefix=metadata['spring.gateway.strip-prefix'] ?: 1"
+#            - "StripPrefix=metadata['spring.gateway.strip-prefix'] ?: 2"
     loadbalancer:
       ribbon:
         enabled: false

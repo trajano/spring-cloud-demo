@@ -4,7 +4,7 @@ logging:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.cloud.sleuth: WARN
     # org.springframework.cloud.gateway: WARN
-#    org.springframework: DEBUG
+    # org.springframework: DEBUG
 spring:
   cloud:
 #    discovery:
@@ -17,25 +17,28 @@ spring:
       routes:
         - id: auth_route
           predicates:
-            - Path=/*/auth/realms/spring-cloud-demo/**
+#            - Path=/*/auth/realms/spring-cloud-demo/**
+            - Path=/auth/realms/spring-cloud-demo/**
           filters:
             - "PreserveHostHeader"
-            - "StripPrefix=1"
+#            - "StripPrefix=1"
             - "CircuitBreaker"
           uri: http://auth:8080
           order: -2
         - id: auth_resources_route
           predicates:
-            - Path=/*/auth/resources/**
+#            - Path=/*/auth/resources/**
+            - Path=/auth/resources/**
           filters:
             - "PreserveHostHeader"
-            - "StripPrefix=1"
+#            - "StripPrefix=1"
             - "CircuitBreaker"
           uri: http://auth:8080
           order: -2
         - id: auth_route
           predicates:
-            - Path=/*/auth/**
+#            - Path=/*/auth/**
+            - Path=/auth/**
           filters:
             - SetStatus=404
           uri: http://example.org
@@ -58,7 +61,8 @@ spring:
         provider:
           keycloak:
             authorization-uri: 'https://i.trajano.net/v1/auth/realms/spring-cloud-demo/protocol/openid-connect/auth'
-            token-uri: 'http://auth:8080/auth/realms/spring-cloud-demo/protocol/openid-connect/token'
+#            token-uri: 'http://auth:8080/auth/realms/spring-cloud-demo/protocol/openid-connect/token'
+            token-uri: 'https://i.trajano.net/v1/auth/realms/spring-cloud-demo/protocol/openid-connect/token'
             jwk-set-uri: 'http://auth:8080/auth/realms/spring-cloud-demo/protocol/openid-connect/certs'
             user-info-uri: 'http://auth:8080/auth/realms/spring-cloud-demo/protocol/openid-connect/userinfo'
             user-name-attribute: preferred_username
