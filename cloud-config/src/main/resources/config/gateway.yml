@@ -17,13 +17,20 @@ spring:
       routes:
         - id: auth_route
           predicates:
-            - Path=/*/auth/**
+            - Path=/*/auth/realms/spring-cloud-demo/**
           filters:
             - "PreserveHostHeader"
             - "StripPrefix=1"
             - "CircuitBreaker"
-#          uri: lb://auth
           uri: http://auth:8080
+          order: -2
+        - id: auth_route
+          predicates:
+            - Path=/*/auth/**
+          filters:
+            - SetStatus=404
+          uri: http://example.org
+          order: -1
   security:
     oauth2:
       client:
