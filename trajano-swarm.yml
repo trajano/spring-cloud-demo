@@ -54,10 +54,32 @@ services:
         - traefik.http.routers.api.rule=PathPrefix(`/v1`)
         - traefik.http.routers.api.middlewares=strip-prefix@file
         - traefik.http.services.api.loadbalancer.server.port=8080
+#  vue:
+#    image: trajano/cloud-vue-app
+#    networks:
+#      - intranet
+#    deploy:
+#      replicas: 1
+#      update_config:
+#        order: start-first
+#      restart_policy:
+#        condition: any
+#        delay: 60s
+#        max_attempts: 1
+#      labels:
+#        - intranet=true
+#        - traefik.enable=true
+#        - traefik.http.routers.vue.rule=PathPrefix(`/`)
+#        - traefik.http.services.vue.loadbalancer.server.port=80
   vue:
-    image: trajano/cloud-vue-app
+    image: node:lts
     networks:
       - intranet
+    volumes:
+      - /d/p/spring-cloud-demo/vue-app:/work
+    command: >
+      bash -c "cd /work
+      && npm run serve"
     deploy:
       replicas: 1
       update_config:
@@ -70,30 +92,7 @@ services:
         - intranet=true
         - traefik.enable=true
         - traefik.http.routers.vue.rule=PathPrefix(`/`)
-        - traefik.http.services.vue.loadbalancer.server.port=80
-  eureka:
-    image: trajano/cloud-eureka
-    environment:
-      SPRING_ZIPKIN_BASE-URL: http://tracing:9411/
-      SPRING_ZIPKIN_SERVICE_NAME: eureka
-      SERVER_PORT: "8761"
-      EUREKA_INTANCE_HOSTNAME: eureka
-      EUREKA_CLIENT_REGISTERWITHEUREKA: "false"
-      EUREKA_CLIENT_SERVERURL_DEFAULTZONE: http://eureka:8761/eureka/
-    networks:
-      - default
-      - intranet
-    deploy:
-      replicas: 0
-      update_config:
-        order: start-first
-      restart_policy:
-        condition: any
-        delay: 10s
-      labels:
-        - intranet=true
-        - traefik.enable=true
-        - traefik.http.services.eureka.loadbalancer.server.port=8761
+        - traefik.http.services.vue.loadbalancer.server.port=8080
   tracing:
     image: alpine/socat
     command: tcp-listen:9411,fork TCP:zipkin:9411

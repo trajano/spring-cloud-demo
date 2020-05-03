@@ -6,16 +6,29 @@
       check out the
       <a href="https://medium.com/keycloak" target="_blank" rel="noopener">keycloak</a>.
     </p>
-    
- 
+    <pre>{{ serviceOutput | pretty }}</pre>
   </div>
 </template>
 
 <script>
 export default {
   name: 'HelloWorld',
+  data() {
+    return {
+        serviceOutput: {}
+    }
+  },
   props: {
     msg: String
+  },
+  async mounted() {
+    let foo = await fetch('https://i.trajano.net/v1/sample', {
+       method: 'get',
+       headers: new Headers({
+         'Authorization': 'Bearer ' + localStorage["vue-token"]
+       }),
+     });
+     this.serviceOutput = await foo.json()
   }
 }
 </script>
@@ -35,5 +48,8 @@ li {
 }
 a {
   color: #42b983;
+}
+.hello {
+text-align: left;
 }
 </style>

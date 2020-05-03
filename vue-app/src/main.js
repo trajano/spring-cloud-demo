@@ -40,7 +40,12 @@ keycloak.init({ onLoad: initOptions.onLoad }).success((auth) => {
                 keycloak,
                 profile
             },
-        }).$mount('#app')
+              filters: {
+                pretty: function(value) {
+                  return JSON.stringify(JSON.parse(value), null, 2);
+                }
+              }
+          }).$mount('#app')
 
     })
 
