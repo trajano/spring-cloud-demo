@@ -54,32 +54,10 @@ services:
         - traefik.http.routers.api.rule=PathPrefix(`/v1`)
         - traefik.http.routers.api.middlewares=strip-prefix@file
         - traefik.http.services.api.loadbalancer.server.port=8080
-#  vue:
-#    image: trajano/cloud-vue-app
-#    networks:
-#      - intranet
-#    deploy:
-#      replicas: 1
-#      update_config:
-#        order: start-first
-#      restart_policy:
-#        condition: any
-#        delay: 60s
-#        max_attempts: 1
-#      labels:
-#        - intranet=true
-#        - traefik.enable=true
-#        - traefik.http.routers.vue.rule=PathPrefix(`/`)
-#        - traefik.http.services.vue.loadbalancer.server.port=80
   vue:
-    image: node:lts
+    image: trajano/cloud-vue-app
     networks:
       - intranet
-    volumes:
-      - /d/p/spring-cloud-demo/vue-app:/work
-    command: >
-      bash -c "cd /work
-      && npm run serve"
     deploy:
       replicas: 1
       update_config:
@@ -92,7 +70,29 @@ services:
         - intranet=true
         - traefik.enable=true
         - traefik.http.routers.vue.rule=PathPrefix(`/`)
-        - traefik.http.services.vue.loadbalancer.server.port=8080
+        - traefik.http.services.vue.loadbalancer.server.port=80
+#  vue:
+#    image: node:lts
+#    networks:
+#      - intranet
+#    volumes:
+#      - /d/p/spring-cloud-demo/vue-app:/work
+#    command: >
+#      bash -c "cd /work
+#      && npm run serve"
+#    deploy:
+#      replicas: 1
+#      update_config:
+#        order: start-first
+#      restart_policy:
+#        condition: any
+#        delay: 60s
+#        max_attempts: 1
+#      labels:
+#        - intranet=true
+#        - traefik.enable=true
+#        - traefik.http.routers.vue.rule=PathPrefix(`/`)
+#        - traefik.http.services.vue.loadbalancer.server.port=8080
   tracing:
     image: alpine/socat
     command: tcp-listen:9411,fork TCP:zipkin:9411

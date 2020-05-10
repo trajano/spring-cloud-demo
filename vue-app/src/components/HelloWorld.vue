@@ -6,7 +6,7 @@
       check out the
       <a href="https://medium.com/keycloak" target="_blank" rel="noopener">keycloak</a>.
     </p>
-    <pre>{{ serviceOutput | pretty }}</pre>
+    <pre>{{ serviceOutput }}</pre>
   </div>
 </template>
 
@@ -15,9 +15,10 @@ export default {
   name: 'HelloWorld',
   data() {
     return {
-        serviceOutput: {}
+        serviceOutput: { "loading": "true" }
     }
   },
+
   props: {
     msg: String
   },
