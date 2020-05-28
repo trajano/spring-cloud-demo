@@ -19,7 +19,7 @@ Vue.use(VueLogger, options);
 
 //keycloak init options
 let initOptions = {
-    url: 'https://i.trajano.net/v1/auth', realm: 'spring-cloud-demo', clientId: 'vue-test-app', onLoad: 'login-required'
+    url: 'https://i.trajano.net/auth', realm: 'spring-cloud-demo', clientId: 'vue-test-app', onLoad: 'login-required'
     // url: 'http://localhost:8081/auth', realm: 'keycloak-demo', clientId: 'vue-test-app', onLoad:'login-required'
 }
 

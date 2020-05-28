@@ -57,7 +57,7 @@ spring:
               - email
         provider:
           keycloak:
-            authorization-uri: 'https://i.trajano.net/v1/auth/realms/spring-cloud-demo/protocol/openid-connect/auth'
+            authorization-uri: 'https://i.trajano.net/auth/realms/spring-cloud-demo/protocol/openid-connect/auth'
             token-uri: 'http://auth:8080/auth/realms/spring-cloud-demo/protocol/openid-connect/token'
             jwk-set-uri: 'http://auth:8080/auth/realms/spring-cloud-demo/protocol/openid-connect/certs'
             user-info-uri: 'http://auth:8080/auth/realms/spring-cloud-demo/protocol/openid-connect/userinfo'

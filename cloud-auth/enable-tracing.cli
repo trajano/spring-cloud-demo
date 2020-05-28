@@ -1,11 +1,18 @@
 embed-server --admin-only=true
 /extension=org.wildfly.extension.microprofile.opentracing-smallrye:add()
 /subsystem=microprofile-opentracing-smallrye:add()
-/subsystem=microprofile-opentracing-smallrye/jaeger-tracer=my-tracer:add()
+/subsystem=microprofile-opentracing-smallrye/jaeger-tracer=zipkin-tracer:add(sampler-type=const, sampler-param=1,reporter-log-spans=true)
+/subsystem=microprofile-opentracing-smallrye/jaeger-tracer=zipkin-tracer:write-attribute(name=tags.serviceName,value=keycloak)
+/subsystem=microprofile-opentracing-smallrye/jaeger-tracer=zipkin-tracer:write-attribute(name=propagation,value=[B3])
+/subsystem=microprofile-opentracing-smallrye/jaeger-tracer=zipkin-tracer:write-attribute(name=sender-endpoint,value=http://localhost:9411/api/v1/spans)
+
+#/subsystem=microprofile-opentracing-smallrye/jaeger-tracer=my-tracer:add()
+# /subsystem=microprofile-opentracing-smallrye/jaeger-tracer=my-tracer:add(propagation=[B3],tags=[keycloak],reporter-log-spans=true)
+# /subsystem=microprofile-opentracing-smallrye/jaeger-tracer=my-tracer:add(propagation=[B3],reporter-log-spans=true)
 # /subsystem=microprofile-opentracing-smallrye/jaeger-tracer=my-tracer:write-attribute(name=sender-endpoint,value=http://tracing:9411/api/v1/spans)
-/subsystem=microprofile-opentracing-smallrye/jaeger-tracer=my-tracer:write-attribute(name=sender-endpoint,value=http://tracing:9411)
-/subsystem=microprofile-opentracing-smallrye/jaeger-tracer=my-tracer:write-attribute(name=propagation,value=[B3])
+# /subsystem=microprofile-opentracing-smallrye/jaeger-tracer=my-tracer:write-attribute(name=sender-endpoint,value=http://tracing:9411)
+# /subsystem=microprofile-opentracing-smallrye/jaeger-tracer=my-tracer:write-attribute(name=propagation,value=[B3])
 # /subsystem=microprofile-opentracing-smallrye/jaeger-tracer=my-tracer:write-attribute(name=tags,value=[keycloak])
-/subsystem=microprofile-opentracing-smallrye/jaeger-tracer=my-tracer:write-attribute(name=reporter-log-spans,value=true)
+# /subsystem=microprofile-opentracing-smallrye/jaeger-tracer=my-tracer:write-attribute(name=reporter-log-spans,value=true)
 /subsystem=microprofile-opentracing-smallrye:write-attribute(name=default-tracer,value=my-tracer)
 stop-embedded-server
