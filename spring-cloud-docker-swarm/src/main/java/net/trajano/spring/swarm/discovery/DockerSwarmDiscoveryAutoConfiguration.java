@@ -1,9 +1,12 @@
 package net.trajano.spring.swarm.discovery;
 
-import com.github.dockerjava.okhttp.OkHttpDockerCmdExecFactory;
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.core.DefaultDockerClientConfig;
+import com.github.dockerjava.core.DockerClientConfig;
+import com.github.dockerjava.core.DockerClientImpl;
+import com.github.dockerjava.okhttp.OkDockerHttpClient;
+import com.github.dockerjava.transport.DockerHttpClient;
 import lombok.extern.slf4j.Slf4j;
-import net.trajano.spring.swarm.client.DockerClient2;
-import net.trajano.spring.swarm.client.DockerClientImpl2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
@@ -35,11 +38,15 @@ public class DockerSwarmDiscoveryAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public DockerClient2 dockerClient(final DockerSwarmDiscoveryProperties properties) {
-        return DockerClientImpl2.getInstance(properties.getDaemonUri())
-            .withDockerCmdExecFactory(
-                new OkHttpDockerCmdExecFactory()
-            );
+    public DockerClient dockerClient(final DockerSwarmDiscoveryProperties properties) {
+
+        final DockerClientConfig standard = DefaultDockerClientConfig.createDefaultConfigBuilder()
+            .build();
+        final DockerHttpClient httpClient = new OkDockerHttpClient.Builder()
+            .dockerHost(properties.getDaemonUri())
+            .build();
+        return DockerClientImpl.getInstance(standard, httpClient);
+
     }
 
 }

@@ -20,7 +20,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
     implementation 'io.projectreactor:reactor-core'
-    implementation 'com.github.docker-java:docker-java-transport-okhttp:3.2.1'
+    implementation 'com.github.docker-java:docker-java-transport-okhttp:3.2.3'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }

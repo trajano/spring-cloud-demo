@@ -1,12 +1,11 @@
 package net.trajano.spring.swarm.discovery;
 
+import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.async.ResultCallbackTemplate;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.*;
 import lombok.extern.slf4j.Slf4j;
-import net.trajano.spring.swarm.client.DockerClient2;
-import net.trajano.spring.swarm.client.EventType2;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,7 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean, A
     private final DockerSwarmDiscoveryProperties properties;
 
     @Autowired
-    private DockerClient2 dockerClient;
+    private DockerClient dockerClient;
 
     private ApplicationEventPublisher publisher;
 
@@ -114,8 +113,8 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean, A
 
     private ResultCallback<Event> buildListener(final Instant since) {
 
-        return dockerClient.eventsCmd2()
-            .withEventTypeFilter(EventType2.SERVICE)
+        return dockerClient.eventsCmd()
+            .withEventTypeFilter(EventType.SERVICE)
             .withSince(DateTimeFormatter.ISO_INSTANT.format(since.truncatedTo(ChronoUnit.SECONDS)))
             .withEventFilter(
                 "create",
@@ -284,7 +283,7 @@ public class DockerSwarmDiscovery implements InitializingBean, DisposableBean, A
     }
 
     @Override
-    public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
+    public void setApplicationEventPublisher(final ApplicationEventPublisher publisher) {
         this.publisher = publisher;
     }
 }

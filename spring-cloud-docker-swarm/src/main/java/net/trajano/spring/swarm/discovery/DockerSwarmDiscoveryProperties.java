@@ -3,6 +3,7 @@ package net.trajano.spring.swarm.discovery;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.net.URI;
 import java.util.Optional;
 import java.util.Set;
 
@@ -15,7 +16,7 @@ public class DockerSwarmDiscoveryProperties {
      * to worker nodes for better scaling and security as it will ensure read-only operations are performed on the
      * Docker daemon.
      */
-    private String daemonUri = "unix:///var/run/docker.sock";
+    private URI daemonUri = URI.create("unix:///var/run/docker.sock");
 
     /**
      * Specifies a comma separated list of networks to look for services that contain the service labels.
