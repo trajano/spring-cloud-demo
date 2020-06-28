@@ -24,7 +24,9 @@ public class DockerSwarmDiscoveryAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public DockerSwarmDiscoveryProperties dockerSwarmDiscoveryProperties() {
-        return new DockerSwarmDiscoveryProperties();
+        final DockerSwarmDiscoveryProperties dockerSwarmDiscoveryProperties = new DockerSwarmDiscoveryProperties();
+        log.debug("dockerSwarmDiscoveryProperties={}", dockerSwarmDiscoveryProperties);
+        return dockerSwarmDiscoveryProperties;
     }
 
     @Bean
@@ -33,6 +35,7 @@ public class DockerSwarmDiscoveryAutoConfiguration {
 
         final DockerSwarmDiscovery dockerSwarmDiscovery = new DockerSwarmDiscovery(properties);
         dockerSwarmDiscovery.setApplicationEventPublisher(applicationEventPublisher);
+        log.debug("dockerSwarmDiscovery={}", dockerSwarmDiscovery);
         return dockerSwarmDiscovery;
     }
 

@@ -1,6 +1,6 @@
 plugins {
 //    id 'org.springframework.boot' version '2.1.6.RELEASE'
-    id 'org.springframework.boot' version '2.2.6.RELEASE'
+    id 'org.springframework.boot' version '2.3.1.RELEASE'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'com.google.cloud.tools.jib' version '2.2.0'
     id 'java'
@@ -13,7 +13,7 @@ springBoot {
 sourceCompatibility = '11'
 
 ext {
-    set('springCloudVersion', "Hoxton.SR3")
+    set('springCloudVersion', "Hoxton.SR6")
 //    set('springCloudVersion', "Greenwich.SR4")
 }
 
@@ -22,6 +22,7 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation project(':spring-cloud-docker-swarm')
+    implementation 'org.springframework.cloud:spring-cloud-config-client:2.2.2.RELEASE'
     runtimeOnly 'org.springframework.cloud:spring-cloud-starter-config'
     runtimeOnly 'org.springframework.boot:spring-boot-starter-actuator'
     runtimeOnly 'org.springframework.cloud:spring-cloud-starter-sleuth'

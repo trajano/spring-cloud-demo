@@ -6,8 +6,8 @@ plugins {
 sourceCompatibility = '11'
 
 ext {
-    set('springBootVersion', "2.2.6.RELEASE")
-    set('springCloudVersion', "Hoxton.SR3")
+    set('springBootVersion', "2.3.1.RELEASE")
+    set('springCloudVersion', "Hoxton.SR6")
 }
 
 dependencies {
@@ -15,7 +15,7 @@ dependencies {
     compileOnly 'org.springframework.boot:spring-boot'
     compileOnly 'org.springframework.boot:spring-boot-autoconfigure'
     compileOnly 'org.springframework.cloud:spring-cloud-commons'
-    compileOnly 'org.springframework.cloud:spring-cloud-config-client'
+    compileOnly 'org.springframework.cloud:spring-cloud-config-client:2.2.2.RELEASE'
     compileOnly 'org.springframework.cloud:spring-cloud-context'
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
