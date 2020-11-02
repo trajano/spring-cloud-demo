@@ -1,4 +1,4 @@
-package net.trajano.spring.swarm.discovery;
+package net.trajano.spring.swarm.autoconfigure;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
@@ -7,6 +7,9 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.okhttp.OkDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import lombok.extern.slf4j.Slf4j;
+import net.trajano.spring.swarm.discovery.ConditionalOnDockerSwarmDiscoveryEnabled;
+import net.trajano.spring.swarm.discovery.DockerSwarmDiscovery;
+import net.trajano.spring.swarm.discovery.DockerSwarmDiscoveryProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;

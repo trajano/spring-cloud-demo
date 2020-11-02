@@ -1,10 +1,10 @@
 org.springframework.boot.env.EnvironmentPostProcessor=net.trajano.spring.swarm.profile.DockerSwarmEnvironmentPostProcessor
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-net.trajano.spring.swarm.discovery.DockerSwarmDiscoveryAutoConfiguration,\
-net.trajano.spring.swarm.discovery.DockerSwarmDiscoveryClientAutoConfiguration,\
-net.trajano.spring.swarm.discovery.DockerSwarmDiscoveryWatchAutoConfiguration,\
-net.trajano.spring.swarm.discovery.DockerSwarmReactiveDiscoveryClientAutoConfiguration
+net.trajano.spring.swarm.autoconfigure.DockerSwarmDiscoveryAutoConfiguration,\
+net.trajano.spring.swarm.autoconfigure.DockerSwarmDiscoveryClientAutoConfiguration,\
+net.trajano.spring.swarm.autoconfigure.DockerSwarmDiscoveryWatchAutoConfiguration,\
+net.trajano.spring.swarm.autoconfigure.DockerSwarmReactiveDiscoveryClientAutoConfiguration
 
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-net.trajano.spring.swarm.discovery.DockerSwarmDiscoveryClientConfigServiceBootstrapConfiguration
+net.trajano.spring.swarm.autoconfigure.DockerSwarmDiscoveryClientConfigServiceBootstrapConfiguration

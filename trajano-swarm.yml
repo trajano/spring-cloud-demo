@@ -30,7 +30,7 @@ services:
   api:
     image: trajano/cloud-gateway
     environment:
-      # - SPRING_CLOUD_CONFIG_URI=http://configserver:8888
+#      - SPRING_CLOUD_CONFIG_URI=http://configserver:8888
       - SPRING_CLOUD_CONFIG_FAILFAST=true
       - SPRING_CLOUD_CONFIG_DISCOVERY_ENABLED=true
     volumes:

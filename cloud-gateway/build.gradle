@@ -13,7 +13,7 @@ springBoot {
 sourceCompatibility = '11'
 
 ext {
-    set('springCloudVersion', "Hoxton.SR6")
+    set('springCloudVersion', "Hoxton.SR8")
 //    set('springCloudVersion', "Greenwich.SR4")
 }
 
@@ -22,13 +22,14 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation project(':spring-cloud-docker-swarm')
-    implementation 'org.springframework.cloud:spring-cloud-config-client:2.2.2.RELEASE'
+//    implementation 'org.springframework.cloud:spring-cloud-config-client:2.2.2.RELEASE'
     runtimeOnly 'org.springframework.cloud:spring-cloud-starter-config'
     runtimeOnly 'org.springframework.boot:spring-boot-starter-actuator'
     runtimeOnly 'org.springframework.cloud:spring-cloud-starter-sleuth'
     runtimeOnly 'org.springframework.cloud:spring-cloud-starter-zipkin'
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
     implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
+    implementation 'io.netty:netty-resolver-dns'
     runtimeOnly 'com.github.ben-manes.caffeine:caffeine'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'

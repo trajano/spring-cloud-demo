@@ -1,6 +1,7 @@
-package net.trajano.spring.swarm.discovery;
+package net.trajano.spring.swarm.autoconfigure;
 
 import lombok.extern.slf4j.Slf4j;
+import net.trajano.spring.swarm.discovery.DockerSwarmDiscovery;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
