@@ -29,6 +29,10 @@ This is the Docker daemon URI.  This defaults to `unix:///var/run/docker.sock` w
     
 Specifies a comma separated list of networks to look for services that contain the service labels. If not specified it will use all the networks that the container has access to.
 
+    docker.swarm.discovery.label.prefix: "spring.service"
+
+Specifies the prefix for the labels with *NO* trailing `.`.  Defaults to `spring.service`
+
 ### Service example
 
 The following is an example of how to make a service discoverable.
@@ -39,21 +43,22 @@ service:
     image: containous/whoami
     deploy:
     labels:
-      - spring.service.id=whoami
-      - spring.service.discoverable=true
-      - spring.service.port=80
-      - spring.service.secure=false
+      - spring.service.ids=whoami
+      - spring.service.whoami.port=80
+      - spring.service.whoami.secure=false
+      - spring.service.whoami.predicates.0=Path=/whoami/{segment}
+      - spring.service.whoami.filters.0=/{segment}
  ```
 
 Service labels control the service discovery.  These labels are
 
-`spring.service.discoverable` explicitly specifies whether discovery should be enabled for the service.  This defaults to `true` if `spring.service.id` is present and defaults to `false` otherwise.
+`spring.service.ids` specifies a comma separated list of names of the services advertised to discovery clients.  If this is not specified, then the service is not eligible for discovery.
 
-`spring.service.id` specifies the name of the service advertised to discovery clients.  If this is not specified, the default value is computed from the service name with the prefix value of `com.docker.stack.namespace` label and `_` removed.
+`spring.service.<id>.port` is the port the service is listening on.  Swarm does not provide this information and cannot be computed from the service data of the Docker API.  This defaults to `8080` which is the default port for Spring Boot services.
 
-`spring.service.port` is the port the service is listening on.  Swarm does not provide this information and cannot be computed from the service data of the Docker API.  This defaults to `8080` which is the default port for Spring Boot services.
-
-`spring.service.secure` indicates whether HTTPS should be used rather than HTTP to interact with the service.  This defaults to `false`.
+`spring.service.<id>.secure` indicates whether HTTPS should be used rather than HTTP to interact with the service.  This defaults to `false`.
+`spring.service.<id>.preidcates.<index>` Specifies the predicates to route to this service.
+`spring.service.<id>.filters.<index>` Specifies the filters to apply to the service
 
 
 ## Note
