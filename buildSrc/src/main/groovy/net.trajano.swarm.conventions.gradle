@@ -1,0 +1,9 @@
+plugins {
+	id 'idea'
+    id 'java'
+}
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
