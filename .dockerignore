@@ -1,2 +1,6 @@
 .gradle/
 **/build/
+gradlew
+gradlew.bat
+.git*
+.git/
