@@ -1,6 +1,12 @@
 .gradle/
+**/.gradle/
 **/build/
 gradlew
 gradlew.bat
 .git*
 .git/
+README.md
+.idea/
+*.iml
+*.ipr
+*.iws
