@@ -3,12 +3,9 @@ COPY ./settings.gradle \
   ./
 COPY ./buildSrc ./buildSrc
 RUN gradle build
+COPY ./build.gradle ./build.gradle
 COPY ./gateway/build.gradle ./gateway/build.gradle
 COPY ./sample-service/build.gradle ./sample-service/build.gradle 
 RUN gradle dependencies
 COPY ./ ./
 RUN gradle build
-# build || true
-# RUN find /home/ -type f
-# COPY ./ ./
-# RUN gradle --offline build
