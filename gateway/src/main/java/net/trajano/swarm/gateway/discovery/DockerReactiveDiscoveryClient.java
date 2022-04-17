@@ -14,6 +14,7 @@ import reactor.core.publisher.Flux;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -98,13 +99,15 @@ public class DockerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
                 .flatMap(alias -> {
                     try {
                         return Stream.of(InetAddress.getAllByName(alias));
+                    } catch (UnknownHostException e) {
+                        // happens when replica count is zero
+                        return Stream.empty();
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
                 })
                 .map(InetAddress::getHostAddress)
-                .map(address -> new DockerServiceInstance(service, config.getLabelPrefix(), serviceId, address))
-                ;
+                .map(address -> new DockerServiceInstance(service, config.getLabelPrefix(), serviceId, address));
 
     }
 
