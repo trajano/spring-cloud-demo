@@ -7,8 +7,11 @@ services:
     image: local/gateway
     environment:
       - SPRING_REDIS_HOST=redis
+      - DOCKER_DISCOVERY_SWARMMODE=true
     ports:
       - 28080:8080
+    deploy:
+      replicas: 3
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
@@ -30,10 +33,30 @@ services:
       - services
   whoami:
     image: containous/whoami
+    deploy:
+      labels:
+        docker.ids: whoami
+        docker.whoami.path: /whoami/**
+        docker.whoami.path.replacement: /$${remaining}
+        docker.whoami.port: 80
+      replicas: 3
+      endpoint_mode: dnsrr
     labels:
       docker.ids: whoami
       docker.whoami.path: /whoami/**
       docker.whoami.path.replacement: /$${remaining}
+    networks:
+      - services
+  whoami2:
+    image: containous/whoami
+    deploy:
+      labels:
+        docker.ids: whoami2
+        docker.whoami2.path: /whoami2/**
+        docker.whoami2.path.replacement: /$${remaining}
+        docker.whoami2.port: 80
+      replicas: 3
+      endpoint_mode: vip
     networks:
       - services
 networks:

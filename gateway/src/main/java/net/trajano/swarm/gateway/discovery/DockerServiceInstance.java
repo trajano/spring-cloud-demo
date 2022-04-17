@@ -1,14 +1,14 @@
 package net.trajano.swarm.gateway.discovery;
 
-import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ContainerNetwork;
-import com.github.dockerjava.api.model.Network;
+import com.github.dockerjava.api.model.Service;
 import org.springframework.cloud.client.ServiceInstance;
 
 import java.net.URI;
 import java.util.Map;
 
-public class ContainerServiceInstance implements ServiceInstance {
+public class DockerServiceInstance implements ServiceInstance {
+
 
     private final String serviceId;
 
@@ -22,25 +22,20 @@ public class ContainerServiceInstance implements ServiceInstance {
 
     private final URI uri;
 
-    public ContainerServiceInstance(Container container, String prefix, String serviceId, Network network) {
+    public DockerServiceInstance(Service service, String labelPrefix, String serviceId, String host) {
 
         this.serviceId = serviceId;
-        this.host = container
-                .getNetworkSettings()
-                .getNetworks()
-                .values()
-                .stream()
-                .filter(n -> n.getNetworkID().equals(network.getId()))
-                .findAny()
-                .map(ContainerNetwork::getIpAddress)
-                .orElseThrow();
-        this.port = container.getPorts()[0].getPrivatePort();
+        this.host = host;
         var multiId = true;
         if (multiId) {
-            final var labels = container.getLabels();
-            this.secure = Boolean.parseBoolean(labels.getOrDefault(prefix + "." + serviceId + ".secure", "false"));
-            this.metadata = Util.getMetaDataFromLabels(prefix, serviceId, multiId, labels);
+            final var labels = service.getSpec().getLabels();
+            System.out.println(serviceId + labels);
+            this.port = Integer.parseInt(labels.getOrDefault(labelPrefix + "." + serviceId + ".port", "8080"));
+            this.secure = Boolean.parseBoolean(labels.getOrDefault(labelPrefix + "." + serviceId + ".secure", "false"));
+            System.out.println(serviceId + " " + labels);
+            this.metadata = Util.getMetaDataFromLabels(labelPrefix, serviceId, multiId, labels);
         } else {
+            this.port = 0;
             this.secure = false;
             this.metadata = Map.of();
         }
@@ -49,6 +44,7 @@ public class ContainerServiceInstance implements ServiceInstance {
         } else {
             this.uri = URI.create("http://" + host + ":" + port);
         }
+        System.out.println(this.metadata);
     }
 
     @Override
