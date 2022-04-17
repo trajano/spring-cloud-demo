@@ -1,3 +1,24 @@
-FROM docker-proxy.devhaus.com/library/gradle:7.4-jdk17 AS builder
-COPY ./ ./
+FROM gradle:7.4-jdk17 AS builder
+WORKDIR /w
+COPY ./ /w
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches gradle build
+
+FROM openjdk:17-alpine as extractor
+WORKDIR /w
+COPY extract.sh /w/extract.sh
+COPY --from=builder /w/*/build/libs/*.jar /w/
+RUN sh ./extract.sh
+
+FROM openjdk:17-alpine as gateway
+WORKDIR /w
+COPY --from=extractor /w/gateway/* /w/
+ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
+HEALTHCHECK \
+    CMD wget -qO /dev/null http://localhost:8080/actuator/health
+EXPOSE 8080
+
+FROM openjdk:17-alpine as sample-service
+WORKDIR /w
+COPY --from=extractor /w/sample-service/* /w/
+ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
+EXPOSE 8080

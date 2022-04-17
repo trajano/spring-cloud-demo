@@ -10,3 +10,7 @@ java {
 repositories {
   mavenCentral()
 }
+jar {
+    // disable plain jar creation
+    enabled = false
+}

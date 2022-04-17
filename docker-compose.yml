@@ -1,0 +1,41 @@
+version: "3.8"
+services:
+  gateway:
+    build:
+      context: .
+      target: gateway
+    image: local/gateway
+    environment:
+      - SPRING_REDIS_HOST=redis
+    ports:
+      - 28080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - services
+      - default
+  redis:
+    image: redis:6
+  sample:
+    build:
+      context: .
+      target: sample-service
+    image: local/sample-service
+    labels:
+      docker.ids: sample
+      docker.sample.path: /sample
+      docker.sample.path.regexp: /sample/(?<remaining>.*)
+      docker.sample.path.replacement: /$${remaining}
+    networks:
+      - services
+  whoami:
+    image: containous/whoami
+    labels:
+      docker.ids: whoami
+      docker.whoami.path: /whoami/**
+      docker.whoami.path.replacement: /$${remaining}
+    networks:
+      - services
+networks:
+  services:
+    name: services

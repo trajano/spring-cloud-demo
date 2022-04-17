@@ -1,8 +1,24 @@
 spring:
   cloud:
     gateway:
-      routes:
-        - id: after_route
-          uri: https://example.org
+      routes: []
+      discovery:
+        locator:
+          enabled: true
+          url-expression: "uri"
           predicates:
-          - Cookie=mycookie,mycookievalue
+            - name: Path
+              args:
+                patterns: "metadata['path']"
+          filters:
+            - RemoveRequestHeader='Cookie'
+            - RemoveRequestHeader='X-Jwt-Assertion'
+            - name: Retry
+              args:
+                retries: 3
+              methods:
+                - GET
+            - name: RewritePath
+              args:
+                regexp: "metadata['path.regexp']"
+                replacement: "metadata['path.replacement']"
