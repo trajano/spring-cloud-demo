@@ -59,6 +59,18 @@ services:
       endpoint_mode: vip
     networks:
       - services
+  whoami3:
+    image: containous/whoami
+    deploy:
+      labels:
+        docker.ids: whoami3
+        docker.whoami3.path: /whoami3/**
+        docker.whoami3.path.replacement: /$${remaining}
+        docker.whoami3.port: 80
+      replicas: 3
+      endpoint_mode: vip
+    networks:
+      - services
 networks:
   services:
     name: services

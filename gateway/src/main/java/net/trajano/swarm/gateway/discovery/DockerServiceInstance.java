@@ -29,10 +29,8 @@ public class DockerServiceInstance implements ServiceInstance {
         var multiId = true;
         if (multiId) {
             final var labels = service.getSpec().getLabels();
-            System.out.println(serviceId + labels);
             this.port = Integer.parseInt(labels.getOrDefault(labelPrefix + "." + serviceId + ".port", "8080"));
             this.secure = Boolean.parseBoolean(labels.getOrDefault(labelPrefix + "." + serviceId + ".secure", "false"));
-            System.out.println(serviceId + " " + labels);
             this.metadata = Util.getMetaDataFromLabels(labelPrefix, serviceId, multiId, labels);
         } else {
             this.port = 0;
@@ -44,7 +42,6 @@ public class DockerServiceInstance implements ServiceInstance {
         } else {
             this.uri = URI.create("http://" + host + ":" + port);
         }
-        System.out.println(this.metadata);
     }
 
     @Override

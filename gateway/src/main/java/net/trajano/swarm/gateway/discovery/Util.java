@@ -38,7 +38,11 @@ class Util {
                 return null;
             }
         } else {
-            return null;
+            if (label.startsWith(prefix + ".")) {
+                return label.substring((prefix + ".").length());
+            } else {
+                return null;
+            }
         }
 
     }

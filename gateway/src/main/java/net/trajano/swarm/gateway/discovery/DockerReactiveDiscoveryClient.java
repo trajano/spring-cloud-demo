@@ -103,7 +103,6 @@ public class DockerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
                     }
                 })
                 .map(InetAddress::getHostAddress)
-                .peek(System.out::println)
                 .map(address -> new DockerServiceInstance(service, config.getLabelPrefix(), serviceId, address))
                 ;
 
@@ -148,17 +147,6 @@ public class DockerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
 
             return Flux.fromStream(Stream.concat(multiIds, singleId).distinct());
         }
-    }
-
-    private boolean swarmEndpointFilter(Service service, Network network) {
-
-        if (Objects.requireNonNull(service.getEndpoint()).getSpec().getMode() == EndpointResolutionMode.VIP) {
-            System.out.println(service.getEndpoint().getRawValues());
-            return true;
-        } else {
-            return true;
-        }
-
     }
 
     private Network getDiscoveryNetwork() {

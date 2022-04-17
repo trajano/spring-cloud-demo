@@ -27,6 +27,7 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
 	implementation 'com.github.docker-java:docker-java-core'
 	implementation 'com.github.docker-java:docker-java-transport-httpclient5'
+	implementation 'org.bitbucket.b_c:jose4j:0.7.11'
 	compileOnly 'org.projectlombok:lombok'
 	compileOnly 'org.springframework.cloud:spring-cloud-netflix-eureka-client'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
