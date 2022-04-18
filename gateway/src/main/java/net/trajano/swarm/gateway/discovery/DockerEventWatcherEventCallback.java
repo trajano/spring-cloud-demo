@@ -4,6 +4,7 @@ import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.async.ResultCallbackTemplate;
 import com.github.dockerjava.api.model.Event;
 import java.io.Closeable;
+import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +34,7 @@ public class DockerEventWatcherEventCallback
   public void onNext(Event object) {
 
     if (!isClosed) {
-      // publisher.publishEvent(new RefreshRoutesEvent(object));
+      publisher.publishEvent(new RefreshRoutesEvent(this));
     }
   }
 

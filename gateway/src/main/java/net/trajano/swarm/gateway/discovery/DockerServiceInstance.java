@@ -34,12 +34,11 @@ public class DockerServiceInstance implements ServiceInstance {
       this.secure =
           Boolean.parseBoolean(
               labels.getOrDefault(labelPrefix + "." + serviceId + ".secure", "false"));
-      this.metadata = Util.getMetaDataFromLabels(labelPrefix, serviceId, multiId, labels);
     } else {
-      this.port = 0;
-      this.secure = false;
-      this.metadata = Map.of();
+      this.port = Integer.parseInt(labels.getOrDefault(labelPrefix + ".port", "8080"));
+      this.secure = Boolean.parseBoolean(labels.getOrDefault(labelPrefix + ".secure", "false"));
     }
+    this.metadata = Util.getMetaDataFromLabels(labelPrefix, serviceId, multiId, labels);
     if (secure) {
       this.uri = URI.create("https://" + host + ":" + port);
     } else {

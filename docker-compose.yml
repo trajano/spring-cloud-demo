@@ -55,6 +55,18 @@ services:
       docker.whoami.path.replacement: /$${remaining}
     networks:
       - services
+  httpbin:
+    image: kennethreitz/httpbin
+    deploy:
+      labels:
+        docker.ids: httpbin
+        docker.httpbin.path: /httpbin/**
+        docker.httpbin.path.replacement: /$${remaining}
+        docker.httpbin.port: 80
+      replicas: 3
+      endpoint_mode: vip
+    networks:
+      - services
   whoami2:
     image: containous/whoami
     deploy:

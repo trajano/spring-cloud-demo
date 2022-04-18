@@ -13,11 +13,10 @@ import net.trajano.swarm.gateway.discovery.DockerDiscoveryConfig;
 import net.trajano.swarm.gateway.discovery.DockerServiceInstance;
 import net.trajano.swarm.gateway.discovery.Util;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import reactor.core.publisher.Flux;
 
 @Slf4j
-public class DockerServiceInstanceListSupplier implements ServiceInstanceListSupplier {
+public class DockerServiceInstanceListSupplier {
 
   private final String serviceId;
 
@@ -34,7 +33,6 @@ public class DockerServiceInstanceListSupplier implements ServiceInstanceListSup
     this.config = config;
   }
 
-  @Override
   public Flux<List<ServiceInstance>> get() {
 
     final var network = getDiscoveryNetwork(dockerClient, config);
@@ -102,7 +100,6 @@ public class DockerServiceInstanceListSupplier implements ServiceInstanceListSup
                                 service, config.getLabelPrefix(), serviceId, address)));
   }
 
-  @Override
   public String getServiceId() {
 
     return serviceId;

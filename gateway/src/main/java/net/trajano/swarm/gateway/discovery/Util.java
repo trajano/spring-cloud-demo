@@ -92,8 +92,7 @@ public class Util {
                   return r.getRecords().stream()
                       .map(ARecord.class::cast)
                       .map(ARecord::getAddress)
-                      .peek(sx -> System.out.println(hostname + " " + sx))
-                      .map(InetAddress::toString);
+                      .map(InetAddress::getHostAddress);
                 }
               })
           .toCompletableFuture()

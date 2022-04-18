@@ -14,7 +14,7 @@ spring:
       discovery:
         locator:
           enabled: true
-#          url-expression: "uri"
+          url-expression: "uri"
           predicates:
             - name: Path
               args:
@@ -39,12 +39,12 @@ spring:
 #        - docker0
 #        - veth.*
 #        - eth3
-    loadbalancer:
-#      enabled: true
-      ribbon:
-        enabled: false
-      cache:
-        enabled: false
+#    loadbalancer:
+##      enabled: false
+#      ribbon:
+#        enabled: false
+#      cache:
+#        enabled: false
 management:
   endpoint.gateway.enabled: true # default value
   endpoints:
