@@ -8,10 +8,7 @@ import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Network;
 import com.github.dockerjava.api.model.Service;
 import com.github.dockerjava.api.model.ServiceSpec;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.ServiceInstance;
@@ -41,20 +38,25 @@ public class DockerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
   @Override
   public Flux<ServiceInstance> getInstances(final String serviceId) {
 
+    if (serviceId == null) {
+      return Flux.empty();
+    }
     final var network = getDiscoveryNetwork(dockerClient, config);
 
     if (config.isSwarmMode()) {
       final var multiIds =
           dockerClient.listServicesCmd().exec().stream()
+              .filter(c -> c.getSpec() != null)
               .filter(c -> c.getSpec().getLabels() != null)
               .filter(c -> c.getSpec().getLabels().containsKey(config.idsLabel()))
               .filter(
                   c ->
-                      Set.of(c.getSpec().getLabels().get(config.idsLabel()).split(","))
+                      Arrays.asList(c.getSpec().getLabels().get(config.idsLabel()).split(","))
                           .contains(serviceId));
 
       final var singleId =
           dockerClient.listServicesCmd().exec().stream()
+              .filter(c -> c.getSpec() != null)
               .filter(c -> c.getSpec().getLabels() != null)
               .filter(c -> c.getSpec().getLabels().containsKey(config.idLabel()))
               .filter(c -> c.getSpec().getLabels().get(config.idLabel()).equals(serviceId));

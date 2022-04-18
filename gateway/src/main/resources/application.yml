@@ -14,7 +14,7 @@ spring:
       discovery:
         locator:
           enabled: true
-          url-expression: "uri"
+#          url-expression: "uri"
           predicates:
             - name: Path
               args:
