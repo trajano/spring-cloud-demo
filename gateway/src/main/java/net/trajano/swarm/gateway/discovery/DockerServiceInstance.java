@@ -4,7 +4,6 @@ import com.github.dockerjava.api.model.Service;
 import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
-
 import lombok.Data;
 import org.springframework.cloud.client.ServiceInstance;
 

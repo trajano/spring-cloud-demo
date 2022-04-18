@@ -33,7 +33,7 @@ dependencies {
 	implementation 'org.bitbucket.b_c:jose4j:0.7.11'
 	compileOnly 'org.projectlombok:lombok'
 	implementation 'dnsjava:dnsjava:3.5.0'
-	runtimeOnly 'com.github.ben-manes.caffeine:caffeine:3.0.6'
+//	runtimeOnly 'com.github.ben-manes.caffeine:caffeine:3.0.6'
 
 
 

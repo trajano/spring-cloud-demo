@@ -61,6 +61,7 @@ public class DockerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
 
       final var services = Stream.concat(multiIds, singleId);
 
+      log.error("get instances {}", serviceId);
       return Flux.fromStream(
           services.flatMap(service -> instanceStream(service, serviceId, network)));
 
@@ -101,7 +102,7 @@ public class DockerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
     return serviceNetworks.stream()
         .filter(n -> n.get("Target").equals(network.getId()))
         .flatMap(n -> ((List<String>) n.get("Aliases")).stream())
-        //        .flatMap(Util::getIpAddresses)
+        .flatMap(Util::getIpAddresses)
         .map(
             address ->
                 new DockerServiceInstance(service, config.getLabelPrefix(), serviceId, address))

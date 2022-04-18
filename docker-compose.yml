@@ -13,7 +13,14 @@ services:
     ports:
       - 28080:8080
     deploy:
-      replicas: 2
+      update_config:
+#        order: start-first
+        failure_action: pause
+#        parallelism: 1
+      restart_policy:
+        max_attempts: 1
+      replicas: 1
+
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:

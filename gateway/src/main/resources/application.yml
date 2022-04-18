@@ -14,7 +14,7 @@ spring:
       discovery:
         locator:
           enabled: true
-          # url-expression: "uri"
+          url-expression: "uri"
           predicates:
             - name: Path
               args:
@@ -44,10 +44,11 @@ spring:
       ribbon:
         enabled: false
       cache:
-        enabled: true
+        enabled: false
 management:
   endpoint.gateway.enabled: true # default value
   endpoints:
     web:
       exposure:
-        include: health,gateway,info
+        #include: health,gateway,info,caches
+        include: "*"
