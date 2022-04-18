@@ -1,5 +1,6 @@
 package net.trajano.swarm.gateway;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -14,7 +15,9 @@ import com.github.dockerjava.api.model.*;
 import java.util.List;
 import java.util.Map;
 import net.trajano.swarm.gateway.discovery.DockerEventWatcherEventCallback;
+import net.trajano.swarm.gateway.discovery.DockerServiceInstanceProvider;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -84,6 +87,14 @@ class GatewayApplicationTests {
     }
   }
 
+  @Autowired private DockerServiceInstanceProvider dockerServiceInstanceProvider;
+
   @Test
   void contextLoads() {}
+
+  @Test
+  void dockerServiceInstances() {
+    assertThat(dockerServiceInstanceProvider.getServices()).containsExactly("foo");
+    assertThat(dockerServiceInstanceProvider.getInstances("foo")).hasSize(1);
+  }
 }

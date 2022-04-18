@@ -13,8 +13,8 @@ FROM openjdk:17-alpine as gateway
 WORKDIR /w
 COPY --from=extractor /w/gateway/* /w/
 ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
-HEALTHCHECK --interval=5s \
-    CMD wget -qO /dev/null http://localhost:8080/actuator/health
+#HEALTHCHECK --interval=5s \
+#    CMD wget -qO /dev/null http://localhost:8080/actuator/health
 EXPOSE 8080
 
 FROM openjdk:17-alpine as sample-service

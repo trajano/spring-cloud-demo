@@ -7,8 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-@Service
 @Slf4j
+@Service
 public class DockerEventWatcher {
 
   private final DockerEventWatcherEventCallback dockerEventWatcherEventCallback;
@@ -28,10 +28,12 @@ public class DockerEventWatcher {
     this.dockerDiscoveryConfig = dockerDiscoveryConfig;
   }
 
+  /** Watches for events. */
   @Scheduled(fixedDelay = 1L, initialDelay = 10L)
   public void startWatching() {
 
     try {
+      log.debug("Docker event watcher started");
       dockerClient
           .eventsCmd()
           .withSince(String.valueOf(Instant.now().getEpochSecond()))
@@ -40,6 +42,7 @@ public class DockerEventWatcher {
           .exec(dockerEventWatcherEventCallback);
       dockerEventWatcherEventCallback.awaitCompletion();
     } catch (InterruptedException e) {
+      log.info("INTERUPPTED");
       Thread.currentThread().interrupt();
     }
   }
