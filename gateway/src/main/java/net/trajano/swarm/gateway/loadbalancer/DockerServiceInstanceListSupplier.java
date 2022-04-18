@@ -19,12 +19,16 @@ import reactor.core.publisher.Flux;
 @Slf4j
 public class DockerServiceInstanceListSupplier implements ServiceInstanceListSupplier {
 
+  private final String serviceId;
+
   private final DockerClient dockerClient;
 
   private final DockerDiscoveryConfig config;
 
   public DockerServiceInstanceListSupplier(
-      final DockerClient dockerClient, final DockerDiscoveryConfig config) {
+      String serviceId, final DockerClient dockerClient, final DockerDiscoveryConfig config) {
+
+    this.serviceId = serviceId;
 
     this.dockerClient = dockerClient;
     this.config = config;
@@ -33,48 +37,45 @@ public class DockerServiceInstanceListSupplier implements ServiceInstanceListSup
   @Override
   public Flux<List<ServiceInstance>> get() {
 
-    return Flux.generate(
-        listSynchronousSink -> {
-          log.info("start");
-          final var network = getDiscoveryNetwork(dockerClient, config);
+    final var network = getDiscoveryNetwork(dockerClient, config);
 
-          if (config.isSwarmMode()) {
-            final var multiIds =
-                dockerClient.listServicesCmd().exec().stream()
-                    .filter(c -> c.getSpec().getLabels() != null)
-                    .filter(c -> c.getSpec().getLabels().containsKey(config.idsLabel()));
+    if (config.isSwarmMode()) {
+      final var multiIds =
+          dockerClient.listServicesCmd().exec().stream()
+              .filter(c -> c.getSpec().getLabels() != null)
+              .filter(c -> c.getSpec().getLabels().containsKey(config.idsLabel()));
 
-            final var singleId =
-                dockerClient.listServicesCmd().exec().stream()
-                    .filter(c -> c.getSpec().getLabels() != null)
-                    .filter(c -> c.getSpec().getLabels().containsKey(config.idLabel()));
+      final var singleId =
+          dockerClient.listServicesCmd().exec().stream()
+              .filter(c -> c.getSpec().getLabels() != null)
+              .filter(c -> c.getSpec().getLabels().containsKey(config.idLabel()));
 
-            final var services = Stream.concat(multiIds, singleId);
+      final var services = Stream.concat(multiIds, singleId);
 
-            listSynchronousSink.next(
-                services
-                    .flatMap(service -> instanceStream(service, network))
-                    .collect(Collectors.toList()));
-            log.info("end");
+      return Flux.just(
+          services
+              .flatMap(service -> instanceStream(service, network))
+              .filter(serviceInstance -> serviceInstance.getServiceId().equals(serviceId))
+              .collect(Collectors.toList()));
 
-          } else {
+    } else {
 
-            //                final var multiIds = dockerClient.listContainersCmd()
-            //                        .withLabelFilter(config.idsLabelFilter())
-            //                        .withNetworkFilter(List.of(network.getId()))
-            //                        .exec()
-            //                        .stream();
-            //
-            //                final var singleId = dockerClient.listContainersCmd()
-            //                        .withNetworkFilter(List.of(network.getId()))
-            //                        .exec()
-            //                        .stream();
-            //                final var containers = Stream.concat(multiIds, singleId).distinct();
-            //                return Flux.fromStream(containers
-            //                        .map(container -> new ContainerServiceInstance(container,
-            // config.getLabelPrefix(), serviceId, network)));
-          }
-        });
+      //                final var multiIds = dockerClient.listContainersCmd()
+      //                        .withLabelFilter(config.idsLabelFilter())
+      //                        .withNetworkFilter(List.of(network.getId()))
+      //                        .exec()
+      //                        .stream();
+      //
+      //                final var singleId = dockerClient.listContainersCmd()
+      //                        .withNetworkFilter(List.of(network.getId()))
+      //                        .exec()
+      //                        .stream();
+      //                final var containers = Stream.concat(multiIds, singleId).distinct();
+      //                return Flux.fromStream(containers
+      //                        .map(container -> new ContainerServiceInstance(container,
+      // config.getLabelPrefix(), serviceId, network)));
+      return Flux.empty();
+    }
   }
 
   private Stream<ServiceInstance> instanceStream(
@@ -104,7 +105,6 @@ public class DockerServiceInstanceListSupplier implements ServiceInstanceListSup
   @Override
   public String getServiceId() {
 
-    System.out.println("SERVICEID");
-    return null;
+    return serviceId;
   }
 }

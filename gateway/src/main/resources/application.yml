@@ -45,3 +45,9 @@ spring:
         enabled: false
       cache:
         enabled: true
+management:
+  endpoint.gateway.enabled: true # default value
+  endpoints:
+    web:
+      exposure:
+        include: health,gateway,info

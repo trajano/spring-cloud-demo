@@ -1,7 +1,6 @@
 package net.trajano.swarm.gateway.discovery;
 
 import com.github.dockerjava.api.DockerClient;
-import net.trajano.swarm.gateway.loadbalancer.DockerServiceInstanceListSupplier;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.cloud.client.ReactiveCommonsClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
@@ -22,10 +21,10 @@ public class DockerDiscoveryConfiguration {
     return new DockerReactiveDiscoveryClient(dockerClient, config);
   }
 
-  @Bean
-  DockerServiceInstanceListSupplier dockerServiceInstanceListSupplier(
-      final DockerClient dockerClient, final DockerDiscoveryConfig config) {
-
-    return new DockerServiceInstanceListSupplier(dockerClient, config);
-  }
+  //  @Bean
+  //  DockerServiceInstanceListSupplier dockerServiceInstanceListSupplier(
+  //      final DockerClient dockerClient, final DockerDiscoveryConfig config) {
+  //
+  //    return new DockerServiceInstanceListSupplier(serviceId, dockerClient, config);
+  //  }
 }

@@ -3,6 +3,8 @@ package net.trajano.swarm.gateway.discovery;
 import com.github.dockerjava.api.model.Service;
 import java.net.URI;
 import java.util.Map;
+import java.util.Objects;
+
 import lombok.Data;
 import org.springframework.cloud.client.ServiceInstance;
 
@@ -25,9 +27,9 @@ public class DockerServiceInstance implements ServiceInstance {
 
     this.serviceId = serviceId;
     this.host = host;
-    var multiId = true;
+    final var labels = Objects.requireNonNull(service.getSpec()).getLabels();
+    var multiId = labels.containsKey(labelPrefix + ".ids");
     if (multiId) {
-      final var labels = service.getSpec().getLabels();
       this.port =
           Integer.parseInt(labels.getOrDefault(labelPrefix + "." + serviceId + ".port", "8080"));
       this.secure =
