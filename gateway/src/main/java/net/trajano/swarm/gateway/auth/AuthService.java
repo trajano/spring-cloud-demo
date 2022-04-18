@@ -9,14 +9,13 @@ import org.jose4j.jwt.JwtClaims;
  */
 public interface AuthService<A, R, P> {
 
-    R authenticate(A authenticationRequest);
+  R authenticate(A authenticationRequest);
 
-    R refresh(String refreshToken);
+  R refresh(String refreshToken);
 
-    P getProfile(String accessToken);
+  P getProfile(String accessToken);
 
-    JwtClaims getClaims(String accessToken);
+  JwtClaims getClaims(String accessToken);
 
-    void revoke(String refreshToken);
-
+  void revoke(String refreshToken);
 }

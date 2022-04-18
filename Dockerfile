@@ -1,7 +1,7 @@
 FROM gradle:7.4-jdk17 AS builder
 WORKDIR /w
 COPY ./ /w
-RUN --mount=type=cache,target=/home/gradle/.gradle/caches gradle build
+RUN --mount=type=cache,target=/home/gradle/.gradle/caches gradle build -x test
 
 FROM openjdk:17-alpine as extractor
 WORKDIR /w
@@ -13,7 +13,7 @@ FROM openjdk:17-alpine as gateway
 WORKDIR /w
 COPY --from=extractor /w/gateway/* /w/
 ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
-HEALTHCHECK \
+HEALTHCHECK --interval=5s \
     CMD wget -qO /dev/null http://localhost:8080/actuator/health
 EXPOSE 8080
 

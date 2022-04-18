@@ -1,6 +1,7 @@
 plugins {
-	id 'idea'
+    id 'idea'
     id 'java'
+    id "com.diffplug.spotless"
 }
 java {
     toolchain {
@@ -8,9 +9,15 @@ java {
     }
 }
 repositories {
-  mavenCentral()
+    mavenCentral()
 }
 jar {
     // disable plain jar creation
     enabled = false
 }
+spotless {
+    java {
+        googleJavaFormat()
+    }
+}
+build.dependsOn spotlessApply

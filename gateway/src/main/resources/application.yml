@@ -1,11 +1,20 @@
 spring:
+  main:
+    banner-mode: "off"
+  cache:
+    type: redis
   cloud:
     gateway:
+#      fail-on-route-definition-error: false
       routes: []
+#        - id: after_route
+#          uri: https://example.org
+#          predicates:
+#            - Cookie=mycookie,mycookievalue
       discovery:
         locator:
           enabled: true
-          url-expression: "uri"
+          # url-expression: "uri"
           predicates:
             - name: Path
               args:
@@ -13,6 +22,9 @@ spring:
           filters:
             - RemoveRequestHeader='Cookie'
             - RemoveRequestHeader='X-Jwt-Assertion'
+            # Prevent propagation of traces
+            - RemoveRequestHeader='X-B3-TraceId'
+            - RemoveRequestHeader='X-Trace-Id'
             - name: Retry
               args:
                 retries: 3
@@ -22,3 +34,14 @@ spring:
               args:
                 regexp: "metadata['path.regexp']"
                 replacement: "metadata['path.replacement']"
+#    inetutils:
+#      ignoredInterfaces:
+#        - docker0
+#        - veth.*
+#        - eth3
+    loadbalancer:
+#      enabled: true
+      ribbon:
+        enabled: false
+      cache:
+        enabled: true

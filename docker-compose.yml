@@ -8,10 +8,12 @@ services:
     environment:
       - SPRING_REDIS_HOST=redis
       - DOCKER_DISCOVERY_SWARMMODE=true
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=debug
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_SLEUTH=warn
     ports:
       - 28080:8080
     deploy:
-      replicas: 3
+      replicas: 2
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
@@ -37,9 +39,8 @@ services:
       labels:
         docker.ids: whoami
         docker.whoami.path: /whoami/**
-        docker.whoami.path.replacement: /$${remaining}
         docker.whoami.port: 80
-      replicas: 3
+      replicas: 20
       endpoint_mode: dnsrr
     labels:
       docker.ids: whoami
@@ -67,7 +68,7 @@ services:
         docker.whoami3.path: /whoami3/**
         docker.whoami3.path.replacement: /$${remaining}
         docker.whoami3.port: 80
-      replicas: 3
+      replicas: 0
       endpoint_mode: vip
     networks:
       - services
