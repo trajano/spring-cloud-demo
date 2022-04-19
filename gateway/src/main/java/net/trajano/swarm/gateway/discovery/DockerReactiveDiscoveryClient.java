@@ -8,12 +8,11 @@ import reactor.core.publisher.Flux;
 @Slf4j
 public class DockerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
 
-  private final DockerServiceInstanceProvider dockerServiceInstanceProvider;
+  private final DockerServiceInstanceLister dockerServiceInstanceLister;
 
-  public DockerReactiveDiscoveryClient(
-      DockerServiceInstanceProvider dockerServiceInstanceProvider) {
+  public DockerReactiveDiscoveryClient(DockerServiceInstanceLister dockerServiceInstanceLister) {
 
-    this.dockerServiceInstanceProvider = dockerServiceInstanceProvider;
+    this.dockerServiceInstanceLister = dockerServiceInstanceLister;
   }
 
   @Override
@@ -28,14 +27,14 @@ public class DockerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
     if (serviceId == null) {
       return Flux.empty();
     }
-    final var instances = dockerServiceInstanceProvider.getInstances(serviceId);
+    final var instances = dockerServiceInstanceLister.getInstances(serviceId);
     return Flux.fromIterable(instances);
   }
 
   @Override
   public Flux<String> getServices() {
 
-    final var services = dockerServiceInstanceProvider.getServices();
+    final var services = dockerServiceInstanceLister.getServices();
     log.info("services: {}", services);
     return Flux.fromIterable(services);
   }

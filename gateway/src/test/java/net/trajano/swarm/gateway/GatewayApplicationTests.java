@@ -15,12 +15,14 @@ import com.github.dockerjava.api.model.*;
 import java.util.List;
 import java.util.Map;
 import net.trajano.swarm.gateway.discovery.DockerEventWatcherEventCallback;
-import net.trajano.swarm.gateway.discovery.DockerServiceInstanceProvider;
+import net.trajano.swarm.gateway.discovery.DockerServiceInstanceLister;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
@@ -87,14 +89,24 @@ class GatewayApplicationTests {
     }
   }
 
-  @Autowired private DockerServiceInstanceProvider dockerServiceInstanceProvider;
+  @Autowired private DockerServiceInstanceLister dockerServiceInstanceLister;
+
+  @Autowired private LoadBalancerClientFactory loadBalancerClientFactory;
+
+  @Autowired private ServiceInstanceListSupplier serviceInstanceListSupplier;
 
   @Test
   void contextLoads() {}
 
   @Test
+  void serviceSupplier() {
+
+    System.out.println(serviceInstanceListSupplier.getClass());
+  }
+
+  @Test
   void dockerServiceInstances() {
-    assertThat(dockerServiceInstanceProvider.getServices()).containsExactly("foo");
-    assertThat(dockerServiceInstanceProvider.getInstances("foo")).hasSize(1);
+    assertThat(dockerServiceInstanceLister.getServices()).containsExactly("foo");
+    assertThat(dockerServiceInstanceLister.getInstances("foo")).hasSize(1);
   }
 }

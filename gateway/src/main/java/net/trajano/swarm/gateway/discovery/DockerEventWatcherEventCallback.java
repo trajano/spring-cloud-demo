@@ -15,18 +15,18 @@ public class DockerEventWatcherEventCallback
     extends ResultCallbackTemplate<ResultCallback<Event>, Event> implements Closeable {
 
   private final ApplicationEventPublisher publisher;
-  private final DockerServiceInstanceProvider dockerServiceInstanceProvider;
+  private final DockerServiceInstanceLister dockerServiceInstanceLister;
   private final DockerClient dockerClient;
 
   private boolean isClosed = false;
 
   public DockerEventWatcherEventCallback(
       ApplicationEventPublisher publisher,
-      DockerServiceInstanceProvider dockerServiceInstanceProvider,
+      DockerServiceInstanceLister dockerServiceInstanceLister,
       DockerClient dockerClient) {
 
     this.publisher = publisher;
-    this.dockerServiceInstanceProvider = dockerServiceInstanceProvider;
+    this.dockerServiceInstanceLister = dockerServiceInstanceLister;
     this.dockerClient = dockerClient;
   }
 
@@ -57,7 +57,7 @@ public class DockerEventWatcherEventCallback
         return;
       }
 
-      dockerServiceInstanceProvider.refresh();
+      dockerServiceInstanceLister.refresh();
       publisher.publishEvent(new RefreshRoutesEvent(this));
     }
   }

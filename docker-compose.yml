@@ -47,8 +47,11 @@ services:
         docker.ids: whoami
         docker.whoami.path: /whoami/**
         docker.whoami.port: 80
-      replicas: 20
+      replicas: 10
       endpoint_mode: dnsrr
+      resources:
+        limits:
+          memory: 64m
     labels:
       docker.ids: whoami
       docker.whoami.path: /whoami/**
@@ -63,6 +66,9 @@ services:
         docker.httpbin.path: /httpbin/**
         docker.httpbin.path.replacement: /$${remaining}
         docker.httpbin.port: 80
+      resources:
+        limits:
+          memory: 64m
       replicas: 3
       endpoint_mode: vip
     networks:
@@ -77,6 +83,9 @@ services:
         docker.whoami2.port: 80
       replicas: 3
       endpoint_mode: vip
+      resources:
+        limits:
+          memory: 64m
     networks:
       - services
   whoami3:
@@ -84,11 +93,14 @@ services:
     deploy:
       labels:
         docker.ids: whoami3
-        docker.whoami3.path: /whoami3/**
+        docker.whoami3.path: /non/**
         docker.whoami3.path.replacement: /$${remaining}
         docker.whoami3.port: 80
       replicas: 0
       endpoint_mode: vip
+      resources:
+        limits:
+          memory: 64m
     networks:
       - services
 networks:

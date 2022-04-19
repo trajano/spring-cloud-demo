@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.ServiceInstance;
 
 @Slf4j
-public class DockerServiceInstanceProvider {
+public class DockerServiceInstanceLister {
 
   private final DockerClient dockerClient;
 
@@ -21,7 +21,7 @@ public class DockerServiceInstanceProvider {
 
   private final AtomicReference<Map<String, List<ServiceInstance>>> servicesRef;
 
-  public DockerServiceInstanceProvider(
+  public DockerServiceInstanceLister(
       DockerClient dockerClient, DockerDiscoveryConfig dockerDiscoveryConfig) {
 
     this.dockerClient = dockerClient;

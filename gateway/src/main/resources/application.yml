@@ -4,17 +4,26 @@ spring:
   cache:
     type: redis
   cloud:
+    discovery:
+      enabled: true
+      reactive:
+        enabled: true
+    circuitbreaker:
+      resilience4j:
+        reactive:
+          enabled: true
+        enabled: true
     gateway:
 #      fail-on-route-definition-error: false
-      routes:
-        - id: after_route
-          uri: http://whoami2
-          predicates:
-            - Path=/who
+#      routes:
+#        - id: after_route
+#          uri: http://whoami2
+#          predicates:
+#            - Path=/who
       discovery:
         locator:
           enabled: true
-#          url-expression: "uri"
+          url-expression: "uri"
           predicates:
             - name: Path
               args:
@@ -25,11 +34,10 @@ spring:
             # Prevent propagation of traces
             - RemoveRequestHeader='X-B3-TraceId'
             - RemoveRequestHeader='X-Trace-Id'
-            - name: Retry
+            - name: CircuitBreaker
               args:
-                retries: 3
-              methods:
-                - GET
+                name: "'myCircuitBreaker'"
+                fallbackUri: "'forward:/unavailable'"
             - name: RewritePath
               args:
                 regexp: "metadata['path.regexp']"
@@ -40,11 +48,29 @@ spring:
 #        - veth.*
 #        - eth3
     loadbalancer:
-##      enabled: false
+      retry:
+        enabled: false
+      ##      enabled: false
       ribbon:
         enabled: false
-#      cache:
-#        enabled: false
+      cache:
+        enabled: false
+resilience4j:
+  circuitbreaker:
+    instances:
+      myCircuitBreaker:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+  retry:
+    instances:
+      myCircuitBreaker:
+        maxAttempts: 3
+        waitDuration: 10s
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        retryExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
 management:
   endpoint.gateway.enabled: true # default value
   endpoints:
@@ -52,3 +78,6 @@ management:
       exposure:
         #include: health,gateway,info,caches
         include: "*"
+#logging:
+#  level:
+#    root: debug
