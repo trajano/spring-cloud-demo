@@ -23,7 +23,7 @@ spring:
       discovery:
         locator:
           enabled: true
-          url-expression: "uri"
+#          url-expression: "uri"
           predicates:
             - name: Path
               args:
@@ -48,9 +48,6 @@ spring:
 #        - veth.*
 #        - eth3
     loadbalancer:
-      retry:
-        enabled: false
-      ##      enabled: false
       ribbon:
         enabled: false
       cache:
