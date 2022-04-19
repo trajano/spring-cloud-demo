@@ -42,7 +42,6 @@ public class DockerEventWatcher {
           .exec(dockerEventWatcherEventCallback);
       dockerEventWatcherEventCallback.awaitCompletion();
     } catch (InterruptedException e) {
-      log.info("INTERUPPTED");
       Thread.currentThread().interrupt();
     }
   }

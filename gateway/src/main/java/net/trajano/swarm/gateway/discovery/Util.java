@@ -2,13 +2,16 @@ package net.trajano.swarm.gateway.discovery;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Network;
+import java.io.IOException;
 import java.net.InetAddress;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.xbill.DNS.ARecord;
 import org.xbill.DNS.Name;
+import org.xbill.DNS.SimpleResolver;
 import org.xbill.DNS.Type;
 import org.xbill.DNS.lookup.LookupSession;
 
@@ -80,14 +83,19 @@ public class Util {
 
   public static Stream<String> getIpAddresses(String hostname) {
 
-    final var s = LookupSession.defaultBuilder().clearCaches().build();
-    final var name = Name.fromConstantString(hostname);
     try {
+      final var resolver = new SimpleResolver();
+      resolver.setTimeout(Duration.ofSeconds(2));
+      final var s = LookupSession.defaultBuilder().clearCaches().resolver(resolver).build();
+      final var name = Name.fromConstantString(hostname);
       return s.lookupAsync(name, Type.A)
           .handle(
               (r, ex) -> {
                 if (r == null) {
-                  return Stream.<String>empty();
+                  // fallback is to just use the host name.  If we have another update and the
+                  // service
+                  // is present and listed in the DNS then we will have another look up call.
+                  return Stream.of(hostname);
                 } else {
                   return r.getRecords().stream()
                       .map(ARecord.class::cast)
@@ -97,7 +105,7 @@ public class Util {
               })
           .toCompletableFuture()
           .get();
-    } catch (ExecutionException e) {
+    } catch (IOException | ExecutionException e) {
       throw new IllegalStateException(e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

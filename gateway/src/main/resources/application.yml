@@ -6,15 +6,15 @@ spring:
   cloud:
     gateway:
 #      fail-on-route-definition-error: false
-      routes: []
-#        - id: after_route
-#          uri: https://example.org
-#          predicates:
-#            - Cookie=mycookie,mycookievalue
+      routes:
+        - id: after_route
+          uri: http://whoami2
+          predicates:
+            - Path=/who
       discovery:
         locator:
           enabled: true
-          url-expression: "uri"
+#          url-expression: "uri"
           predicates:
             - name: Path
               args:
@@ -39,10 +39,10 @@ spring:
 #        - docker0
 #        - veth.*
 #        - eth3
-#    loadbalancer:
+    loadbalancer:
 ##      enabled: false
-#      ribbon:
-#        enabled: false
+      ribbon:
+        enabled: false
 #      cache:
 #        enabled: false
 management:

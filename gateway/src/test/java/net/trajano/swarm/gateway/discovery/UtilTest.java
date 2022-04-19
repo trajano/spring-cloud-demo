@@ -17,7 +17,7 @@ class UtilTest {
   @Test
   void getNonExistentIpAddresses() {
 
-    assertThat(Util.getIpAddresses("gasdf.balarky")).isEmpty();
+    assertThat(Util.getIpAddresses("gasdf.balarky")).containsExactly("gasdf.balarky");
   }
 
   @Test
