@@ -1,4 +1,4 @@
-package net.trajano.swarm.gateway.controller;
+package net.trajano.swarm.gateway.web;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;

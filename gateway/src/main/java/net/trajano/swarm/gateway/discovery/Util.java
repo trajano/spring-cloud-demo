@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.validation.constraints.NotNull;
 import org.xbill.DNS.ARecord;
 import org.xbill.DNS.Name;
 import org.xbill.DNS.SimpleResolver;
@@ -110,6 +111,20 @@ public class Util {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       return Stream.empty();
+    }
+  }
+  /**
+   * Convert trace ID being returned in the header to the format expected by Amazon X-Ray so we can
+   * copy and paste it.
+   *
+   * @param traceIdString trace ID string
+   * @return trace ID in AWS X-Ray format
+   */
+  public static String toXRay(@NotNull String traceIdString) {
+    if (traceIdString.matches("[0-9a-f]{32}")) {
+      return String.format("1-%s-%s", traceIdString.substring(0, 8), traceIdString.substring(8));
+    } else {
+      return traceIdString;
     }
   }
 }

@@ -1,4 +1,4 @@
-package net.trajano.swarm.gateway.controller;
+package net.trajano.swarm.gateway.web;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

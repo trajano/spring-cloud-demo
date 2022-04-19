@@ -1,4 +1,6 @@
 spring:
+  sleuth:
+    trace-id128: true
   main:
     banner-mode: "off"
   cache:
@@ -33,7 +35,7 @@ spring:
             - RemoveRequestHeader='X-Jwt-Assertion'
             # Prevent propagation of traces
             - RemoveRequestHeader='X-B3-TraceId'
-            - RemoveRequestHeader='X-Trace-Id'
+            - RemoveRequestHeader='X-Trace-ID'
             - name: CircuitBreaker
               args:
                 name: "'myCircuitBreaker'"

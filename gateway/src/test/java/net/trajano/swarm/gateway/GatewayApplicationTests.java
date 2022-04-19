@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -93,16 +92,8 @@ class GatewayApplicationTests {
 
   @Autowired private LoadBalancerClientFactory loadBalancerClientFactory;
 
-  @Autowired private ServiceInstanceListSupplier serviceInstanceListSupplier;
-
   @Test
   void contextLoads() {}
-
-  @Test
-  void serviceSupplier() {
-
-    System.out.println(serviceInstanceListSupplier.getClass());
-  }
 
   @Test
   void dockerServiceInstances() {
