@@ -1,22 +1,37 @@
 package net.trajano.swarm.gateway.discovery;
 
 import com.github.dockerjava.api.DockerClient;
-import net.trajano.swarm.gateway.loadbalancer.DockerServiceInstanceListSupplier;
-import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
+import org.springframework.cloud.client.ConditionalOnReactiveDiscoveryEnabled;
+import org.springframework.cloud.client.ReactiveCommonsClientAutoConfiguration;
+import org.springframework.cloud.client.discovery.health.DiscoveryClientHealthIndicatorProperties;
+import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryClientHealthIndicator;
+import org.springframework.cloud.client.discovery.health.reactive.ReactiveDiscoveryHealthIndicator;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClientConfiguration;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClients;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 @Configuration(proxyBeanMethods = false)
-// @LoadBalancerClients
+@ConditionalOnDiscoveryEnabled
+@ConditionalOnReactiveDiscoveryEnabled
+@EnableConfigurationProperties
+@AutoConfigureBefore(ReactiveCommonsClientAutoConfiguration.class)
+@LoadBalancerClients(defaultConfiguration = LoadBalancerClientConfiguration.class)
 public class DockerDiscoveryConfiguration {
 
   @Bean
-  DockerServiceInstanceLister dockerServiceInstanceProvider(
-      DockerClient dockerClient, DockerDiscoveryConfig config) {
+  @Lazy
+  DockerServiceInstanceLister dockerServiceInstanceLister(
+      ApplicationEventPublisher publisher,
+      DockerClient dockerClient,
+      DockerDiscoveryConfig config) {
 
-    return new DockerServiceInstanceLister(dockerClient, config);
+    return new DockerServiceInstanceLister(publisher, dockerClient, config);
   }
 
   @Bean
@@ -26,43 +41,12 @@ public class DockerDiscoveryConfiguration {
     return new DockerReactiveDiscoveryClient(dockerServiceInstanceLister);
   }
 
-  //  @Bean
-  //  DockerEventWatcher dockerEventWatcher(
-  //      DockerEventWatcherEventCallback dockerEventWatcherEventCallback,
-  //      DockerClient dockerClient,
-  //      DockerDiscoveryConfig dockerDiscoveryConfig) {
-  //    return new DockerEventWatcher(
-  //        dockerEventWatcherEventCallback, dockerClient, dockerDiscoveryConfig);
-  //  }
-  //  @Bean
-  //  @ConditionalOnMissingBean
-  //  public ReactorLoadBalancer<ServiceInstance> reactorServiceInstanceLoadBalancer(
-  //      Environment environment, LoadBalancerClientFactory loadBalancerClientFactory) {
-  //    String name = environment.getProperty(LoadBalancerClientFactory.PROPERTY_NAME);
-  //    return new RoundRobinLoadBalancer(
-  //        loadBalancerClientFactory.getLazyProvider(name, ServiceInstanceListSupplier.class),
-  // name);
-  //  }
-
-  //  @Bean
-  ServiceInstanceListSupplier discoveryClientServiceInstanceListSupplier(
-      ConfigurableApplicationContext context,
-      DockerServiceInstanceLister dockerServiceInstanceLister) {
-
-    return new DockerServiceInstanceListSupplier(
-        context.getEnvironment(), dockerServiceInstanceLister);
-    //    final var build =
-    // ServiceInstanceListSupplier.builder().withDiscoveryClient().build(context);
-    //    System.out.println(build.getServiceId());
-    //    return build;
-  }
-
   @Bean
-  DockerEventWatcherEventCallback dockerEventWatcherEventCallback(
-      ApplicationEventPublisher publisher,
-      DockerServiceInstanceLister dockerServiceInstanceLister,
-      DockerClient dockerClient) {
-    return new DockerEventWatcherEventCallback(
-        publisher, dockerServiceInstanceLister, dockerClient);
+  ReactiveDiscoveryHealthIndicator dockerReactiveDiscoveryHealthIndicator(
+      DockerReactiveDiscoveryClient dockerReactiveDiscoveryClient,
+      DiscoveryClientHealthIndicatorProperties discoveryClientHealthIndicatorProperties) {
+
+    return new ReactiveDiscoveryClientHealthIndicator(
+        dockerReactiveDiscoveryClient, discoveryClientHealthIndicatorProperties);
   }
 }

@@ -8,26 +8,23 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 @Slf4j
+@RequiredArgsConstructor
 public class DockerServiceInstanceLister {
 
+  private final ApplicationEventPublisher publisher;
   private final DockerClient dockerClient;
 
   private final DockerDiscoveryConfig dockerDiscoveryConfig;
 
-  private final AtomicReference<Map<String, List<ServiceInstance>>> servicesRef;
-
-  public DockerServiceInstanceLister(
-      DockerClient dockerClient, DockerDiscoveryConfig dockerDiscoveryConfig) {
-
-    this.dockerClient = dockerClient;
-    this.dockerDiscoveryConfig = dockerDiscoveryConfig;
-    servicesRef = new AtomicReference<>(Map.of());
-  }
+  private final AtomicReference<Map<String, List<ServiceInstance>>> servicesRef =
+      new AtomicReference<>(Map.of());
 
   public List<ServiceInstance> getInstances(String serviceId) {
 
@@ -39,8 +36,12 @@ public class DockerServiceInstanceLister {
     return servicesRef.get().keySet();
   }
 
+  public void probe() {
+    dockerClient.pingCmd().exec();
+  }
+
   /** Refreshes the service list. */
-  @PostConstruct
+  //  @PostConstruct
   public void refresh() {
 
     final var network = getDiscoveryNetwork();
@@ -59,6 +60,10 @@ public class DockerServiceInstanceLister {
       final var services =
           Stream.concat(multiIds, singleId)
               .flatMap(service -> instanceStream(service, network))
+              .peek(
+                  serviceInstance -> {
+                    publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceInstance));
+                  })
               .collect(Collectors.groupingBy(ServiceInstance::getServiceId));
       servicesRef.set(services);
 
@@ -83,6 +88,10 @@ public class DockerServiceInstanceLister {
           Stream.concat(multiIds, singleId)
               .distinct()
               .flatMap(container -> instanceStream(container, network))
+              .peek(
+                  serviceInstance -> {
+                    publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceInstance));
+                  })
               .collect(Collectors.groupingBy(ServiceInstance::getServiceId));
       servicesRef.set(containers);
     }

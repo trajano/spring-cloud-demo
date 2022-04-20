@@ -61,7 +61,6 @@ public class CustomErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
     int errorStatus =
         (int) getErrorAttributes(request, ErrorAttributeOptions.defaults()).get("status");
     return ServerResponse.status(errorStatus)
-        .header("X-B3-Traceid", tracing.tracer().currentSpan().context().traceIdString())
         .contentType(MediaType.APPLICATION_JSON)
         .body(BodyInserters.fromValue(GatewayResponse.builder().ok(false).build()));
   }

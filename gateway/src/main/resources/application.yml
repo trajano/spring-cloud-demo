@@ -1,5 +1,7 @@
 spring:
   sleuth:
+    reactor:
+      instrumentation-type: decorate_queues
     trace-id128: true
   main:
     banner-mode: "off"
@@ -7,6 +9,10 @@ spring:
     type: redis
   cloud:
     discovery:
+      client:
+        health-indicator:
+          enabled: true
+          includeDescription: true
       enabled: true
       reactive:
         enabled: true
@@ -16,6 +22,22 @@ spring:
           enabled: true
         enabled: true
     gateway:
+      # https://cloud.spring.io/spring-cloud-gateway/reference/html/appendix.html
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+#            allowedOrigins: "*"
+            allowCredentials: false
+            allowedMethods:
+              - GET
+              - PUT
+              - POST
+              - DELETE
+              - PATCH
+      httpclient:
+        connect-timeout: 10000
+        response-timeout: 20s
 #      fail-on-route-definition-error: false
 #      routes:
 #        - id: after_route
@@ -31,14 +53,24 @@ spring:
               args:
                 patterns: "metadata['path']"
           filters:
+#            - name: RequestRateLimiter
+#              args:
+#                redis-rate-limiter.replenishRate: 10
+#                redis-rate-limiter.burstCapacity: 20
+#                redis-rate-limiter.requestedTokens: 1
             - RemoveRequestHeader='Cookie'
             - RemoveRequestHeader='X-Jwt-Assertion'
             # Prevent propagation of traces
             - RemoveRequestHeader='X-B3-TraceId'
             - RemoveRequestHeader='X-Trace-ID'
+            - name: Retry
+              args:
+                retries: 3
+              methods:
+                - GET
             - name: CircuitBreaker
               args:
-                name: "'myCircuitBreaker'"
+                name: "'resilience'"
                 fallbackUri: "'forward:/unavailable'"
             - name: RewritePath
               args:
@@ -52,31 +84,32 @@ spring:
     loadbalancer:
       ribbon:
         enabled: false
-      cache:
-        enabled: false
+#      cache:
+#        enabled: false
 resilience4j:
   circuitbreaker:
     instances:
-      myCircuitBreaker:
+      resilience:
         registerHealthIndicator: true
         slidingWindowSize: 100
-  retry:
+  timelimiter:
     instances:
-      myCircuitBreaker:
-        maxAttempts: 3
-        waitDuration: 10s
-        enableExponentialBackoff: true
-        exponentialBackoffMultiplier: 2
-        retryExceptions:
-          - org.springframework.web.client.HttpServerErrorException
-          - java.io.IOException
+      resilience:
+        timeoutDuration: 5s
+        cancelRunningFuture: true
+
 management:
   endpoint.gateway.enabled: true # default value
+  endpoint:
+    health:
+      show-details: ALWAYS
   endpoints:
     web:
       exposure:
         #include: health,gateway,info,caches
         include: "*"
-#logging:
-#  level:
+logging:
+  level:
+    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: warn
 #    root: debug
+

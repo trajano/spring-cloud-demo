@@ -14,13 +14,14 @@ import com.github.dockerjava.api.command.ListServicesCmd;
 import com.github.dockerjava.api.model.*;
 import java.util.List;
 import java.util.Map;
-import net.trajano.swarm.gateway.discovery.DockerEventWatcherEventCallback;
+import net.trajano.swarm.gateway.discovery.DockerEventWatcher;
 import net.trajano.swarm.gateway.discovery.DockerServiceInstanceLister;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4JCircuitBreakerFactory;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -28,7 +29,7 @@ import org.springframework.context.annotation.Primary;
 @SpringBootTest
 @MockBean(
     classes = {
-      DockerEventWatcherEventCallback.class,
+      DockerEventWatcher.class,
     })
 class GatewayApplicationTests {
 
@@ -92,11 +93,29 @@ class GatewayApplicationTests {
 
   @Autowired private LoadBalancerClientFactory loadBalancerClientFactory;
 
+  @Autowired
+  private ReactiveResilience4JCircuitBreakerFactory reactiveResilience4JCircuitBreakerFactory;
+
   @Test
   void contextLoads() {}
 
   @Test
+  void reactiveResilience4JCircuitBreaker() {
+
+    assertThat(
+            reactiveResilience4JCircuitBreakerFactory
+                .getCircuitBreakerRegistry()
+                .getAllCircuitBreakers())
+        .hasSize(1)
+        .allSatisfy(
+            circuitBreaker -> {
+              assertThat(circuitBreaker.getCircuitBreakerConfig()).isNotNull();
+            });
+  }
+
+  @Test
   void dockerServiceInstances() {
+    dockerServiceInstanceLister.refresh();
     assertThat(dockerServiceInstanceLister.getServices()).containsExactly("foo");
     assertThat(dockerServiceInstanceLister.getInstances("foo")).hasSize(1);
   }

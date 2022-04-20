@@ -5,28 +5,29 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.discovery.Util;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.sleuth.instrument.web.WebFluxSleuthOperators;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebFilter;
-import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 /**
  * This adds the trace ID to the response and tracks how long it takes to perform the request on
- * non-gateway requests.
+ * gateway.
  */
-@Slf4j(topic = "request")
+@Component
 @RequiredArgsConstructor
-public class PerformanceRequestIDPostFilter implements WebFilter {
+@Slf4j(topic = "request")
+public class PerformanceRequestIDPostGatewayFilter implements GlobalFilter {
 
   private final Tracing tracing;
 
   private static final String LOG_MESSAGE_FORMAT = "{} {} {} {}ms";
 
   @Override
-  public Mono<Void> filter(final ServerWebExchange exchange, WebFilterChain chain) {
+  public Mono<Void> filter(final ServerWebExchange exchange, GatewayFilterChain chain) {
 
     final long startNanos = System.nanoTime();
     return chain
@@ -64,11 +65,12 @@ public class PerformanceRequestIDPostFilter implements WebFilter {
                     log.info(
                         LOG_MESSAGE_FORMAT, method, requestURI, status, requestTimeInMillisText);
                   }
-                  // add CORS
-                  final HttpHeaders responseHeaders = exchange.getResponse().getHeaders();
-                  if (responseHeaders.getAccessControlAllowOrigin() == null) {
-                    responseHeaders.setAccessControlAllowOrigin("*");
-                  }
+                  //                  // add CORS
+                  //                  final HttpHeaders responseHeaders =
+                  // exchange.getResponse().getHeaders();
+                  //                  if (responseHeaders.getAccessControlAllowOrigin() == null) {
+                  //                    responseHeaders.setAccessControlAllowOrigin("*");
+                  //                  }
                 }));
   }
 }
