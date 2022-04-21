@@ -1,12 +1,10 @@
 package net.trajano.swarm.gateway.discovery;
 
-import com.github.dockerjava.api.model.Container;
-import com.github.dockerjava.api.model.ContainerNetwork;
-import com.github.dockerjava.api.model.Network;
-import com.github.dockerjava.api.model.Service;
+import com.github.dockerjava.api.model.*;
 import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.Data;
 import org.springframework.cloud.client.ServiceInstance;
 
@@ -29,14 +27,16 @@ public class DockerServiceInstance implements ServiceInstance {
 
     this.serviceId = serviceId;
     this.host = host;
-    final var labels = Objects.requireNonNull(service.getSpec()).getLabels();
+    final var labels =
+        Optional.ofNullable(service.getSpec()).map(ServiceSpec::getLabels).orElse(Map.of());
     var multiId = labels.containsKey(labelPrefix + ".ids");
     if (multiId) {
       this.port =
           Integer.parseInt(labels.getOrDefault(labelPrefix + "." + serviceId + ".port", "8080"));
       this.secure =
-          Boolean.parseBoolean(
-              labels.getOrDefault(labelPrefix + "." + serviceId + ".secure", "false"));
+          Optional.ofNullable(labels.get(labelPrefix + "." + serviceId + ".secure"))
+              .map(Boolean::parseBoolean)
+              .orElse(false);
     } else {
       this.port = Integer.parseInt(labels.getOrDefault(labelPrefix + ".port", "8080"));
       this.secure = Boolean.parseBoolean(labels.getOrDefault(labelPrefix + ".secure", "false"));
@@ -55,8 +55,12 @@ public class DockerServiceInstance implements ServiceInstance {
     this.serviceId = serviceId;
 
     this.host =
-        container.getNetworkSettings().getNetworks().values().stream()
-            .filter(n -> n.getNetworkID().equals(network.getId()))
+        Optional.ofNullable(container.getNetworkSettings())
+            .map(ContainerNetworkSettings::getNetworks)
+            .map(Map::values)
+            .orElseThrow()
+            .stream()
+            .filter(n -> Objects.equals(n.getNetworkID(), network.getId()))
             .findAny()
             .map(ContainerNetwork::getIpAddress)
             .orElseThrow();

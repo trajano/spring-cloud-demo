@@ -14,6 +14,8 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
+import javax.annotation.PostConstruct;
+
 @Slf4j
 @RequiredArgsConstructor
 public class DockerServiceInstanceLister {
@@ -40,9 +42,15 @@ public class DockerServiceInstanceLister {
     dockerClient.pingCmd().exec();
   }
 
+  /**
+   * Initial refresh.  Does not perform publish which causes cycles on startup.
+   */
+  @PostConstruct
+  public void initialRefresh() {
+refresh(false);
+  }
   /** Refreshes the service list. */
-  //  @PostConstruct
-  public void refresh() {
+  public void refresh(boolean publish) {
 
     final var network = getDiscoveryNetwork();
 
@@ -62,7 +70,9 @@ public class DockerServiceInstanceLister {
               .flatMap(service -> instanceStream(service, network))
               .peek(
                   serviceInstance -> {
-                    publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceInstance));
+                    if (publish) {
+                      publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceInstance));
+                    }
                   })
               .collect(Collectors.groupingBy(ServiceInstance::getServiceId));
       servicesRef.set(services);
@@ -90,7 +100,9 @@ public class DockerServiceInstanceLister {
               .flatMap(container -> instanceStream(container, network))
               .peek(
                   serviceInstance -> {
-                    publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceInstance));
+                    if (publish) {
+                      publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceInstance));
+                    }
                   })
               .collect(Collectors.groupingBy(ServiceInstance::getServiceId));
       servicesRef.set(containers);

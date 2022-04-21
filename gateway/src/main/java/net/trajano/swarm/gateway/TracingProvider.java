@@ -5,17 +5,15 @@ import brave.http.HttpRequestParser;
 import brave.http.HttpResponseParser;
 import brave.http.HttpTags;
 import brave.http.HttpTracing;
-import java.util.regex.Pattern;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+
 @Configuration
 public class TracingProvider {
-  private static final Pattern SKIP_PATTERN =
-      Pattern.compile("/ping|.\\.png|.\\.css|.\\.js|.\\.html|/favicon.ico");
 
   @Bean
-  public HttpTracing httpTracing(Tracing tracing) {
+  public HttpTracing httpTracing(Tracing tracing, ExcludedPathPatterns excludedPathPatterns) {
 
     return HttpTracing.newBuilder(tracing)
         .serverRequestParser(
@@ -40,8 +38,8 @@ public class TracingProvider {
             }))
         .serverSampler(
             request -> {
-              if (SKIP_PATTERN.matcher(request.path()).matches()) {
-                return false;
+                if (excludedPathPatterns.isExcludedForServer(request.path())) {
+                    return false;
               }
               return null;
             })

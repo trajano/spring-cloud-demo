@@ -115,7 +115,6 @@ class GatewayApplicationTests {
 
   @Test
   void dockerServiceInstances() {
-    dockerServiceInstanceLister.refresh();
     assertThat(dockerServiceInstanceLister.getServices()).containsExactly("foo");
     assertThat(dockerServiceInstanceLister.getInstances("foo")).hasSize(1);
   }

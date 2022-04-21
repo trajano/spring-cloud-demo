@@ -77,7 +77,7 @@ public class DockerEventWatcher {
           return;
         }
 
-        dockerServiceInstanceLister.refresh();
+        dockerServiceInstanceLister.refresh(true);
         publisher.publishEvent(new RefreshRoutesEvent(this));
       }
     }

@@ -60,8 +60,17 @@ public class CustomErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
 
     int errorStatus =
         (int) getErrorAttributes(request, ErrorAttributeOptions.defaults()).get("status");
-    return ServerResponse.status(errorStatus)
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(BodyInserters.fromValue(GatewayResponse.builder().ok(false).build()));
+    if (errorStatus >= 400 && errorStatus < 500) {
+      return ServerResponse.status(errorStatus)
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+              BodyInserters.fromValue(
+                  GatewayResponse.builder().ok(false).errorCode("client_error").build()));
+
+    } else {
+      return ServerResponse.status(errorStatus)
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(BodyInserters.fromValue(GatewayResponse.builder().ok(false).build()));
+    }
   }
 }

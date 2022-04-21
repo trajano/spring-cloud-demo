@@ -1,5 +1,35 @@
 version: "3.8"
 services:
+  edge:
+    image: traefik
+    ports:
+      - 28080:80
+#      - 28081:8080
+    command:
+      - --global.checknewversion=false
+      - --global.sendanonymoususage=false
+
+      - --api
+      - --api.dashboard
+#      - --api.insecure=true
+      - --ping
+      - --log.level=debug
+      - --entrypoints.http.address=:80
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.swarmMode=true
+      # - --providers.docker.useBindPortIP=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - edge
+    healthcheck:
+      test: traefik healthcheck --ping
+    deploy:
+      mode: global
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M
   gateway:
     build:
       context: .
@@ -11,8 +41,20 @@ services:
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=debug
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_SLEUTH=warn
     ports:
-      - 28080:8080
+      - 28082:8080
     deploy:
+      labels:
+        - "traefik.enable=true"
+        # - "traefik.http.routers.gateway.rule=Host(`localhost`)"
+        - "traefik.http.routers.gateway.rule=PathPrefix(`/`)"
+        - "traefik.http.routers.gateway.entryPoints=http"
+        - "traefik.http.routers.gateway.priority=1"
+        - "traefik.http.services.gateway.loadbalancer.server.port=8080"
+
+        - "traefik.http.routers.dashboard.rule=(PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+        - "traefik.http.routers.dashboard.entryPoints=http"
+        - "traefik.http.routers.dashboard.service=api@internal"
+#
       update_config:
 #        order: start-first
         failure_action: pause
@@ -20,11 +62,15 @@ services:
       restart_policy:
         max_attempts: 1
       replicas: 1
+      resources:
+        limits:
+          memory: 256m
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - services
+      - edge
       - default
   redis:
     image: redis:6
@@ -63,7 +109,8 @@ services:
     networks:
       - services
   wsecho:
-    image: datacoda/websocket-echo
+    image: solsson/websocat
+    command: "--text ws-l:0.0.0.0:8080 broadcast:mirror:"
     deploy:
       labels:
         docker.ids: wsecho
@@ -74,6 +121,8 @@ services:
           memory: 64m
       replicas: 2
       endpoint_mode: vip
+    networks:
+      - services
   httpbin:
     image: kennethreitz/httpbin
     deploy:
@@ -93,6 +142,12 @@ services:
     image: containous/whoami
     deploy:
       labels:
+        traefik.enable: "true"
+        traefik.http.routers.whoami2.rule: "PathPrefix(`/w/`)"
+        traefik.http.routers.whoami2.entryPoints: "http"
+        traefik.http.routers.whoami2.priority: "1000"
+        traefik.http.services.whoami2.loadbalancer.server.port: "80"
+
         docker.ids: whoami2
         docker.whoami2.path: /whoami2/**
         docker.whoami2.path.replacement: /$${remaining}
@@ -104,6 +159,7 @@ services:
           memory: 64m
     networks:
       - services
+      - edge
   whoami3:
     image: containous/whoami
     deploy:
@@ -120,5 +176,7 @@ services:
     networks:
       - services
 networks:
+  edge:
+    internal: false
   services:
     name: services
