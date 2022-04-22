@@ -21,7 +21,7 @@ public class Util {
   private Util() {}
 
   public static Network getDiscoveryNetwork(
-      DockerClient dockerClient, DockerDiscoveryConfig config) {
+      DockerClient dockerClient, DockerDiscoveryProperties config) {
 
     return dockerClient.listNetworksCmd().withNameFilter(config.getNetwork()).exec().stream()
         .filter(n -> n.getName().equals(config.getNetwork()))
@@ -72,7 +72,7 @@ public class Util {
   }
 
   public static Stream<String> getServiceIdsFromLabels(
-      DockerDiscoveryConfig config, Map<String, String> labels) {
+          DockerDiscoveryProperties config, Map<String, String> labels) {
 
     return Stream.concat(
             Stream.of(labels.get(config.idsLabel()).split(",")),

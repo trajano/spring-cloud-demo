@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "docker.discovery")
 @Data
-public class DockerDiscoveryConfig {
+public class DockerDiscoveryProperties {
 
   /** Label prefix to process. */
   private String labelPrefix = "docker";

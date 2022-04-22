@@ -29,7 +29,7 @@ public class DockerDiscoveryConfiguration {
   DockerServiceInstanceLister dockerServiceInstanceLister(
       ApplicationEventPublisher publisher,
       DockerClient dockerClient,
-      DockerDiscoveryConfig config) {
+      DockerDiscoveryProperties config) {
 
     return new DockerServiceInstanceLister(publisher, dockerClient, config);
   }

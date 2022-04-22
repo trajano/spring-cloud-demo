@@ -13,7 +13,7 @@ public class CoreController {
   @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
   public Mono<GatewayResponse> unavailable() {
 
-    return Mono.just(GatewayResponse.builder().errorCode("service_unavailable").ok(false).build());
+    return Mono.just(GatewayResponse.builder().error("service_unavailable").ok(false).build());
   }
 
   @RequestMapping("/ping")

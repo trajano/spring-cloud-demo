@@ -23,7 +23,7 @@ public class DockerEventWatcher {
   private final DockerServiceInstanceLister dockerServiceInstanceLister;
   private final DockerClient dockerClient;
 
-  private final DockerDiscoveryConfig dockerDiscoveryConfig;
+  private final DockerDiscoveryProperties dockerDiscoveryProperties;
 
   /** Watches for events. */
   @Scheduled(fixedDelay = 1L, initialDelay = 10L)
@@ -37,7 +37,7 @@ public class DockerEventWatcher {
           .eventsCmd()
           .withSince(String.valueOf(Instant.now().getEpochSecond()))
           .withEventTypeFilter(
-              dockerDiscoveryConfig.isSwarmMode() ? EventType.SERVICE : EventType.CONTAINER)
+              dockerDiscoveryProperties.isSwarmMode() ? EventType.SERVICE : EventType.CONTAINER)
           .exec(dockerEventWatcherEventCallback);
       dockerEventWatcherEventCallback.awaitCompletion();
     } catch (InterruptedException e) {

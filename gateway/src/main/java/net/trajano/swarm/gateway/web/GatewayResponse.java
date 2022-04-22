@@ -13,5 +13,5 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GatewayResponse {
   private boolean ok;
-  private String errorCode;
+  private String error;
 }

@@ -23,7 +23,7 @@ public class DockerServiceInstanceLister {
   private final ApplicationEventPublisher publisher;
   private final DockerClient dockerClient;
 
-  private final DockerDiscoveryConfig dockerDiscoveryConfig;
+  private final DockerDiscoveryProperties dockerDiscoveryProperties;
 
   private final AtomicReference<Map<String, List<ServiceInstance>>> servicesRef =
       new AtomicReference<>(Map.of());
@@ -54,16 +54,16 @@ refresh(false);
 
     final var network = getDiscoveryNetwork();
 
-    if (dockerDiscoveryConfig.isSwarmMode()) {
+    if (dockerDiscoveryProperties.isSwarmMode()) {
       final var multiIds =
           dockerClient.listServicesCmd().exec().stream()
               .filter(c -> c.getSpec().getLabels() != null)
-              .filter(c -> c.getSpec().getLabels().containsKey(dockerDiscoveryConfig.idsLabel()));
+              .filter(c -> c.getSpec().getLabels().containsKey(dockerDiscoveryProperties.idsLabel()));
 
       final var singleId =
           dockerClient.listServicesCmd().exec().stream()
               .filter(c -> c.getSpec().getLabels() != null)
-              .filter(c -> c.getSpec().getLabels().containsKey(dockerDiscoveryConfig.idLabel()));
+              .filter(c -> c.getSpec().getLabels().containsKey(dockerDiscoveryProperties.idLabel()));
 
       final var services =
           Stream.concat(multiIds, singleId)
@@ -82,7 +82,7 @@ refresh(false);
       final var multiIds =
           dockerClient
               .listContainersCmd()
-              .withLabelFilter(dockerDiscoveryConfig.idsLabelFilter())
+              .withLabelFilter(dockerDiscoveryProperties.idsLabelFilter())
               .withNetworkFilter(List.of(network.getId()))
               .exec()
               .stream();
@@ -90,7 +90,7 @@ refresh(false);
       final var singleId =
           dockerClient
               .listContainersCmd()
-              .withLabelFilter(List.of(dockerDiscoveryConfig.idLabel()))
+              .withLabelFilter(List.of(dockerDiscoveryProperties.idLabel()))
               .withNetworkFilter(List.of(network.getId()))
               .exec()
               .stream();
@@ -112,7 +112,7 @@ refresh(false);
 
   public Network getDiscoveryNetwork() {
 
-    return Util.getDiscoveryNetwork(dockerClient, dockerDiscoveryConfig);
+    return Util.getDiscoveryNetwork(dockerClient, dockerDiscoveryProperties);
   }
 
   private Stream<ServiceInstance> instanceStream(
@@ -123,7 +123,7 @@ refresh(false);
     final var serviceNetworks = (List<Map<String, Object>>) taskTemplate.get("Networks");
 
     final var serviceIds =
-        Util.getServiceIdsFromLabels(dockerDiscoveryConfig, service.getSpec().getLabels())
+        Util.getServiceIdsFromLabels(dockerDiscoveryProperties, service.getSpec().getLabels())
             .collect(Collectors.toList());
 
     return serviceNetworks.stream()
@@ -137,7 +137,7 @@ refresh(false);
                         serviceId ->
                             new DockerServiceInstance(
                                 service,
-                                dockerDiscoveryConfig.getLabelPrefix(),
+                                dockerDiscoveryProperties.getLabelPrefix(),
                                 serviceId,
                                 address)));
   }
@@ -145,10 +145,10 @@ refresh(false);
   private Stream<ServiceInstance> instanceStream(
       com.github.dockerjava.api.model.Container container, Network network) {
 
-    return Util.getServiceIdsFromLabels(dockerDiscoveryConfig, container.getLabels())
+    return Util.getServiceIdsFromLabels(dockerDiscoveryProperties, container.getLabels())
         .map(
             serviceId ->
                 new DockerServiceInstance(
-                    container, dockerDiscoveryConfig.getLabelPrefix(), serviceId, network));
+                    container, dockerDiscoveryProperties.getLabelPrefix(), serviceId, network));
   }
 }

@@ -65,7 +65,7 @@ public class CustomErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
           .contentType(MediaType.APPLICATION_JSON)
           .body(
               BodyInserters.fromValue(
-                  GatewayResponse.builder().ok(false).errorCode("client_error").build()));
+                  GatewayResponse.builder().ok(false).error("client_error").build()));
 
     } else {
       return ServerResponse.status(errorStatus)
