@@ -32,12 +32,6 @@ import reactor.core.publisher.Mono;
 public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenResponse, P>
     extends AbstractGatewayFilterFactory<ProtectedResourceGatewayFilterFactory.Config> {
 
-  private static final Map<String, String> ERROR_UNAUTHORIZED =
-      Map.of("error", "unauthorized_client");
-
-  private static final Map<String, String> ERROR_INVALID_REQUEST =
-      Map.of("error", "invalid_request");
-
   private final ReactiveDiscoveryClient discoveryClient;
 
   private final AuthService<A, R, P> authService;
@@ -114,7 +108,7 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
                       return chain.filter(authService.mutateDownstreamRequest(exchange, jwtClaims));
 
                     } catch (SecurityException e) {
-                      ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.BAD_REQUEST);
+                      ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
                       ServerWebExchangeUtils.setAlreadyRouted(exchange);
                       return chain
                           .filter(exchange)
@@ -138,7 +132,8 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
                                             .encode(
                                                 Mono.fromSupplier(UnauthorizedGatewayResponse::new),
                                                 response.bufferFactory(),
-                                                ResolvableType.forInstance(ERROR_UNAUTHORIZED),
+                                                    ResolvableType.forClass(
+                                                            UnauthorizedGatewayResponse.class),
                                                 MediaType.APPLICATION_JSON,
                                                 Hints.from(
                                                     Hints.LOG_PREFIX_HINT,
