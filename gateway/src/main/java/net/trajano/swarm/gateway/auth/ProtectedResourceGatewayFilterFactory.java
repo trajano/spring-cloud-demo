@@ -1,7 +1,6 @@
 package net.trajano.swarm.gateway.auth;
 
 import com.google.common.net.HttpHeaders;
-import java.util.Map;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
@@ -17,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
@@ -51,192 +51,81 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
   @Override
   public GatewayFilter apply(final Config config) {
 
-    return (exchange, chain) -> {
-      return discoveryClient
-          .getInstances(config.getServiceId())
-          .next()
-          .map(ServiceInstance::getMetadata)
-          .map(metadata -> Boolean.parseBoolean(metadata.getOrDefault("protected", "true")))
-          .filter(serviceProtected -> serviceProtected)
-          .flatMap(
-              serviceProtected -> {
-                if (!serviceProtected) {
-                  log.trace("service not protected");
-                  return chain.filter(exchange);
+    return (exchange, chain) -> discoveryClient
+        .getInstances(config.getServiceId())
+        .next()
+        .map(ServiceInstance::getMetadata)
+        .map(metadata -> Boolean.parseBoolean(metadata.getOrDefault("protected", "true")))
+        .filter(serviceProtected -> serviceProtected)
+        .flatMap(
+            serviceProtected -> {
+              if (!serviceProtected) {
+                log.trace("service not protected");
+                return chain.filter(exchange);
+              } else {
+                log.debug("service protected");
+
+                final String authorization =
+                    exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+                if (authorization == null || !authorization.startsWith("Bearer ")) {
+                  log.trace("No Bearer token in authorization");
+
+                  ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
+                  ServerWebExchangeUtils.setAlreadyRouted(exchange);
+                  return chain
+                      .filter(exchange)
+                      .then(respondWithUnauthorized(config, exchange, null));
                 } else {
-                  log.debug("service protected");
 
-                  final String authorization =
-                      exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-                  if (authorization == null || !authorization.startsWith("Bearer ")) {
-                    log.trace("No Bearer token in authorization");
+                  final String bearerToken = authorization.substring("Bearer ".length());
+                  try {
+                    JwtClaims jwtClaims = authService.getClaims(bearerToken);
+                    return chain.filter(authService.mutateDownstreamRequest(exchange, jwtClaims));
 
+                  } catch (SecurityException e) {
                     ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
                     ServerWebExchangeUtils.setAlreadyRouted(exchange);
                     return chain
                         .filter(exchange)
-                        .then(
-                            Mono.defer(
-                                () -> {
-                                  final var response = exchange.getResponse();
-                                  response
-                                      .getHeaders()
-                                      .add(
-                                          HttpHeaders.WWW_AUTHENTICATE,
-                                          "Bearer realm=\"%s\"".formatted(config.getRealm()));
-                                  response
-                                      .getHeaders()
-                                      .add(
-                                          HttpHeaders.CONTENT_TYPE,
-                                          MediaType.APPLICATION_JSON.toString());
-                                  return response.writeWith(
-                                      new Jackson2JsonEncoder()
-                                          .encode(
-                                              Mono.fromSupplier(UnauthorizedGatewayResponse::new),
-                                              response.bufferFactory(),
-                                              ResolvableType.forClass(
-                                                  UnauthorizedGatewayResponse.class),
-                                              MediaType.APPLICATION_JSON,
-                                              Hints.from(
-                                                  Hints.LOG_PREFIX_HINT, exchange.getLogPrefix())));
-                                }));
-                  } else {
-
-                    final String bearerToken = authorization.substring("Bearer ".length());
-                    try {
-                      JwtClaims jwtClaims = authService.getClaims(bearerToken);
-                      return chain.filter(authService.mutateDownstreamRequest(exchange, jwtClaims));
-
-                    } catch (SecurityException e) {
-                      ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
-                      ServerWebExchangeUtils.setAlreadyRouted(exchange);
-                      return chain
-                          .filter(exchange)
-                          .then(
-                              Mono.defer(
-                                  () -> {
-                                    final var response = exchange.getResponse();
-                                    response
-                                        .getHeaders()
-                                        .add(
-                                            HttpHeaders.WWW_AUTHENTICATE,
-                                            "Bearer realm=\"%s\", error=\"%s\""
-                                                .formatted(config.getRealm(), "invalid_token"));
-                                    response
-                                        .getHeaders()
-                                        .add(
-                                            HttpHeaders.CONTENT_TYPE,
-                                            MediaType.APPLICATION_JSON.toString());
-                                    return response.writeWith(
-                                        new Jackson2JsonEncoder()
-                                            .encode(
-                                                Mono.fromSupplier(UnauthorizedGatewayResponse::new),
-                                                response.bufferFactory(),
-                                                    ResolvableType.forClass(
-                                                            UnauthorizedGatewayResponse.class),
-                                                MediaType.APPLICATION_JSON,
-                                                Hints.from(
-                                                    Hints.LOG_PREFIX_HINT,
-                                                    exchange.getLogPrefix())));
-                                  }));
-                    }
+                        .then(respondWithUnauthorized(config, exchange, "invalid_token"));
                   }
                 }
-              })
-          .then();
-    };
+              }
+            });
   }
 
-  //  {
-  //
-  //    return (exchange, chain) -> {
-  //      return discoveryClient
-  //              .getInstances(config.getServiceId())
-  //              .next()
-  //              .map(ServiceInstance::getMetadata)
-  //              .map(metadata -> Boolean.parseBoolean(metadata.getOrDefault("protected", "true")))
-  //              .flatMap(
-  //                      serviceProtected -> {
-  //                        if (!serviceProtected) {
-  //                          log.trace("service not protected");
-  //                          return chain.filter(exchange);
-  //                        } else {
-  //                          log.debug("service protected");
-  //
-  //                          final String authorization =
-  //
-  // exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-  //                          if (authorization == null || !authorization.startsWith("Bearer ")) {
-  //                            log.trace("No Bearer token in authorization");
-  //
-  //                            ServerWebExchangeUtils.setResponseStatus(exchange,
-  // HttpStatus.UNAUTHORIZED);
-  //                            ServerWebExchangeUtils.setAlreadyRouted(exchange);
-  //                            return chain.filter(exchange).then(Mono.defer(() -> {
-  //                              final var response = exchange.getResponse();
-  //                              response.getHeaders().add(HttpHeaders.WWW_AUTHENTICATE, "Bearer
-  // realm=\"%s\"".formatted(config.getRealm()));
-  //                              response.getHeaders().add(HttpHeaders.CONTENT_TYPE,
-  //                                      MediaType.APPLICATION_JSON.toString());
-  //                              return response.writeWith(new Jackson2JsonEncoder()
-  //
-  // .encode(Mono.fromSupplier(UnauthorizedGatewayResponse::new),
-  //                                              response.bufferFactory(),
-  //
-  // ResolvableType.forClass(UnauthorizedGatewayResponse.class),
-  //                                              MediaType.APPLICATION_JSON,
-  //                                              Hints.from(Hints.LOG_PREFIX_HINT,
-  // exchange.getLogPrefix()))
-  //                              );
-  //                            }));
-  //                          }else {
-  //
-  //                            return chain.filter(exchange);
-  //                          }
-  //
-  //
-  //                        }
-  //                      })
-  //              .then();
-  //    };
-  //  }
-  //
-  //            final String serviceId = serviceInstance.getServiceId();
-  //
-  //            if (!serviceProtected) {
-  //                log.trace("Service {} does not require protection", serviceId);
-  //                return chain.filter(exchange);
-  //            }
-  //
-  //            log.debug("service {} is protected", serviceId);
+  private Mono<Void> respondWithUnauthorized(
+      Config config, ServerWebExchange exchange, String error) {
 
-  //              final String bearerToken = authorization.substring("Bearer ".length());
-  //              try {
-  //                  JwtClaims jwtClaims = authService.getClaims(bearerToken);
-  //                  return chain.filter(authService.mutateDownstreamRequest(exchange, jwtClaims));
-  //
-  //              } catch (SecurityException e) {
-  //                  ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.BAD_REQUEST);
-  //                  ServerWebExchangeUtils.setAlreadyRouted(exchange);
-  //                  return chain.filter(exchange).then(Mono.defer(() -> {
-  //                      final ServerHttpResponse response = exchange.getResponse();
-  //                      response.getHeaders().add(HttpHeaders.WWW_AUTHENTICATE, "Bearer
-  // realm\"%s\",
-  //   error=\"%s\"".formatted(config.getRealm(), "invalid_token"));
-  //                      response.getHeaders().add(HttpHeaders.CONTENT_TYPE,
-  //   MediaType.APPLICATION_JSON.toString());
-  //                      return response.writeWith(new Jackson2JsonEncoder()
-  //                              .encode(Mono.fromSupplier(UnauthorizedGatewayResponse::new),
-  //                                      response.bufferFactory(),
-  //                                      ResolvableType.forInstance(ERROR_UNAUTHORIZED),
-  //                                      MediaType.APPLICATION_JSON,
-  //                                      Hints.from(Hints.LOG_PREFIX_HINT,
-  // exchange.getLogPrefix()))
-  //                      );
-  //                  }));
-  //              }
-  //          };
-  //      }
+    return Mono.defer(
+        () -> {
+          final var response = exchange.getResponse();
+          if (error != null) {
+            response
+                .getHeaders()
+                .add(
+                    HttpHeaders.WWW_AUTHENTICATE,
+                    "Bearer realm=\"%s\", error=\"%s\"".formatted(config.getRealm(), error));
+          } else {
+            response
+                .getHeaders()
+                .add(
+                    HttpHeaders.WWW_AUTHENTICATE,
+                    "Bearer realm=\"%s\"".formatted(config.getRealm()));
+          }
+          response
+              .getHeaders()
+              .add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString());
+          return response.writeWith(
+              new Jackson2JsonEncoder()
+                  .encode(
+                      Mono.fromSupplier(UnauthorizedGatewayResponse::new),
+                      response.bufferFactory(),
+                      ResolvableType.forClass(UnauthorizedGatewayResponse.class),
+                      MediaType.APPLICATION_JSON,
+                      Hints.from(Hints.LOG_PREFIX_HINT, exchange.getLogPrefix())));
+        });
+  }
 
   /** Configuration. */
   @Data
