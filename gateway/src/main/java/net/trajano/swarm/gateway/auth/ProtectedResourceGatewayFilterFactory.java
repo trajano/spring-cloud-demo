@@ -51,47 +51,49 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
   @Override
   public GatewayFilter apply(final Config config) {
 
-    return (exchange, chain) -> discoveryClient
-        .getInstances(config.getServiceId())
-        .next()
-        .map(ServiceInstance::getMetadata)
-        .map(metadata -> Boolean.parseBoolean(metadata.getOrDefault("protected", "true")))
-        .filter(serviceProtected -> serviceProtected)
-        .flatMap(
-            serviceProtected -> {
-              if (!serviceProtected) {
-                log.trace("service not protected");
-                return chain.filter(exchange);
-              } else {
-                log.debug("service protected");
+    return (exchange, chain) ->
+        discoveryClient
+            .getInstances(config.getServiceId())
+            .next()
+            .map(ServiceInstance::getMetadata)
+            .map(metadata -> Boolean.parseBoolean(metadata.getOrDefault("protected", "true")))
+            .filter(serviceProtected -> serviceProtected)
+            .flatMap(
+                serviceProtected -> {
+                  if (!serviceProtected) {
+                    log.trace("service not protected");
+                    return chain.filter(exchange);
+                  } else {
+                    log.debug("service protected");
 
-                final String authorization =
-                    exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-                if (authorization == null || !authorization.startsWith("Bearer ")) {
-                  log.trace("No Bearer token in authorization");
+                    final String authorization =
+                        exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+                    if (authorization == null || !authorization.startsWith("Bearer ")) {
+                      log.trace("No Bearer token in authorization");
 
-                  ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
-                  ServerWebExchangeUtils.setAlreadyRouted(exchange);
-                  return chain
-                      .filter(exchange)
-                      .then(respondWithUnauthorized(config, exchange, null));
-                } else {
+                      ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
+                      ServerWebExchangeUtils.setAlreadyRouted(exchange);
+                      return chain
+                          .filter(exchange)
+                          .then(respondWithUnauthorized(config, exchange, null));
+                    } else {
 
-                  final String bearerToken = authorization.substring("Bearer ".length());
-                  try {
-                    JwtClaims jwtClaims = authService.getClaims(bearerToken);
-                    return chain.filter(authService.mutateDownstreamRequest(exchange, jwtClaims));
+                      final String bearerToken = authorization.substring("Bearer ".length());
+                      try {
+                        JwtClaims jwtClaims = authService.getClaims(bearerToken);
+                        return chain.filter(
+                            authService.mutateDownstreamRequest(exchange, jwtClaims));
 
-                  } catch (SecurityException e) {
-                    ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
-                    ServerWebExchangeUtils.setAlreadyRouted(exchange);
-                    return chain
-                        .filter(exchange)
-                        .then(respondWithUnauthorized(config, exchange, "invalid_token"));
+                      } catch (SecurityException e) {
+                        ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
+                        ServerWebExchangeUtils.setAlreadyRouted(exchange);
+                        return chain
+                            .filter(exchange)
+                            .then(respondWithUnauthorized(config, exchange, "invalid_token"));
+                      }
+                    }
                   }
-                }
-              }
-            });
+                });
   }
 
   private Mono<Void> respondWithUnauthorized(

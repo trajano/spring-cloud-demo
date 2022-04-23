@@ -59,20 +59,19 @@ class ContainerTests {
     gateway.start();
 
     gatewayUrl =
-            UriComponentsBuilder.newInstance()
-                    .scheme("http")
-                    .host("localhost")
-                    .port(gateway.getMappedPort(8080))
-                    .toUriString();
-
+        UriComponentsBuilder.newInstance()
+            .scheme("http")
+            .host("localhost")
+            .port(gateway.getMappedPort(8080))
+            .toUriString();
   }
 
   @AfterAll
   static void closeResources() {
-      gateway.close();
-      redis.close();
-      whoami.close();
-      network.close();
+    gateway.close();
+    redis.close();
+    whoami.close();
+    network.close();
   }
 
   private static String gatewayUrl;
@@ -115,36 +114,37 @@ class ContainerTests {
   void noToken() {
 
     final var responseBody =
-            WebTestClient.bindToServer()
-                    .baseUrl(gatewayUrl)
-                    .build()
-                    .get()
-                    .uri("/whoami")
-                    .exchange()
-                    .expectStatus()                    .isEqualTo(HttpStatus.UNAUTHORIZED)
-                    .expectHeader().valueEquals(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"JWT\"")
-                    .expectBody(String.class)
-                    .returnResult()
-                    .getResponseBody();
+        WebTestClient.bindToServer()
+            .baseUrl(gatewayUrl)
+            .build()
+            .get()
+            .uri("/whoami")
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatus.UNAUTHORIZED)
+            .expectHeader()
+            .valueEquals(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"JWT\"")
+            .expectBody(String.class)
+            .returnResult()
+            .getResponseBody();
     assertThat(responseBody).isEqualTo("{\"ok\":false,\"error\":\"invalid_token\"}");
   }
-
 
   @Test
   void ping() {
 
-        final var responseBody =
-            WebTestClient.bindToServer()
-                .baseUrl(gatewayUrl)
-                .build()
-                .get()
-                .uri("/ping")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
+    final var responseBody =
+        WebTestClient.bindToServer()
+            .baseUrl(gatewayUrl)
+            .build()
+            .get()
+            .uri("/ping")
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBody(String.class)
+            .returnResult()
+            .getResponseBody();
     assertThat(responseBody).isEqualTo("{\"ok\":true}");
   }
 }

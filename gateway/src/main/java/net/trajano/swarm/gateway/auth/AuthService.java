@@ -34,7 +34,7 @@ public interface AuthService<A, R extends OAuthTokenResponse, P> {
 
   /**
    * Gets the claims from the access token. May throw a {@link SecurityException} if the access
-   * token is not valid.  This does not return null.
+   * token is not valid. This does not return null.
    *
    * @param accessToken access token
    * @return claims.
