@@ -9,16 +9,16 @@ COPY extract.sh /w/extract.sh
 COPY --from=builder /w/*/build/libs/*.jar /w/
 RUN sh ./extract.sh
 
+FROM openjdk:17-alpine as sample-service
+WORKDIR /w
+COPY --from=extractor /w/sample-service/* /w/
+ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
+EXPOSE 8080
+
 FROM openjdk:17-alpine as gateway
 WORKDIR /w
 COPY --from=extractor /w/gateway/* /w/
 ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
 HEALTHCHECK --interval=5s --start-period=60s \
     CMD wget -qO /dev/null http://localhost:8080/actuator/health
-EXPOSE 8080
-
-FROM openjdk:17-alpine as sample-service
-WORKDIR /w
-COPY --from=extractor /w/sample-service/* /w/
-ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
 EXPOSE 8080

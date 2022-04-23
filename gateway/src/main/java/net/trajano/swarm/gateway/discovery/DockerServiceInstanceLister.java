@@ -8,13 +8,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.context.ApplicationEventPublisher;
-
-import javax.annotation.PostConstruct;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -42,12 +41,10 @@ public class DockerServiceInstanceLister {
     dockerClient.pingCmd().exec();
   }
 
-  /**
-   * Initial refresh.  Does not perform publish which causes cycles on startup.
-   */
+  /** Initial refresh. Does not perform publish which causes cycles on startup. */
   @PostConstruct
   public void initialRefresh() {
-refresh(false);
+    refresh(false);
   }
   /** Refreshes the service list. */
   public void refresh(boolean publish) {
@@ -58,12 +55,14 @@ refresh(false);
       final var multiIds =
           dockerClient.listServicesCmd().exec().stream()
               .filter(c -> c.getSpec().getLabels() != null)
-              .filter(c -> c.getSpec().getLabels().containsKey(dockerDiscoveryProperties.idsLabel()));
+              .filter(
+                  c -> c.getSpec().getLabels().containsKey(dockerDiscoveryProperties.idsLabel()));
 
       final var singleId =
           dockerClient.listServicesCmd().exec().stream()
               .filter(c -> c.getSpec().getLabels() != null)
-              .filter(c -> c.getSpec().getLabels().containsKey(dockerDiscoveryProperties.idLabel()));
+              .filter(
+                  c -> c.getSpec().getLabels().containsKey(dockerDiscoveryProperties.idLabel()));
 
       final var services =
           Stream.concat(multiIds, singleId)

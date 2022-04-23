@@ -8,7 +8,6 @@ import brave.http.HttpTracing;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-
 @Configuration
 public class TracingProvider {
 
@@ -38,8 +37,8 @@ public class TracingProvider {
             }))
         .serverSampler(
             request -> {
-                if (excludedPathPatterns.isExcludedForServer(request.path())) {
-                    return false;
+              if (excludedPathPatterns.isExcludedForServer(request.path())) {
+                return false;
               }
               return null;
             })

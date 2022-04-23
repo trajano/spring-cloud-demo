@@ -62,6 +62,9 @@ spring:
             # Prevent propagation of traces
             - RemoveRequestHeader='X-B3-TraceId'
             - RemoveRequestHeader='X-Trace-ID'
+            - name: ProtectedResource
+              args:
+                serviceId: serviceId
             - name: Retry
               args:
                 retries: 3

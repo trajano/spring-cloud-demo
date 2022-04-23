@@ -72,7 +72,7 @@ public class Util {
   }
 
   public static Stream<String> getServiceIdsFromLabels(
-          DockerDiscoveryProperties config, Map<String, String> labels) {
+      DockerDiscoveryProperties config, Map<String, String> labels) {
 
     return Stream.concat(
             Stream.of(labels.get(config.idsLabel()).split(",")),

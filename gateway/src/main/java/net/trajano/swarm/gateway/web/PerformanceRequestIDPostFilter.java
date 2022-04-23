@@ -6,9 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.ExcludedPathPatterns;
 import net.trajano.swarm.gateway.discovery.Util;
-import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
-import org.springframework.cloud.sleuth.instrument.web.WebFluxSleuthOperators;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -17,8 +14,8 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 /**
- * This adds the trace ID to the response and tracks how long it takes to perform the request.  This will exclude
- * actuator and ping requests.
+ * This adds the trace ID to the response and tracks how long it takes to perform the request. This
+ * will exclude actuator and ping requests.
  */
 @Component
 @Slf4j(topic = "request")
@@ -42,9 +39,10 @@ public class PerformanceRequestIDPostFilter implements WebFilter {
         .then(
             Mono.fromRunnable(
                 () -> {
-                    if (excludedPathPatterns.isExcludedForServer(exchange.getRequest().getPath().pathWithinApplication())) {
-                        return;
-                    }
+                  if (excludedPathPatterns.isExcludedForServer(
+                      exchange.getRequest().getPath().pathWithinApplication())) {
+                    return;
+                  }
                   final String requestURI = exchange.getRequest().getURI().toASCIIString();
                   final String method = exchange.getRequest().getMethodValue();
 
