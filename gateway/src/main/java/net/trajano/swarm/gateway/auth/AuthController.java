@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequiredArgsConstructor
-public class AuthController<A, R extends OAuthTokenResponse, P> {
+public class AuthController<A, R extends GatewayResponse, P> {
 
   private final AuthService<A, R, P> authService;
 

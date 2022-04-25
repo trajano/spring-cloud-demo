@@ -1,41 +1,44 @@
 package net.trajano.swarm.gateway.auth.simple;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import net.trajano.swarm.gateway.auth.AuthService;
 import net.trajano.swarm.gateway.auth.AuthServiceResponse;
-import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
+import net.trajano.swarm.gateway.web.GatewayResponse;
+import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
 import org.jose4j.jwt.JwtClaims;
+import org.springframework.http.HttpStatus;
 
 @RequiredArgsConstructor
-public class SimpleAuthService<R extends OAuthTokenResponse, P>
-    implements AuthService<SimpleAuthenticationRequest, R, P> {
+public class SimpleAuthService<P>
+    implements AuthService<SimpleAuthenticationRequest, GatewayResponse, P> {
 
   private final SimpleAuthServiceProperties properties;
 
   @Override
-  public AuthServiceResponse<R> authenticate(
+  public AuthServiceResponse<GatewayResponse> authenticate(
       SimpleAuthenticationRequest authenticationRequest, Map<String, String> headers) {
-    //
-    //    if (authenticationRequest.isAuthenticated()) {
-    //      return AuthServiceResponse.builder()
-    //              .operationResponse(new UnauthorizedGatewayResponse())
-    //              .build();
-    //
-    //    } else {
-    //
-    //      return       AuthServiceResponse.builder()
-    //               .operationResponse(new UnauthorizedGatewayResponse())
-    //               .statusCode(HttpStatus.UNAUTHORIZED)
-    //               .delay(Duration.of(2, ChronoUnit.SECONDS))
-    //               .build();
-    //
-    //    }
-    return null;
+
+    if (authenticationRequest.isAuthenticated()) {
+      return AuthServiceResponse.builder()
+          .operationResponse(new UnauthorizedGatewayResponse())
+          .build();
+
+    } else {
+
+      return AuthServiceResponse.builder()
+          .operationResponse(new UnauthorizedGatewayResponse())
+          .statusCode(HttpStatus.UNAUTHORIZED)
+          .delay(Duration.of(2, ChronoUnit.SECONDS))
+          .build();
+    }
   }
 
   @Override
-  public AuthServiceResponse<R> refresh(String refreshToken, Map<String, String> headers) {
+  public AuthServiceResponse<GatewayResponse> refresh(
+      String refreshToken, Map<String, String> headers) {
 
     return null;
   }
@@ -53,7 +56,8 @@ public class SimpleAuthService<R extends OAuthTokenResponse, P>
   }
 
   @Override
-  public AuthServiceResponse<R> revoke(String refreshToken, Map<String, String> headers) {
+  public AuthServiceResponse<GatewayResponse> revoke(
+      String refreshToken, Map<String, String> headers) {
 
     return null;
   }

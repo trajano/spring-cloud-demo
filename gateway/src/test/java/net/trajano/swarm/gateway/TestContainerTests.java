@@ -3,8 +3,6 @@ package net.trajano.swarm.gateway;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Ignore;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -18,22 +16,15 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 class TestContainerTests {
 
-  @BeforeAll
-  static void setup() {
+  private static String networkName = RandomStringUtils.randomAlphabetic(20);
 
-    networkName = RandomStringUtils.randomAlphabetic(20);
-    network =
-        Network.builder()
-            .createNetworkCmdModifier(
-                createNetworkCmd -> {
-                  createNetworkCmd.withName(networkName);
-                })
-            .build();
-  }
-
-  private static String networkName;
-
-  private static Network network;
+  private static Network network =
+      Network.builder()
+          .createNetworkCmdModifier(
+              createNetworkCmd -> {
+                createNetworkCmd.withName(networkName);
+              })
+          .build();
 
   @Container
   private static GenericContainer<?> whoami =
@@ -74,7 +65,7 @@ class TestContainerTests {
   }
 
   @Test
-  @Ignore("does not work")
+  // @Ignore("does not work")
   void connection() throws Exception {
 
     final var wget = alpine.execInContainer("wget", "-qO-", "http://whoami/");

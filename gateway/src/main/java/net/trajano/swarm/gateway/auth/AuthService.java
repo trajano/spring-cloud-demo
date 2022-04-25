@@ -1,6 +1,7 @@
 package net.trajano.swarm.gateway.auth;
 
 import java.util.Map;
+import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.jose4j.jwt.JwtClaims;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -9,7 +10,7 @@ import org.springframework.web.server.ServerWebExchange;
  * @param <R> response that extends OAuthResponse so additional data can be embedded.
  * @param <P> profile response
  */
-public interface AuthService<A, R extends OAuthTokenResponse, P> {
+public interface AuthService<A, R extends GatewayResponse, P> {
 
   /**
    * Authenticates the user based on the request.
