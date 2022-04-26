@@ -4,7 +4,6 @@ import com.google.common.net.HttpHeaders;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
-import org.jose4j.jwt.JwtClaims;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -79,18 +78,31 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
                     } else {
 
                       final String bearerToken = authorization.substring("Bearer ".length());
-                      try {
-                        JwtClaims jwtClaims = authService.getClaims(bearerToken);
-                        return chain.filter(
-                            authService.mutateDownstreamRequest(exchange, jwtClaims));
+return                         authService.getClaims(bearerToken)
+        .flatMap(jwtClaims->{
+            return chain.filter(
+                    authService.mutateDownstreamRequest(exchange, jwtClaims));
+        })
+                                .onErrorContinue((a,berr) -> {
+            ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
+            ServerWebExchangeUtils.setAlreadyRouted(exchange);
+             chain
+                    .filter(exchange)
+                    .then(respondWithUnauthorized(config, exchange, "invalid_token"));
 
-                      } catch (SecurityException e) {
-                        ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
-                        ServerWebExchangeUtils.setAlreadyRouted(exchange);
-                        return chain
-                            .filter(exchange)
-                            .then(respondWithUnauthorized(config, exchange, "invalid_token"));
-                      }
+        });
+//                      try {
+//                        JwtClaims jwtClaims = authService.getClaims(bearerToken);
+//                        return chain.filter(
+//                            authService.mutateDownstreamRequest(exchange, jwtClaims));
+//
+//                      } catch (SecurityException e) {
+//                        ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
+//                        ServerWebExchangeUtils.setAlreadyRouted(exchange);
+//                        return chain
+//                            .filter(exchange)
+//                            .then(respondWithUnauthorized(config, exchange, "invalid_token"));
+//                      }
                     }
                   }
                 });

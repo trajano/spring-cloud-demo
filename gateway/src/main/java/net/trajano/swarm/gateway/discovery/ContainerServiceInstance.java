@@ -3,9 +3,10 @@ package net.trajano.swarm.gateway.discovery;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ContainerNetwork;
 import com.github.dockerjava.api.model.Network;
+import org.springframework.cloud.client.ServiceInstance;
+
 import java.net.URI;
 import java.util.Map;
-import org.springframework.cloud.client.ServiceInstance;
 
 public class ContainerServiceInstance implements ServiceInstance {
 

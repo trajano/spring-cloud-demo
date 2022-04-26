@@ -1,32 +1,45 @@
 package net.trajano.swarm.gateway.auth;
 
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-@RestController
+import java.util.Map;
+
+/**
+ * Due to type erasure, this was made abstract so a concrete implementation like SimpleAuthController can be used 
+ * where the types are fully passed in.
+ * @param <A>
+ * @param <R>
+ * @param <P>
+ */
 @RequiredArgsConstructor
-public class AuthController<A, R extends GatewayResponse, P> {
+public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
 
-  private final AuthService<A, R, P> authService;
+  private final AuthService<A, R, P>
+      authService;
 
-  @RequestMapping(
+  @PostMapping(
       path = "${auth.controller-mappings.username-password-authentication:/auth}",
-      method = RequestMethod.POST)
+      consumes = {MediaType.APPLICATION_JSON_VALUE},
+      produces = {MediaType.APPLICATION_JSON_VALUE})
   public Mono<R> authenticate(
-      A authenticationRequest,
-      @RequestHeader Map<String, String> headers,
-      ServerHttpResponse serverHttpResponse) {
-
-    final var authenticationResponse = authService.authenticate(authenticationRequest, headers);
-    serverHttpResponse.setStatusCode(authenticationResponse.getStatusCode());
-    return Mono.just(authenticationResponse.getOperationResponse())
-        .delayElement(authenticationResponse.getDelay());
+          @RequestBody Mono<A> authenticationRequest,
+          ServerWebExchange serverWebExchange) {
+    return authService
+        .authenticate(authenticationRequest, serverWebExchange.getRequest().getHeaders())
+        .doOnNext(
+            serviceResponse ->
+                serverWebExchange.getResponse().setStatusCode(serviceResponse.getStatusCode()))
+        .flatMap(
+            serviceResponse ->
+                Mono.fromCallable(serviceResponse::getOperationResponse)
+                    .delayElement(serviceResponse.getDelay()));
   }
 
   @RequestMapping(
@@ -41,11 +54,13 @@ public class AuthController<A, R extends GatewayResponse, P> {
     if (!oAuthRefreshRequest.getGrant_type().equals("refresh_token")) {
       throw new IllegalArgumentException();
     }
-    final var refreshResponse =
-        authService.refresh(oAuthRefreshRequest.getRefresh_token(), headers);
-    serverHttpResponse.setStatusCode(refreshResponse.getStatusCode());
-    return Mono.just(refreshResponse.getOperationResponse())
-        .delayElement(refreshResponse.getDelay());
+    return authService
+        .refresh(oAuthRefreshRequest.getRefresh_token(), headers)
+        .map(
+            serviceResponse -> {
+              serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
+              return serviceResponse.getOperationResponse();
+            });
   }
 
   @RequestMapping(
@@ -53,17 +68,21 @@ public class AuthController<A, R extends GatewayResponse, P> {
       method = RequestMethod.POST,
       consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public Mono<Void> logout(
+  public Mono<R> logout(
       @ModelAttribute OAuthRevocationRequest oAuthRefreshRequest,
       @RequestHeader Map<String, String> headers,
       ServerHttpResponse serverHttpResponse) {
 
     if (!oAuthRefreshRequest.getToken_type_hint().equals("refresh_token")) {
-      throw new IllegalArgumentException();
+      return Mono.error(new IllegalArgumentException());
     }
-    final var serviceResponse = authService.revoke(oAuthRefreshRequest.getToken(), headers);
-    serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
-    return Mono.empty().then().delayElement(serviceResponse.getDelay());
+    return authService
+        .revoke(oAuthRefreshRequest.getToken(), headers)
+        .map(
+            serviceResponse -> {
+              serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
+              return serviceResponse.getOperationResponse();
+            });
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Bad request")

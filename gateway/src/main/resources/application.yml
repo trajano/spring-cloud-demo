@@ -115,3 +115,5 @@ logging:
     org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: warn
 #    root: debug
 
+simple-auth:
+  enabled: true

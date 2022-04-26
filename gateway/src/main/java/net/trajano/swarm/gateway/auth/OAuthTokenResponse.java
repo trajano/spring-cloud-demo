@@ -2,11 +2,13 @@ package net.trajano.swarm.gateway.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 
 @Data
-@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class OAuthTokenResponse extends GatewayResponse {
 
   /** The access token. This is the JWT of the claims that's signed with a key. */

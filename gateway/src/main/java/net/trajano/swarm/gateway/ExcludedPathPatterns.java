@@ -1,11 +1,12 @@
 package net.trajano.swarm.gateway;
 
-import java.util.List;
-import java.util.stream.Stream;
 import org.springframework.http.server.PathContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
+
+import java.util.List;
+import java.util.stream.Stream;
 
 @Component
 public final class ExcludedPathPatterns {

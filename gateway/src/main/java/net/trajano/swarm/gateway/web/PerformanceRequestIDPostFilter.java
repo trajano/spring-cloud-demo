@@ -1,7 +1,6 @@
 package net.trajano.swarm.gateway.web;
 
 import brave.Tracing;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.ExcludedPathPatterns;
@@ -12,6 +11,8 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 /**
  * This adds the trace ID to the response and tracks how long it takes to perform the request. This

@@ -1,9 +1,12 @@
 package net.trajano.swarm.gateway.auth;
 
-import java.util.Map;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.jose4j.jwt.JwtClaims;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
+import java.util.Map;
 
 /**
  * @param <A> authentication request
@@ -19,7 +22,7 @@ public interface AuthService<A, R extends GatewayResponse, P> {
    * @param headers HTTP headers
    * @return access token response
    */
-  AuthServiceResponse<R> authenticate(A authenticationRequest, Map<String, String> headers);
+  Mono<AuthServiceResponse<R>> authenticate(Mono<A> authenticationRequest, HttpHeaders headers);
 
   /**
    * Refreshes the token and returns a new authentication response. May throw a {@link
@@ -29,9 +32,9 @@ public interface AuthService<A, R extends GatewayResponse, P> {
    * @param headers HTTP headers
    * @return updated access token response
    */
-  AuthServiceResponse<R> refresh(String refreshToken, Map<String, String> headers);
+  Mono<AuthServiceResponse<R>> refresh(String refreshToken, Map<String, String> headers);
 
-  P getProfile(String accessToken);
+  Mono<P> getProfile(String accessToken);
 
   /**
    * Gets the claims from the access token. May throw a {@link SecurityException} if the access
@@ -40,7 +43,8 @@ public interface AuthService<A, R extends GatewayResponse, P> {
    * @param accessToken access token
    * @return claims.
    */
-  JwtClaims getClaims(String accessToken);
+  Mono<JwtClaims> getClaims(String accessToken);
+
 
   /**
    * Called by the filter to give an opportunity to mutate the exchange with information from the
@@ -61,5 +65,5 @@ public interface AuthService<A, R extends GatewayResponse, P> {
    * @param refreshToken
    * @param headers
    */
-  AuthServiceResponse<R> revoke(String refreshToken, Map<String, String> headers);
+  Mono<AuthServiceResponse<R>> revoke(String refreshToken, Map<String, String> headers);
 }

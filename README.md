@@ -9,3 +9,9 @@
 ./gradlew openidea
 ```
 
+## Auth testing
+
+```
+curl --header 'Content-Type: application/json' --data-raw '{"authenticated": false, "username":"bad"}' http://localhost:28082/auth
+curl --header 'Content-Type: application/json' --data-raw '{"authenticated": true, "username":"good"}' http://localhost:28082/auth
+```
