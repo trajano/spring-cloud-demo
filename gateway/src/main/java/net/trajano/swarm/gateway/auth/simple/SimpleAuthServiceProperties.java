@@ -23,5 +23,5 @@ public class SimpleAuthServiceProperties {
     /**
      * Prefix for keys.
      */
-    private String redisPrefix = "simple-auth/";
+    private String redisPrefix = "simple-auth";
 }

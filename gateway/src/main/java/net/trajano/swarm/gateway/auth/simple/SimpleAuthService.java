@@ -1,19 +1,17 @@
 package net.trajano.swarm.gateway.auth.simple;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import net.trajano.swarm.gateway.auth.AuthService;
 import net.trajano.swarm.gateway.auth.AuthServiceResponse;
-import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
 import org.jose4j.jwt.JwtClaims;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import reactor.core.publisher.Mono;
-
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.Map;
 
 @RequiredArgsConstructor
 public class SimpleAuthService<P>
@@ -25,23 +23,25 @@ public class SimpleAuthService<P>
 
   @Override
   public Mono<AuthServiceResponse<GatewayResponse>> authenticate(
-      Mono<SimpleAuthenticationRequest> authenticationRequestMono,  HttpHeaders headers) {
+      Mono<SimpleAuthenticationRequest> authenticationRequestMono, HttpHeaders headers) {
 
-    return authenticationRequestMono.map(
+    return authenticationRequestMono.flatMap(
         authenticationRequest -> {
           if (authenticationRequest.isAuthenticated()) {
-            final var operationResponse = new OAuthTokenResponse();
-            operationResponse.setOk(true);
-            operationResponse.setExpiresIn(properties.getAccessTokenExpiresInSeconds());
-            return AuthServiceResponse.builder().operationResponse(operationResponse).build();
+            return redisTokenCache
+                .buildOAuthTokenWithUsername(
+                    authenticationRequest.getUsername(),
+                    properties.getAccessTokenExpiresInSeconds())
+                .map(token -> AuthServiceResponse.builder().operationResponse(token).build());
 
           } else {
 
-            return AuthServiceResponse.builder()
-                .operationResponse(new UnauthorizedGatewayResponse())
-                .statusCode(HttpStatus.UNAUTHORIZED)
-                .delay(Duration.of(5, ChronoUnit.SECONDS))
-                .build();
+            return Mono.just(
+                AuthServiceResponse.builder()
+                    .operationResponse(new UnauthorizedGatewayResponse())
+                    .statusCode(HttpStatus.UNAUTHORIZED)
+                    .delay(Duration.of(5, ChronoUnit.SECONDS))
+                    .build());
           }
         });
   }
@@ -61,7 +61,7 @@ public class SimpleAuthService<P>
 
   /**
    * @param accessToken access token which is a JWE
-   * @return
+   * @return claims
    */
   @Override
   public Mono<JwtClaims> getClaims(String accessToken) {
