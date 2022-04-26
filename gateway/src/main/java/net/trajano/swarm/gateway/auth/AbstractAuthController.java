@@ -1,7 +1,8 @@
 package net.trajano.swarm.gateway.auth;
 
-import lombok.RequiredArgsConstructor;
 import net.trajano.swarm.gateway.web.GatewayResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.ServerHttpResponse;
@@ -13,16 +14,22 @@ import java.util.Map;
 
 /**
  * Due to type erasure, this was made abstract so a concrete implementation like SimpleAuthController can be used 
- * where the types are fully passed in.
+ * where the types are fully passed in.  Use autowired so subclasses do not have to form the constructor.
  * @param <A>
  * @param <R>
  * @param <P>
  */
-@RequiredArgsConstructor
 public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
 
-  private final AuthService<A, R, P>
+  /**
+   *
+   */
+  @Autowired
+  private AuthService<A, R, P>
       authService;
+
+  @Autowired
+  private AuthProperties authProperties;
 
   @PostMapping(
       path = "${auth.controller-mappings.username-password-authentication:/auth}",
@@ -34,17 +41,22 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
     return authService
         .authenticate(authenticationRequest, serverWebExchange.getRequest().getHeaders())
         .doOnNext(
-            serviceResponse ->
-                serverWebExchange.getResponse().setStatusCode(serviceResponse.getStatusCode()))
+            serviceResponse -> {
+              final var serverHttpResponse = serverWebExchange.getResponse();
+              serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
+              if (serviceResponse.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                serverHttpResponse.getHeaders().add(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"%s\"".formatted(authProperties));
+              }
+
+            })
         .flatMap(
             serviceResponse ->
                 Mono.fromCallable(serviceResponse::getOperationResponse)
                     .delayElement(serviceResponse.getDelay()));
   }
 
-  @RequestMapping(
+  @PostMapping(
       path = "${auth.controller-mappings.refresh:/refresh}",
-      method = RequestMethod.POST,
       consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
   public Mono<R> refreshUrlEncoded(
       @ModelAttribute OAuthRefreshRequest oAuthRefreshRequest,
@@ -59,13 +71,15 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
         .map(
             serviceResponse -> {
               serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
+              if (serviceResponse.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+                serverHttpResponse.getHeaders().add(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"%s\"".formatted(authProperties));
+              }
               return serviceResponse.getOperationResponse();
             });
   }
 
-  @RequestMapping(
+  @PostMapping(
       path = "${auth.controller-mappings.logout:/logout}",
-      method = RequestMethod.POST,
       consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public Mono<R> logout(

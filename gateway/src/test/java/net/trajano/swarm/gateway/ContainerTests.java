@@ -3,6 +3,8 @@ package net.trajano.swarm.gateway;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.net.HttpHeaders;
+import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
+import net.trajano.swarm.gateway.auth.simple.SimpleAuthenticationRequest;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -146,5 +148,55 @@ class ContainerTests {
             .returnResult()
             .getResponseBody();
     assertThat(responseBody).isEqualTo("{\"ok\":true}");
+  }
+
+  @Test
+  void authenticate() {
+
+    final var authenticationRequest = new SimpleAuthenticationRequest();
+    authenticationRequest.setAuthenticated(true);
+    authenticationRequest.setUsername("gooduser");
+    final var responseBody =
+            WebTestClient.bindToServer()
+                    .baseUrl(gatewayUrl)
+                    .build()
+                    .post()
+                    .uri("/auth")
+                    .bodyValue(authenticationRequest)
+                    .exchange()
+                    .expectStatus()
+                    .isEqualTo(HttpStatus.OK)
+                    .expectBody(OAuthTokenResponse.class)
+                    .returnResult()
+                    .getResponseBody();
+    assertThat(responseBody).isNotNull();
+    assertThat(responseBody.isOk()).isTrue();
+    assertThat(responseBody.getExpiresIn()).isEqualTo(120);
+    assertThat(responseBody.getTokenType()).isEqualTo("Bearer");
+  }
+
+  @Test
+  void badAuthenticate() {
+
+    final var authenticationRequest = new SimpleAuthenticationRequest();
+    authenticationRequest.setAuthenticated(false);
+    authenticationRequest.setUsername("bad");
+    final var responseBody =
+            WebTestClient.bindToServer()
+                    .baseUrl(gatewayUrl)
+                    .build()
+                    .post()
+                    .uri("/auth")
+                    .bodyValue(authenticationRequest)
+                    .exchange()
+                    .expectStatus()
+                    .isEqualTo(HttpStatus.OK)
+                    .expectBody(OAuthTokenResponse.class)
+                    .returnResult()
+                    .getResponseBody();
+    assertThat(responseBody).isNotNull();
+    assertThat(responseBody.isOk()).isTrue();
+    assertThat(responseBody.getExpiresIn()).isEqualTo(120);
+    assertThat(responseBody.getTokenType()).isEqualTo("Bearer");
   }
 }

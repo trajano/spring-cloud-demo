@@ -40,7 +40,7 @@ public class SimpleAuthService<P>
             return AuthServiceResponse.builder()
                 .operationResponse(new UnauthorizedGatewayResponse())
                 .statusCode(HttpStatus.UNAUTHORIZED)
-                .delay(Duration.of(2, ChronoUnit.SECONDS))
+                .delay(Duration.of(5, ChronoUnit.SECONDS))
                 .build();
           }
         });
