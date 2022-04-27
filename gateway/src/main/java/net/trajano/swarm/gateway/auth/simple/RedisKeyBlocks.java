@@ -45,4 +45,9 @@ public class RedisKeyBlocks {
         simpleAuthServiceProperties.getRedisPrefix(),
         timeBlockForSigningKeys(Instant.now(), -1).getEpochSecond());
   }
+
+  public String refreshTokenKey(String refreshToken) {
+
+    return simpleAuthServiceProperties.getRedisPrefix() + ":::refresh-token:::" + refreshToken;
+  }
 }

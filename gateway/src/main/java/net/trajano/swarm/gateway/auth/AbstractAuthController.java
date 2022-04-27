@@ -1,5 +1,7 @@
 package net.trajano.swarm.gateway.auth;
 
+import static reactor.core.publisher.Mono.fromCallable;
+
 import java.util.Map;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.jose4j.jwk.JsonWebKeySet;
@@ -33,9 +35,9 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       produces = {MediaType.APPLICATION_JSON_VALUE})
   public Mono<R> authenticate(
-      @RequestBody Mono<A> authenticationRequest, ServerWebExchange serverWebExchange) {
+      @RequestBody Mono<A> authenticationRequestMono, ServerWebExchange serverWebExchange) {
     return authService
-        .authenticate(authenticationRequest, serverWebExchange.getRequest().getHeaders())
+        .authenticate(authenticationRequestMono, serverWebExchange.getRequest().getHeaders())
         .doOnNext(
             serviceResponse -> {
               final var serverHttpResponse = serverWebExchange.getResponse();
@@ -50,7 +52,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
             })
         .flatMap(
             serviceResponse ->
-                Mono.fromCallable(serviceResponse::getOperationResponse)
+                fromCallable(serviceResponse::getOperationResponse)
                     .delayElement(serviceResponse.getDelay()));
   }
 

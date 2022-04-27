@@ -1,5 +1,8 @@
 package net.trajano.swarm.gateway.auth.simple;
 
+import static reactor.core.publisher.Mono.fromCallable;
+import static reactor.core.publisher.Mono.just;
+
 import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
@@ -7,6 +10,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -58,6 +62,7 @@ public class RedisAuthCache {
   private SecureRandom secureRandom;
 
   private final ReactiveStringRedisTemplate redisTemplate;
+
   private final RedisKeyBlocks redisKeyBlocks;
 
   private final SimpleAuthServiceProperties simpleAuthServiceProperties;
@@ -80,22 +85,22 @@ public class RedisAuthCache {
   public Mono<OAuthTokenResponse> buildOAuthTokenWithUsername(
       String username, final int accessTokenExpiresInSeconds) {
 
-    var refreshTokenMono = generateRefreshToken();
+    var refreshTokenMono = provideRefreshToken();
+
+    // around here store the refresh token data
+
+    var authenticationDataMono = provideAuthenticatedDataMono(refreshTokenMono, username);
 
     var signingKeyMono = getSigningKey();
     var jwtClaimsMono =
-        Mono.fromCallable(
-                () -> {
-                  final var claims = new JwtClaims();
-                  claims.setGeneratedJwtId();
-                  claims.setSubject(username);
-                  claims.setExpirationTimeMinutesInTheFuture(accessTokenExpiresInSeconds / 60.0f);
-                  return claims;
-                })
+        fromCallable(() -> provideJwtClaims(username, accessTokenExpiresInSeconds))
             .map(JwtClaims::toJson)
-            .flatMap(claimsJson -> Mono.zip(signingKeyMono, Mono.just(claimsJson)))
+            .flatMap(
+                claimsJson ->
+                    Mono.zip(signingKeyMono, Mono.just(claimsJson), authenticationDataMono))
             .map(
                 tuple -> {
+                  System.out.println(tuple.getT3());
                   var signingKey = getSigningKeyFromJwks(tuple.getT1());
                   var kid = getKeyIdFromJwks(tuple.getT1());
                   final var jws = new JsonWebSignature();
@@ -127,7 +132,51 @@ public class RedisAuthCache {
             });
   }
 
+  /**
+   * Given a refresh token mono and the user name, create a "payload" to represent secret data and
+   * store it into Redis as a hash and set it to expire in 30 seconds.
+   *
+   * @param refreshTokenMono refresh token mono
+   * @param username username
+   */
+  private Mono<Map<String, String>> provideAuthenticatedDataMono(
+      Mono<String> refreshTokenMono, String username) {
+
+    var payload = Map.of("username", username, "secret", UUID.randomUUID().toString());
+    var ops = redisTemplate.opsForHash();
+
+    return refreshTokenMono
+        .doOnNext(
+            refreshToken ->
+                payload.entrySet().stream()
+                    .map(
+                        e ->
+                            ops.putIfAbsent(
+                                redisKeyBlocks.refreshTokenKey(refreshToken),
+                                e.getKey(),
+                                e.getValue()))
+                    .forEach(Mono::subscribe))
+        .doOnNext(
+            refreshToken ->
+                redisTemplate
+                    .expireAt(
+                        redisKeyBlocks.refreshTokenKey(refreshToken),
+                        Instant.now().plusSeconds(360000))
+                    .subscribe())
+        .flatMap((x) -> just(payload));
+  }
+
+  private JwtClaims provideJwtClaims(String username, int accessTokenExpiresInSeconds) {
+
+    final var claims = new JwtClaims();
+    claims.setGeneratedJwtId();
+    claims.setSubject(username);
+    claims.setExpirationTimeMinutesInTheFuture(accessTokenExpiresInSeconds / 60.0f);
+    return claims;
+  }
+
   private String getKeyIdFromJwks(JsonWebKeySet jwks) {
+
     return jwks.getJsonWebKeys().stream()
         .filter(jwk -> jwk.getKeyType().equals(RSA))
         .findAny()
@@ -136,6 +185,7 @@ public class RedisAuthCache {
   }
 
   private Key getSigningKeyFromJwks(JsonWebKeySet jwks) {
+
     return jwks.getJsonWebKeys().stream()
         .filter(jwk -> jwk.getKeyType().equals("oct"))
         .findAny()
@@ -247,18 +297,19 @@ public class RedisAuthCache {
   }
 
   private Mono<Boolean> adjustExpiration() {
+
     return redisTemplate.expireAt(
         redisKeyBlocks.currentSigningRedisKey(),
         redisKeyBlocks.nextTimeBlockForSigningKeysAdjustedForAccessTokenExpiration());
   }
 
-  private Mono<String> generateRefreshToken() {
+  private Mono<String> provideRefreshToken() {
 
-    return Mono.fromCallable(
+    return fromCallable(
         () -> {
-          byte[] bytes = new byte[32];
+          final byte[] bytes = new byte[31];
           secureRandom.nextBytes(bytes);
-          return Base64.getUrlEncoder().encodeToString(bytes);
+          return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
         });
   }
 
