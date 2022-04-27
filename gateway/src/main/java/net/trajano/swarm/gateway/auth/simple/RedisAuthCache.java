@@ -93,7 +93,7 @@ public class RedisAuthCache {
                   return claims;
                 })
             .map(JwtClaims::toJson)
-            .map(ZlibStringCompression::compressToBytes)
+            .map(ZLibStringCompression::compressToBytes)
             .flatMap(bytes -> Mono.zip(signingKeyMono, Mono.just(bytes)))
             .map(
                 tuple -> {

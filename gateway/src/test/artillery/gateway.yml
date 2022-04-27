@@ -1,0 +1,40 @@
+config:
+  target: "http://localhost:28082"
+  phases:
+    - duration: 1
+      arrivalRate: 1
+      maxVusers: 1
+  http:
+    timeout: 10
+  environments:
+    localhost-direct-single:
+      target: "http://localhost:28082"
+      phases:
+        - duration: 1
+          arrivalRate: 1
+          maxVusers: 1
+scenarios:
+  - name: Login and request resource
+    flow:
+      - post:
+          url: "/auth"
+          json:
+            username: good
+            authenticated: true
+          headers:
+            Accept: application/json
+            Content-Type: application/json
+          capture:
+            - json: "$.access_token"
+              as: "access_token"
+            - json: "$.refresh_token"
+              as: "refresh_token"
+          expect:
+            - statusCode: 200
+      - get:
+          uri: "/whoami"
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          expect:
+            - statusCode: 200

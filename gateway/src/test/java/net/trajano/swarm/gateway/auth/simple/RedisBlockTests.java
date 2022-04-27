@@ -12,27 +12,27 @@ class RedisBlockTests {
 
     assertSoftly(
         softly -> {
-          softly.assertThat(computeNextBlock(0, 10)).isEqualTo(10);
-          softly.assertThat(computeNextBlock(1, 10)).isEqualTo(10);
-          softly.assertThat(computeNextBlock(2, 10)).isEqualTo(10);
-          softly.assertThat(computeNextBlock(3, 10)).isEqualTo(10);
-          softly.assertThat(computeNextBlock(4, 10)).isEqualTo(10);
-          softly.assertThat(computeNextBlock(5, 10)).isEqualTo(10);
-          softly.assertThat(computeNextBlock(6, 10)).isEqualTo(10);
-          softly.assertThat(computeNextBlock(7, 10)).isEqualTo(10);
-          softly.assertThat(computeNextBlock(8, 10)).isEqualTo(10);
-          softly.assertThat(computeNextBlock(9, 10)).isEqualTo(10);
-          softly.assertThat(computeNextBlock(10, 10)).isEqualTo(20);
-          softly.assertThat(computeNextBlock(11, 10)).isEqualTo(20);
-          softly.assertThat(computeNextBlock(12, 10)).isEqualTo(20);
-          softly.assertThat(computeNextBlock(13, 10)).isEqualTo(20);
-          softly.assertThat(computeNextBlock(14, 10)).isEqualTo(20);
-          softly.assertThat(computeNextBlock(15, 10)).isEqualTo(20);
-          softly.assertThat(computeNextBlock(16, 10)).isEqualTo(20);
-          softly.assertThat(computeNextBlock(17, 10)).isEqualTo(20);
-          softly.assertThat(computeNextBlock(18, 10)).isEqualTo(20);
-          softly.assertThat(computeNextBlock(19, 10)).isEqualTo(20);
-          softly.assertThat(computeNextBlock(20, 10)).isEqualTo(30);
+          softly.assertThat(computeNextBlock(0)).isEqualTo(10);
+          softly.assertThat(computeNextBlock(1)).isEqualTo(10);
+          softly.assertThat(computeNextBlock(2)).isEqualTo(10);
+          softly.assertThat(computeNextBlock(3)).isEqualTo(10);
+          softly.assertThat(computeNextBlock(4)).isEqualTo(10);
+          softly.assertThat(computeNextBlock(5)).isEqualTo(10);
+          softly.assertThat(computeNextBlock(6)).isEqualTo(10);
+          softly.assertThat(computeNextBlock(7)).isEqualTo(10);
+          softly.assertThat(computeNextBlock(8)).isEqualTo(10);
+          softly.assertThat(computeNextBlock(9)).isEqualTo(10);
+          softly.assertThat(computeNextBlock(10)).isEqualTo(20);
+          softly.assertThat(computeNextBlock(11)).isEqualTo(20);
+          softly.assertThat(computeNextBlock(12)).isEqualTo(20);
+          softly.assertThat(computeNextBlock(13)).isEqualTo(20);
+          softly.assertThat(computeNextBlock(14)).isEqualTo(20);
+          softly.assertThat(computeNextBlock(15)).isEqualTo(20);
+          softly.assertThat(computeNextBlock(16)).isEqualTo(20);
+          softly.assertThat(computeNextBlock(17)).isEqualTo(20);
+          softly.assertThat(computeNextBlock(18)).isEqualTo(20);
+          softly.assertThat(computeNextBlock(19)).isEqualTo(20);
+          softly.assertThat(computeNextBlock(20)).isEqualTo(30);
         });
   }
 
@@ -42,27 +42,27 @@ class RedisBlockTests {
 
     assertSoftly(
         softly -> {
-          softly.assertThat(computeCurrentBlock(0, 10)).isEqualTo(0);
-          softly.assertThat(computeCurrentBlock(1, 10)).isEqualTo(0);
-          softly.assertThat(computeCurrentBlock(2, 10)).isEqualTo(0);
-          softly.assertThat(computeCurrentBlock(3, 10)).isEqualTo(0);
-          softly.assertThat(computeCurrentBlock(4, 10)).isEqualTo(0);
-          softly.assertThat(computeCurrentBlock(5, 10)).isEqualTo(0);
-          softly.assertThat(computeCurrentBlock(6, 10)).isEqualTo(0);
-          softly.assertThat(computeCurrentBlock(7, 10)).isEqualTo(0);
-          softly.assertThat(computeCurrentBlock(8, 10)).isEqualTo(0);
-          softly.assertThat(computeCurrentBlock(9, 10)).isEqualTo(0);
-          softly.assertThat(computeCurrentBlock(10, 10)).isEqualTo(10);
-          softly.assertThat(computeCurrentBlock(11, 10)).isEqualTo(10);
-          softly.assertThat(computeCurrentBlock(12, 10)).isEqualTo(10);
-          softly.assertThat(computeCurrentBlock(13, 10)).isEqualTo(10);
-          softly.assertThat(computeCurrentBlock(14, 10)).isEqualTo(10);
-          softly.assertThat(computeCurrentBlock(15, 10)).isEqualTo(10);
-          softly.assertThat(computeCurrentBlock(16, 10)).isEqualTo(10);
-          softly.assertThat(computeCurrentBlock(17, 10)).isEqualTo(10);
-          softly.assertThat(computeCurrentBlock(18, 10)).isEqualTo(10);
-          softly.assertThat(computeCurrentBlock(19, 10)).isEqualTo(10);
-          softly.assertThat(computeCurrentBlock(20, 10)).isEqualTo(20);
+          softly.assertThat(computeCurrentBlock(0)).isEqualTo(0);
+          softly.assertThat(computeCurrentBlock(1)).isEqualTo(0);
+          softly.assertThat(computeCurrentBlock(2)).isEqualTo(0);
+          softly.assertThat(computeCurrentBlock(3)).isEqualTo(0);
+          softly.assertThat(computeCurrentBlock(4)).isEqualTo(0);
+          softly.assertThat(computeCurrentBlock(5)).isEqualTo(0);
+          softly.assertThat(computeCurrentBlock(6)).isEqualTo(0);
+          softly.assertThat(computeCurrentBlock(7)).isEqualTo(0);
+          softly.assertThat(computeCurrentBlock(8)).isEqualTo(0);
+          softly.assertThat(computeCurrentBlock(9)).isEqualTo(0);
+          softly.assertThat(computeCurrentBlock(10)).isEqualTo(10);
+          softly.assertThat(computeCurrentBlock(11)).isEqualTo(10);
+          softly.assertThat(computeCurrentBlock(12)).isEqualTo(10);
+          softly.assertThat(computeCurrentBlock(13)).isEqualTo(10);
+          softly.assertThat(computeCurrentBlock(14)).isEqualTo(10);
+          softly.assertThat(computeCurrentBlock(15)).isEqualTo(10);
+          softly.assertThat(computeCurrentBlock(16)).isEqualTo(10);
+          softly.assertThat(computeCurrentBlock(17)).isEqualTo(10);
+          softly.assertThat(computeCurrentBlock(18)).isEqualTo(10);
+          softly.assertThat(computeCurrentBlock(19)).isEqualTo(10);
+          softly.assertThat(computeCurrentBlock(20)).isEqualTo(20);
         });
   }
 
@@ -72,42 +72,42 @@ class RedisBlockTests {
 
     assertSoftly(
         softly -> {
-          softly.assertThat(computePreviousBlock(0, 10)).isEqualTo(-10);
-          softly.assertThat(computePreviousBlock(1, 10)).isEqualTo(-10);
-          softly.assertThat(computePreviousBlock(2, 10)).isEqualTo(-10);
-          softly.assertThat(computePreviousBlock(3, 10)).isEqualTo(-10);
-          softly.assertThat(computePreviousBlock(4, 10)).isEqualTo(-10);
-          softly.assertThat(computePreviousBlock(5, 10)).isEqualTo(-10);
-          softly.assertThat(computePreviousBlock(6, 10)).isEqualTo(-10);
-          softly.assertThat(computePreviousBlock(7, 10)).isEqualTo(-10);
-          softly.assertThat(computePreviousBlock(8, 10)).isEqualTo(-10);
-          softly.assertThat(computePreviousBlock(9, 10)).isEqualTo(-10);
-          softly.assertThat(computePreviousBlock(10, 10)).isEqualTo(0);
-          softly.assertThat(computePreviousBlock(11, 10)).isEqualTo(0);
-          softly.assertThat(computePreviousBlock(12, 10)).isEqualTo(0);
-          softly.assertThat(computePreviousBlock(13, 10)).isEqualTo(0);
-          softly.assertThat(computePreviousBlock(14, 10)).isEqualTo(0);
-          softly.assertThat(computePreviousBlock(15, 10)).isEqualTo(0);
-          softly.assertThat(computePreviousBlock(16, 10)).isEqualTo(0);
-          softly.assertThat(computePreviousBlock(17, 10)).isEqualTo(0);
-          softly.assertThat(computePreviousBlock(18, 10)).isEqualTo(0);
-          softly.assertThat(computePreviousBlock(19, 10)).isEqualTo(0);
-          softly.assertThat(computePreviousBlock(20, 10)).isEqualTo(10);
+          softly.assertThat(computePreviousBlock(0)).isEqualTo(-10);
+          softly.assertThat(computePreviousBlock(1)).isEqualTo(-10);
+          softly.assertThat(computePreviousBlock(2)).isEqualTo(-10);
+          softly.assertThat(computePreviousBlock(3)).isEqualTo(-10);
+          softly.assertThat(computePreviousBlock(4)).isEqualTo(-10);
+          softly.assertThat(computePreviousBlock(5)).isEqualTo(-10);
+          softly.assertThat(computePreviousBlock(6)).isEqualTo(-10);
+          softly.assertThat(computePreviousBlock(7)).isEqualTo(-10);
+          softly.assertThat(computePreviousBlock(8)).isEqualTo(-10);
+          softly.assertThat(computePreviousBlock(9)).isEqualTo(-10);
+          softly.assertThat(computePreviousBlock(10)).isEqualTo(0);
+          softly.assertThat(computePreviousBlock(11)).isEqualTo(0);
+          softly.assertThat(computePreviousBlock(12)).isEqualTo(0);
+          softly.assertThat(computePreviousBlock(13)).isEqualTo(0);
+          softly.assertThat(computePreviousBlock(14)).isEqualTo(0);
+          softly.assertThat(computePreviousBlock(15)).isEqualTo(0);
+          softly.assertThat(computePreviousBlock(16)).isEqualTo(0);
+          softly.assertThat(computePreviousBlock(17)).isEqualTo(0);
+          softly.assertThat(computePreviousBlock(18)).isEqualTo(0);
+          softly.assertThat(computePreviousBlock(19)).isEqualTo(0);
+          softly.assertThat(computePreviousBlock(20)).isEqualTo(10);
         });
   }
 
-  private long computeNextBlock(long current, long blockSize) {
+  private long computeNextBlock(long current) {
 
-    return RedisKeyBlocks.computeBlock(current, blockSize, 1);
+    return RedisKeyBlocks.computeBlock(current, 10, 1);
   }
 
-  private long computeCurrentBlock(long current, long blockSize) {
+  private long computeCurrentBlock(long current) {
 
-    return RedisKeyBlocks.computeBlock(current, blockSize, 0);
+    return RedisKeyBlocks.computeBlock(current, 10, 0);
   }
 
-  private long computePreviousBlock(long current, long blockSize) {
+  private long computePreviousBlock(long current) {
 
-    return RedisKeyBlocks.computeBlock(current, blockSize, -1);
+    return RedisKeyBlocks.computeBlock(current, 10, -1);
   }
 }

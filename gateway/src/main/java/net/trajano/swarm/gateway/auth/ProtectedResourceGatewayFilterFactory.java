@@ -20,8 +20,7 @@ import reactor.core.publisher.Mono;
 
 /**
  * Checks if the service is protected, signified by `protected` metadata not being present or
- * `true`. Checks for the presence of a bearer token and validates it. Once validated it places the
- * X-JWT-Assertion data containing the JWT stored.
+ * `true`. Checks for the presence of a bearer token and validates it.
  *
  * <p>This will provide the necessary error responses as expected by <a
  * href="https://www.rfc-editor.org/rfc/rfc6750">RFC 6750</a>.
@@ -95,22 +94,6 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
                                     .then(
                                         respondWithUnauthorized(config, exchange, "invalid_token"));
                               });
-                      //                      try {
-                      //                        JwtClaims jwtClaims =
-                      // authService.getClaims(bearerToken);
-                      //                        return chain.filter(
-                      //                            authService.mutateDownstreamRequest(exchange,
-                      // jwtClaims));
-                      //
-                      //                      } catch (SecurityException e) {
-                      //                        ServerWebExchangeUtils.setResponseStatus(exchange,
-                      // HttpStatus.UNAUTHORIZED);
-                      //                        ServerWebExchangeUtils.setAlreadyRouted(exchange);
-                      //                        return chain
-                      //                            .filter(exchange)
-                      //                            .then(respondWithUnauthorized(config, exchange,
-                      // "invalid_token"));
-                      //                      }
                     }
                   }
                 });

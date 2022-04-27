@@ -1,17 +1,6 @@
 package net.trajano.swarm.gateway;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.AES_256_CBC_HMAC_SHA_512;
-import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.AES_256_GCM;
-import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.DIRECT;
-import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.RSA_OAEP_256;
-
-import java.security.*;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.UUID;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import net.trajano.swarm.gateway.auth.simple.ZlibStringCompression;
+import net.trajano.swarm.gateway.auth.simple.ZLibStringCompression;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwe.JsonWebEncryption;
 import org.jose4j.jwk.JsonWebKey;
@@ -22,6 +11,18 @@ import org.jose4j.jwt.NumericDate;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import java.security.*;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.AES_256_CBC_HMAC_SHA_512;
+import static org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers.AES_256_GCM;
+import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.DIRECT;
+import static org.jose4j.jwe.KeyManagementAlgorithmIdentifiers.RSA_OAEP_256;
 
 /** This primarily tests JOSE4J. */
 class CryptoTests {
@@ -51,6 +52,14 @@ class CryptoTests {
     claims.setIssuer("https://trajano.net");
     claims.setSubject("MEMEFASOSOFAMIRE@https://trajano.net");
     claims.setAudience("ABC", "123", "DO", "RE", "MI");
+    claims.setStringListClaim("scopes",
+            "myapp:dosomething:1",
+            "myapp:dosomething:2",
+            "myapp:dosomething:3",
+            "myapp:dosomething:4",
+            "myapp:dosomething:5",
+            "myapp:dosomething:6",
+            "DO", "RE", "MI");
     final var expiration = NumericDate.now();
     expiration.addSeconds(2000);
     claims.setExpirationTime(expiration);
@@ -72,7 +81,7 @@ class CryptoTests {
 
     final var jws = new JsonWebSignature();
     jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA512);
-    jws.setPayloadBytes(ZlibStringCompression.compressToBytes(claims.toJson()));
+    jws.setPayloadBytes(ZLibStringCompression.compressToBytes(claims.toJson()));
     jws.setKey(signatureKeyPair.getPrivate());
     var jwsCompactSerialization = jws.getCompactSerialization();
 
@@ -84,9 +93,36 @@ class CryptoTests {
     assertThat(receiverJws.verifySignature()).isTrue();
 
     final var claimsFromJwt =
-        JwtClaims.parse(ZlibStringCompression.decompressUtf8(receiverJws.getPayloadBytes()));
+        JwtClaims.parse(ZLibStringCompression.decompressUtf8(receiverJws.getPayloadBytes(), 99999));
     assertThat(claimsFromJwt.toJson()).isEqualTo(claims.toJson());
   }
+
+  /**
+   * This one does the compression AFTER signing.
+   *
+   * @throws Exception
+   */
+  @Test
+  void jwsCompressionAfter() throws Exception {
+
+    var claims = buildTestClaims();
+
+    final var jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA512);
+    jws.setPayload(claims.toJson());
+    jws.setKey(signatureKeyPair.getPrivate());
+    var jwsCompactSerialization = jws.getCompactSerialization();
+
+    System.out.println(jwsCompactSerialization.length() + " " + jwsCompactSerialization);
+    System.out.println(ZLibStringCompression.compress(jwsCompactSerialization).length());
+
+    final var receiverJws = new JsonWebSignature();
+    receiverJws.setCompactSerialization(jwsCompactSerialization);
+    receiverJws.setKey(signatureKeyPair.getPublic());
+    assertThat(receiverJws.verifySignature()).isTrue();
+
+  }
+
 
   @Test
   void toJwtAndBack() throws Exception {
