@@ -8,5 +8,5 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "auth")
 @Data
 public class AuthProperties {
-    private String realm = "JWT";
+  private String realm = "JWT";
 }

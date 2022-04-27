@@ -12,6 +12,9 @@ public class AuthControllerMappingsProperties {
   /** Mapping for the username password authentication endpoint */
   private String usernamePasswordAuthentication;
 
+  /** Mapping for the jwks endpoint. */
+  private String jwks;
+
   /** Mapping for the logout endpoint. */
   private String logout;
 

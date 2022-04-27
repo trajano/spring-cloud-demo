@@ -2,13 +2,6 @@ package net.trajano.swarm.gateway.discovery;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Network;
-import org.xbill.DNS.ARecord;
-import org.xbill.DNS.Name;
-import org.xbill.DNS.SimpleResolver;
-import org.xbill.DNS.Type;
-import org.xbill.DNS.lookup.LookupSession;
-
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.time.Duration;
@@ -16,6 +9,12 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.validation.constraints.NotNull;
+import org.xbill.DNS.ARecord;
+import org.xbill.DNS.Name;
+import org.xbill.DNS.SimpleResolver;
+import org.xbill.DNS.Type;
+import org.xbill.DNS.lookup.LookupSession;
 
 public class Util {
 

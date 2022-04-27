@@ -8,6 +8,7 @@ import net.trajano.swarm.gateway.auth.AuthService;
 import net.trajano.swarm.gateway.auth.AuthServiceResponse;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
+import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwt.JwtClaims;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -74,5 +75,11 @@ public class SimpleAuthService<P>
       String refreshToken, Map<String, String> headers) {
 
     return null;
+  }
+
+  @Override
+  public Mono<JsonWebKeySet> jsonWebKeySet() {
+
+    return redisTokenCache.jwks().collectList().map(JsonWebKeySet::new);
   }
 }

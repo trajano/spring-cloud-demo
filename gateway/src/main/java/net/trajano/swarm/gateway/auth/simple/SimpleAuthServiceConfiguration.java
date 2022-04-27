@@ -6,21 +6,29 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 
 @Configuration
-@ConditionalOnProperty(name="simple-auth.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "simple-auth.enabled", havingValue = "true")
 public class SimpleAuthServiceConfiguration {
 
-    @Bean
-    <P> SimpleAuthService<P> simpleAuthService(final RedisAuthCache redisAuthCache, final SimpleAuthServiceProperties simpleAuthServiceProperties) {
+  @Bean
+  <P> SimpleAuthService<P> simpleAuthService(
+      final RedisAuthCache redisAuthCache,
+      final SimpleAuthServiceProperties simpleAuthServiceProperties) {
 
-        return new SimpleAuthService<P>(simpleAuthServiceProperties, redisAuthCache);
+    return new SimpleAuthService<P>(simpleAuthServiceProperties, redisAuthCache);
+  }
 
-    }
+  @Bean
+  RedisAuthCache redisAuthCache(
+      final ReactiveStringRedisTemplate reactiveRedisTemplate,
+      final RedisKeyBlocks redisKeyBlocks,
+      final SimpleAuthServiceProperties simpleAuthServiceProperties) {
 
-    @Bean
-    RedisAuthCache redisAuthCache(final ReactiveStringRedisTemplate reactiveRedisTemplate, final SimpleAuthServiceProperties simpleAuthServiceProperties) {
+    return new RedisAuthCache(reactiveRedisTemplate, redisKeyBlocks, simpleAuthServiceProperties);
+  }
 
-        return new RedisAuthCache(reactiveRedisTemplate, simpleAuthServiceProperties);
+  @Bean
+  RedisKeyBlocks redisKeyBlocks(final SimpleAuthServiceProperties simpleAuthServiceProperties) {
 
-    }
-
+    return new RedisKeyBlocks(simpleAuthServiceProperties);
+  }
 }

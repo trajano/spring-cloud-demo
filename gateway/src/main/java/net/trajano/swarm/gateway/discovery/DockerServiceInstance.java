@@ -1,13 +1,12 @@
 package net.trajano.swarm.gateway.discovery;
 
 import com.github.dockerjava.api.model.*;
-import lombok.Data;
-import org.springframework.cloud.client.ServiceInstance;
-
 import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import lombok.Data;
+import org.springframework.cloud.client.ServiceInstance;
 
 @Data
 public class DockerServiceInstance implements ServiceInstance {

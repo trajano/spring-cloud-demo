@@ -1,12 +1,11 @@
 package net.trajano.swarm.gateway.auth;
 
+import java.time.Duration;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.springframework.http.HttpStatus;
-
-import java.time.Duration;
 
 @Data
 @Builder

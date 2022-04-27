@@ -25,6 +25,8 @@ import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
+import reactor.core.publisher.Mono;
 
 @SpringBootTest
 @MockBean(
@@ -87,6 +89,15 @@ class GatewayApplicationTests {
 
       return dockerClient;
     }
+
+    @Bean
+    @Primary
+    ReactiveStringRedisTemplate mockReactiveStringRedisTemplate() {
+
+      final var reactiveStringRedisTemplate = mock(ReactiveStringRedisTemplate.class);
+      when(reactiveStringRedisTemplate.hasKey(anyString())).thenReturn(Mono.just(true));
+      return reactiveStringRedisTemplate;
+    }
   }
 
   @Autowired private DockerServiceInstanceLister dockerServiceInstanceLister;
@@ -115,6 +126,7 @@ class GatewayApplicationTests {
 
   @Test
   void dockerServiceInstances() {
+
     assertThat(dockerServiceInstanceLister.getServices()).containsExactly("foo");
     assertThat(dockerServiceInstanceLister.getInstances("foo")).hasSize(1);
   }

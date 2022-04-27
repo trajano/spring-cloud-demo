@@ -157,18 +157,18 @@ class ContainerTests {
     authenticationRequest.setAuthenticated(true);
     authenticationRequest.setUsername("gooduser");
     final var responseBody =
-            WebTestClient.bindToServer()
-                    .baseUrl(gatewayUrl)
-                    .build()
-                    .post()
-                    .uri("/auth")
-                    .bodyValue(authenticationRequest)
-                    .exchange()
-                    .expectStatus()
-                    .isEqualTo(HttpStatus.OK)
-                    .expectBody(OAuthTokenResponse.class)
-                    .returnResult()
-                    .getResponseBody();
+        WebTestClient.bindToServer()
+            .baseUrl(gatewayUrl)
+            .build()
+            .post()
+            .uri("/auth")
+            .bodyValue(authenticationRequest)
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatus.OK)
+            .expectBody(OAuthTokenResponse.class)
+            .returnResult()
+            .getResponseBody();
     assertThat(responseBody).isNotNull();
     assertThat(responseBody.isOk()).isTrue();
     assertThat(responseBody.getExpiresIn()).isEqualTo(120);
@@ -182,18 +182,18 @@ class ContainerTests {
     authenticationRequest.setAuthenticated(false);
     authenticationRequest.setUsername("bad");
     final var responseBody =
-            WebTestClient.bindToServer()
-                    .baseUrl(gatewayUrl)
-                    .build()
-                    .post()
-                    .uri("/auth")
-                    .bodyValue(authenticationRequest)
-                    .exchange()
-                    .expectStatus()
-                    .isEqualTo(HttpStatus.OK)
-                    .expectBody(OAuthTokenResponse.class)
-                    .returnResult()
-                    .getResponseBody();
+        WebTestClient.bindToServer()
+            .baseUrl(gatewayUrl)
+            .build()
+            .post()
+            .uri("/auth")
+            .bodyValue(authenticationRequest)
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatus.OK)
+            .expectBody(OAuthTokenResponse.class)
+            .returnResult()
+            .getResponseBody();
     assertThat(responseBody).isNotNull();
     assertThat(responseBody.isOk()).isTrue();
     assertThat(responseBody.getExpiresIn()).isEqualTo(120);

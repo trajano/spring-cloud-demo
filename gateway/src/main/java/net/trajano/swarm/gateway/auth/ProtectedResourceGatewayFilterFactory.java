@@ -78,31 +78,39 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
                     } else {
 
                       final String bearerToken = authorization.substring("Bearer ".length());
-return                         authService.getClaims(bearerToken)
-        .flatMap(jwtClaims->{
-            return chain.filter(
-                    authService.mutateDownstreamRequest(exchange, jwtClaims));
-        })
-                                .onErrorContinue((a,berr) -> {
-            ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
-            ServerWebExchangeUtils.setAlreadyRouted(exchange);
-             chain
-                    .filter(exchange)
-                    .then(respondWithUnauthorized(config, exchange, "invalid_token"));
-
-        });
-//                      try {
-//                        JwtClaims jwtClaims = authService.getClaims(bearerToken);
-//                        return chain.filter(
-//                            authService.mutateDownstreamRequest(exchange, jwtClaims));
-//
-//                      } catch (SecurityException e) {
-//                        ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
-//                        ServerWebExchangeUtils.setAlreadyRouted(exchange);
-//                        return chain
-//                            .filter(exchange)
-//                            .then(respondWithUnauthorized(config, exchange, "invalid_token"));
-//                      }
+                      return authService
+                          .getClaims(bearerToken)
+                          .flatMap(
+                              jwtClaims -> {
+                                return chain.filter(
+                                    authService.mutateDownstreamRequest(exchange, jwtClaims));
+                              })
+                          .onErrorContinue(
+                              (a, berr) -> {
+                                ServerWebExchangeUtils.setResponseStatus(
+                                    exchange, HttpStatus.UNAUTHORIZED);
+                                ServerWebExchangeUtils.setAlreadyRouted(exchange);
+                                chain
+                                    .filter(exchange)
+                                    .then(
+                                        respondWithUnauthorized(config, exchange, "invalid_token"));
+                              });
+                      //                      try {
+                      //                        JwtClaims jwtClaims =
+                      // authService.getClaims(bearerToken);
+                      //                        return chain.filter(
+                      //                            authService.mutateDownstreamRequest(exchange,
+                      // jwtClaims));
+                      //
+                      //                      } catch (SecurityException e) {
+                      //                        ServerWebExchangeUtils.setResponseStatus(exchange,
+                      // HttpStatus.UNAUTHORIZED);
+                      //                        ServerWebExchangeUtils.setAlreadyRouted(exchange);
+                      //                        return chain
+                      //                            .filter(exchange)
+                      //                            .then(respondWithUnauthorized(config, exchange,
+                      // "invalid_token"));
+                      //                      }
                     }
                   }
                 });

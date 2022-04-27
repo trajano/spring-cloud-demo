@@ -9,19 +9,23 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class SimpleAuthServiceProperties {
 
-    private boolean enabled;
-    /**
-     * Access token time expires in seconds.  This is kept low to make it easier to test.
-     */
-    private int accessTokenExpiresInSeconds = 120;
+  private boolean enabled;
 
-    /**
-     * Refresh token time expires in seconds.  This is kept low to make it easier to test.
-     */
-    private int refreshTokenExpiresInSeconds = 1200;
+  /** Access token time expires in seconds. This is kept low to make it easier to test. */
+  private int accessTokenExpiresInSeconds = 120;
 
-    /**
-     * Prefix for keys.
-     */
-    private String redisPrefix = "simple-auth";
+  /** Refresh token time expires in seconds. This is kept low to make it easier to test. */
+  private int refreshTokenExpiresInSeconds = 1200;
+
+  /** Prefix for keys. */
+  private String redisPrefix = "simple-auth";
+
+  private int maximumNumberOfSigningKeysToPresent = 3;
+
+  private int maximumNumberOfSigningKeys = 10;
+  /**
+   * Signing key time expires in seconds and must be larger than {@link
+   * #accessTokenExpiresInSeconds}. This is kept low to make it easier to test.
+   */
+  private int signingKeyExpiresInSeconds = 240;
 }

@@ -5,15 +5,20 @@ import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.async.ResultCallbackTemplate;
 import com.github.dockerjava.api.model.Event;
 import com.github.dockerjava.api.model.EventType;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.time.Instant;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import java.io.Closeable;
-import java.time.Instant;
 
 @Slf4j
 @Service
@@ -26,12 +31,38 @@ public class DockerEventWatcher {
 
   private final DockerDiscoveryProperties dockerDiscoveryProperties;
 
-  /** Watches for events. */
-  @Scheduled(fixedDelay = 1L, initialDelay = 10L)
-  public void startWatching() {
+  /** The watch scheduler. This is a single thread executor as there's only one event watcher. */
+  private final ScheduledExecutorService scheduledExecutorService =
+      Executors.newSingleThreadScheduledExecutor();
 
-    final DockerEventWatcherEventCallback dockerEventWatcherEventCallback =
-        new DockerEventWatcherEventCallback();
+  private final DockerEventWatcherEventCallback dockerEventWatcherEventCallback =
+      new DockerEventWatcherEventCallback();
+
+  /** Initializes the scheduler */
+  @PostConstruct
+  public void startWatching() {
+    scheduledExecutorService.scheduleWithFixedDelay(this::watch, 1L, 10L, TimeUnit.SECONDS);
+  }
+
+  @PreDestroy
+  public void stopWatching() {
+    try {
+      scheduledExecutorService.shutdown();
+      dockerEventWatcherEventCallback.close();
+      scheduledExecutorService.awaitTermination(2, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+  /**
+   * Watches for events. There are times when the connection stops and requires the client to
+   * reconnect, the scheduler is responsible for rebuilding the watcher and re-establishing the
+   * conneciton.
+   */
+  private void watch() {
+
     try {
       log.debug("Docker event watcher started");
       dockerClient
@@ -83,8 +114,9 @@ public class DockerEventWatcher {
       }
     }
 
-    public void close() {
-
+    @Override
+    public void close() throws IOException {
+      super.close();
       isClosed = true;
     }
   }

@@ -1,6 +1,8 @@
 package net.trajano.swarm.gateway.auth;
 
+import java.util.Map;
 import net.trajano.swarm.gateway.web.GatewayResponse;
+import org.jose4j.jwk.JsonWebKeySet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -10,34 +12,28 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Map;
-
 /**
- * Due to type erasure, this was made abstract so a concrete implementation like SimpleAuthController can be used 
- * where the types are fully passed in.  Use autowired so subclasses do not have to form the constructor.
+ * Due to type erasure, this was made abstract so a concrete implementation like
+ * SimpleAuthController can be used where the types are fully passed in. Use autowired so subclasses
+ * do not have to form the constructor.
+ *
  * @param <A>
  * @param <R>
  * @param <P>
  */
 public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
 
-  /**
-   *
-   */
-  @Autowired
-  private AuthService<A, R, P>
-      authService;
+  /** */
+  @Autowired private AuthService<A, R, P> authService;
 
-  @Autowired
-  private AuthProperties authProperties;
+  @Autowired private AuthProperties authProperties;
 
   @PostMapping(
       path = "${auth.controller-mappings.username-password-authentication:/auth}",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       produces = {MediaType.APPLICATION_JSON_VALUE})
   public Mono<R> authenticate(
-          @RequestBody Mono<A> authenticationRequest,
-          ServerWebExchange serverWebExchange) {
+      @RequestBody Mono<A> authenticationRequest, ServerWebExchange serverWebExchange) {
     return authService
         .authenticate(authenticationRequest, serverWebExchange.getRequest().getHeaders())
         .doOnNext(
@@ -45,14 +41,24 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
               final var serverHttpResponse = serverWebExchange.getResponse();
               serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
               if (serviceResponse.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                serverHttpResponse.getHeaders().add(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"%s\"".formatted(authProperties));
+                serverHttpResponse
+                    .getHeaders()
+                    .add(
+                        HttpHeaders.WWW_AUTHENTICATE,
+                        "Bearer realm=\"%s\"".formatted(authProperties));
               }
-
             })
         .flatMap(
             serviceResponse ->
                 Mono.fromCallable(serviceResponse::getOperationResponse)
                     .delayElement(serviceResponse.getDelay()));
+  }
+
+  @GetMapping(
+      path = "${auth.controller-mappings.jwks:/jwks}",
+      produces = {MediaType.APPLICATION_JSON_VALUE})
+  public Mono<String> jwks() {
+    return authService.jsonWebKeySet().map(JsonWebKeySet::toJson);
   }
 
   @PostMapping(
@@ -72,7 +78,11 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
             serviceResponse -> {
               serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
               if (serviceResponse.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                serverHttpResponse.getHeaders().add(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"%s\"".formatted(authProperties));
+                serverHttpResponse
+                    .getHeaders()
+                    .add(
+                        HttpHeaders.WWW_AUTHENTICATE,
+                        "Bearer realm=\"%s\"".formatted(authProperties));
               }
               return serviceResponse.getOperationResponse();
             });
