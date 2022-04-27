@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.ServiceInstance;
@@ -26,6 +27,7 @@ public class DockerServiceInstanceLister {
 
   private final AtomicReference<Map<String, List<ServiceInstance>>> servicesRef =
       new AtomicReference<>(Map.of());
+  private boolean closed = false;
 
   public List<ServiceInstance> getInstances(String serviceId) {
 
@@ -46,9 +48,18 @@ public class DockerServiceInstanceLister {
   public void initialRefresh() {
     refresh(false);
   }
+
+  @PreDestroy
+  public void close() {
+    closed = true;
+  }
+
   /** Refreshes the service list. */
   public void refresh(boolean publish) {
 
+    if (closed) {
+      return;
+    }
     final var network = getDiscoveryNetwork();
 
     if (dockerDiscoveryProperties.isSwarmMode()) {

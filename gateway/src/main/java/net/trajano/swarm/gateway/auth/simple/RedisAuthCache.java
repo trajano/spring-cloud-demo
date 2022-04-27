@@ -82,7 +82,7 @@ public class RedisAuthCache {
 
     var refreshTokenMono = generateRefreshToken();
 
-    var signingKeyMono = getSigningKey(accessTokenExpiresInSeconds);
+    var signingKeyMono = getSigningKey();
     var jwtClaimsMono =
         Mono.fromCallable(
                 () -> {
@@ -93,15 +93,14 @@ public class RedisAuthCache {
                   return claims;
                 })
             .map(JwtClaims::toJson)
-            .map(ZLibStringCompression::compressToBytes)
-            .flatMap(bytes -> Mono.zip(signingKeyMono, Mono.just(bytes)))
+            .flatMap(claimsJson -> Mono.zip(signingKeyMono, Mono.just(claimsJson)))
             .map(
                 tuple -> {
                   var signingKey = getSigningKeyFromJwks(tuple.getT1());
                   var kid = getKeyIdFromJwks(tuple.getT1());
                   final var jws = new JsonWebSignature();
                   jws.setKeyIdHeaderValue(kid);
-                  jws.setPayloadBytes(tuple.getT2());
+                  jws.setPayload(tuple.getT2());
                   jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA512);
                   jws.setKey(signingKey);
                   try {
@@ -117,7 +116,11 @@ public class RedisAuthCache {
             t2 -> {
               final var operationResponse = new OAuthTokenResponse();
               operationResponse.setOk(true);
-              operationResponse.setAccessToken(t2.getT1());
+              if (simpleAuthServiceProperties.isCompressClaims()) {
+                operationResponse.setAccessToken(ZLibStringCompression.compress(t2.getT1()));
+              } else {
+                operationResponse.setAccessToken(t2.getT1());
+              }
               operationResponse.setRefreshToken(t2.getT2());
               operationResponse.setExpiresIn(accessTokenExpiresInSeconds);
               return operationResponse;
@@ -206,7 +209,7 @@ public class RedisAuthCache {
     redisTemplate
         .hasKey(redisKeyBlocks.currentSigningRedisKey())
         .flatMap(
-            (hasKey) -> {
+            hasKey -> {
               if (Boolean.TRUE.equals(hasKey)) {
                 return Mono.empty();
               } else {
@@ -219,23 +222,23 @@ public class RedisAuthCache {
         .subscribe();
   }
 
-  private Mono<Long> storeSigningKeysInRedis(final List<String> jwks) {
+  private Mono<Boolean> storeSigningKeysInRedis(final List<String> jwks) {
 
     final var opsForSet = redisTemplate.opsForSet();
     return opsForSet
         .add(redisKeyBlocks.currentSigningRedisKey(), jwks.toArray(String[]::new))
-        .doOnNext(
+        .flatMap(
             (x) ->
                 redisTemplate.expireAt(
                     redisKeyBlocks.currentSigningRedisKey(),
                     redisKeyBlocks.nextTimeBlockForSigningKeys().plusSeconds(30)));
   }
 
-  private Mono<JsonWebKeySet> getSigningKey(int accessTokenExpiresInSeconds) {
+  private Mono<JsonWebKeySet> getSigningKey() {
 
     return adjustExpiration()
         .flatMap(
-            (x) -> {
+            x -> {
               final var opsForSet = redisTemplate.opsForSet();
               return opsForSet
                   .randomMember(redisKeyBlocks.currentSigningRedisKey())

@@ -22,14 +22,10 @@ public class SimpleAuthServiceProperties {
 
   private int maximumNumberOfSigningKeysToPresent = 3;
 
-  /**
-   * Maximum expected size of JWT when decompressed.  Defaults to 4096 bytes.
-   */
+  /** Maximum expected size of JWT when decompressed. Defaults to 4096 bytes. */
   private int jwtSizeLimitInBytes = 4096;
 
-  /**
-   * If true, the JWT is compressed
-   */
+  /** If true, the JWT is compressed when placed in the access token. */
   private boolean compressClaims = true;
 
   private int maximumNumberOfSigningKeys = 10;

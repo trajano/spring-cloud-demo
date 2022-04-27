@@ -6,22 +6,22 @@ import java.util.Base64;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterOutputStream;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.commons.io.output.WriterOutputStream;
 
-/** This is a simplistic implementation of using ZLib compression with strings.  It is meant to be used with a small
- * strings and not meant for large streaming content. */
+/**
+ * This is a simplistic implementation of using ZLib compression with strings. It is meant to be
+ * used with a small strings and not meant for large streaming content.
+ */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ZLibStringCompression {
 
-  /**
-   * 2 MB limit by default.
-   */
-  private static final int DEFAULT_LIMIT = 2 * 1024*1024;
+  /** 2 MB limit by default. */
+  private static final int DEFAULT_LIMIT = 2 * 1024 * 1024;
+
   public static void compress(InputStream source, OutputStream target) throws IOException {
 
     try (var out = new DeflaterOutputStream(target, new Deflater(Deflater.BEST_COMPRESSION));
@@ -35,10 +35,11 @@ public class ZLibStringCompression {
     }
   }
 
-  public static void decompress(InputStream source, OutputStream target, int limit) throws IOException {
+  public static void decompress(InputStream source, OutputStream target, int limit)
+      throws IOException {
 
     try (var countingOutputStream = new CountingOutputStream(target);
-            var out = new InflaterOutputStream(countingOutputStream);
+        var out = new InflaterOutputStream(countingOutputStream);
         var in = new BufferedInputStream(source)) {
       int c = in.read();
       while (c != -1) {
@@ -70,6 +71,7 @@ public class ZLibStringCompression {
 
   /**
    * Decompresses to a string bounded by a limit.
+   *
    * @param input compressed bytes
    * @param limit limit decompression amount in bytes (not characters)
    * @return decompressed string output.
@@ -85,9 +87,8 @@ public class ZLibStringCompression {
     }
   }
 
-  public static String decompress(String input) {
+  public static String decompress(String input, int limit) {
 
-    return decompressUtf8(Base64.getUrlDecoder().decode(input), DEFAULT_LIMIT);
+    return decompressUtf8(Base64.getUrlDecoder().decode(input), limit);
   }
-
 }
