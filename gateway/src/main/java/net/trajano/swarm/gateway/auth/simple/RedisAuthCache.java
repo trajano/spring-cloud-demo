@@ -16,9 +16,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import javax.annotation.PostConstruct;
 import javax.crypto.KeyGenerator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
@@ -49,11 +51,14 @@ import reactor.core.publisher.SynchronousSink;
  * </ul>
  */
 @RequiredArgsConstructor
+@Slf4j
 public class RedisAuthCache {
 
   public static final String RSA = "RSA";
 
-  private KeyGenerator keyGenerator;
+    public static final Pattern REFRESH_TOKEN_PATTERN = Pattern.compile("[A-Za-z\\d\\-_]{42}");
+
+    private KeyGenerator keyGenerator;
 
   private KeyFactory rsaKeyFactory;
 
@@ -82,25 +87,23 @@ public class RedisAuthCache {
     }
   }
 
-  public Mono<OAuthTokenResponse> buildOAuthTokenWithUsername(
+  public Mono<OAuthTokenResponse> provideOAuthTokenWithUserName(
       String username, final int accessTokenExpiresInSeconds) {
 
     var refreshTokenMono = provideRefreshToken();
 
     // around here store the refresh token data
 
-    var authenticationDataMono = provideAuthenticatedDataMono(refreshTokenMono, username);
+    var authenticationDataMono =
+        provideAuthenticatedDataMono(refreshTokenMono, username, UUID.randomUUID().toString());
 
     var signingKeyMono = getSigningKey();
     var jwtClaimsMono =
         fromCallable(() -> provideJwtClaims(username, accessTokenExpiresInSeconds))
             .map(JwtClaims::toJson)
-            .flatMap(
-                claimsJson ->
-                    Mono.zip(signingKeyMono, Mono.just(claimsJson), authenticationDataMono))
+            .flatMap(claimsJson -> Mono.zip(signingKeyMono, Mono.just(claimsJson)))
             .map(
                 tuple -> {
-                  System.out.println(tuple.getT3());
                   var signingKey = getSigningKeyFromJwks(tuple.getT1());
                   var kid = getKeyIdFromJwks(tuple.getT1());
                   final var jws = new JsonWebSignature();
@@ -116,7 +119,7 @@ public class RedisAuthCache {
                   }
                 });
 
-    return Mono.zip(jwtClaimsMono, refreshTokenMono)
+    return Mono.zip(jwtClaimsMono, refreshTokenMono, authenticationDataMono)
         .map(
             t2 -> {
               final var operationResponse = new OAuthTokenResponse();
@@ -133,19 +136,71 @@ public class RedisAuthCache {
   }
 
   /**
+   * @param refreshToken refresh token
+   * @return may be empty if it does not exist or cannot be regenerated
+   */
+  public Mono<OAuthTokenResponse> provideRefreshedOAuthToken(final String refreshToken) {
+
+    final var ops = redisTemplate.opsForHash();
+
+    final var currentRefreshTokenKey = redisKeyBlocks.refreshTokenKey(refreshToken);
+    System.out.println(currentRefreshTokenKey);
+    return redisTemplate
+        .hasKey(currentRefreshTokenKey)
+        .flatMap(
+            exists -> {
+              if (exists) {
+                return ops.entries(currentRefreshTokenKey).collectList();
+              } else {
+                log.info("Refresh token {} provided was not in Redis", refreshToken);
+                return Mono.empty();
+              }
+            })
+        .flatMap(
+            entries ->
+                Mono.zip(
+                    provideRefreshToken(),
+                    Mono.just(Map.ofEntries(entries.toArray(Map.Entry[]::new)))))
+        .flatMap(
+            tuple -> {
+              var newRefreshToken = tuple.getT1();
+              // at this point if this was a real system it will use the map data to revalidate the
+              // authentication
+              final var username = (String) tuple.getT2().get("username");
+              final var secret = (String) tuple.getT2().get("secret");
+              var oauthTokenBaseMono =
+                  provideOAuthTokenWithUserName(
+                      username, simpleAuthServiceProperties.getAccessTokenExpiresInSeconds());
+
+              return Mono.zip(
+                  Mono.just(refreshToken),
+                  oauthTokenBaseMono,
+                  provideAuthenticatedDataMono(Mono.just(newRefreshToken), username, secret));
+            })
+        .map(
+            tuple -> {
+              final var oAuthTokenResponse = tuple.getT2();
+              oAuthTokenResponse.setRefreshToken(tuple.getT1());
+              return oAuthTokenResponse;
+            })
+        .doOnNext(v -> redisTemplate.delete(currentRefreshTokenKey).subscribe());
+  }
+  /**
    * Given a refresh token mono and the user name, create a "payload" to represent secret data and
    * store it into Redis as a hash and set it to expire in 30 seconds.
    *
    * @param refreshTokenMono refresh token mono
    * @param username username
+   * @param someSecret someSecret
    */
   private Mono<Map<String, String>> provideAuthenticatedDataMono(
-      Mono<String> refreshTokenMono, String username) {
+      Mono<String> refreshTokenMono, String username, String someSecret) {
 
-    var payload = Map.of("username", username, "secret", UUID.randomUUID().toString());
+    var payload = Map.of("username", username, "secret", someSecret);
     var ops = redisTemplate.opsForHash();
 
     return refreshTokenMono
+        .log()
         .doOnNext(
             refreshToken ->
                 payload.entrySet().stream()
@@ -161,9 +216,11 @@ public class RedisAuthCache {
                 redisTemplate
                     .expireAt(
                         redisKeyBlocks.refreshTokenKey(refreshToken),
-                        Instant.now().plusSeconds(360000))
+                        Instant.now()
+                            .plusSeconds(
+                                simpleAuthServiceProperties.getRefreshTokenExpiresInSeconds()))
                     .subscribe())
-        .flatMap((x) -> just(payload));
+        .flatMap(x -> just(payload));
   }
 
   private JwtClaims provideJwtClaims(String username, int accessTokenExpiresInSeconds) {
@@ -278,12 +335,21 @@ public class RedisAuthCache {
     return opsForSet
         .add(redisKeyBlocks.currentSigningRedisKey(), jwks.toArray(String[]::new))
         .flatMap(
-            (x) ->
+            x ->
                 redisTemplate.expireAt(
                     redisKeyBlocks.currentSigningRedisKey(),
                     redisKeyBlocks.nextTimeBlockForSigningKeys().plusSeconds(30)));
   }
 
+    /**
+     * Checks if the refresh token is in a valid format.  Public to expose for testing
+     * @param refreshToken refresh token to validate
+     * @return true if valid
+     */
+    public boolean isRefreshTokenValid(String refreshToken) {
+
+        return REFRESH_TOKEN_PATTERN.matcher(refreshToken).matches();
+}
   private Mono<JsonWebKeySet> getSigningKey() {
 
     return adjustExpiration()
@@ -303,7 +369,11 @@ public class RedisAuthCache {
         redisKeyBlocks.nextTimeBlockForSigningKeysAdjustedForAccessTokenExpiration());
   }
 
-  private Mono<String> provideRefreshToken() {
+    /**
+     * Provides the refresh token.  Made public to allow testing/
+     * @return refresh token mono
+     */
+  public Mono<String> provideRefreshToken() {
 
     return fromCallable(
         () -> {

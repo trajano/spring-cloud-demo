@@ -68,16 +68,23 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
       consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
   public Mono<R> refreshUrlEncoded(
       @ModelAttribute OAuthRefreshRequest oAuthRefreshRequest,
-      @RequestHeader Map<String, String> headers,
-      ServerHttpResponse serverHttpResponse) {
+      ServerWebExchange serverWebExchange) {
 
     if (!oAuthRefreshRequest.getGrant_type().equals("refresh_token")) {
       throw new IllegalArgumentException();
     }
+
+    System.out.println(oAuthRefreshRequest);
+
+    //      @RequestHeader Map<String, String> headers,
+    //      ServerHttpResponse serverHttpResponse
+
     return authService
-        .refresh(oAuthRefreshRequest.getRefresh_token(), headers)
+        .refresh(
+            oAuthRefreshRequest.getRefresh_token(), serverWebExchange.getRequest().getHeaders())
         .map(
             serviceResponse -> {
+              final var serverHttpResponse = serverWebExchange.getResponse();
               serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
               if (serviceResponse.getStatusCode() == HttpStatus.UNAUTHORIZED) {
                 serverHttpResponse

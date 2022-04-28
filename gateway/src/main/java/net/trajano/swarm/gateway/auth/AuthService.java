@@ -34,7 +34,7 @@ public interface AuthService<A, R extends GatewayResponse, P> {
    * @param headers HTTP headers
    * @return updated access token response
    */
-  Mono<AuthServiceResponse<R>> refresh(String refreshToken, Map<String, String> headers);
+  Mono<AuthServiceResponse<R>> refresh(String refreshToken, HttpHeaders headers);
 
   Mono<P> getProfile(String accessToken);
 

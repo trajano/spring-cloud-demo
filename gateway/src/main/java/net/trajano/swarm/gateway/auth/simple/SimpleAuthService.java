@@ -42,7 +42,7 @@ public class SimpleAuthService<P>
         authenticationRequest -> {
           if (authenticationRequest.isAuthenticated()) {
             return redisTokenCache
-                .buildOAuthTokenWithUsername(
+                .provideOAuthTokenWithUserName(
                     authenticationRequest.getUsername(),
                     properties.getAccessTokenExpiresInSeconds())
                 .map(token -> AuthServiceResponse.builder().operationResponse(token).build());
@@ -61,9 +61,18 @@ public class SimpleAuthService<P>
 
   @Override
   public Mono<AuthServiceResponse<GatewayResponse>> refresh(
-      String refreshToken, Map<String, String> headers) {
+      String refreshToken, HttpHeaders headers) {
 
-    return null;
+    return redisTokenCache
+        .provideRefreshedOAuthToken(refreshToken)
+        .map(response -> AuthServiceResponse.builder().operationResponse(response).build())
+        .switchIfEmpty(
+            Mono.just(
+                AuthServiceResponse.builder()
+                    .statusCode(HttpStatus.UNAUTHORIZED)
+                    .operationResponse(new UnauthorizedGatewayResponse())
+                    .delay(Duration.of(5, ChronoUnit.SECONDS))
+                    .build()));
   }
 
   @Override
