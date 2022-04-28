@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono;
 public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
 
   /** */
-  @Autowired private AuthService<A, R, P> authService;
+  @Autowired private IdentityService<A, R, P> identityService;
 
   @Autowired private AuthProperties authProperties;
 
@@ -36,7 +36,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
       produces = {MediaType.APPLICATION_JSON_VALUE})
   public Mono<R> authenticate(
       @RequestBody Mono<A> authenticationRequestMono, ServerWebExchange serverWebExchange) {
-    return authService
+    return identityService
         .authenticate(authenticationRequestMono, serverWebExchange.getRequest().getHeaders())
         .doOnNext(
             serviceResponse -> {
@@ -60,7 +60,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
       path = "${auth.controller-mappings.jwks:/jwks}",
       produces = {MediaType.APPLICATION_JSON_VALUE})
   public Mono<String> jwks() {
-    return authService.jsonWebKeySet().map(JsonWebKeySet::toJson);
+    return identityService.jsonWebKeySet().map(JsonWebKeySet::toJson);
   }
 
   @PostMapping(
@@ -74,12 +74,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
       throw new IllegalArgumentException();
     }
 
-    System.out.println(oAuthRefreshRequest);
-
-    //      @RequestHeader Map<String, String> headers,
-    //      ServerHttpResponse serverHttpResponse
-
-    return authService
+    return identityService
         .refresh(
             oAuthRefreshRequest.getRefresh_token(), serverWebExchange.getRequest().getHeaders())
         .map(
@@ -109,7 +104,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
     if (!oAuthRefreshRequest.getToken_type_hint().equals("refresh_token")) {
       return Mono.error(new IllegalArgumentException());
     }
-    return authService
+    return identityService
         .revoke(oAuthRefreshRequest.getToken(), headers)
         .map(
             serviceResponse -> {

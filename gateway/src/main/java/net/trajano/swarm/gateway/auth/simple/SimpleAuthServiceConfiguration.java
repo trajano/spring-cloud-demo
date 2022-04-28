@@ -10,11 +10,11 @@ import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 public class SimpleAuthServiceConfiguration {
 
   @Bean
-  <P> SimpleAuthService<P> simpleAuthService(
+  <P> SimpleIdentityService<P> simpleAuthService(
       final RedisAuthCache redisAuthCache,
       final SimpleAuthServiceProperties simpleAuthServiceProperties) {
 
-    return new SimpleAuthService<P>(simpleAuthServiceProperties, redisAuthCache);
+    return new SimpleIdentityService<P>(simpleAuthServiceProperties, redisAuthCache);
   }
 
   @Bean

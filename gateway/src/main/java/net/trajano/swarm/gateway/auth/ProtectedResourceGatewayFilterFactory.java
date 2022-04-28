@@ -32,14 +32,14 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
 
   private final ReactiveDiscoveryClient discoveryClient;
 
-  private final AuthService<A, R, P> authService;
+  private final IdentityService<A, R, P> identityService;
 
   public ProtectedResourceGatewayFilterFactory(
-      ReactiveDiscoveryClient discoveryClient, AuthService<A, R, P> authService) {
+      ReactiveDiscoveryClient discoveryClient, IdentityService<A, R, P> identityService) {
 
     super(Config.class);
     this.discoveryClient = discoveryClient;
-    this.authService = authService;
+    this.identityService = identityService;
   }
 
   /**
@@ -77,12 +77,12 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
                     } else {
 
                       final String bearerToken = authorization.substring("Bearer ".length());
-                      return authService
+                      return identityService
                           .getClaims(bearerToken)
                           .flatMap(
                               jwtClaims -> {
                                 return chain.filter(
-                                    authService.mutateDownstreamRequest(exchange, jwtClaims));
+                                    identityService.mutateDownstreamRequest(exchange, jwtClaims));
                               })
                           .onErrorContinue(
                               (a, berr) -> {

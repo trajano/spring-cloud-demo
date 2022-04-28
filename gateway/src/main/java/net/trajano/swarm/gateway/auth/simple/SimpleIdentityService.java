@@ -4,8 +4,9 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import net.trajano.swarm.gateway.auth.AuthService;
+import net.trajano.swarm.gateway.auth.IdentityService;
 import net.trajano.swarm.gateway.auth.AuthServiceResponse;
+import net.trajano.swarm.gateway.auth.OAuthRefreshRequest;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
 import org.jose4j.jwa.AlgorithmConstraints;
@@ -23,8 +24,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class SimpleAuthService<P>
-    implements AuthService<SimpleAuthenticationRequest, GatewayResponse, P> {
+public class SimpleIdentityService<P>
+    implements IdentityService<SimpleAuthenticationRequest, GatewayResponse, P> {
 
   public static final String X_JWT_ASSERTION = "X-JWT-Assertion";
 
@@ -34,6 +35,18 @@ public class SimpleAuthService<P>
 
   private final RedisAuthCache redisTokenCache;
 
+  /**
+   * {@inheritDoc} Performs an authentication check. If {@link
+   * SimpleAuthenticationRequest#authenticated} is {@code true} then the user is authenticated. If
+   * the user is unauthenticated, it generates a penalty delay.
+   *
+   * <p>If successful, a "secret" which is basically a random UUID is created and associated with
+   * the login. This could be some form of credential or any other thing that would allow {@link
+   * net.trajano.swarm.gateway.auth.AbstractAuthController#refreshUrlEncoded(OAuthRefreshRequest,
+   * ServerWebExchange)} to create another authentication token.
+   *
+   * <p>That data is stored as a string map on an {@link net.trajano.swarm.gateway.auth.AuthCredentialStorage} that allows signing key retrieval and retrieval by refresh token.
+   */
   @Override
   public Mono<AuthServiceResponse<GatewayResponse>> authenticate(
       Mono<SimpleAuthenticationRequest> authenticationRequestMono, HttpHeaders headers) {
@@ -112,6 +125,7 @@ public class SimpleAuthService<P>
   }
 
   private Mono<JwtClaims> getClaims(String jwt, JwtConsumer jwtConsumer) {
+
     try {
       return Mono.just(jwtConsumer.processToClaims(jwt));
     } catch (InvalidJwtException e) {
@@ -122,6 +136,7 @@ public class SimpleAuthService<P>
   @Override
   public ServerWebExchange mutateDownstreamRequest(
       ServerWebExchange exchange, JwtClaims jwtClaims) {
+
     final String jwtAssertion;
     final String audience;
 
