@@ -28,6 +28,7 @@ import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.lang.JoseException;
+import org.springframework.data.redis.core.ReactiveHashOperations;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -141,26 +142,22 @@ public class RedisAuthCache {
    */
   public Mono<OAuthTokenResponse> provideRefreshedOAuthToken(final String refreshToken) {
 
-    final var ops = redisTemplate.opsForHash();
+    final ReactiveHashOperations<String, String, String> ops = redisTemplate.opsForHash();
 
     final var currentRefreshTokenKey = redisKeyBlocks.refreshTokenKey(refreshToken);
     System.out.println(currentRefreshTokenKey);
     return redisTemplate
         .hasKey(currentRefreshTokenKey)
-        .flatMap(
-            exists -> {
-              if (exists) {
-                return ops.entries(currentRefreshTokenKey).collectList();
-              } else {
-                log.info("Refresh token {} provided was not in Redis", refreshToken);
-                return Mono.empty();
-              }
-            })
+            .filter(exists->exists)
+            .map(v->ops.entries(currentRefreshTokenKey))
+            //.doOnEach(e-> System.out.println(e.get()))
+            .flatMap(Flux::collectList)
+            .doOnEach(e-> System.out.println(e.get()))
         .flatMap(
             entries ->
                 Mono.zip(
                     provideRefreshToken(),
-                    Mono.just(Map.ofEntries(entries.toArray(Map.Entry[]::new)))))
+                    just(Map.ofEntries(entries.toArray(Map.Entry[]::new)))))
         .flatMap(
             tuple -> {
               var newRefreshToken = tuple.getT1();
@@ -173,9 +170,9 @@ public class RedisAuthCache {
                       username, simpleAuthServiceProperties.getAccessTokenExpiresInSeconds());
 
               return Mono.zip(
-                  Mono.just(refreshToken),
+                  just(refreshToken),
                   oauthTokenBaseMono,
-                  provideAuthenticatedDataMono(Mono.just(newRefreshToken), username, secret));
+                  provideAuthenticatedDataMono(just(newRefreshToken), username, secret));
             })
         .map(
             tuple -> {
