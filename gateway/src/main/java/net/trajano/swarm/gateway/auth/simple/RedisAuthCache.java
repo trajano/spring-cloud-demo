@@ -280,6 +280,12 @@ public class RedisAuthCache {
                 .subscribe();
     }
 
+    public Mono<Long> revoke(String refreshToken) {
+
+        return redisTemplate.delete(redisKeyBlocks.refreshTokenKey(refreshToken));
+
+    }
+
     private Mono<Boolean> storeSigningKeysInRedis(final List<String> jwks) {
 
         final var opsForSet = redisTemplate.opsForSet();

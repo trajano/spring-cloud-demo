@@ -2,14 +2,12 @@ package net.trajano.swarm.gateway.auth;
 
 import static reactor.core.publisher.Mono.fromCallable;
 
-import java.util.Map;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -77,7 +75,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
     return identityService
         .refresh(
             oAuthRefreshRequest.getRefresh_token(), serverWebExchange.getRequest().getHeaders())
-        .map(
+        .doOnNext(
             serviceResponse -> {
               final var serverHttpResponse = serverWebExchange.getResponse();
               serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
@@ -88,8 +86,12 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
                         HttpHeaders.WWW_AUTHENTICATE,
                         "Bearer realm=\"%s\"".formatted(authProperties));
               }
-              return serviceResponse.getOperationResponse();
-            });
+            })
+        .flatMap(
+            serviceResponse ->
+                fromCallable(serviceResponse::getOperationResponse)
+                    .delayElement(serviceResponse.getDelay()));
+
   }
 
   @PostMapping(
@@ -97,20 +99,22 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
       consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public Mono<R> logout(
-      @ModelAttribute OAuthRevocationRequest oAuthRefreshRequest,
-      @RequestHeader Map<String, String> headers,
-      ServerHttpResponse serverHttpResponse) {
+      @ModelAttribute OAuthRevocationRequest request, ServerWebExchange serverWebExchange) {
 
-    if (!oAuthRefreshRequest.getToken_type_hint().equals("refresh_token")) {
+    if (!request.getToken_type_hint().equals("refresh_token")) {
       return Mono.error(new IllegalArgumentException());
     }
     return identityService
-        .revoke(oAuthRefreshRequest.getToken(), headers)
-        .map(
+        .revoke(request.getToken(), serverWebExchange.getRequest().getHeaders())
+        .doOnNext(
             serviceResponse -> {
+              final var serverHttpResponse = serverWebExchange.getResponse();
               serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
-              return serviceResponse.getOperationResponse();
-            });
+            })
+        .flatMap(
+            serviceResponse ->
+                fromCallable(serviceResponse::getOperationResponse)
+                    .delayElement(serviceResponse.getDelay()));
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Bad request")

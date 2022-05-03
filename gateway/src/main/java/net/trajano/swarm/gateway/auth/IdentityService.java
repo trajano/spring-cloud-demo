@@ -44,7 +44,7 @@ public interface IdentityService<A, R extends GatewayResponse, P> {
    * @param refreshToken
    * @param headers
    */
-  Mono<AuthServiceResponse<R>> revoke(String refreshToken, Map<String, String> headers);
+  Mono<AuthServiceResponse<R>> revoke(String refreshToken, HttpHeaders headers);
 
   /**
    *   This will be moved to another class what performs the consumption as it's not part of the IP.

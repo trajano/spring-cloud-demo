@@ -2,10 +2,9 @@ package net.trajano.swarm.gateway.auth.simple;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import net.trajano.swarm.gateway.auth.IdentityService;
 import net.trajano.swarm.gateway.auth.AuthServiceResponse;
+import net.trajano.swarm.gateway.auth.IdentityService;
 import net.trajano.swarm.gateway.auth.OAuthRefreshRequest;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
@@ -45,7 +44,9 @@ public class SimpleIdentityService<P>
    * net.trajano.swarm.gateway.auth.AbstractAuthController#refreshUrlEncoded(OAuthRefreshRequest,
    * ServerWebExchange)} to create another authentication token.
    *
-   * <p>That data is stored as a string map on an {@link net.trajano.swarm.gateway.auth.AuthCredentialStorage} that allows signing key retrieval and retrieval by refresh token.
+   * <p>That data is stored as a string map on an {@link
+   * net.trajano.swarm.gateway.auth.AuthCredentialStorage} that allows signing key retrieval and
+   * retrieval by refresh token.
    */
   @Override
   public Mono<AuthServiceResponse<GatewayResponse>> authenticate(
@@ -55,8 +56,7 @@ public class SimpleIdentityService<P>
         authenticationRequest -> {
           if (authenticationRequest.isAuthenticated()) {
             return redisTokenCache
-                .provideOAuthTokenWithUserName(
-                    authenticationRequest.getUsername())
+                .provideOAuthTokenWithUserName(authenticationRequest.getUsername())
                 .map(token -> AuthServiceResponse.builder().operationResponse(token).build());
 
           } else {
@@ -162,11 +162,35 @@ public class SimpleIdentityService<P>
         .build();
   }
 
+  /**
+   * Revokes the token. If the token didn't exist, add a 5-second penalty.
+   *
+   * @param refreshToken refresh token
+   * @param headers ignored headers
+   * @return gateway response
+   */
   @Override
   public Mono<AuthServiceResponse<GatewayResponse>> revoke(
-      String refreshToken, Map<String, String> headers) {
+      String refreshToken, HttpHeaders headers) {
 
-    return null;
+    return redisTokenCache
+        .revoke(refreshToken)
+        .map(
+            deleteCount -> {
+              if (deleteCount == 1) {
+                return AuthServiceResponse.builder()
+                    .operationResponse(GatewayResponse.builder().ok(true).build())
+                    .statusCode(HttpStatus.OK)
+                    .build();
+
+              } else {
+                return AuthServiceResponse.builder()
+                    .operationResponse(GatewayResponse.builder().ok(true).build())
+                    .statusCode(HttpStatus.OK)
+                    .delay(Duration.of(5, ChronoUnit.SECONDS))
+                    .build();
+              }
+            });
   }
 
   @Override
