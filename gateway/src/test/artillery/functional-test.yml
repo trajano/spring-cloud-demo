@@ -11,12 +11,11 @@ config:
   http:
     timeout: 10
   environments:
-    localhost-direct-single:
+    localhost-direct-small-load:
       target: "http://localhost:28082"
       phases:
-        - duration: 1
-          arrivalRate: 1
-          maxVusers: 3
+        - duration: 10
+          arrivalRate: 10
 scenarios:
   - name: Login request resource and logout
     flow:
@@ -133,7 +132,7 @@ scenarios:
           url: "/whoami"
           headers:
             Accept: application/json
-            Authorization: "Bearer {{ access_token }}bad"
+            Authorization: "Bearer bad{{ access_token }}"
           expect:
             - statusCode: 401
       - post:

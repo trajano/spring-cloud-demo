@@ -1,6 +1,5 @@
 package net.trajano.swarm.gateway.auth;
 
-import java.util.Map;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwt.JwtClaims;
@@ -9,8 +8,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * This interface handles the functionality of an Identity Provider (IP). The IP's responsibiltiy is to provide the access
- * token and provide capability to refresh and revoke the token.
+ * This interface handles the functionality of an Identity Provider (IP). The IP's responsibiltiy is
+ * to provide the access token and provide capability to refresh and revoke the token.
+ *
  * @param <A> authentication request
  * @param <R> response that extends OAuthResponse so additional data can be embedded.
  * @param <P> profile response
@@ -47,7 +47,8 @@ public interface IdentityService<A, R extends GatewayResponse, P> {
   Mono<AuthServiceResponse<R>> revoke(String refreshToken, HttpHeaders headers);
 
   /**
-   *   This will be moved to another class what performs the consumption as it's not part of the IP.
+   * This will be moved to another class what performs the consumption as it's not part of the IP.
+   *
    * @param accessToken
    * @return
    */
@@ -55,7 +56,8 @@ public interface IdentityService<A, R extends GatewayResponse, P> {
 
   /**
    * Gets the claims from the access token. May throw a {@link SecurityException} if the access
-   * token is not valid. This does not return null.  This will be moved to another class what performs the consumption as it's not part of the IP.
+   * token is not valid. This does not return null. This will be moved to another class what
+   * performs the consumption as it's not part of the IP.
    *
    * @param accessToken access token
    * @return claims.
@@ -64,7 +66,8 @@ public interface IdentityService<A, R extends GatewayResponse, P> {
 
   /**
    * Called by the filter to give an opportunity to mutate the exchange with information from the
-   * claims. May throw a {@link SecurityException} if there is any processing issue.  This will be moved to another class what performs the consumption as it's not part of the IP.
+   * claims. May throw a {@link SecurityException} if there is any processing issue. This will be
+   * moved to another class what performs the consumption as it's not part of the IP.
    *
    * @param exchange server web exchange to mutate
    * @param jwtClaims JWT claims that were obtained.
@@ -74,5 +77,4 @@ public interface IdentityService<A, R extends GatewayResponse, P> {
 
     return exchange;
   }
-
 }

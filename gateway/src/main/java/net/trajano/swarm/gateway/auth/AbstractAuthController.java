@@ -2,6 +2,7 @@ package net.trajano.swarm.gateway.auth;
 
 import static reactor.core.publisher.Mono.fromCallable;
 
+import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import reactor.core.publisher.Mono;
  * @param <R>
  * @param <P>
  */
+@Slf4j
 public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
 
   /** */
@@ -50,10 +52,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
                         "Bearer realm=\"%s\"".formatted(authProperties));
               }
             })
-        .flatMap(
-            serviceResponse ->
-                fromCallable(serviceResponse::getOperationResponse)
-                    .delayElement(serviceResponse.getDelay()));
+        .flatMap(this::addDelaySpecifiedInServiceResponse);
   }
 
   @GetMapping(
@@ -80,7 +79,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
         .doOnNext(
             serviceResponse -> {
               final var serverHttpResponse = serverWebExchange.getResponse();
-                addCommonHeaders(serverHttpResponse);
+              addCommonHeaders(serverHttpResponse);
               serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
               if (serviceResponse.getStatusCode() == HttpStatus.UNAUTHORIZED) {
                 serverHttpResponse
@@ -90,11 +89,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
                         "Bearer realm=\"%s\"".formatted(authProperties));
               }
             })
-        .flatMap(
-            serviceResponse ->
-                fromCallable(serviceResponse::getOperationResponse)
-                    .delayElement(serviceResponse.getDelay()));
-
+        .flatMap(this::addDelaySpecifiedInServiceResponse);
   }
 
   @PostMapping(
@@ -109,16 +104,15 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
     }
     return identityService
         .revoke(request.getToken(), serverWebExchange.getRequest().getHeaders())
+        .log()
         .doOnNext(
             serviceResponse -> {
+              log.info("got response");
               final var serverHttpResponse = serverWebExchange.getResponse();
-                addCommonHeaders(serverHttpResponse);
+              addCommonHeaders(serverHttpResponse);
               serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
             })
-        .flatMap(
-            serviceResponse ->
-                fromCallable(serviceResponse::getOperationResponse)
-                    .delayElement(serviceResponse.getDelay()));
+        .flatMap(this::addDelaySpecifiedInServiceResponse);
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Bad request")
@@ -129,11 +123,11 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
   }
 
   private void addCommonHeaders(ServerHttpResponse serverHttpResponse) {
-      serverHttpResponse
-              .getHeaders()
-              .add(
-                      HttpHeaders.CACHE_CONTROL,
-                      "no-cache");
+    serverHttpResponse.getHeaders().add(HttpHeaders.CACHE_CONTROL, "no-cache");
+  }
 
+  private Mono<R> addDelaySpecifiedInServiceResponse(AuthServiceResponse<R> serviceResponse) {
+    return fromCallable(serviceResponse::getOperationResponse)
+        .delayElement(serviceResponse.getDelay());
   }
 }

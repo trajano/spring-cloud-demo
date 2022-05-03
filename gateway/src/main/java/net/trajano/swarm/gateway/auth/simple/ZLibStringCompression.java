@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.commons.io.output.WriterOutputStream;
+import reactor.core.publisher.Mono;
 
 /**
  * This is a simplistic implementation of using ZLib compression with strings. It is meant to be
@@ -90,5 +91,13 @@ public class ZLibStringCompression {
   public static String decompress(String input, int limit) {
 
     return decompressUtf8(Base64.getUrlDecoder().decode(input), limit);
+  }
+
+  public static Mono<String> decompressToMono(String input, int limit) {
+    try {
+      return Mono.just(decompressUtf8(Base64.getUrlDecoder().decode(input), limit));
+    } catch (IllegalArgumentException e) {
+      return Mono.error(e);
+    }
   }
 }

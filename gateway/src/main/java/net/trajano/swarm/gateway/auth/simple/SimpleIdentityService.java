@@ -1,11 +1,9 @@
 package net.trajano.swarm.gateway.auth.simple;
 
-import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.zip.ZipException;
-
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.AuthServiceResponse;
 import net.trajano.swarm.gateway.auth.IdentityService;
 import net.trajano.swarm.gateway.auth.OAuthRefreshRequest;
@@ -17,7 +15,9 @@ import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
-import org.jose4j.jwt.consumer.*;
+import org.jose4j.jwt.consumer.InvalidJwtException;
+import org.jose4j.jwt.consumer.JwtConsumer;
+import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver;
 import org.jose4j.lang.JoseException;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +26,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
+@Slf4j
 public class SimpleIdentityService<P>
     implements IdentityService<SimpleAuthenticationRequest, GatewayResponse, P> {
 
@@ -103,16 +104,6 @@ public class SimpleIdentityService<P>
   @Override
   public Mono<JwtClaims> getClaims(String accessToken) {
 
-    final String jwt;
-    if (properties.isCompressClaims()) {
-      try {
-        jwt = ZLibStringCompression.decompress(accessToken, properties.getJwtSizeLimitInBytes());
-      } catch (UncheckedIOException e) {
-        return Mono.error(e.getCause());
-      }
-    } else {
-      jwt = accessToken;
-    }
     return jsonWebKeySet()
         .map(
             jwks ->
@@ -127,7 +118,19 @@ public class SimpleIdentityService<P>
                         AlgorithmConstraints.ConstraintType.PERMIT,
                         AlgorithmIdentifiers.RSA_USING_SHA512)
                     .build())
-        .flatMap(jwtConsumer -> getClaims(jwt, jwtConsumer));
+        .flatMap(
+            jwtConsumer -> {
+              final Mono<String> jwtMono;
+              if (properties.isCompressClaims()) {
+                jwtMono =
+                    ZLibStringCompression.decompressToMono(
+                        accessToken, properties.getJwtSizeLimitInBytes());
+              } else {
+                jwtMono = Mono.just(accessToken);
+              }
+              return Mono.zip(jwtMono, Mono.just(jwtConsumer));
+            })
+        .flatMap(t -> getClaims(t.getT1(), t.getT2()));
   }
 
   private Mono<JwtClaims> getClaims(String jwt, JwtConsumer jwtConsumer) {
@@ -184,6 +187,7 @@ public class SimpleIdentityService<P>
         .revoke(refreshToken)
         .map(
             deleteCount -> {
+              log.info("assembling response");
               if (deleteCount == 1) {
                 return AuthServiceResponse.builder()
                     .operationResponse(GatewayResponse.builder().ok(true).build())
