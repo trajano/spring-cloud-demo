@@ -56,8 +56,7 @@ public class SimpleIdentityService<P>
           if (authenticationRequest.isAuthenticated()) {
             return redisTokenCache
                 .provideOAuthTokenWithUserName(
-                    authenticationRequest.getUsername(),
-                    properties.getAccessTokenExpiresInSeconds())
+                    authenticationRequest.getUsername())
                 .map(token -> AuthServiceResponse.builder().operationResponse(token).build());
 
           } else {
