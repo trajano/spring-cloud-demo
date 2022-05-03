@@ -1,0 +1,88 @@
+openapi: 3.1.0
+info:
+  title: Spring Cloud Docker Swarm
+  version: 3.0.0
+  description: |
+    An implementation of Spring Cloud that utilizes Docker Swarm for service discovery and provides OAuth-like
+    functionality for controlling access to the system.
+    
+    This is using the "SimpleIdentityProvider" which is used for demo and testing purposes.
+  license:
+    name: EPL-2.0
+    url: https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt
+servers:
+  - url: http://localhost:28082
+    variables: {}
+paths:
+  /auth:
+    post:
+      summary: Authenticate user
+      operationId: AuthenticateUser
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthenticationCredentials"
+            examples:
+              good-login:
+                summary: Good login
+                value:
+                  username: good
+                  authenticated: true
+              bad-login:
+                summary: Bad login
+                value:
+                  username: bad
+                  authenticated: false
+      responses:
+        200:
+          description: Authenticated response
+          headers:
+            "X-B3-Traceid":
+              description: |
+                Trace ID
+              schema:
+                type: string
+            "Cache-Control":
+              description: |
+                Tells the client cache how to behave.  The value `no-cache` disables caching.
+              schema:
+                type: string
+                example: no-cache
+            "X-Trace-ID":
+              description: |
+                Trace ID in AWS X-Ray format
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OAuthTokenResponse"
+components:
+  schemas:
+    AuthenticationCredentials:
+      type: object
+      properties:
+        username:
+          type: string
+        authenticated:
+          type: boolean
+    OAuthTokenResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          enum:
+            - Bearer
+        expires_in:
+          type: number
+          format: int
+

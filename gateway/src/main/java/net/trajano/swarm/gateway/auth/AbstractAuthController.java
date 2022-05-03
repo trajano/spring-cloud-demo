@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -40,6 +41,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
             serviceResponse -> {
               final var serverHttpResponse = serverWebExchange.getResponse();
               serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
+              addCommonHeaders(serverHttpResponse);
               if (serviceResponse.getStatusCode() == HttpStatus.UNAUTHORIZED) {
                 serverHttpResponse
                     .getHeaders()
@@ -78,6 +80,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
         .doOnNext(
             serviceResponse -> {
               final var serverHttpResponse = serverWebExchange.getResponse();
+                addCommonHeaders(serverHttpResponse);
               serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
               if (serviceResponse.getStatusCode() == HttpStatus.UNAUTHORIZED) {
                 serverHttpResponse
@@ -109,6 +112,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
         .doOnNext(
             serviceResponse -> {
               final var serverHttpResponse = serverWebExchange.getResponse();
+                addCommonHeaders(serverHttpResponse);
               serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
             })
         .flatMap(
@@ -122,5 +126,14 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
   public Mono<GatewayResponse> illegalArgumentExceptionHandler() {
 
     return Mono.just(GatewayResponse.builder().ok(false).error("client_error").build());
+  }
+
+  private void addCommonHeaders(ServerHttpResponse serverHttpResponse) {
+      serverHttpResponse
+              .getHeaders()
+              .add(
+                      HttpHeaders.CACHE_CONTROL,
+                      "no-cache");
+
   }
 }

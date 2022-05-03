@@ -1,0 +1,3 @@
+apis:
+  spring-cloud-docker-swarm:
+    root: ./src/openapi/spring-cloud-docker-swarm.yaml
