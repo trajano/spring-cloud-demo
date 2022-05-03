@@ -80,16 +80,15 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
                       return identityService
                           .getClaims(bearerToken)
                           .flatMap(
-                              jwtClaims -> {
-                                return chain.filter(
-                                    identityService.mutateDownstreamRequest(exchange, jwtClaims));
-                              })
-                          .onErrorContinue(
-                              (a, berr) -> {
+                              jwtClaims ->
+                                  chain.filter(
+                                      identityService.mutateDownstreamRequest(exchange, jwtClaims)))
+                          .onErrorResume(
+                              (a) -> {
                                 ServerWebExchangeUtils.setResponseStatus(
                                     exchange, HttpStatus.UNAUTHORIZED);
                                 ServerWebExchangeUtils.setAlreadyRouted(exchange);
-                                chain
+                                return chain
                                     .filter(exchange)
                                     .then(
                                         respondWithUnauthorized(config, exchange, "invalid_token"));

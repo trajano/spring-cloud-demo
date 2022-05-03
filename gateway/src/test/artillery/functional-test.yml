@@ -1,9 +1,12 @@
 config:
   target: "http://localhost:28082"
+  plugins:
+    expect: {}
   phases:
     - duration: 1
+      arrivalCount: 6
       # This should equal the number of scenarios
-      arrivalRate: 3
+      # arrivalRate: 4
 #      maxVusers: 2
   http:
     timeout: 10
@@ -163,3 +166,20 @@ scenarios:
             Content-Type: application/x-www-form-urlencoded
           expect:
             - statusCode: 200
+  - name: No login unauthorized
+    flow:
+      - get:
+          url: "/whoami"
+          headers:
+            Accept: application/json
+          expect:
+            - statusCode: 401
+  - name: No login unauthorized invalid bearer token
+    flow:
+      - get:
+          url: "/whoami"
+          headers:
+            Accept: application/json
+            Authorization: "Bearer badtoken"
+          expect:
+            - statusCode: 401

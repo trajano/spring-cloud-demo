@@ -1,7 +1,10 @@
 package net.trajano.swarm.gateway.auth.simple;
 
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.zip.ZipException;
+
 import lombok.RequiredArgsConstructor;
 import net.trajano.swarm.gateway.auth.AuthServiceResponse;
 import net.trajano.swarm.gateway.auth.IdentityService;
@@ -102,7 +105,11 @@ public class SimpleIdentityService<P>
 
     final String jwt;
     if (properties.isCompressClaims()) {
-      jwt = ZLibStringCompression.decompress(accessToken, properties.getJwtSizeLimitInBytes());
+      try {
+        jwt = ZLibStringCompression.decompress(accessToken, properties.getJwtSizeLimitInBytes());
+      } catch (UncheckedIOException e) {
+        return Mono.error(e.getCause());
+      }
     } else {
       jwt = accessToken;
     }

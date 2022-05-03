@@ -11,3 +11,4 @@ README.md
 *.ipr
 *.iws
 docker-compose.yml
+gateway/src/test/artillery/*
