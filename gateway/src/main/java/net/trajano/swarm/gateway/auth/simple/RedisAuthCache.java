@@ -85,7 +85,11 @@ public class RedisAuthCache {
     }
   }
 
-  /**
+    public boolean isJwtIdValid(String jwtId) {
+return true;
+    }
+
+    /**
    * Given the username, create a simulated backend credential data and provide the
    * OAuthTokenResponse mono.
    *

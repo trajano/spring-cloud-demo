@@ -6,6 +6,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RedisKeyBlocks {
 
+  /**
+   * Points to the refresh token data.
+   */
+  public static final String REFRESH_TOKEN_DATA_KEY_FORMAT = "%s:::refresh-token:::%s";
+
   private final SimpleAuthServiceProperties simpleAuthServiceProperties;
   private static final String SIGNING_KEYS_FORMAT = "%s:::signing-keys:::%d";
 
@@ -48,6 +53,6 @@ public class RedisKeyBlocks {
 
   public String refreshTokenKey(String refreshToken) {
 
-    return simpleAuthServiceProperties.getRedisPrefix() + ":::refresh-token:::" + refreshToken;
+    return REFRESH_TOKEN_DATA_KEY_FORMAT.formatted(simpleAuthServiceProperties.getRedisPrefix(), refreshToken);
   }
 }

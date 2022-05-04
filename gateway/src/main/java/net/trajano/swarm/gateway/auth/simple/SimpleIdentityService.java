@@ -130,7 +130,21 @@ public class SimpleIdentityService<P>
               }
               return Mono.zip(jwtMono, Mono.just(jwtConsumer));
             })
-        .flatMap(t -> getClaims(t.getT1(), t.getT2()));
+        .flatMap(t -> getClaims(t.getT1(), t.getT2()))
+            .flatMap(jwtClaims -> isJwtIdValid(jwtClaims) ? Mono.just(jwtClaims) : Mono.error(SecurityException::new));
+  }
+
+  /**
+   * Checks if the JwtId is still valid
+   * @param jwtClaims claims
+   * @return true if it is still valid
+   */
+  private boolean isJwtIdValid(JwtClaims jwtClaims) {
+      try {
+          return redisTokenCache.isJwtIdValid(jwtClaims.getJwtId());
+      } catch (MalformedClaimException e) {
+          return false;
+      }
   }
 
   private Mono<JwtClaims> getClaims(String jwt, JwtConsumer jwtConsumer) {
