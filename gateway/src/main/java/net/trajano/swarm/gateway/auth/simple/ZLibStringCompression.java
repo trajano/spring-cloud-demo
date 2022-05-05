@@ -93,6 +93,14 @@ public class ZLibStringCompression {
     return decompressUtf8(Base64.getUrlDecoder().decode(input), limit);
   }
 
+  public static String decompressIfNeeded(String input, int limit) {
+    if (input.startsWith("eNo")) {
+return      decompress(input, limit);
+    } else {
+      return input;
+    }
+  }
+
   public static Mono<String> decompressToMono(String input, int limit) {
     try {
       return Mono.just(decompressUtf8(Base64.getUrlDecoder().decode(input), limit));

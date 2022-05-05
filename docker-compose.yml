@@ -31,7 +31,7 @@ services:
       mode: global
       resources:
         limits:
-          memory: 512m
+          memory: 256m
   gateway:
     build:
       context: .
@@ -40,7 +40,7 @@ services:
     environment:
       - SPRING_REDIS_HOST=redis
       - DOCKER_DISCOVERY_SWARMMODE=true
-#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=debug
+      - LOGGING_LEVEL_ROOT=error
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_SLEUTH=warn
     ports:
       - 28082:8080
@@ -66,10 +66,10 @@ services:
 #        parallelism: 1
       restart_policy:
         max_attempts: 1
-      replicas: 2
+      replicas: 1
       resources:
         limits:
-          memory: 512m
+          memory: 1g
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro

@@ -1,23 +1,5 @@
 package net.trajano.swarm.gateway.auth.simple;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
-import org.jose4j.jwk.JsonWebKey;
-import org.jose4j.jwk.JsonWebKeySet;
-import org.jose4j.jwt.JwtClaims;
-import org.jose4j.jwt.MalformedClaimException;
-import org.jose4j.lang.JoseException;
-import org.springframework.data.redis.core.ReactiveHashOperations;
-import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
-import org.springframework.data.redis.core.ReactiveValueOperations;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.core.publisher.SynchronousSink;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.crypto.KeyGenerator;
 import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
@@ -27,9 +9,25 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
-import static reactor.core.publisher.Mono.fromCallable;
-import static reactor.core.publisher.Mono.just;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.crypto.KeyGenerator;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
+import org.jose4j.jwk.JsonWebKey;
+import org.jose4j.jwk.JsonWebKeySet;
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.MalformedClaimException;
+import org.jose4j.lang.JoseException;
+import org.springframework.data.redis.core.ReactiveHashOperations;
+import org.springframework.data.redis.core.ReactiveSetOperations;
+import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
+import org.springframework.data.redis.core.ReactiveValueOperations;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.SynchronousSink;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * There's a few redis keys that are used.
@@ -90,7 +88,7 @@ public class RedisAuthCache {
    */
   private String generateRefreshToken() {
 
-    final byte[] bytes = new byte[64];
+    final byte[] bytes = new byte[32];
     secureRandom.nextBytes(bytes);
 
     final var jwtClaims = new JwtClaims();
@@ -122,7 +120,7 @@ public class RedisAuthCache {
     final ReactiveHashOperations<String, String, String> ops = redisTemplate.opsForHash();
     return ops.entries(redisKeyBlocks.refreshTokenKey(authenticationItem.getRefreshToken()))
         .filter(entry -> !"jti".equals(entry.getKey()))
-            .switchIfEmpty(Mono.error(SecurityException::new))
+        .switchIfEmpty(Mono.error(SecurityException::new))
         .collect(HashMap::new, (a, b) -> a.put(b.getKey(), b.getValue()))
         .cast(Map.class)
         .map(authenticationItem::withSecret);
@@ -144,12 +142,13 @@ public class RedisAuthCache {
                 jwt ->
                     simpleAuthServiceProperties.isCompressClaims()
                         ? ZLibStringCompression.compress(jwt)
-                        : jwt);
+                        : jwt)
+            .subscribeOn(Schedulers.boundedElastic());
     final var signedRefreshTokenMono =
         getSigningKey()
             .map(
-                signingJwks ->
-                    JwtFunctions.sign(signingJwks, authenticationItem.getRefreshToken()));
+                signingJwks -> JwtFunctions.sign(signingJwks, authenticationItem.getRefreshToken()))
+            .subscribeOn(Schedulers.boundedElastic());
 
     return Mono.zip(signedAccessTokenMono, signedRefreshTokenMono)
         .map(t -> authenticationItem.withAccessToken(t.getT1()).withRefreshToken(t.getT2()));
@@ -168,22 +167,33 @@ public class RedisAuthCache {
 
     final ReactiveHashOperations<String, String, String> ops = redisTemplate.opsForHash();
     final ReactiveValueOperations<String, String> valueOps = redisTemplate.opsForValue();
-    final var refreshToken = generateRefreshToken();
 
     try {
       final var jwtId = authenticationItem.getJwtClaims().getJwtId();
-      final var refreshTokenRedisKey = redisKeyBlocks.refreshTokenKey(refreshToken);
-      final var accessTokenJtiKey = redisKeyBlocks.accessTokenJtiKey(jwtId);
 
-      final var refreshTokenMono =
-          Flux.fromIterable(authenticationItem.getSecret().entrySet())
-              .concatWithValues(Map.entry("jti", jwtId))
+      var refreshTokenMono =
+          Mono.fromCallable(this::generateRefreshToken)
+              .publishOn(
+                  Schedulers.newBoundedElastic(
+                      Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+                      Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+                      "generateRefreshToken"))
               .flatMap(
-                  entry -> ops.putIfAbsent(refreshTokenRedisKey, entry.getKey(), entry.getValue()))
-              .count()
-              .filter(count -> count == authenticationItem.getSecret().size() + 1)
-              .switchIfEmpty(Mono.error(IllegalStateException::new))
-              .thenReturn(refreshToken);
+                  refreshToken -> {
+                    final var refreshTokenRedisKey = redisKeyBlocks.refreshTokenKey(refreshToken);
+                    return Flux.fromIterable(authenticationItem.getSecret().entrySet())
+                        .concatWithValues(Map.entry("jti", jwtId))
+                        .flatMap(
+                            entry ->
+                                ops.putIfAbsent(
+                                    refreshTokenRedisKey, entry.getKey(), entry.getValue()))
+                        .count()
+                        .filter(count -> count == authenticationItem.getSecret().size() + 1)
+                        .switchIfEmpty(Mono.error(IllegalStateException::new))
+                        .thenReturn(refreshToken);
+                  });
+
+      final var accessTokenJtiKey = redisKeyBlocks.accessTokenJtiKey(jwtId);
 
       final var accessTokenMono =
           valueOps
@@ -237,127 +247,14 @@ public class RedisAuthCache {
     return response;
   }
 
-  /**
-   * Given the username, create a simulated backend credential data and provide the
-   * OAuthTokenResponse mono.
-   *
-   * @param username username
-   * @return oauth token
-   */
-  public Mono<OAuthTokenResponse> provideOAuthTokenWithUserName(String username) {
-
-    return provideRefreshToken()
-        .flatMap(
-            refreshToken ->
-                Mono.zip(
-                    fromCallable(() -> provideJwtClaims(username))
-                        .map(JwtClaims::toJson)
-                        .flatMap(claimsJson -> Mono.zip(getSigningKey(), Mono.just(claimsJson)))
-                        .map(tuple -> JwtFunctions.sign(tuple.getT1(), tuple.getT2())),
-                    provideAuthenticatedDataMono(
-                        refreshToken, username, UUID.randomUUID().toString()),
-                    just(refreshToken)))
-        .map(
-            t2 -> {
-              final var operationResponse = new OAuthTokenResponse();
-              operationResponse.setOk(true);
-              if (simpleAuthServiceProperties.isCompressClaims()) {
-                operationResponse.setAccessToken(ZLibStringCompression.compress(t2.getT1()));
-              } else {
-                operationResponse.setAccessToken(t2.getT1());
-              }
-              operationResponse.setRefreshToken(t2.getT3());
-              operationResponse.setExpiresIn(
-                  simpleAuthServiceProperties.getAccessTokenExpiresInSeconds());
-              return operationResponse;
-            });
-  }
-
-  /**
-   * @param refreshToken refresh token
-   * @return may be empty if it does not exist or cannot be regenerated
-   */
-  public Mono<OAuthTokenResponse> provideRefreshedOAuthToken(final String refreshToken) {
-
-    final ReactiveHashOperations<String, String, String> ops = redisTemplate.opsForHash();
-
-    final var currentRefreshTokenKey = redisKeyBlocks.refreshTokenKey(refreshToken);
-    return redisTemplate
-        .hasKey(currentRefreshTokenKey)
-        .filter(exists -> exists)
-        .map(v -> ops.entries(currentRefreshTokenKey))
-        .flatMap(Flux::collectList)
-        .flatMap(
-            entries ->
-                Mono.zip(
-                    provideRefreshToken(), just(Map.ofEntries(entries.toArray(Map.Entry[]::new)))))
-        .flatMap(
-            tuple -> {
-              var newRefreshToken = tuple.getT1();
-              // at this point if this was a real system it will use the map data to revalidate the
-              // authentication
-              final var username = (String) tuple.getT2().get("username");
-              final var secret = (String) tuple.getT2().get("secret");
-              var oauthTokenBaseMono = provideOAuthTokenWithUserName(username);
-
-              return Mono.zip(
-                  just(refreshToken),
-                  oauthTokenBaseMono,
-                  provideAuthenticatedDataMono(newRefreshToken, username, secret));
-            })
-        .map(
-            tuple -> {
-              final var oAuthTokenResponse = tuple.getT2();
-              oAuthTokenResponse.setRefreshToken(tuple.getT1());
-              return oAuthTokenResponse;
-            })
-        .doOnNext(v -> redisTemplate.delete(currentRefreshTokenKey).subscribe());
-  }
-
-  /**
-   * Given a refresh token mono and the username, create a "payload" to represent secret data and
-   * store it into Redis as a hash and set it to expire in 30 seconds.
-   *
-   * @param refreshToken refresh token
-   * @param username username
-   * @param someSecret someSecret
-   */
-  private Mono<Map<String, String>> provideAuthenticatedDataMono(
-      String refreshToken, String username, String someSecret) {
-
-    var payload = Map.of("username", username, "secret", someSecret);
-    ReactiveHashOperations<String, String, String> ops = redisTemplate.opsForHash();
-
-    return RedisFunctions.putIfAbsent(ops, redisKeyBlocks.refreshTokenKey(refreshToken), payload)
-        .filter(success -> success)
-        .switchIfEmpty(Mono.error(new IllegalStateException("unable to add")))
-        .map(
-            ignored ->
-                redisTemplate.expireAt(
-                    redisKeyBlocks.refreshTokenKey(refreshToken),
-                    Instant.now()
-                        .plusSeconds(
-                            simpleAuthServiceProperties.getRefreshTokenExpiresInSeconds())))
-        .map(ignored -> payload);
-  }
-
-  private JwtClaims provideJwtClaims(String username) {
-
-    final var claims = new JwtClaims();
-    claims.setGeneratedJwtId();
-    claims.setSubject(username);
-    claims.setExpirationTimeMinutesInTheFuture(
-        simpleAuthServiceProperties.getAccessTokenExpiresInSeconds() / 60.0f);
-    return claims;
-  }
-
   @PostConstruct
+  @SuppressWarnings("unused")
   public void initializeCrypto() {
 
     try {
       keyGenerator = KeyGenerator.getInstance("AES");
       keyPairGenerator = KeyPairGenerator.getInstance(RSA);
-      keyPairGenerator.initialize(4096);
+      keyPairGenerator.initialize(2048);
       secureRandom = SecureRandom.getInstanceStrong();
       keyGenerator.init(256, secureRandom);
       rsaKeyFactory = KeyFactory.getInstance(RSA);
@@ -462,34 +359,39 @@ public class RedisAuthCache {
               return opsForSet
                   .randomMember(redisKeyBlocks.currentSigningRedisKey())
                   .map(RedisAuthCache::stringToJwks);
-            });
+            })
+        .publishOn(Schedulers.boundedElastic());
   }
 
   private Mono<Boolean> adjustExpiration() {
 
-    return redisTemplate.expireAt(
-        redisKeyBlocks.currentSigningRedisKey(),
-        redisKeyBlocks.nextTimeBlockForSigningKeysAdjustedForAccessTokenExpiration());
-  }
-
-  /**
-   * Provides the refresh token. Made public to allow testing/
-   *
-   * @return refresh token mono
-   */
-  public Mono<String> provideRefreshToken() {
-
-    return fromCallable(this::generateRefreshToken);
+    return redisTemplate
+        .expireAt(
+            redisKeyBlocks.currentSigningRedisKey(),
+            redisKeyBlocks.nextTimeBlockForSigningKeysAdjustedForAccessTokenExpiration())
+        .publishOn(Schedulers.boundedElastic());
   }
 
   public Flux<JsonWebKey> jwks() {
 
-    final var ops = redisTemplate.opsForSet();
-    return Flux.merge(
-            ops.scan(redisKeyBlocks.currentSigningRedisKey()),
-            ops.scan(redisKeyBlocks.previousSigningRedisKey()))
-        .map(RedisAuthCache::stringToJwks)
-        .flatMap(jwks -> Flux.fromIterable(jwks.getJsonWebKeys()))
-        .filter(jwk -> RSA.equals(jwk.getKeyType()));
+    final ReactiveSetOperations<String, String> ops = redisTemplate.opsForSet();
+
+    return redisTemplate
+        .getExpire(redisKeyBlocks.currentSigningRedisKey())
+        .publishOn(Schedulers.boundedElastic())
+        .filter(duration -> !duration.isZero())
+        // at this point a I have a duration that is positive or empty or else illegal state since
+        // signing keys must always have an expiration and must exist
+        .switchIfEmpty(Mono.error(IllegalStateException::new))
+        .flatMapMany(
+            duration ->
+                Flux.merge(
+                        ops.scan(redisKeyBlocks.currentSigningRedisKey()),
+                        ops.scan(redisKeyBlocks.previousSigningRedisKey()))
+                    .publishOn(Schedulers.boundedElastic())
+                    .map(RedisAuthCache::stringToJwks)
+                    .flatMap(jwks -> Flux.fromIterable(jwks.getJsonWebKeys()))
+                    .filter(jwk -> RSA.equals(jwk.getKeyType()))
+                    .cache(duration));
   }
 }

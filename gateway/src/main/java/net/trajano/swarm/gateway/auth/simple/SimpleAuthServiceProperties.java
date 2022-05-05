@@ -34,4 +34,6 @@ public class SimpleAuthServiceProperties {
    * #accessTokenExpiresInSeconds}. This is kept low to make it easier to test.
    */
   private int signingKeyExpiresInSeconds = 240;
+  private int penaltyDelayInMillis = 1000;
+
 }

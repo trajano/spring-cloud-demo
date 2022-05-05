@@ -16,25 +16,47 @@ config:
       target: "http://localhost:28082"
       phases:
         - duration: 10
-          arrivalRate: 10
-    localhost-traefik-heavy-load:
-      target: "http://localhost:28080"
+          arrivalRate: 20
+    localhost-direct-medium-load:
+      target: "http://localhost:28082"
       phases:
-        - name: warmup
-          duration: 10
-          arrivalRate: 5
-        - name: load
-          duration: 120
-          arrivalRate: 80
+        - duration: 60
+          arrivalRate: 60
     localhost-direct-heavy-load:
       target: "http://localhost:28082"
       phases:
         - name: warmup
           duration: 10
-          arrivalRate: 5
+          arrivalRate: 1
+        - pause: 10
+        - name: load
+          duration: 30
+          arrivalRate: 65
+          # keep sane, a single PC may not be able to handle the load of 1000 concurrent requests per second.
+          maxVusers: 100
+        - pause: 10
+        - name: load
+          duration: 40
+          arrivalRate: 65
+          maxVusers: 100
+    localhost-traefik-ludicrous-load:
+      target: "http://localhost:28080"
+      phases:
+        - name: warmup
+          duration: 10
+          arrivalRate: 1
         - name: load
           duration: 120
-          arrivalRate: 80
+          arrivalRate: 65
+    localhost-direct-ludicrous-load:
+      target: "http://localhost:28082"
+      phases:
+        - name: warmup
+          duration: 10
+          arrivalRate: 1
+        - name: load
+          duration: 120
+          arrivalRate: 65
 scenarios:
   - name: Login request resource and logout
     weight: 2
@@ -61,6 +83,7 @@ scenarios:
             Authorization: "Bearer {{ access_token }}"
           expect:
             - statusCode: 200
+      - think: 5
       - post:
           url: "/logout"
           form:
@@ -71,7 +94,7 @@ scenarios:
           expect:
             - statusCode: 200
   - name: Login request resource and logout with refresh
-    weight: 3
+    weight: 5
     flow:
       - post:
           url: "/auth"
@@ -95,6 +118,7 @@ scenarios:
             Authorization: "Bearer {{ access_token }}"
           expect:
             - statusCode: 200
+      - think: 5
       - post:
           url: "/refresh"
           form:
@@ -116,6 +140,7 @@ scenarios:
             Authorization: "Bearer {{ access_token }}"
           expect:
             - statusCode: 200
+      - think: 5
       - post:
           url: "/logout"
           form:

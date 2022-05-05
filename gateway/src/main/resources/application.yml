@@ -110,11 +110,12 @@ management:
       exposure:
         #include: health,gateway,info,caches
         include: "*"
-logging:
-  level:
-    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: warn
-    root: warn
-#    root: debug
+#logging:
+#  level:
+#    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: warn
+#    request: error
+#    root: warn
+##    root: debug
 
 simple-auth:
   enabled: true

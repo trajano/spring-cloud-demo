@@ -1,7 +1,6 @@
 package net.trajano.swarm.gateway.auth.simple;
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.AuthServiceResponse;
@@ -24,6 +23,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -64,6 +64,7 @@ public class SimpleIdentityService<P>
 
     return authenticationRequestMono
         .filter(SimpleAuthenticationRequest::isAuthenticated)
+        .switchIfEmpty(Mono.error(SecurityException::new))
         .map(
             authenticationRequest ->
                 AuthenticationItem.builder().authenticationRequest(authenticationRequest).build())
@@ -72,13 +73,13 @@ public class SimpleIdentityService<P>
         .flatMap(redisTokenCache::provideAccessTokenAndRefreshToken)
         .map(redisTokenCache::provideOAuthToken)
         .map(token -> AuthServiceResponse.builder().operationResponse(token).build())
-        .switchIfEmpty(
-            Mono.just(
-                AuthServiceResponse.builder()
-                    .operationResponse(new UnauthorizedGatewayResponse())
-                    .statusCode(HttpStatus.UNAUTHORIZED)
-                    .delay(Duration.of(5, ChronoUnit.SECONDS))
-                    .build()));
+        .onErrorReturn(
+            AuthServiceResponse.builder()
+                .operationResponse(
+                    GatewayResponse.builder().ok(false).error("authentication_failed").build())
+                .statusCode(HttpStatus.UNAUTHORIZED)
+                .delay(Duration.ofMillis(properties.getPenaltyDelayInMillis()))
+                .build());
   }
 
   /**
@@ -101,21 +102,15 @@ public class SimpleIdentityService<P>
                         .setAllowedClockSkewInSeconds(10)
                         .setJwsAlgorithmConstraints(
                             AlgorithmConstraints.ConstraintType.PERMIT,
-                            AlgorithmIdentifiers.RSA_USING_SHA512)
+                            AlgorithmIdentifiers.RSA_USING_SHA256)
                         .build());
 
     final Mono<String> jwtMono =
         Mono.fromCallable(
-            () -> {
-              // ZLib header base64 is "eNo" this will decompress regardless of server
-              // configuration
-              if (accessToken.startsWith("eNo")) {
-                return ZLibStringCompression.decompress(
-                    accessToken, properties.getJwtSizeLimitInBytes());
-              } else {
-                return accessToken;
-              }
-            });
+                () ->
+                    ZLibStringCompression.decompressIfNeeded(
+                        accessToken, properties.getJwtSizeLimitInBytes()))
+            .publishOn(Schedulers.boundedElastic());
 
     return Mono.zip(jwtMono, jwtConsumerMono)
         .flatMap(t -> getClaims(t.getT1(), t.getT2()))
@@ -124,11 +119,14 @@ public class SimpleIdentityService<P>
 
   private Mono<JwtClaims> getClaims(String jwt, JwtConsumer jwtConsumer) {
 
-    try {
-      return Mono.just(jwtConsumer.processToClaims(jwt));
-    } catch (InvalidJwtException e) {
-      return Mono.error(e);
-    }
+      return Mono.fromCallable(()->{
+        try {
+          return jwtConsumer.processToClaims(jwt) ;
+        } catch (InvalidJwtException e) {
+          throw new IllegalArgumentException(e);
+        }
+      })
+              .publishOn(Schedulers.newBoundedElastic(Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE, Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE, "jwtConsumer"));
   }
 
   @Override
@@ -150,7 +148,7 @@ public class SimpleIdentityService<P>
                     .setAllowedClockSkewInSeconds(10)
                     .setJwsAlgorithmConstraints(
                         AlgorithmConstraints.ConstraintType.PERMIT,
-                        AlgorithmIdentifiers.RSA_USING_SHA512)
+                        AlgorithmIdentifiers.RSA_USING_SHA256)
                     .build())
         .map(
             jwtConsumer -> {
@@ -230,11 +228,11 @@ public class SimpleIdentityService<P>
         .map(redisTokenCache::provideOAuthToken)
         .map(token -> AuthServiceResponse.builder().operationResponse(token).build())
         .onErrorReturn(
-                AuthServiceResponse.builder()
-                    .operationResponse(new UnauthorizedGatewayResponse())
-                    .statusCode(HttpStatus.UNAUTHORIZED)
-                    .delay(Duration.of(5, ChronoUnit.SECONDS))
-                    .build());
+            AuthServiceResponse.builder()
+                .operationResponse(new UnauthorizedGatewayResponse())
+                .statusCode(HttpStatus.UNAUTHORIZED)
+                .delay(Duration.ofMillis(properties.getPenaltyDelayInMillis()))
+                .build());
   }
 
   /**
@@ -262,7 +260,7 @@ public class SimpleIdentityService<P>
                 AuthServiceResponse.builder()
                     .operationResponse(GatewayResponse.builder().ok(true).build())
                     .statusCode(HttpStatus.OK)
-                    .delay(Duration.of(5, ChronoUnit.SECONDS))
+                    .delay(Duration.ofMillis(properties.getPenaltyDelayInMillis()))
                     .build()));
   }
 

@@ -44,7 +44,7 @@ public final class JwtFunctions {
     final var jws = new JsonWebSignature();
     jws.setKeyIdHeaderValue(kid);
     jws.setPayload(payload);
-    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA512);
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
     jws.setKey(signingKey);
     try {
       jws.sign();

@@ -15,6 +15,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * Due to type erasure, this was made abstract so a concrete implementation like
@@ -103,7 +104,8 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
 
     if (!request.getToken_type_hint().equals("refresh_token")
         || !StringUtils.hasText(request.getToken())) {
-      return Mono.delay(Duration.ofSeconds(5)).then(Mono.error(IllegalArgumentException::new));
+      return Mono.delay(Duration.ofMillis(authProperties.getPenaltyDelayInMillis()))
+              .then(Mono.error(IllegalArgumentException::new));
     }
 
     return identityService
@@ -130,6 +132,6 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
 
   private Mono<R> addDelaySpecifiedInServiceResponse(AuthServiceResponse<R> serviceResponse) {
     return fromCallable(serviceResponse::getOperationResponse)
-        .delayElement(serviceResponse.getDelay());
+        .delayElement(serviceResponse.getDelay(), Schedulers.newParallel("penalty"));
   }
 }

@@ -9,4 +9,5 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class AuthProperties {
   private String realm = "JWT";
+  private int penaltyDelayInMillis = 1000;
 }
