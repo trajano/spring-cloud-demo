@@ -18,6 +18,9 @@ paths:
   /auth:
     post:
       summary: Authenticate user
+      description: |
+        Authenticates the user given the authentication credentials.
+        If the authentication fails there is a penalty to the response.
       operationId: authenticateUser
       requestBody:
         content:
@@ -50,6 +53,15 @@ paths:
                 value:
                   username: bad
                   authenticated: false
+                x-postman-tests: |
+                  pm.test("Unauthenticated", () => {
+                    pm.response.to.have.status(401);
+                    pm.expect(pm.response.responseTime).to.be.above(2000);
+                    const {
+                      ok,
+                    } = pm.response.json();
+                    pm.expect(ok).to.be.false;
+                  });
       responses:
         200:
           description: Authenticated

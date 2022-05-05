@@ -229,13 +229,12 @@ public class SimpleIdentityService<P>
         .flatMap(redisTokenCache::provideAccessTokenAndRefreshToken)
         .map(redisTokenCache::provideOAuthToken)
         .map(token -> AuthServiceResponse.builder().operationResponse(token).build())
-        .switchIfEmpty(
-            Mono.just(
+        .onErrorReturn(
                 AuthServiceResponse.builder()
                     .operationResponse(new UnauthorizedGatewayResponse())
                     .statusCode(HttpStatus.UNAUTHORIZED)
                     .delay(Duration.of(5, ChronoUnit.SECONDS))
-                    .build()));
+                    .build());
   }
 
   /**

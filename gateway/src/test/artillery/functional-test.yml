@@ -1,10 +1,11 @@
 config:
   target: "http://localhost:28082"
   plugins:
-    expect: {}
+    expect:
+      outputFormat: prettyError
   phases:
     - duration: 1
-      arrivalCount: 6
+      arrivalCount: 20
       # This should equal the number of scenarios
       # arrivalRate: 4
 #      maxVusers: 2
@@ -16,13 +17,27 @@ config:
       phases:
         - duration: 10
           arrivalRate: 10
+    localhost-traefik-heavy-load:
+      target: "http://localhost:28080"
+      phases:
+        - name: warmup
+          duration: 10
+          arrivalRate: 5
+        - name: load
+          duration: 120
+          arrivalRate: 80
     localhost-direct-heavy-load:
       target: "http://localhost:28082"
       phases:
-        - duration: 120
-          arrivalRate: 65
+        - name: warmup
+          duration: 10
+          arrivalRate: 5
+        - name: load
+          duration: 120
+          arrivalRate: 80
 scenarios:
   - name: Login request resource and logout
+    weight: 2
     flow:
       - post:
           url: "/auth"
@@ -56,6 +71,7 @@ scenarios:
           expect:
             - statusCode: 200
   - name: Login request resource and logout with refresh
+    weight: 3
     flow:
       - post:
           url: "/auth"
@@ -170,6 +186,18 @@ scenarios:
             Content-Type: application/x-www-form-urlencoded
           expect:
             - statusCode: 200
+  - name: Failed login
+    flow:
+      - post:
+          url: "/auth"
+          json:
+            username: bad
+            authenticated: false
+          headers:
+            Accept: application/json
+            Content-Type: application/json
+          expect:
+            - statusCode: 401
   - name: No login unauthorized
     flow:
       - get:
@@ -218,5 +246,61 @@ scenarios:
           headers:
             Accept: application/json
             Authorization: "Bearer {{ access_token }}"
+          expect:
+            - statusCode: 401
+  - name: Login logout and then fail refresh
+    flow:
+      - post:
+          url: "/auth"
+          json:
+            username: good
+            authenticated: true
+          headers:
+            Accept: application/json
+            Content-Type: application/json
+          capture:
+            - json: "$.access_token"
+              as: "access_token"
+            - json: "$.refresh_token"
+              as: "refresh_token"
+          expect:
+            - statusCode: 200
+      - post:
+          url: "/refresh"
+          form:
+            refresh_token: "{{ refresh_token }}"
+            grant_type: refresh_token
+          headers:
+            Content-Type: application/x-www-form-urlencoded
+          capture:
+            - json: "$.access_token"
+              as: "access_token"
+            - json: "$.refresh_token"
+              as: "refresh_token"
+          expect:
+            - statusCode: 200
+      - post:
+          url: "/logout"
+          form:
+            token: "{{ refresh_token }}"
+            token_type_hint: refresh_token
+          headers:
+            Content-Type: application/x-www-form-urlencoded
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/whoami"
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          expect:
+            - statusCode: 401
+      - post:
+          url: "/refresh"
+          form:
+            refresh_token: "{{ refresh_token }}"
+            grant_type: refresh_token
+          headers:
+            Content-Type: application/x-www-form-urlencoded
           expect:
             - statusCode: 401

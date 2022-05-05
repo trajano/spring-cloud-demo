@@ -1,21 +1,5 @@
 package net.trajano.swarm.gateway.auth.simple;
 
-import static reactor.core.publisher.Mono.fromCallable;
-import static reactor.core.publisher.Mono.just;
-
-import java.security.*;
-import java.security.interfaces.RSAPublicKey;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.regex.Pattern;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.crypto.KeyGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
@@ -30,6 +14,22 @@ import org.springframework.data.redis.core.ReactiveValueOperations;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SynchronousSink;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.crypto.KeyGenerator;
+import java.security.*;
+import java.security.interfaces.RSAPublicKey;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+
+import static reactor.core.publisher.Mono.fromCallable;
+import static reactor.core.publisher.Mono.just;
 
 /**
  * There's a few redis keys that are used.
@@ -53,8 +53,6 @@ import reactor.core.publisher.SynchronousSink;
 public class RedisAuthCache {
 
   public static final String RSA = "RSA";
-
-  public static final Pattern REFRESH_TOKEN_PATTERN = Pattern.compile("[A-Za-z\\d\\-_]{42}");
 
   private KeyGenerator keyGenerator;
 
@@ -124,6 +122,7 @@ public class RedisAuthCache {
     final ReactiveHashOperations<String, String, String> ops = redisTemplate.opsForHash();
     return ops.entries(redisKeyBlocks.refreshTokenKey(authenticationItem.getRefreshToken()))
         .filter(entry -> !"jti".equals(entry.getKey()))
+            .switchIfEmpty(Mono.error(SecurityException::new))
         .collect(HashMap::new, (a, b) -> a.put(b.getKey(), b.getValue()))
         .cast(Map.class)
         .map(authenticationItem::withSecret);

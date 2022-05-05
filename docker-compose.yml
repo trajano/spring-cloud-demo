@@ -1,35 +1,37 @@
 version: "3.8"
 services:
   edge:
-    image: traefik
+    image: traefik:latest
     ports:
+#      - 28083:8080
       - 28080:80
-#      - 28081:8080
     command:
       - --global.checknewversion=false
       - --global.sendanonymoususage=false
 
+      - --accesslog
       - --api
       - --api.dashboard
-#      - --api.insecure=true
+      - --api.insecure
       - --ping
-      - --log.level=debug
+      # - --log.level=debug
       - --entrypoints.http.address=:80
       - --providers.docker.exposedByDefault=false
       - --providers.docker.swarmMode=true
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      - --providers.docker.network=edge
       # - --providers.docker.useBindPortIP=true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - edge
-    healthcheck:
-      test: traefik healthcheck --ping
+#    healthcheck:
+#      test: traefik healthcheck --ping
     deploy:
       mode: global
       resources:
         limits:
-          cpus: '1.0'
-          memory: 256M
+          memory: 512m
   gateway:
     build:
       context: .
@@ -44,16 +46,19 @@ services:
       - 28082:8080
     deploy:
       labels:
-        - "traefik.enable=true"
-        # - "traefik.http.routers.gateway.rule=Host(`localhost`)"
-        - "traefik.http.routers.gateway.rule=PathPrefix(`/`)"
-        - "traefik.http.routers.gateway.entryPoints=http"
-        - "traefik.http.routers.gateway.priority=1"
-        - "traefik.http.services.gateway.loadbalancer.server.port=8080"
+        traefik.enable: "true"
+        traefik.docker.network: edge
+        traefik.http.routers.gateway.rule: "PathPrefix(`/`)"
+        traefik.http.routers.gateway.entryPoints: "http"
+        traefik.http.routers.gateway.priority: "1"
+        traefik.http.services.gateway.loadbalancer.server.port: "8080"
+        traefik.http.services.gateway.loadbalancer.healthcheck.path: /ping
+        traefik.http.services.gateway.loadbalancer.healthcheck.port: "8080"
+        traefik.http.services.gateway.loadbalancer.healthcheck.interval: "10s"
 
-        - "traefik.http.routers.dashboard.rule=(PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
-        - "traefik.http.routers.dashboard.entryPoints=http"
-        - "traefik.http.routers.dashboard.service=api@internal"
+        traefik.http.routers.dashboard.rule: (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+        traefik.http.routers.dashboard.entryPoints: http
+        traefik.http.routers.dashboard.service: api@internal
 #
       update_config:
 #        order: start-first
@@ -61,10 +66,10 @@ services:
 #        parallelism: 1
       restart_policy:
         max_attempts: 1
-      replicas: 1
+      replicas: 2
       resources:
         limits:
-          memory: 256m
+          memory: 512m
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -177,6 +182,7 @@ services:
       - services
 networks:
   edge:
+    name: edge
     internal: false
   services:
     name: services
