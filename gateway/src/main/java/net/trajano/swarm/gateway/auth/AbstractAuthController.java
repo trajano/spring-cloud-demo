@@ -2,6 +2,7 @@ package net.trajano.swarm.gateway.auth;
 
 import static reactor.core.publisher.Mono.fromCallable;
 
+import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.jose4j.jwk.JsonWebKeySet;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -99,15 +101,16 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
   public Mono<R> logout(
       @ModelAttribute OAuthRevocationRequest request, ServerWebExchange serverWebExchange) {
 
-    if (!request.getToken_type_hint().equals("refresh_token")) {
-      return Mono.error(new IllegalArgumentException());
+    if (!request.getToken_type_hint().equals("refresh_token")
+        || !StringUtils.hasText(request.getToken())) {
+      return Mono.delay(Duration.ofSeconds(5)).then(Mono.error(IllegalArgumentException::new));
     }
+
     return identityService
         .revoke(request.getToken(), serverWebExchange.getRequest().getHeaders())
         .log()
         .doOnNext(
             serviceResponse -> {
-              log.info("got response");
               final var serverHttpResponse = serverWebExchange.getResponse();
               addCommonHeaders(serverHttpResponse);
               serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());

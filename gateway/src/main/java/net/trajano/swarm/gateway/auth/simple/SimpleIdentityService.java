@@ -40,61 +40,45 @@ public class SimpleIdentityService<P>
 
   /**
    * {@inheritDoc} Performs an authentication check. If {@link
-   * SimpleAuthenticationRequest#authenticated} is {@code true} then the user is authenticated. If
-   * the user is unauthenticated, it generates a penalty delay.
+   * SimpleAuthenticationRequest#isAuthenticated()} is {@code true} then the user is authenticated.
+   * If the user is unauthenticated, it generates a penalty delay.
    *
    * <p>If successful, a "secret" which is basically a random UUID is created and associated with
    * the login. This could be some form of credential or any other thing that would allow {@link
    * net.trajano.swarm.gateway.auth.AbstractAuthController#refreshUrlEncoded(OAuthRefreshRequest,
    * ServerWebExchange)} to create another authentication token.
    *
-   * <p>That data is stored as a string map on an {@link
-   * net.trajano.swarm.gateway.auth.AuthCredentialStorage} that allows signing key retrieval and
-   * retrieval by refresh token.
+   * <p>Here's the sequence.
+   *
+   * <ol>
+   *   <li>authenticationRequest + jwks
+   *   <li>JWT(jti + authenticationRequest.username) ::: secret
+   *   <li>unsigned access token (as JSON string) ::: unsigned refresh token
+   *   <li>access token ::: refresh token
+   *   <li>oauth token
+   * </ol>
    */
   @Override
   public Mono<AuthServiceResponse<GatewayResponse>> authenticate(
       Mono<SimpleAuthenticationRequest> authenticationRequestMono, HttpHeaders headers) {
 
-    return authenticationRequestMono.flatMap(
-        authenticationRequest -> {
-          if (authenticationRequest.isAuthenticated()) {
-            return redisTokenCache
-                .provideOAuthTokenWithUserName(authenticationRequest.getUsername())
-                .map(token -> AuthServiceResponse.builder().operationResponse(token).build());
-
-          } else {
-
-            return Mono.just(
-                AuthServiceResponse.builder()
-                    .operationResponse(new UnauthorizedGatewayResponse())
-                    .statusCode(HttpStatus.UNAUTHORIZED)
-                    .delay(Duration.of(5, ChronoUnit.SECONDS))
-                    .build());
-          }
-        });
-  }
-
-  @Override
-  public Mono<AuthServiceResponse<GatewayResponse>> refresh(
-      String refreshToken, HttpHeaders headers) {
-
-    return redisTokenCache
-        .provideRefreshedOAuthToken(refreshToken)
-        .map(response -> AuthServiceResponse.builder().operationResponse(response).build())
+    return authenticationRequestMono
+        .filter(SimpleAuthenticationRequest::isAuthenticated)
+        .map(
+            authenticationRequest ->
+                AuthenticationItem.builder().authenticationRequest(authenticationRequest).build())
+        .map(redisTokenCache::provideClaimsAndSecret)
+        .flatMap(redisTokenCache::provideClaimsJsonAndUnsignedRefreshToken)
+        .flatMap(redisTokenCache::provideAccessTokenAndRefreshToken)
+        .map(redisTokenCache::provideOAuthToken)
+        .map(token -> AuthServiceResponse.builder().operationResponse(token).build())
         .switchIfEmpty(
             Mono.just(
                 AuthServiceResponse.builder()
-                    .statusCode(HttpStatus.UNAUTHORIZED)
                     .operationResponse(new UnauthorizedGatewayResponse())
+                    .statusCode(HttpStatus.UNAUTHORIZED)
                     .delay(Duration.of(5, ChronoUnit.SECONDS))
                     .build()));
-  }
-
-  @Override
-  public Mono<P> getProfile(String accessToken) {
-
-    return null;
   }
 
   /**
@@ -104,47 +88,36 @@ public class SimpleIdentityService<P>
   @Override
   public Mono<JwtClaims> getClaims(String accessToken) {
 
-    return jsonWebKeySet()
-        .map(
-            jwks ->
-                new JwtConsumerBuilder()
-                    .setVerificationKeyResolver(
-                        new JwksVerificationKeyResolver(jwks.getJsonWebKeys()))
-                    .setRequireSubject()
-                    .setRequireExpirationTime()
-                    .setRequireJwtId()
-                    .setAllowedClockSkewInSeconds(10)
-                    .setJwsAlgorithmConstraints(
-                        AlgorithmConstraints.ConstraintType.PERMIT,
-                        AlgorithmIdentifiers.RSA_USING_SHA512)
-                    .build())
-        .flatMap(
-            jwtConsumer -> {
-              final Mono<String> jwtMono;
-              if (properties.isCompressClaims()) {
-                jwtMono =
-                    ZLibStringCompression.decompressToMono(
-                        accessToken, properties.getJwtSizeLimitInBytes());
-              } else {
-                jwtMono = Mono.just(accessToken);
-              }
-              return Mono.zip(jwtMono, Mono.just(jwtConsumer));
-            })
-        .flatMap(t -> getClaims(t.getT1(), t.getT2()))
-            .flatMap(jwtClaims -> isJwtIdValid(jwtClaims) ? Mono.just(jwtClaims) : Mono.error(SecurityException::new));
-  }
+    var jwtConsumerMono =
+        jsonWebKeySet()
+            .map(
+                jwks ->
+                    new JwtConsumerBuilder()
+                        .setVerificationKeyResolver(
+                            new JwksVerificationKeyResolver(jwks.getJsonWebKeys()))
+                        .setRequireSubject()
+                        .setRequireExpirationTime()
+                        .setRequireJwtId()
+                        .setAllowedClockSkewInSeconds(10)
+                        .setJwsAlgorithmConstraints(
+                            AlgorithmConstraints.ConstraintType.PERMIT,
+                            AlgorithmIdentifiers.RSA_USING_SHA512)
+                        .build());
 
-  /**
-   * Checks if the JwtId is still valid
-   * @param jwtClaims claims
-   * @return true if it is still valid
-   */
-  private boolean isJwtIdValid(JwtClaims jwtClaims) {
-      try {
-          return redisTokenCache.isJwtIdValid(jwtClaims.getJwtId());
-      } catch (MalformedClaimException e) {
-          return false;
-      }
+    final Mono<String> jwtMono =
+        Mono.fromCallable(
+            () -> {
+              if (properties.isCompressClaims()) {
+                return ZLibStringCompression.decompress(
+                    accessToken, properties.getJwtSizeLimitInBytes());
+              } else {
+                return accessToken;
+              }
+            });
+
+    return Mono.zip(jwtMono, jwtConsumerMono)
+        .flatMap(t -> getClaims(t.getT1(), t.getT2()))
+        .flatMap(this::validateClaims);
   }
 
   private Mono<JwtClaims> getClaims(String jwt, JwtConsumer jwtConsumer) {
@@ -154,6 +127,43 @@ public class SimpleIdentityService<P>
     } catch (InvalidJwtException e) {
       return Mono.error(e);
     }
+  }
+
+  @Override
+  public Mono<P> getProfile(String accessToken) {
+
+    return null;
+  }
+
+  public Mono<String> getRefreshTokenKey(String refreshToken) {
+
+    return jsonWebKeySet()
+        .map(
+            jwks ->
+                new JwtConsumerBuilder()
+                    .setVerificationKeyResolver(
+                        new JwksVerificationKeyResolver(jwks.getJsonWebKeys()))
+                    .setRequireExpirationTime()
+                    .setRequireJwtId()
+                    .setAllowedClockSkewInSeconds(10)
+                    .setJwsAlgorithmConstraints(
+                        AlgorithmConstraints.ConstraintType.PERMIT,
+                        AlgorithmIdentifiers.RSA_USING_SHA512)
+                    .build())
+        .map(
+            jwtConsumer -> {
+              try {
+                return jwtConsumer.processToClaims(refreshToken).toJson();
+              } catch (InvalidJwtException e) {
+                throw new SecurityException(e);
+              }
+            });
+  }
+
+  @Override
+  public Mono<JsonWebKeySet> jsonWebKeySet() {
+
+    return redisTokenCache.jwks().collectList().map(JsonWebKeySet::new);
   }
 
   @Override
@@ -187,6 +197,46 @@ public class SimpleIdentityService<P>
   }
 
   /**
+   * Here's the sequence.
+   *
+   * <ol>
+   *   <li>refresh token
+   *   <li>unsigned refresh token
+   *   <li>secret
+   *   <li>new JWT(jti + secret.username) ::: new secret
+   *   <li>unsigned access token (as JSON string) ::: new unsigned refresh token
+   *   <li>new access token ::: new refresh token
+   *   <li>new oauth token
+   * </ol>
+   *
+   * @param refreshToken refresh token
+   * @param headers HTTP headers
+   * @return refresh response
+   */
+  @Override
+  public Mono<AuthServiceResponse<GatewayResponse>> refresh(
+      String refreshToken, HttpHeaders headers) {
+
+    return getRefreshTokenKey(refreshToken)
+        .map(
+            unsignedRefereshToken ->
+                AuthenticationItem.builder().refreshToken(unsignedRefereshToken).build())
+        .flatMap(redisTokenCache::populateSecretFromRefreshToken)
+        .map(redisTokenCache::populateClaimsFromSecret)
+        .flatMap(redisTokenCache::provideClaimsJsonAndUnsignedRefreshToken)
+        .flatMap(redisTokenCache::provideAccessTokenAndRefreshToken)
+        .map(redisTokenCache::provideOAuthToken)
+        .map(token -> AuthServiceResponse.builder().operationResponse(token).build())
+        .switchIfEmpty(
+            Mono.just(
+                AuthServiceResponse.builder()
+                    .operationResponse(new UnauthorizedGatewayResponse())
+                    .statusCode(HttpStatus.UNAUTHORIZED)
+                    .delay(Duration.of(5, ChronoUnit.SECONDS))
+                    .build()));
+  }
+
+  /**
    * Revokes the token. If the token didn't exist, add a 5-second penalty.
    *
    * @param refreshToken refresh token
@@ -197,30 +247,40 @@ public class SimpleIdentityService<P>
   public Mono<AuthServiceResponse<GatewayResponse>> revoke(
       String refreshToken, HttpHeaders headers) {
 
-    return redisTokenCache
-        .revoke(refreshToken)
+    return getRefreshTokenKey(refreshToken)
+        .flatMap(redisTokenCache::revoke)
+        .filter(deleteCount -> deleteCount == 1)
         .map(
-            deleteCount -> {
-              log.info("assembling response");
-              if (deleteCount == 1) {
-                return AuthServiceResponse.builder()
+            ignored ->
+                AuthServiceResponse.builder()
                     .operationResponse(GatewayResponse.builder().ok(true).build())
                     .statusCode(HttpStatus.OK)
-                    .build();
-
-              } else {
-                return AuthServiceResponse.builder()
+                    .build())
+        .switchIfEmpty(
+            Mono.just(
+                AuthServiceResponse.builder()
                     .operationResponse(GatewayResponse.builder().ok(true).build())
                     .statusCode(HttpStatus.OK)
                     .delay(Duration.of(5, ChronoUnit.SECONDS))
-                    .build();
-              }
-            });
+                    .build()));
   }
 
-  @Override
-  public Mono<JsonWebKeySet> jsonWebKeySet() {
-
-    return redisTokenCache.jwks().collectList().map(JsonWebKeySet::new);
+  /**
+   * Checks if the JwtId is still valid
+   *
+   * @param jwtClaims claims
+   * @return claims as is if valid.
+   */
+  private Mono<JwtClaims> validateClaims(JwtClaims jwtClaims) {
+    try {
+      System.out.println("jwtClaims.getJwtId()" + jwtClaims.getJwtId());
+      return redisTokenCache
+          .isJwtIdValid(jwtClaims.getJwtId())
+          .filter(isValid -> isValid)
+          .switchIfEmpty(Mono.error(SecurityException::new))
+          .map(ignored -> jwtClaims);
+    } catch (MalformedClaimException e) {
+      return Mono.error(e);
+    }
   }
 }

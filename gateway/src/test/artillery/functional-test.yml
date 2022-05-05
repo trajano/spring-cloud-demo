@@ -44,7 +44,7 @@ scenarios:
       - post:
           url: "/logout"
           form:
-            refresh_token: "{{ refresh_token }}"
+            token: "{{ refresh_token }}"
             token_type_hint: refresh_token
           headers:
             Content-Type: application/x-www-form-urlencoded
@@ -98,7 +98,7 @@ scenarios:
       - post:
           url: "/logout"
           form:
-            refresh_token: "{{ refresh_token }}"
+            token: "{{ refresh_token }}"
             token_type_hint: refresh_token
           headers:
             Content-Type: application/x-www-form-urlencoded
@@ -159,7 +159,7 @@ scenarios:
       - post:
           url: "/logout"
           form:
-            refresh_token: "{{ refresh_token }}"
+            token: "{{ refresh_token }}"
             token_type_hint: refresh_token
           headers:
             Content-Type: application/x-www-form-urlencoded
@@ -202,7 +202,7 @@ scenarios:
       - post:
           url: "/logout"
           form:
-            refresh_token: "{{ refresh_token }}"
+            token: "{{ refresh_token }}"
             token_type_hint: refresh_token
           headers:
             Content-Type: application/x-www-form-urlencoded

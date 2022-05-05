@@ -6,13 +6,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RedisKeyBlocks {
 
-  /**
-   * Points to the refresh token data.
-   */
+  /** Points to the refresh token data. */
   public static final String REFRESH_TOKEN_DATA_KEY_FORMAT = "%s:::refresh-token:::%s";
+  /** Points to the refresh token data. */
+  public static final String ACCESS_TOKEN_JTI_DATA_KEY_FORMAT = "%s:::access-token-jti:::%s";
 
   private final SimpleAuthServiceProperties simpleAuthServiceProperties;
   private static final String SIGNING_KEYS_FORMAT = "%s:::signing-keys:::%d";
+
+  public String accessTokenJtiKey(String jwtId) {
+    return ACCESS_TOKEN_JTI_DATA_KEY_FORMAT.formatted(
+        simpleAuthServiceProperties.getRedisPrefix(), jwtId);
+  }
 
   public Instant nextTimeBlockForSigningKeysAdjustedForAccessTokenExpiration() {
     var v1 = timeBlockForSigningKeys(Instant.now(), 1);
@@ -53,6 +58,7 @@ public class RedisKeyBlocks {
 
   public String refreshTokenKey(String refreshToken) {
 
-    return REFRESH_TOKEN_DATA_KEY_FORMAT.formatted(simpleAuthServiceProperties.getRedisPrefix(), refreshToken);
+    return REFRESH_TOKEN_DATA_KEY_FORMAT.formatted(
+        simpleAuthServiceProperties.getRedisPrefix(), refreshToken);
   }
 }
