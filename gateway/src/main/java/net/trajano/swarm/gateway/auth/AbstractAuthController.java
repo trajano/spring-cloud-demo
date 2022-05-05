@@ -108,7 +108,6 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
 
     return identityService
         .revoke(request.getToken(), serverWebExchange.getRequest().getHeaders())
-        .log()
         .doOnNext(
             serviceResponse -> {
               final var serverHttpResponse = serverWebExchange.getResponse();

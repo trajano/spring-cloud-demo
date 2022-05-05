@@ -274,7 +274,6 @@ public class SimpleIdentityService<P>
    */
   private Mono<JwtClaims> validateClaims(JwtClaims jwtClaims) {
     try {
-      System.out.println("jwtClaims.getJwtId()" + jwtClaims.getJwtId());
       return redisTokenCache
           .isJwtIdValid(jwtClaims.getJwtId())
           .filter(isValid -> isValid)

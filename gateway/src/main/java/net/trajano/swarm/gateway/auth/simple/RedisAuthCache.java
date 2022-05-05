@@ -104,9 +104,8 @@ public class RedisAuthCache {
 
   public Mono<Boolean> isJwtIdValid(String jwtId) {
 
-    final var key = redisKeyBlocks.accessTokenJtiKey(jwtId);
-    System.out.println("looking for " + key);
-    return redisTemplate.hasKey(key);
+    return redisTemplate.hasKey(redisKeyBlocks.accessTokenJtiKey(jwtId));
+
   }
 
   public AuthenticationItem populateClaimsFromSecret(AuthenticationItem authenticationItem) {

@@ -22,7 +22,7 @@ public class ContainerServiceInstance implements ServiceInstance {
   private final URI uri;
 
   public ContainerServiceInstance(
-      Container container, String prefix, String serviceId, Network network) {
+      Container container, String labelPrefix, String serviceId, Network network) {
 
     this.serviceId = serviceId;
     this.host =
@@ -32,14 +32,15 @@ public class ContainerServiceInstance implements ServiceInstance {
             .map(ContainerNetwork::getIpAddress)
             .orElseThrow();
     this.port = container.getPorts()[0].getPrivatePort();
-    var multiId = true;
+
+    final var labels = container.getLabels();
+    var multiId = labels.containsKey("%s.ids".formatted(labelPrefix));
     if (multiId) {
-      final var labels = container.getLabels();
       this.secure =
-          Boolean.parseBoolean(labels.getOrDefault(prefix + "." + serviceId + ".secure", "false"));
-      this.metadata = Util.getMetaDataFromLabels(prefix, serviceId, multiId, labels);
+          Boolean.parseBoolean(labels.getOrDefault("%s.%s.secure".formatted(labelPrefix, serviceId), "false"));
+      this.metadata = Util.getMetaDataFromLabels(labelPrefix, serviceId, true, labels);
     } else {
-      this.secure = false;
+      this.secure = Boolean.parseBoolean(labels.getOrDefault("%s.secure".formatted(labelPrefix), "false"));
       this.metadata = Map.of();
     }
     if (secure) {

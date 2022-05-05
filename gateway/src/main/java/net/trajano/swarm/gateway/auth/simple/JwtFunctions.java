@@ -21,11 +21,6 @@ public final class JwtFunctions {
   private static KeyFactory rsaKeyFactory;
 
   static {
-    //        keyGenerator = KeyGenerator.getInstance("AES");
-    //        keyPairGenerator = KeyPairGenerator.getInstance(RSA);
-    //        keyPairGenerator.initialize(4096);
-    //        secureRandom = SecureRandom.getInstanceStrong();
-    //        keyGenerator.init(256, secureRandom);
     try {
       rsaKeyFactory = KeyFactory.getInstance(ALGORITHM_RSA);
     } catch (NoSuchAlgorithmException e) {

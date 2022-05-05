@@ -14,7 +14,7 @@ public class SimpleAuthServiceConfiguration {
       final RedisAuthCache redisAuthCache,
       final SimpleAuthServiceProperties simpleAuthServiceProperties) {
 
-    return new SimpleIdentityService<P>(simpleAuthServiceProperties, redisAuthCache);
+    return new SimpleIdentityService<>(simpleAuthServiceProperties, redisAuthCache);
   }
 
   @Bean

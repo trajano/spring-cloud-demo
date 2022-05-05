@@ -108,7 +108,9 @@ class GatewayApplicationTests {
   private ReactiveResilience4JCircuitBreakerFactory reactiveResilience4JCircuitBreakerFactory;
 
   @Test
-  void contextLoads() {}
+  void contextLoads() {
+    assertThat(dockerServiceInstanceLister).isNotNull();
+  }
 
   @Test
   void reactiveResilience4JCircuitBreaker() {

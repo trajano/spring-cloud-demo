@@ -21,8 +21,9 @@ class ZLibStringCompressionTest {
   void brokenCompression() {
 
     final var fooz = ZLibStringCompression.compress("FOOZAA");
+    final var badData = fooz.substring(0, fooz.length() - 2);
     assertThatThrownBy(
-            () -> ZLibStringCompression.decompress(fooz.substring(0, fooz.length() - 2), 300))
+            () -> ZLibStringCompression.decompress(badData, 300))
         .isInstanceOf(IllegalArgumentException.class);
   }
 

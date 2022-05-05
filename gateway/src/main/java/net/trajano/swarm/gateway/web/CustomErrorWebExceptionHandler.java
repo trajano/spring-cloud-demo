@@ -35,7 +35,7 @@ public class CustomErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
    *
    * @param errorAttributes the error attributes
    * @param applicationContext the application context
-   * @param tracing
+   * @param tracing tracing
    * @since 2.4.0
    */
   public CustomErrorWebExceptionHandler(

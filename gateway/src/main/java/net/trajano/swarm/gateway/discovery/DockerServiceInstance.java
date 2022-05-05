@@ -29,17 +29,17 @@ public class DockerServiceInstance implements ServiceInstance {
     this.host = host;
     final var labels =
         Optional.ofNullable(service.getSpec()).map(ServiceSpec::getLabels).orElse(Map.of());
-    var multiId = labels.containsKey(labelPrefix + ".ids");
+    var multiId = labels.containsKey("%s.ids".formatted(labelPrefix));
     if (multiId) {
       this.port =
-          Integer.parseInt(labels.getOrDefault(labelPrefix + "." + serviceId + ".port", "8080"));
+          Integer.parseInt(labels.getOrDefault("%s.%s.port".formatted(labelPrefix, serviceId), "8080"));
       this.secure =
-          Optional.ofNullable(labels.get(labelPrefix + "." + serviceId + ".secure"))
+          Optional.ofNullable(labels.get("%s.%s.secure".formatted(labelPrefix, serviceId)))
               .map(Boolean::parseBoolean)
               .orElse(false);
     } else {
-      this.port = Integer.parseInt(labels.getOrDefault(labelPrefix + ".port", "8080"));
-      this.secure = Boolean.parseBoolean(labels.getOrDefault(labelPrefix + ".secure", "false"));
+      this.port = Integer.parseInt(labels.getOrDefault("%s.port".formatted(labelPrefix), "8080"));
+      this.secure = Boolean.parseBoolean(labels.getOrDefault("%s.secure".formatted(labelPrefix), "false"));
     }
     this.metadata = Util.getMetaDataFromLabels(labelPrefix, serviceId, multiId, labels);
     if (secure) {

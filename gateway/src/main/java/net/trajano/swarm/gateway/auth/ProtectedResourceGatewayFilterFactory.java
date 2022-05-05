@@ -84,7 +84,7 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
                                   chain.filter(
                                       identityService.mutateDownstreamRequest(exchange, jwtClaims)))
                           .onErrorResume(
-                              (a) -> {
+                              a -> {
                                 ServerWebExchangeUtils.setResponseStatus(
                                     exchange, HttpStatus.UNAUTHORIZED);
                                 ServerWebExchangeUtils.setAlreadyRouted(exchange);
