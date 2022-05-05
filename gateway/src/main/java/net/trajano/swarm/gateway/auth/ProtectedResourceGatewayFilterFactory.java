@@ -84,10 +84,11 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
                                   chain.filter(
                                       identityService.mutateDownstreamRequest(exchange, jwtClaims)))
                           .onErrorResume(
-                              a -> {
+                              ex -> {
                                 ServerWebExchangeUtils.setResponseStatus(
                                     exchange, HttpStatus.UNAUTHORIZED);
                                 ServerWebExchangeUtils.setAlreadyRouted(exchange);
+                                log.warn("error obtaining claims: {}", ex.getMessage());
                                 return chain
                                     .filter(exchange)
                                     .then(

@@ -113,6 +113,7 @@ management:
 logging:
   level:
     org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: warn
+    root: warn
 #    root: debug
 
 simple-auth:

@@ -16,6 +16,11 @@ config:
       phases:
         - duration: 10
           arrivalRate: 10
+    localhost-direct-heavy-load:
+      target: "http://localhost:28082"
+      phases:
+        - duration: 120
+          arrivalRate: 65
 scenarios:
   - name: Login request resource and logout
     flow:

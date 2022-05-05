@@ -133,7 +133,8 @@ public class DockerServiceInstanceLister {
     final var serviceNetworks = (List<Map<String, Object>>) taskTemplate.get("Networks");
 
     final var serviceIds =
-            Util.getServiceIdsFromLabels(dockerDiscoveryProperties, service.getSpec().getLabels()).toList();
+        Util.getServiceIdsFromLabels(dockerDiscoveryProperties, service.getSpec().getLabels())
+            .toList();
 
     return serviceNetworks.stream()
         .filter(n -> n.get("Target").equals(network.getId()))

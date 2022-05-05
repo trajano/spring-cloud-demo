@@ -107,8 +107,9 @@ public class SimpleIdentityService<P>
     final Mono<String> jwtMono =
         Mono.fromCallable(
             () -> {
-              // ZLib header base64 is "eNoV" this will decompress regardless of server configuration
-              if (accessToken.startsWith("eNoV")) {
+              // ZLib header base64 is "eNo" this will decompress regardless of server
+              // configuration
+              if (accessToken.startsWith("eNo")) {
                 return ZLibStringCompression.decompress(
                     accessToken, properties.getJwtSizeLimitInBytes());
               } else {

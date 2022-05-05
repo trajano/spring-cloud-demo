@@ -37,10 +37,12 @@ public class ContainerServiceInstance implements ServiceInstance {
     var multiId = labels.containsKey("%s.ids".formatted(labelPrefix));
     if (multiId) {
       this.secure =
-          Boolean.parseBoolean(labels.getOrDefault("%s.%s.secure".formatted(labelPrefix, serviceId), "false"));
+          Boolean.parseBoolean(
+              labels.getOrDefault("%s.%s.secure".formatted(labelPrefix, serviceId), "false"));
       this.metadata = Util.getMetaDataFromLabels(labelPrefix, serviceId, true, labels);
     } else {
-      this.secure = Boolean.parseBoolean(labels.getOrDefault("%s.secure".formatted(labelPrefix), "false"));
+      this.secure =
+          Boolean.parseBoolean(labels.getOrDefault("%s.secure".formatted(labelPrefix), "false"));
       this.metadata = Map.of();
     }
     if (secure) {
