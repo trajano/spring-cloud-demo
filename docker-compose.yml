@@ -69,7 +69,8 @@ services:
       replicas: 1
       resources:
         limits:
-          memory: 1g
+          #memory: 512m
+          memory: 256m
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -79,6 +80,10 @@ services:
       - default
   redis:
     image: redis:6
+    deploy:
+      resources:
+        limits:
+          memory: 1g
   sample:
     build:
       context: .

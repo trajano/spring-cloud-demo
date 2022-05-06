@@ -27,6 +27,7 @@ import org.springframework.data.redis.core.ReactiveValueOperations;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.SynchronousSink;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 /**
@@ -65,6 +66,12 @@ public class RedisAuthCache {
   private final RedisKeyBlocks redisKeyBlocks;
 
   private final SimpleAuthServiceProperties simpleAuthServiceProperties;
+
+  private final Scheduler generateRefreshTokenScheduler =
+      Schedulers.newBoundedElastic(
+          Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+          Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+          "generateRefreshToken");
 
   /**
    * The key regeneration scheduler. This is a single thread executor as there's only one of these.
@@ -173,11 +180,7 @@ public class RedisAuthCache {
 
       var refreshTokenMono =
           Mono.fromCallable(this::generateRefreshToken)
-              .publishOn(
-                  Schedulers.newBoundedElastic(
-                      Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
-                      Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-                      "generateRefreshToken"))
+              .publishOn(generateRefreshTokenScheduler)
               .flatMap(
                   refreshToken -> {
                     final var refreshTokenRedisKey = redisKeyBlocks.refreshTokenKey(refreshToken);

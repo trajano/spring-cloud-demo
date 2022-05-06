@@ -23,6 +23,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 @RequiredArgsConstructor
@@ -37,6 +38,12 @@ public class SimpleIdentityService<P>
   private final SimpleAuthServiceProperties properties;
 
   private final RedisAuthCache redisTokenCache;
+
+  private final Scheduler jwtConsumerScheduler =
+      Schedulers.newBoundedElastic(
+          Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+          Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+          "jwtConsumer");
 
   /**
    * {@inheritDoc} Performs an authentication check. If {@link
@@ -119,14 +126,15 @@ public class SimpleIdentityService<P>
 
   private Mono<JwtClaims> getClaims(String jwt, JwtConsumer jwtConsumer) {
 
-      return Mono.fromCallable(()->{
-        try {
-          return jwtConsumer.processToClaims(jwt) ;
-        } catch (InvalidJwtException e) {
-          throw new IllegalArgumentException(e);
-        }
-      })
-              .publishOn(Schedulers.newBoundedElastic(Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE, Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE, "jwtConsumer"));
+    return Mono.fromCallable(
+            () -> {
+              try {
+                return jwtConsumer.processToClaims(jwt);
+              } catch (InvalidJwtException e) {
+                throw new IllegalArgumentException(e);
+              }
+            })
+        .publishOn(jwtConsumerScheduler);
   }
 
   @Override

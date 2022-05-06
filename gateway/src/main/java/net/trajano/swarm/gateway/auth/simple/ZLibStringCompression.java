@@ -95,7 +95,7 @@ public class ZLibStringCompression {
 
   public static String decompressIfNeeded(String input, int limit) {
     if (input.startsWith("eNo")) {
-return      decompress(input, limit);
+      return decompress(input, limit);
     } else {
       return input;
     }
