@@ -21,7 +21,7 @@ public class DockerClientProvider {
         .build();
   }
 
-  @Bean
+  @Bean(destroyMethod = "close")
   DockerHttpClient dockerHttpClient(final DockerClientConfig dockerClientConfig) {
 
     return new ApacheDockerHttpClient.Builder()
@@ -33,7 +33,7 @@ public class DockerClientProvider {
         .build();
   }
 
-  @Bean
+  @Bean(destroyMethod = "close")
   DockerClient dockerClient(
       final DockerClientConfig dockerClientConfig, DockerHttpClient dockerHttpClient) {
 

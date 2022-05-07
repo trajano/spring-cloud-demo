@@ -18,12 +18,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DockerEventWatcher {
+public class DockerEventWatcher implements ApplicationListener<ContextClosedEvent> {
 
   private final ApplicationEventPublisher publisher;
   private final DockerServiceInstanceLister dockerServiceInstanceLister;
@@ -38,6 +40,21 @@ public class DockerEventWatcher {
   private final DockerEventWatcherEventCallback dockerEventWatcherEventCallback =
       new DockerEventWatcherEventCallback();
 
+  private volatile boolean closing;
+
+  @Override
+  public void onApplicationEvent(ContextClosedEvent event) {
+
+    log.error("Context Closing {}", event);
+    closing = true;
+    try {
+      dockerEventWatcherEventCallback.close();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    scheduledExecutorService.shutdown();
+  }
+
   /** Initializes the scheduler */
   @PostConstruct
   public void startWatching() {
@@ -47,19 +64,16 @@ public class DockerEventWatcher {
   @PreDestroy
   public void stopWatching() {
     try {
-      scheduledExecutorService.shutdown();
-      dockerEventWatcherEventCallback.close();
       scheduledExecutorService.awaitTermination(2, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
     }
   }
+
   /**
    * Watches for events. There are times when the connection stops and requires the client to
    * reconnect, the scheduler is responsible for rebuilding the watcher and re-establishing the
-   * conneciton.
+   * connection.
    */
   private void watch() {
 
@@ -80,21 +94,14 @@ public class DockerEventWatcher {
   class DockerEventWatcherEventCallback extends ResultCallbackTemplate<ResultCallback<Event>, Event>
       implements Closeable {
 
-    private boolean isClosed = false;
-
-    @Override
-    public void onError(Throwable throwable) {
-
-      // Do not perform error handling once the callback is closed
-      if (!isClosed) {
-        super.onError(throwable);
-      }
-    }
-
     @Override
     public void onNext(Event event) {
 
-      if (!isClosed && event.getType() == EventType.SERVICE) {
+      if (closing) {
+        log.error("Not processing {} as the context is closing", event);
+        return;
+      }
+      if (event.getType() == EventType.SERVICE) {
 
         if (event.getActor().getAttributes().containsKey("replicas.new")) {
           final var serviceId = event.getActor().getAttributes().get("name");
@@ -109,15 +116,17 @@ public class DockerEventWatcher {
           return;
         }
 
+        if (closing) {
+          log.error("Not processing {} as the context is closing", event);
+          return;
+        }
         dockerServiceInstanceLister.refresh(true);
+        if (closing) {
+          log.error("Not processing {} as the context is closing", event);
+          return;
+        }
         publisher.publishEvent(new RefreshRoutesEvent(this));
       }
-    }
-
-    @Override
-    public void close() throws IOException {
-      super.close();
-      isClosed = true;
     }
   }
 }

@@ -106,6 +106,9 @@ public class Util {
               })
           .toCompletableFuture()
           .get();
+    } catch (IllegalStateException e) {
+      // This is thrown when the application is shutting down.
+      return Stream.empty();
     } catch (IOException | ExecutionException e) {
       throw new IllegalStateException(e);
     } catch (InterruptedException e) {

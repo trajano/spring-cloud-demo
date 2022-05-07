@@ -38,7 +38,7 @@ config:
         - name: load
           duration: 40
           arrivalRate: 65
-          maxVusers: 100
+          maxVusers: 1000
     localhost-traefik-ludicrous-load:
       target: "http://localhost:28080"
       phases:

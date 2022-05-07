@@ -106,7 +106,7 @@ services:
         docker.whoami.port: 80
         docker.xxx.path: /xxx/**
         docker.xxx.port: 80
-      replicas: 10
+      replicas: 5
       endpoint_mode: dnsrr
       resources:
         limits:
