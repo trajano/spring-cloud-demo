@@ -1,6 +1,6 @@
 package net.trajano.swarm.gateway.discovery;
 
-import com.github.dockerjava.api.DockerClient;
+import net.trajano.swarm.gateway.docker.ReactiveDockerClient;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
@@ -28,7 +28,7 @@ public class DockerDiscoveryConfiguration {
   @Lazy
   DockerServiceInstanceLister dockerServiceInstanceLister(
       ApplicationEventPublisher publisher,
-      DockerClient dockerClient,
+      ReactiveDockerClient dockerClient,
       DockerDiscoveryProperties config) {
 
     return new DockerServiceInstanceLister(publisher, dockerClient, config);

@@ -1,6 +1,5 @@
 package net.trajano.swarm.gateway.discovery;
 
-import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Network;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -8,31 +7,42 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.trajano.swarm.gateway.docker.ReactiveDockerClient;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
+import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 
 @Slf4j
-@RequiredArgsConstructor
 public class DockerServiceInstanceLister implements ApplicationListener<ContextClosedEvent> {
 
   private final ApplicationEventPublisher publisher;
-  private final DockerClient dockerClient;
+  private final ReactiveDockerClient dockerClient;
 
   private final DockerDiscoveryProperties dockerDiscoveryProperties;
-
+  private final DockerEventWatcher dockerEventWatcher;
   private final AtomicReference<Map<String, List<ServiceInstance>>> servicesRef =
       new AtomicReference<>(Map.of());
 
   @Getter private volatile boolean closing = false;
 
+  public DockerServiceInstanceLister(
+      ApplicationEventPublisher publisher,
+      ReactiveDockerClient dockerClient,
+      DockerDiscoveryProperties dockerDiscoveryProperties) {
+
+    this.publisher = publisher;
+    this.dockerClient = dockerClient;
+    this.dockerDiscoveryProperties = dockerDiscoveryProperties;
+    dockerEventWatcher = new DockerEventWatcher(this, dockerDiscoveryProperties, dockerClient);
+  }
+
   public Network getDiscoveryNetwork() {
 
-    return Util.getDiscoveryNetwork(dockerClient, dockerDiscoveryProperties);
+    return Util.getDiscoveryNetwork(dockerClient.blockingClient(), dockerDiscoveryProperties);
   }
 
   public List<ServiceInstance> getInstances(String serviceId) {
@@ -49,8 +59,10 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
   @PostConstruct
   public void initialRefresh() {
     refresh(false);
+    dockerEventWatcher.startWatching();
   }
 
+  @SuppressWarnings("unchecked")
   private Stream<ServiceInstance> instanceStream(
       com.github.dockerjava.api.model.Service service, Network network) {
 
@@ -104,31 +116,32 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
   @Override
   public void onApplicationEvent(ContextClosedEvent event) {
 
-    log.error("context closing in lister: {}", event);
+    log.trace("context closing in lister: {}", event);
     closing = true;
+    dockerEventWatcher.stopWatching();
   }
 
   public void probe() {
-    dockerClient.pingCmd().exec();
+    dockerClient.blockingClient().pingCmd().exec();
   }
 
   /** Refreshes the service list. */
   public void refresh(boolean publish) {
-    log.error("refreshing");
+    log.trace("refreshing");
     final Set<ServiceInstance> toPublish = new HashSet<>();
     final var network = getDiscoveryNetwork();
 
     final Stream<ServiceInstance> serviceInstanceStream;
     if (dockerDiscoveryProperties.isSwarmMode()) {
       final var multiIds =
-          dockerClient.listServicesCmd().exec().stream()
+          dockerClient.blockingClient().listServicesCmd().exec().stream()
               .filter(c -> c.getSpec() != null)
               .filter(c -> c.getSpec().getLabels() != null)
               .filter(
                   c -> c.getSpec().getLabels().containsKey(dockerDiscoveryProperties.idsLabel()));
 
       final var singleId =
-          dockerClient.listServicesCmd().exec().stream()
+          dockerClient.blockingClient().listServicesCmd().exec().stream()
               .filter(c -> c.getSpec() != null)
               .filter(c -> c.getSpec().getLabels() != null)
               .filter(
@@ -141,6 +154,7 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
 
       final var multiIds =
           dockerClient
+              .blockingClient()
               .listContainersCmd()
               .withLabelFilter(dockerDiscoveryProperties.idsLabelFilter())
               .withNetworkFilter(List.of(network.getId()))
@@ -149,6 +163,7 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
 
       final var singleId =
           dockerClient
+              .blockingClient()
               .listContainersCmd()
               .withLabelFilter(List.of(dockerDiscoveryProperties.idLabel()))
               .withNetworkFilter(List.of(network.getId()))
@@ -159,26 +174,24 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
               .distinct()
               .flatMap(container -> instanceStream(container, network));
     }
-    log.info("Refreshed service list serviceCount={}", servicesRef.get().size());
 
     final var mapOfServiceInstances =
         serviceInstanceStream
             .peek(toPublish::add)
             .collect(Collectors.groupingBy(ServiceInstance::getServiceId));
     servicesRef.set(mapOfServiceInstances);
+    log.info(
+        "Refreshed serviceCount={} publish={} closing={}",
+        servicesRef.get().size(),
+        publish,
+        closing);
 
     if (publish && !closing) {
-      log.error("publishing serviceCount={}", servicesRef.get().size());
+      log.info("publishing serviceCount={}", servicesRef.get().size());
       toPublish.forEach(
-          serviceInstance -> {
-            try {
-              if (!closing) {
-                publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceInstance));
-              }
-            } catch (RuntimeException e) {
-              log.warn("Publishing failed {}, may be due to container shutdown", e.getMessage());
-            }
-          });
+          serviceInstance ->
+              publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceInstance)));
+      publisher.publishEvent(new RefreshRoutesEvent(this));
     }
   }
 }
