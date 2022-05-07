@@ -187,7 +187,7 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
         closing);
 
     if (publish && !closing) {
-      log.info("publishing serviceCount={}", servicesRef.get().size());
+      log.trace("publishing serviceCount={}", servicesRef.get().size());
       toPublish.forEach(
           serviceInstance ->
               publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceInstance)));
