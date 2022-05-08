@@ -331,3 +331,7 @@ scenarios:
             Content-Type: application/x-www-form-urlencoded
           expect:
             - statusCode: 401
+            - headerEquals:
+              - www-authenticate
+              - Bearer realm="JWT", error="invalid_token"
+

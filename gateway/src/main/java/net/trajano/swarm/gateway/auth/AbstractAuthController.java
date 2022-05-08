@@ -64,7 +64,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
                     .getHeaders()
                     .add(
                         HttpHeaders.WWW_AUTHENTICATE,
-                        "Bearer realm=\"%s\"".formatted(authProperties));
+                        "Bearer realm=\"%s\"".formatted(authProperties.getRealm()));
               }
             })
         .flatMap(this::addDelaySpecifiedInServiceResponse);
@@ -131,7 +131,8 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
                     .getHeaders()
                     .add(
                         HttpHeaders.WWW_AUTHENTICATE,
-                        "Bearer realm=\"%s\"".formatted(authProperties));
+                        "Bearer realm=\"%s\", error=\"invalid_token\""
+                            .formatted(authProperties.getRealm()));
               }
             })
         .flatMap(this::addDelaySpecifiedInServiceResponse);
