@@ -14,7 +14,6 @@ import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClients;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnDiscoveryEnabled
@@ -25,7 +24,7 @@ import org.springframework.context.annotation.Lazy;
 public class DockerDiscoveryConfiguration {
 
   @Bean
-  @Lazy
+  //  @Lazy
   DockerServiceInstanceLister dockerServiceInstanceLister(
       ApplicationEventPublisher publisher,
       ReactiveDockerClient dockerClient,

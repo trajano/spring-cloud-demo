@@ -25,3 +25,11 @@ curl --header 'Authorization: Bearer BEARER' http://localhost:28082/whoami
 * `Flux` variables and parameters are suffixed with `Flux`
 * functions that provide `Mono` or `Flux` start with `provide` and it neither ends with `Mono` nor `Flux`.
 * functions that are used in `map` or `flatMap` have the pattern `mapXXXtoYYY`
+
+
+## Load testing
+
+```
+artillery run gateway/src/test/artillery/functional-test.yml
+artillery run --environment localhost-direct-heavy-load gateway/src/test/artillery/functional-test.yml
+```

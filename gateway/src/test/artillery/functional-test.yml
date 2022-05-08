@@ -58,7 +58,7 @@ config:
           duration: 100
           arrivalRate: 100
           # From a single machine generating 4000 connections can cause EADDRINUSE in Windows https://github.com/artilleryio/artillery/issues/1038
-          maxVusers: 2000
+          maxVusers: 1500
 scenarios:
   - name: Login request resource and logout
     weight: 2

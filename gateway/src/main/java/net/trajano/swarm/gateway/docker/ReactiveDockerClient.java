@@ -2,12 +2,15 @@ package net.trajano.swarm.gateway.docker;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
+import com.github.dockerjava.api.async.ResultCallbackTemplate;
 import com.github.dockerjava.api.command.EventsCmd;
+import com.github.dockerjava.api.command.ListContainersCmd;
+import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Event;
 import com.github.dockerjava.api.model.EventType;
 import com.github.dockerjava.api.model.Service;
-import java.io.Closeable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +29,16 @@ public class ReactiveDockerClient {
     return dockerClient;
   }
 
+  public ListContainersCmd listContainersCmd() {
+    return dockerClient.listContainersCmd();
+  }
+
+  /**
+   * Generates an event flux.
+   *
+   * @param eventsCmd
+   * @return
+   */
   public Flux<Event> events(EventsCmd eventsCmd) {
 
     return Flux.create(
@@ -59,34 +72,40 @@ public class ReactiveDockerClient {
         .flatMapIterable(Function.identity());
   }
 
+  public Flux<Container> containers(ListContainersCmd listContainersCmd) {
+
+    return Mono.fromCallable(listContainersCmd::exec).flatMapIterable(Function.identity());
+  }
+
+  public Flux<Container> containers() {
+
+    return containers(dockerClient.listContainersCmd());
+  }
+
   @RequiredArgsConstructor
-  private static class FluxSinkEventCallback implements ResultCallback<Event> {
+  private static class FluxSinkEventCallback
+      extends ResultCallbackTemplate<ResultCallback<Event>, Event> {
     private final FluxSink<Event> fluxSink;
-    private Closeable closeable;
 
     @Override
     public void close() throws IOException {
-      closeable.close();
-    }
-
-    @Override
-    public void onComplete() {
+      super.close();
       fluxSink.complete();
     }
 
     @Override
     public void onError(Throwable throwable) {
+      try {
+        super.close();
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
       fluxSink.error(throwable);
     }
 
     @Override
     public void onNext(Event event) {
       fluxSink.next(event);
-    }
-
-    @Override
-    public void onStart(Closeable closeable) {
-      this.closeable = closeable;
     }
   }
 }

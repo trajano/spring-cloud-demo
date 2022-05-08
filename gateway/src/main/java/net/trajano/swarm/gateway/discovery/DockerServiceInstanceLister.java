@@ -9,12 +9,17 @@ import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.docker.ReactiveDockerClient;
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
+import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 public class DockerServiceInstanceLister implements ApplicationListener<ContextClosedEvent> {
@@ -29,6 +34,8 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
 
   @Getter private volatile boolean closing = false;
 
+  private Disposable refreshSubscription;
+
   public DockerServiceInstanceLister(
       ApplicationEventPublisher publisher,
       ReactiveDockerClient dockerClient,
@@ -40,9 +47,10 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
     dockerEventWatcher = new DockerEventWatcher(this, dockerDiscoveryProperties, dockerClient);
   }
 
-  public Network getDiscoveryNetwork() {
+  public Mono<Network> getDiscoveryNetwork() {
 
-    return Util.getDiscoveryNetwork(dockerClient.blockingClient(), dockerDiscoveryProperties);
+    return Mono.fromCallable(
+        () -> Util.getDiscoveryNetwork(dockerClient.blockingClient(), dockerDiscoveryProperties));
   }
 
   public List<ServiceInstance> getInstances(String serviceId) {
@@ -63,11 +71,11 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
   }
 
   @SuppressWarnings("unchecked")
-  private Stream<ServiceInstance> instanceStream(
+  private Flux<ServiceInstance> instanceStream(
       com.github.dockerjava.api.model.Service service, Network network) {
 
     if (closing) {
-      return Stream.empty();
+      return Flux.empty();
     }
     final var spec = (Map<String, Object>) service.getRawValues().get("Spec");
     final var taskTemplate = (Map<String, Object>) spec.get("TaskTemplate");
@@ -77,40 +85,46 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
         Util.getServiceIdsFromLabels(dockerDiscoveryProperties, service.getSpec().getLabels())
             .toList();
 
-    return serviceNetworks.stream()
-        .filter(n -> n.get("Target").equals(network.getId()))
-        .flatMap(n -> ((List<String>) n.get("Aliases")).stream())
-        .flatMap(Util::getIpAddresses)
-        .flatMap(
-            address ->
-                serviceIds.stream()
-                    .map(
-                        serviceId ->
-                            new DockerServiceInstance(
-                                service,
-                                dockerDiscoveryProperties.getLabelPrefix(),
-                                serviceId,
-                                address)));
+    return Flux.fromStream(
+        serviceNetworks.stream()
+            .filter(n -> n.get("Target").equals(network.getId()))
+            .flatMap(n -> ((List<String>) n.get("Aliases")).stream())
+            .flatMap(Util::getIpAddresses)
+            .flatMap(
+                address ->
+                    serviceIds.stream()
+                        .map(
+                            serviceId ->
+                                new DockerServiceInstance(
+                                    service,
+                                    dockerDiscoveryProperties.getLabelPrefix(),
+                                    serviceId,
+                                    address))));
   }
 
-  private Stream<ServiceInstance> instanceStream(
+  private Flux<ServiceInstance> instanceStream(
       com.github.dockerjava.api.model.Container container, Network network) {
 
-    return Util.getServiceIdsFromLabels(dockerDiscoveryProperties, container.getLabels())
-        .flatMap(
-            serviceId -> {
-              if (closing) {
-                return Stream.empty();
-              }
-              try {
-                return Stream.of(
-                    new DockerServiceInstance(
-                        container, dockerDiscoveryProperties.getLabelPrefix(), serviceId, network));
-              } catch (IllegalStateException e) {
-                log.error("unable to build instance, likely context is closing {}", e.getMessage());
-                return Stream.empty();
-              }
-            });
+    return Flux.fromStream(
+        Util.getServiceIdsFromLabels(dockerDiscoveryProperties, container.getLabels())
+            .flatMap(
+                serviceId -> {
+                  if (closing) {
+                    return Stream.empty();
+                  }
+                  try {
+                    return Stream.of(
+                        new DockerServiceInstance(
+                            container,
+                            dockerDiscoveryProperties.getLabelPrefix(),
+                            serviceId,
+                            network));
+                  } catch (IllegalStateException e) {
+                    log.error(
+                        "unable to build instance, likely context is closing {}", e.getMessage());
+                    return Stream.empty();
+                  }
+                }));
   }
 
   @Override
@@ -119,6 +133,7 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
     log.trace("context closing in lister: {}", event);
     closing = true;
     dockerEventWatcher.stopWatching();
+    refreshSubscription.dispose();
   }
 
   public void probe() {
@@ -127,71 +142,91 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
 
   /** Refreshes the service list. */
   public void refresh(boolean publish) {
-    log.trace("refreshing");
-    final Set<ServiceInstance> toPublish = new HashSet<>();
-    final var network = getDiscoveryNetwork();
+    log.trace("refreshing publish={}", publish);
+    final Mono<Network> networkMono = getDiscoveryNetwork();
 
-    final Stream<ServiceInstance> serviceInstanceStream;
+    final Flux<ServiceInstance> serviceInstanceFlux;
     if (dockerDiscoveryProperties.isSwarmMode()) {
       final var multiIds =
-          dockerClient.blockingClient().listServicesCmd().exec().stream()
+          dockerClient
+              .services()
               .filter(c -> c.getSpec() != null)
-              .filter(c -> c.getSpec().getLabels() != null)
+              .filter(c -> Objects.requireNonNull(c.getSpec()).getLabels() != null)
               .filter(
-                  c -> c.getSpec().getLabels().containsKey(dockerDiscoveryProperties.idsLabel()));
+                  c ->
+                      Objects.requireNonNull(Objects.requireNonNull(c.getSpec()).getLabels())
+                          .containsKey(dockerDiscoveryProperties.idsLabel()));
 
       final var singleId =
-          dockerClient.blockingClient().listServicesCmd().exec().stream()
+          dockerClient
+              .services()
               .filter(c -> c.getSpec() != null)
               .filter(c -> c.getSpec().getLabels() != null)
               .filter(
                   c -> c.getSpec().getLabels().containsKey(dockerDiscoveryProperties.idLabel()));
 
-      serviceInstanceStream =
-          Stream.concat(multiIds, singleId).flatMap(service -> instanceStream(service, network));
+      serviceInstanceFlux =
+          networkMono.flatMapMany(
+              network ->
+                  Flux.concat(multiIds, singleId)
+                      .distinct()
+                      .flatMap(service -> instanceStream(service, network)));
 
     } else {
 
-      final var multiIds =
-          dockerClient
-              .blockingClient()
-              .listContainersCmd()
-              .withLabelFilter(dockerDiscoveryProperties.idsLabelFilter())
-              .withNetworkFilter(List.of(network.getId()))
-              .exec()
-              .stream();
+      serviceInstanceFlux =
+          networkMono.flatMapMany(
+              network -> {
+                final var multiIds =
+                    dockerClient.containers(
+                        dockerClient
+                            .listContainersCmd()
+                            .withLabelFilter(dockerDiscoveryProperties.idsLabelFilter())
+                            .withNetworkFilter(List.of(network.getId())));
 
-      final var singleId =
-          dockerClient
-              .blockingClient()
-              .listContainersCmd()
-              .withLabelFilter(List.of(dockerDiscoveryProperties.idLabel()))
-              .withNetworkFilter(List.of(network.getId()))
-              .exec()
-              .stream();
-      serviceInstanceStream =
-          Stream.concat(multiIds, singleId)
-              .distinct()
-              .flatMap(container -> instanceStream(container, network));
+                final var singleId =
+                    dockerClient.containers(
+                        dockerClient
+                            .listContainersCmd()
+                            .withLabelFilter(List.of(dockerDiscoveryProperties.idLabel()))
+                            .withNetworkFilter(List.of(network.getId())));
+
+                return Flux.concat(multiIds, singleId)
+                    .distinct()
+                    .flatMap(container -> instanceStream(container, network));
+              });
     }
 
-    final var mapOfServiceInstances =
-        serviceInstanceStream
-            .peek(toPublish::add)
-            .collect(Collectors.groupingBy(ServiceInstance::getServiceId));
-    servicesRef.set(mapOfServiceInstances);
-    log.info(
-        "Refreshed serviceCount={} publish={} closing={}",
-        servicesRef.get().size(),
-        publish,
-        closing);
+    refreshSubscription =
+        serviceInstanceFlux
+            .collect(Collectors.groupingBy(ServiceInstance::getServiceId))
+            .doOnNext(servicesRef::set)
+            // This is thrown when the context is shutting down.
+            .onErrorReturn(BeanCreationNotAllowedException.class, servicesRef.get())
+            .onErrorReturn(BeanCreationException.class, servicesRef.get())
+            .onErrorReturn(IllegalStateException.class, servicesRef.get())
+            .subscribe(
+                servicesMap -> {
+                  final Boolean disposed =
+                      Optional.ofNullable(refreshSubscription)
+                          .map(Disposable::isDisposed)
+                          .orElse(true);
+                  log.info(
+                      "Refreshed {} serviceCount={} publish={} disposed={}",
+                      this,
+                      servicesRef.get().size(),
+                      publish,
+                      disposed);
+                  if (publish && Boolean.TRUE.equals(!disposed)) {
+                    servicesMap
+                        .values()
+                        .forEach(
+                            serviceInstance ->
+                                publisher.publishEvent(
+                                    new InstanceRegisteredEvent<>(this, serviceInstance)));
 
-    if (publish && !closing) {
-      log.trace("publishing serviceCount={}", servicesRef.get().size());
-      toPublish.forEach(
-          serviceInstance ->
-              publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceInstance)));
-      publisher.publishEvent(new RefreshRoutesEvent(this));
-    }
+                    publisher.publishEvent(new RefreshRoutesEvent(this));
+                  }
+                });
   }
 }
