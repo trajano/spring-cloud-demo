@@ -321,37 +321,37 @@ public class RedisAuthCache {
       final var accessTokenJtiKey = redisKeyBlocks.accessTokenJtiKey(jwtId);
 
       final var accessTokenMono =
-              valueOps
-                      .setIfAbsent(accessTokenJtiKey, jwtId)
-                      .filter(success -> success)
-                      .switchIfEmpty(Mono.error(IllegalStateException::new))
-                      .flatMap(
-                              ignored ->
-                                      redisTemplate.expire(
-                                              accessTokenJtiKey,
-                                              Duration.ofSeconds(
-                                                      simpleAuthServiceProperties.getAccessTokenExpiresInSeconds())))
-                      .filter(success -> success)
-                      .switchIfEmpty(Mono.error(IllegalStateException::new))
-                      .thenReturn(authenticationItem.getJwtClaims().toJson());
+          valueOps
+              .setIfAbsent(accessTokenJtiKey, jwtId)
+              .filter(success -> success)
+              .switchIfEmpty(Mono.error(IllegalStateException::new))
+              .flatMap(
+                  ignored ->
+                      redisTemplate.expire(
+                          accessTokenJtiKey,
+                          Duration.ofSeconds(
+                              simpleAuthServiceProperties.getAccessTokenExpiresInSeconds())))
+              .filter(success -> success)
+              .switchIfEmpty(Mono.error(IllegalStateException::new))
+              .thenReturn(authenticationItem.getJwtClaims().toJson());
 
       var refreshTokenMono =
           Mono.fromCallable(this::generateRefreshToken)
               .publishOn(generateRefreshTokenScheduler)
-              .doOnNext(
+              .flatMap(
                   refreshToken -> {
                     final var refreshTokenRedisKey = redisKeyBlocks.refreshTokenKey(refreshToken);
                     final var secretMap = new HashMap<>(authenticationItem.getSecret());
                     secretMap.put("jti", jwtId);
-                    ops.putAll(refreshTokenRedisKey, secretMap)
+                    return ops.putAll(refreshTokenRedisKey, secretMap)
                         .filter(success -> success)
                         .switchIfEmpty(
                             Mono.error(
                                 new IllegalStateException(
                                     "unable to locate expected entry in Redis refresh token:%s secrets:%s"
-                                        .formatted(refreshToken, secretMap))));
+                                        .formatted(refreshToken, secretMap))))
+                        .thenReturn(refreshToken);
                   });
-
 
       return Mono.zip(accessTokenMono, refreshTokenMono)
           .map(t -> authenticationItem.withAccessToken(t.getT1()).withRefreshToken(t.getT2()));
