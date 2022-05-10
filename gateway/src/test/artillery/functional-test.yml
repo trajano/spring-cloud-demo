@@ -76,7 +76,7 @@ config:
 #    - think: 60
 scenarios:
   - name: Login request resource and logout
-    weight: 2
+    weight: 4
     flow:
       - post:
           url: "/auth"
@@ -111,7 +111,7 @@ scenarios:
           expect:
             - statusCode: 200
   - name: Login request resource and logout with refresh
-    weight: 5
+    weight: 6
     flow:
       - post:
           url: "/auth"
@@ -168,6 +168,7 @@ scenarios:
           expect:
             - statusCode: 200
   - name: Login request resource and logout with required refresh
+    weight: 2
     flow:
       - post:
           url: "/auth"
@@ -229,6 +230,7 @@ scenarios:
           expect:
             - statusCode: 200
   - name: Failed login
+    weight: 2
     flow:
       - post:
           url: "/auth"
@@ -241,6 +243,7 @@ scenarios:
           expect:
             - statusCode: 401
   - name: No login unauthorized
+    weight: 2
     flow:
       - get:
           url: "/whoami"
@@ -249,6 +252,7 @@ scenarios:
           expect:
             - statusCode: 401
   - name: No login unauthorized invalid bearer token
+    weight: 2
     flow:
       - get:
           url: "/whoami"
@@ -258,6 +262,7 @@ scenarios:
           expect:
             - statusCode: 401
   - name: Login logout and then fail request
+    weight: 2
     flow:
       - post:
           url: "/auth"
@@ -291,6 +296,7 @@ scenarios:
           expect:
             - statusCode: 401
   - name: Login logout and then fail refresh
+    weight: 2
     flow:
       - post:
           url: "/auth"
@@ -349,3 +355,12 @@ scenarios:
             - headerEquals:
               - www-authenticate
               - Bearer realm="JWT", error="invalid_token"
+  - name: OpenAPI available
+    weight: 1
+    flow:
+      - get:
+          url: "/openapi.json"
+          headers:
+            Accept: application/json
+          expect:
+            - statusCode: 200

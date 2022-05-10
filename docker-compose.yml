@@ -42,6 +42,7 @@ services:
       - DOCKER_DISCOVERY_SWARMMODE=true
       - LOGGING_LEVEL_NET_TRAJANO_SWARM_GATEWAY_DISCOVERY=info
       - LOGGING_LEVEL_ROOT=error
+      - GATEWAY_ROOTHTMLREDIRECTURI=http://localhost:28080/apidoc
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_SLEUTH=warn
     ports:
       - 28082:8080
@@ -50,7 +51,6 @@ services:
         traefik.enable: "true"
         traefik.docker.network: edge
         traefik.http.routers.gateway.rule: "PathPrefix(`/`)"
-        traefik.http.routers.gateway.entryPoints: "http"
         traefik.http.routers.gateway.priority: "1"
         traefik.http.services.gateway.loadbalancer.server.port: "8080"
         traefik.http.services.gateway.loadbalancer.healthcheck.path: /ping
@@ -60,7 +60,13 @@ services:
         traefik.http.routers.dashboard.rule: (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
         traefik.http.routers.dashboard.entryPoints: http
         traefik.http.routers.dashboard.service: api@internal
-#
+
+        traefik.http.middlewares.strip-prefix.chain.middlewares: strip-prefix-1,strip-prefix-2
+        traefik.http.middlewares.strip-prefix-1.redirectregex.regex: "^(https?://[^/]+/[a-z0-9_]+)$$"
+        traefik.http.middlewares.strip-prefix-1.redirectregex.replacement: "$$1/"
+        traefik.http.middlewares.strip-prefix-1.redirectregex.permanent: "true"
+        traefik.http.middlewares.strip-prefix-2.stripprefixregex.regex: /[a-z0-9_]+
+
       update_config:
 #        order: start-first
         failure_action: pause
@@ -88,6 +94,27 @@ services:
       - SPRING_REDIS_HOST=redis
     networks:
       - default
+  apidoc:
+    image: redocly/redoc
+    environment:
+      SPEC_URL: http://localhost:28080/openapi.json
+      BASE_PATH: /apidoc
+    networks:
+      - edge
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.docker.network: edge
+        traefik.http.routers.apidoc.rule: "PathPrefix(`/apidoc`)"
+        traefik.http.routers.apidoc.priority: "1000"
+        traefik.http.routers.apidoc.middlewares: strip-prefix
+        traefik.http.services.apidoc.loadbalancer.server.port: "80"
+        traefik.http.services.apidoc.loadbalancer.healthcheck.path: /
+        traefik.http.services.apidoc.loadbalancer.healthcheck.port: "80"
+        traefik.http.services.apidoc.loadbalancer.healthcheck.interval: "10s"
+      resources:
+        limits:
+          memory: 128m
   redis:
     image: redis:6
     deploy:
