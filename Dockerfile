@@ -17,7 +17,7 @@ COPY --from=builder /w/*/build/libs/*.jar /w/
 RUN sh ./extract.sh
 
 FROM openjdk:17-jdk as jwks-provider
-WORKDIR
+WORKDIR /w
 COPY --from=extractor /w/jwks-provider/* /w/
 ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
 HEALTHCHECK --interval=5s --start-period=60s \
