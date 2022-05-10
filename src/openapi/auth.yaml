@@ -1,0 +1,88 @@
+openapi: 3.1.0
+paths:
+  /auth:
+    post:
+      summary: Authenticate user
+      description: |
+        Authenticates the user given the authentication credentials.
+        If the authentication fails there is a penalty to the response.
+      operationId: authenticateUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "./components.yaml#/components/schemas/AuthenticationCredentials"
+            examples:
+              good-login:
+                summary: Good login
+                value:
+                  username: good
+                  authenticated: true
+                x-postman-tests: |
+                  pm.test("Authenticated", () => {
+                    pm.response.to.have.status(200);
+                    const {
+                      ok,
+                      access_token: accessToken,
+                      refresh_token: refreshToken,
+                      expires_in: expiresIn,
+                      token_type: tokenType,
+                    } = pm.response.json();
+                    pm.expect(ok).to.be.true;
+                    pm.expect(tokenType).to.eql("Bearer");
+                    pm.globals.set("access_token", accessToken);
+                    pm.globals.set("refresh_token", refreshToken);
+                  });
+              bad-login:
+                summary: Bad login
+                value:
+                  username: bad
+                  authenticated: false
+                x-postman-tests: |
+                  pm.test("Unauthenticated", () => {
+                    pm.response.to.have.status(401);
+                    pm.expect(pm.response.responseTime).to.be.above(2000);
+                    const {
+                      ok,
+                    } = pm.response.json();
+                    pm.expect(ok).to.be.false;
+                  });
+      responses:
+        200:
+          description: Authenticated
+          headers:
+            X-B3-Traceid:
+              $ref: "./components.yaml#/components/headers/X-B3-Traceid"
+            X-Trace-ID:
+              $ref: "./components.yaml#/components/headers/X-Trace-ID"
+            Cache-Control:
+              $ref: "./components.yaml#/components/headers/Cache-Control"
+            Content-Type:
+              $ref: "./components.yaml#/components/headers/Content-Type"
+            Content-Length:
+              $ref: "./components.yaml#/components/headers/Content-Length"
+          content:
+            application/json:
+              schema:
+                $ref: "./components.yaml#/components/schemas/OAuthTokenResponse"
+        401:
+          description: Authentication failed
+          headers:
+            X-B3-Traceid:
+              $ref: "./components.yaml#/components/headers/X-B3-Traceid"
+            X-Trace-ID:
+              $ref: "./components.yaml#/components/headers/X-Trace-ID"
+            Cache-Control:
+              $ref: "./components.yaml#/components/headers/Cache-Control"
+            Content-Type:
+              $ref: "./components.yaml#/components/headers/Content-Type"
+            Content-Length:
+              $ref: "./components.yaml#/components/headers/Content-Length"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false

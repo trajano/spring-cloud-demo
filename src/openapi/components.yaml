@@ -1,0 +1,91 @@
+openapi: 3.1.0
+components:
+  schemas:
+    AuthenticationCredentials:
+      type: object
+      properties:
+        username:
+          type: string
+        authenticated:
+          type: boolean
+    OAuthTokenResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          enum:
+            - Bearer
+        expires_in:
+          type: number
+          format: int32
+
+  headers:
+    "X-B3-Traceid":
+      description: |
+        Trace ID
+      schema:
+        type: string
+    "Cache-Control":
+      description: |
+        Tells the client cache how to behave.  The value `no-cache` disables caching.
+      schema:
+        type: string
+        example: no-cache
+    "X-Trace-ID":
+      description: |
+        Trace ID in AWS X-Ray format
+      schema:
+        type: string
+    "Content-Type":
+      description: |
+        Content type
+      schema:
+        type: string
+        example: application/json
+    "Content-Length":
+      description: |
+        Content length
+      schema:
+        type: number
+        example: 42
+  responses:
+    invalid-token:
+      description: |
+        The request had an invalid token.  By design, there's no other information to indicate why it is invalid but
+        the reasons could be:
+        
+        1. the token has expired.
+        2. the token was malformed and failed conversion checks.
+        3. the signature validation did not pass.
+      headers:
+        X-B3-Traceid:
+          $ref: "#/components/headers/X-B3-Traceid"
+        X-Trace-ID:
+          $ref: "#/components/headers/X-Trace-ID"
+        Cache-Control:
+          $ref: "#/components/headers/Cache-Control"
+        Content-Type:
+          $ref: "#/components/headers/Content-Type"
+        Content-Length:
+          $ref: "#/components/headers/Content-Length"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+                example: false
+              error:
+                type: string
+                description: error code
+            example:
+              ok: false
+              error: invalid_token
