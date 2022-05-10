@@ -67,6 +67,12 @@ services:
         traefik.http.middlewares.strip-prefix-1.redirectregex.permanent: "true"
         traefik.http.middlewares.strip-prefix-2.stripprefixregex.regex: /[a-z0-9_]+
 
+        traefik.http.routers.actuator.rule: "PathPrefix(`/actuator`)"
+        traefik.http.routers.actuator.priority: "1000"
+        traefik.http.routers.actuator.middlewares: actuator
+        traefik.http.middlewares.actuator.redirectregex.regex: ".*"
+        traefik.http.middlewares.actuator.redirectregex.replacement: "/ping"
+
       update_config:
 #        order: start-first
         failure_action: pause
