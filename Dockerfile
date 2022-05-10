@@ -2,7 +2,7 @@ FROM node:16.15.0 as doc-builder
 RUN npm i -g @redocly/openapi-cli
 WORKDIR /w
 COPY redocly.yaml /w
-COPY src/openapi/spring-cloud-docker-swarm.yaml /w/src/openapi/spring-cloud-docker-swarm.yaml
+COPY src/openapi/* /w/src/openapi/
 RUN openapi bundle --output dist/openapi.json
 
 FROM gradle:7.4-jdk17 AS builder
