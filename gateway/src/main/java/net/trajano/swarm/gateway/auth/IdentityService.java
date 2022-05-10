@@ -1,7 +1,6 @@
 package net.trajano.swarm.gateway.auth;
 
 import net.trajano.swarm.gateway.web.GatewayResponse;
-import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwt.JwtClaims;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
@@ -25,8 +24,6 @@ public interface IdentityService<A, R extends GatewayResponse, P> {
    * @return access token response
    */
   Mono<AuthServiceResponse<R>> authenticate(Mono<A> authenticationRequest, HttpHeaders headers);
-
-  Mono<JsonWebKeySet> jsonWebKeySet();
 
   /**
    * Refreshes the token and returns a new authentication response. May throw a {@link

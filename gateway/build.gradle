@@ -34,7 +34,7 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	implementation 'dnsjava:dnsjava:3.5.0'
 	runtimeOnly 'com.github.ben-manes.caffeine:caffeine'
-
+	implementation project(':gateway-common')
 
 
 	implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'

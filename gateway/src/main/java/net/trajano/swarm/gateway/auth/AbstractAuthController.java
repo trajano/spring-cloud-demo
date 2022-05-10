@@ -3,6 +3,8 @@ package net.trajano.swarm.gateway.auth;
 import static reactor.core.publisher.Mono.fromCallable;
 
 import lombok.extern.slf4j.Slf4j;
+import net.trajano.swarm.gateway.common.AuthProperties;
+import net.trajano.swarm.gateway.jwks.JwksProvider;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,8 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
 
   /** */
   @Autowired private IdentityService<A, R, P> identityService;
+
+  @Autowired private JwksProvider jwksProvider;
 
   private void addCommonHeaders(ServerHttpResponse serverHttpResponse) {
     serverHttpResponse.getHeaders().add(HttpHeaders.CACHE_CONTROL, "no-cache");
@@ -81,7 +85,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
       path = "${auth.controller-mappings.jwks:/jwks}",
       produces = {MediaType.APPLICATION_JSON_VALUE})
   public Mono<String> jwks() {
-    return identityService.jsonWebKeySet().map(JsonWebKeySet::toJson);
+    return jwksProvider.jsonWebKeySet().map(JsonWebKeySet::toJson);
   }
 
   @PostMapping(

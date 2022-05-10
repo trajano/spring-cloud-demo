@@ -32,13 +32,12 @@ config:
         - name: load
           duration: 30
           arrivalRate: 65
-          # keep sane, a single PC may not be able to handle the load of 1000 concurrent requests per second.
-          maxVusers: 1000
+          maxVusers: 750
         - pause: 10
         - name: load
           duration: 40
           arrivalRate: 65
-          maxVusers: 1000
+          maxVusers: 750
     localhost-traefik-ludicrous-load:
       target: "http://localhost:28080"
       phases:
@@ -48,6 +47,12 @@ config:
         - name: load
           duration: 120
           arrivalRate: 65
+          # From a single machine generating 4000 connections can cause EADDRINUSE in Windows https://github.com/artilleryio/artillery/issues/1038
+          # that's both sides, so that sets a theoretical limit of 2000 connections assuming that is the only thing the machine is doing.
+          # For traefik load there's client <-> traefik + traefik <-> gateway + gateway <-> service.  That's 6 connections per virtual user request
+          # Let's assume there's 1000 connections used already by Windows and other services.  That leaves us 3000 connections
+          # 3000 / 6 = 500
+          maxVusers: 500
     localhost-direct-ludicrous-load:
       target: "http://localhost:28082"
       phases:
@@ -58,7 +63,17 @@ config:
           duration: 100
           arrivalRate: 100
           # From a single machine generating 4000 connections can cause EADDRINUSE in Windows https://github.com/artilleryio/artillery/issues/1038
-          maxVusers: 1500
+          # that's both sides, so that sets a theoretical limit of 2000 connections assuming that is the only thing the machine is doing.
+          # For direct load there's client <-> gateway + gateway <-> service.  That's 4 connections per virtual user request
+          # Let's assume there's 1000 connections used already by Windows and other services.  That leaves us 3000 connections
+          # 3000 / 4 = 750
+          # However, there's still the notion of 120 second default for TcpTimedWaitDelay which means unless the thread is disconnected for 120 seconds
+          # it will be part of the limit
+          maxVusers: 750
+#after:
+#  flow:
+#    # This will allow the last connection to terminate and clean up from the TcpTimedWaitDelay
+#    - think: 60
 scenarios:
   - name: Login request resource and logout
     weight: 2
@@ -334,4 +349,3 @@ scenarios:
             - headerEquals:
               - www-authenticate
               - Bearer realm="JWT", error="invalid_token"
-

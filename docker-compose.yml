@@ -79,6 +79,15 @@ services:
       - services
       - edge
       - default
+  jwks-provider:
+    build:
+      context: .
+      target: jwks-provider
+    image: local/jwks-provider
+    environment:
+      - SPRING_REDIS_HOST=redis
+    networks:
+      - default
   redis:
     image: redis:6
     deploy:

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.AuthServiceResponse;
 import net.trajano.swarm.gateway.auth.IdentityService;
 import net.trajano.swarm.gateway.auth.OAuthRefreshRequest;
+import net.trajano.swarm.gateway.jwks.JwksProvider;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
 import org.jose4j.jwa.AlgorithmConstraints;
@@ -36,6 +37,8 @@ public class SimpleIdentityService<P>
   public static final String X_JWT_AUDIENCE = "X-JWT-Audience";
 
   private final SimpleAuthServiceProperties properties;
+
+  private final JwksProvider jwksProvider;
 
   private final RedisAuthCache redisTokenCache;
 
@@ -168,10 +171,9 @@ public class SimpleIdentityService<P>
             });
   }
 
-  @Override
   public Mono<JsonWebKeySet> jsonWebKeySet() {
 
-    return redisTokenCache.jwks().collectList().map(JsonWebKeySet::new);
+    return jwksProvider.jsonWebKeySet();
   }
 
   @Override

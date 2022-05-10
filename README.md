@@ -1,6 +1,7 @@
 ## Components
 
 * `gateway` the gateway
+* `jwks-provider` generates JWKS and puts them into Redis.  There is only a single instance of this.
 * `sample-service` this is a sample service endpoint that exposes HTTP, GRPC and WebSocket endpoints
 
 ## Opening in IntelliJ
@@ -32,4 +33,5 @@ curl --header 'Authorization: Bearer BEARER' http://localhost:28082/whoami
 ```
 artillery run gateway/src/test/artillery/functional-test.yml
 artillery run --environment localhost-direct-heavy-load gateway/src/test/artillery/functional-test.yml
+artillery run --environment localhost-traefik-ludicrous-load gateway/src/test/artillery/functional-test.yml
 ```

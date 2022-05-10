@@ -4,7 +4,7 @@ import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class RedisKeyBlocks {
+public class SimpleAuthRedisKeyBlocks {
 
   /** Points to the refresh token data. */
   public static final String REFRESH_TOKEN_DATA_KEY_FORMAT = "%s:::refresh-token:::%s";
@@ -20,13 +20,13 @@ public class RedisKeyBlocks {
   }
 
   public Instant nextTimeBlockForSigningKeysAdjustedForAccessTokenExpiration() {
-    var v1 = timeBlockForSigningKeys(Instant.now(), 1);
+    var v1 = startingInstantForTimeBlockForSigningKeys(Instant.now(), 1);
     var v2 =
         Instant.now().plusSeconds(simpleAuthServiceProperties.getAccessTokenExpiresInSeconds());
     return Instant.ofEpochSecond(Math.max(v1.getEpochSecond(), v2.getEpochSecond()));
   }
 
-  public Instant timeBlockForSigningKeys(Instant now, int offset) {
+  public Instant startingInstantForTimeBlockForSigningKeys(Instant now, int offset) {
 
     return Instant.ofEpochSecond(
         computeBlock(
@@ -36,7 +36,7 @@ public class RedisKeyBlocks {
   }
 
   public Instant nextTimeBlockForSigningKeys() {
-    return timeBlockForSigningKeys(Instant.now(), 1);
+    return startingInstantForTimeBlockForSigningKeys(Instant.now(), 1);
   }
 
   public static long computeBlock(long current, long blockSize, int offset) {
@@ -47,13 +47,13 @@ public class RedisKeyBlocks {
   public String currentSigningRedisKey() {
     return SIGNING_KEYS_FORMAT.formatted(
         simpleAuthServiceProperties.getRedisPrefix(),
-        timeBlockForSigningKeys(Instant.now(), 0).getEpochSecond());
+        startingInstantForTimeBlockForSigningKeys(Instant.now(), 0).getEpochSecond());
   }
 
   public String previousSigningRedisKey() {
     return SIGNING_KEYS_FORMAT.formatted(
         simpleAuthServiceProperties.getRedisPrefix(),
-        timeBlockForSigningKeys(Instant.now(), -1).getEpochSecond());
+        startingInstantForTimeBlockForSigningKeys(Instant.now(), -1).getEpochSecond());
   }
 
   public String refreshTokenKey(String refreshToken) {

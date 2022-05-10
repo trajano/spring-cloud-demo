@@ -6,6 +6,7 @@ import com.google.common.net.HttpHeaders;
 import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import net.trajano.swarm.gateway.auth.simple.SimpleAuthenticationRequest;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 
+@Ignore
 class ContainerTests {
 
   @BeforeAll

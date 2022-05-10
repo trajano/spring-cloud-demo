@@ -1,12 +1,10 @@
 package net.trajano.swarm.gateway.auth.simple;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.github.dockerjava.api.model.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,7 +18,7 @@ import reactor.core.publisher.Mono;
     classes = {
       RedisAuthCache.class,
       SimpleAuthServiceProperties.class,
-      RedisKeyBlocks.class,
+      SimpleAuthRedisKeyBlocks.class,
       RedisAuthCacheTest.TestConfig.class
     })
 class RedisAuthCacheTest {

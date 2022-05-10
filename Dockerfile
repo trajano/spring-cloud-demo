@@ -9,6 +9,12 @@ COPY extract.sh /w/extract.sh
 COPY --from=builder /w/*/build/libs/*.jar /w/
 RUN sh ./extract.sh
 
+FROM openjdk:17-alpine as jwks-provider
+WORKDIR /w
+COPY --from=extractor /w/jwks-provider/* /w/
+ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
+EXPOSE 8080
+
 FROM openjdk:17-alpine as sample-service
 WORKDIR /w
 COPY --from=extractor /w/sample-service/* /w/
