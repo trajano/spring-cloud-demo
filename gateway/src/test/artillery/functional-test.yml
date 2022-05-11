@@ -17,6 +17,11 @@ config:
       phases:
         - duration: 10
           arrivalRate: 20
+    api-small-load:
+      target: "https://api.trajano.net"
+      phases:
+        - duration: 10
+          arrivalRate: 20
     localhost-direct-medium-load:
       target: "http://localhost:28082"
       phases:
@@ -34,7 +39,7 @@ config:
           arrivalRate: 65
           maxVusers: 750
         - pause: 10
-        - name: load
+        - name: next-load
           duration: 40
           arrivalRate: 65
           maxVusers: 750
@@ -55,6 +60,39 @@ config:
           maxVusers: 500
     localhost-direct-ludicrous-load:
       target: "http://localhost:28082"
+      phases:
+        - name: warmup
+          duration: 10
+          arrivalRate: 1
+        - name: load
+          duration: 100
+          arrivalRate: 100
+          # From a single machine generating 4000 connections can cause EADDRINUSE in Windows https://github.com/artilleryio/artillery/issues/1038
+          # that's both sides, so that sets a theoretical limit of 2000 connections assuming that is the only thing the machine is doing.
+          # For direct load there's client <-> gateway + gateway <-> service.  That's 4 connections per virtual user request
+          # Let's assume there's 1000 connections used already by Windows and other services.  That leaves us 3000 connections
+          # 3000 / 4 = 750
+          # However, there's still the notion of 120 second default for TcpTimedWaitDelay which means unless the thread is disconnected for 120 seconds
+          # it will be part of the limit
+          maxVusers: 750
+    api-heavy-load:
+      target: "https://api.trajano.net"
+      phases:
+        - name: warmup
+          duration: 10
+          arrivalRate: 1
+        - pause: 10
+        - name: load
+          duration: 30
+          arrivalRate: 65
+          maxVusers: 750
+        - pause: 10
+        - name: next-load
+          duration: 40
+          arrivalRate: 65
+          maxVusers: 750
+    api-ludicrous-load:
+      target: "https://m0.lj-ppe.devhaus.net"
       phases:
         - name: warmup
           duration: 10
@@ -358,6 +396,12 @@ scenarios:
   - name: OpenAPI available
     weight: 1
     flow:
+      - head:
+          url: "/openapi.json"
+          headers:
+            Accept: application/json
+          expect:
+            - statusCode: 200
       - get:
           url: "/openapi.json"
           headers:
