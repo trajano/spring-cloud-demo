@@ -7,14 +7,11 @@ import com.github.dockerjava.api.command.EventsCmd;
 import com.github.dockerjava.api.command.ListContainersCmd;
 import com.github.dockerjava.api.command.ListNetworksCmd;
 import com.github.dockerjava.api.model.*;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -34,28 +31,23 @@ public class ReactiveDockerClient {
   public ListContainersCmd listContainersCmd() {
     return dockerClient.listContainersCmd();
   }
+
   public ListNetworksCmd listNetworksCmd() {
     return dockerClient.listNetworksCmd();
   }
+
   public Flux<Network> networks(ListNetworksCmd listNetworksCmd) {
-    return
-            Flux.from(new Publisher<Network>() {
-                        @Override
-                        public void subscribe(Subscriber<? super Network> s) {
-                          try {
-                            listNetworksCmd.exec().forEach(s::onNext);
-                          }    catch (RuntimeException e) {
-                            s.onError();
-                          }
-                        }
-                      }
-                    emitter -> {
-                      emitter.onRequest()
-                      ;
-                    });
+    return Flux.from(
+        s -> {
+          try {
+            listNetworksCmd.exec().forEach(s::onNext);
+          } catch (Throwable e) {
+            s.onError(e);
+          }
+        });
   }
   /**
-   * Generates an event flux.  This retries on errors indefinitely.
+   * Generates an event flux. This retries on errors indefinitely.
    *
    * @param eventsCmd
    * @return

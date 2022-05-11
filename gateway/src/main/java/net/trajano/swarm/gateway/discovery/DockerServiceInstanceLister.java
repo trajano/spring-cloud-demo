@@ -47,8 +47,11 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
 
   public Mono<Network> getDiscoveryNetwork() {
 
-    return Mono.fromCallable(
-        () -> Util.getDiscoveryNetwork(dockerClient.blockingClient(), dockerDiscoveryProperties));
+    return dockerClient
+        .networks(
+            dockerClient.listNetworksCmd().withNameFilter(dockerDiscoveryProperties.getNetwork()))
+        .filter(n -> n.getName().equals(dockerDiscoveryProperties.getNetwork()))
+        .next();
   }
 
   public List<ServiceInstance> getInstances(String serviceId) {
