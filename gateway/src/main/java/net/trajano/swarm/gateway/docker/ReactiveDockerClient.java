@@ -7,8 +7,8 @@ import com.github.dockerjava.api.command.EventsCmd;
 import com.github.dockerjava.api.command.ListContainersCmd;
 import com.github.dockerjava.api.command.ListNetworksCmd;
 import com.github.dockerjava.api.model.*;
+import java.io.Closeable;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +20,17 @@ import reactor.core.publisher.Mono;
 /** Wraps the native docker client with project reactor bindings. */
 @Component
 @RequiredArgsConstructor
-public class ReactiveDockerClient {
-  private final DockerProperties dockerProperties;
+public class ReactiveDockerClient implements Closeable {
   private final DockerClient dockerClient;
 
   public DockerClient blockingClient() {
     return dockerClient;
+  }
+
+  @Override
+  public void close() throws IOException {
+
+    dockerClient.close();
   }
 
   public ListContainersCmd listContainersCmd() {
@@ -37,12 +42,13 @@ public class ReactiveDockerClient {
   }
 
   public Flux<Network> networks(ListNetworksCmd listNetworksCmd) {
-    return Flux.from(
+    return Flux.create(
         s -> {
           try {
-            listNetworksCmd.exec().forEach(s::onNext);
+            listNetworksCmd.exec().forEach(s::next);
+            s.complete();
           } catch (Throwable e) {
-            s.onError(e);
+            s.error(e);
           }
         });
   }
@@ -65,7 +71,7 @@ public class ReactiveDockerClient {
                     try {
                       sinkResultCallback.close();
                     } catch (IOException e) {
-                      throw new UncheckedIOException(e);
+                      emitter.error(e);
                     }
                   });
             });
@@ -92,8 +98,18 @@ public class ReactiveDockerClient {
 
   public Flux<Service> services() {
 
-    return Mono.fromCallable(() -> dockerClient.listServicesCmd().exec())
-        .flatMapIterable(Function.identity());
+    return Flux.create(
+        s -> {
+          try {
+            dockerClient.listServicesCmd().exec().forEach(s::next);
+            s.complete();
+          } catch (Throwable e) {
+            s.error(e);
+          }
+        });
+
+    //    return Mono.fromCallable(() -> dockerClient.listServicesCmd().exec())
+    //        .flatMapIterable(Function.identity());
   }
 
   public Flux<Container> containers(ListContainersCmd listContainersCmd) {

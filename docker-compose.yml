@@ -65,8 +65,10 @@ services:
       - DOCKER_DISCOVERY_SWARMMODE=true
       - DOCKER_DISCOVERY_DAEMONFULLACCESS=false
       - DOCKER_HOST=tcp://daemon:2375
-      - LOGGING_LEVEL_NET_TRAJANO_SWARM_GATEWAY_DISCOVERY=info
+      - LOGGING_LEVEL_NET_TRAJANO=info
       - LOGGING_LEVEL_ROOT=error
+      # - LOGGING_LEVEL_NET_TRAJANO_SWARM_GATEWAY_DISCOVERY=debug
+      #- LOGGING_LEVEL_ROOT=error
       - GATEWAY_ROOTHTMLREDIRECTURI=http://localhost:28080/apidoc
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_SLEUTH=warn
     ports:
@@ -104,12 +106,12 @@ services:
 #        parallelism: 1
       restart_policy:
         max_attempts: 1
-      replicas: 3
+      replicas: 1
       resources:
         limits:
           #memory: 512m
           memory: 256m
-
+    user: 5000
 #    volumes:
 #      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
@@ -202,7 +204,7 @@ services:
       resources:
         limits:
           memory: 64m
-      replicas: 2
+      replicas: 0
       endpoint_mode: vip
     networks:
       - services
@@ -217,7 +219,7 @@ services:
       resources:
         limits:
           memory: 64m
-      replicas: 3
+      replicas: 0
       endpoint_mode: vip
     networks:
       - services
@@ -235,7 +237,7 @@ services:
         docker.whoami2.path: /whoami2/**
         docker.whoami2.path.replacement: /$${remaining}
         docker.whoami2.port: 80
-      replicas: 3
+      replicas: 0
       endpoint_mode: vip
       resources:
         limits:

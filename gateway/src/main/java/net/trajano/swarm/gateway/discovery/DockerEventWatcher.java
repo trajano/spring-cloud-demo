@@ -4,18 +4,12 @@ import com.github.dockerjava.api.model.Event;
 import com.github.dockerjava.api.model.EventType;
 import java.nio.channels.AsynchronousCloseException;
 import java.time.Duration;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.docker.ReactiveDockerClient;
 import org.reactivestreams.Publisher;
 import reactor.core.Disposable;
-import reactor.core.Disposables;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.SignalType;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
@@ -30,11 +24,7 @@ public class DockerEventWatcher { // implements ApplicationListener<ContextClose
 
   private final ReactiveDockerClient reactiveDockerClient;
 
-  private final ExecutorService watchExecutor = Executors.newSingleThreadExecutor();
-
-  private final AtomicBoolean cancelled = new AtomicBoolean(false);
-
-  private Disposable.Swap subscription = Disposables.swap();
+  private Disposable subscription;
 
   /**
    * Provides an event flux that never ends.
@@ -77,15 +67,6 @@ public class DockerEventWatcher { // implements ApplicationListener<ContextClose
     return Flux.just(event);
   }
 
-  public void startWatching() {
-    watchExecutor.execute(
-        () -> {
-          while (!cancelled.get()) {
-            watch();
-          }
-        });
-  }
-
   public void stopWatching() {
     subscription.dispose();
   }
@@ -95,11 +76,11 @@ public class DockerEventWatcher { // implements ApplicationListener<ContextClose
    * reconnect, the scheduler is responsible for rebuilding the watcher and re-establishing the
    * connection.
    */
-  private void watch() {
+  public void startWatching() {
 
-    final var latch = new CountDownLatch(1);
     final Flux<Event> publishingEventFlux =
         eventFlux()
+            .publishOn(dockerWatchScheduler)
             // only take one event per second to avoid flooding
             // .sampleFirst(Duration.ofSeconds(1))
             .sample(Duration.ofSeconds(1))
@@ -113,19 +94,6 @@ public class DockerEventWatcher { // implements ApplicationListener<ContextClose
                 })
             .doOnNext(ignore -> dockerServiceInstanceLister.refresh(true));
 
-    subscription.update(
-        publishingEventFlux
-            .doFinally(
-                signalType -> {
-                  cancelled.set(signalType == SignalType.CANCEL);
-                  latch.countDown();
-                })
-            .subscribe());
-    try {
-      latch.await();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      cancelled.set(true);
-    }
+    subscription = publishingEventFlux.subscribe();
   }
 }

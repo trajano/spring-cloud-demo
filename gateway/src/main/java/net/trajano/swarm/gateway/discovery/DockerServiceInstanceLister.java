@@ -2,6 +2,7 @@ package net.trajano.swarm.gateway.discovery;
 
 import com.github.dockerjava.api.model.Network;
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,15 +46,6 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
     dockerEventWatcher = new DockerEventWatcher(this, dockerDiscoveryProperties, dockerClient);
   }
 
-  public Mono<Network> getDiscoveryNetwork() {
-
-    return dockerClient
-        .networks(
-            dockerClient.listNetworksCmd().withNameFilter(dockerDiscoveryProperties.getNetwork()))
-        .filter(n -> n.getName().equals(dockerDiscoveryProperties.getNetwork()))
-        .next();
-  }
-
   public List<ServiceInstance> getInstances(String serviceId) {
 
     return servicesRef.get().getOrDefault(serviceId, List.of());
@@ -68,7 +60,6 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
   @PostConstruct
   public void initialRefresh() {
     refresh(false);
-    dockerEventWatcher.startWatching();
   }
 
   @SuppressWarnings("unchecked")
@@ -144,7 +135,8 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
   /** Refreshes the service list. */
   public void refresh(boolean publish) {
     log.trace("refreshing publish={}", publish);
-    final Mono<Network> networkMono = getDiscoveryNetwork();
+    final Network network =
+        Util.getDiscoveryNetwork(dockerClient.blockingClient(), dockerDiscoveryProperties);
 
     final Flux<ServiceInstance> serviceInstanceFlux;
     if (dockerDiscoveryProperties.isSwarmMode()) {
@@ -167,35 +159,30 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
                   c -> c.getSpec().getLabels().containsKey(dockerDiscoveryProperties.idLabel()));
 
       serviceInstanceFlux =
-          networkMono.flatMapMany(
-              network ->
-                  Flux.concat(multiIds, singleId)
-                      .distinct()
-                      .flatMap(service -> instanceStream(service, network)));
+          Flux.concat(multiIds, singleId)
+              .distinct()
+              .flatMap(service -> instanceStream(service, network));
 
     } else {
 
+      final var multiIds =
+          dockerClient.containers(
+              dockerClient
+                  .listContainersCmd()
+                  .withLabelFilter(dockerDiscoveryProperties.idsLabelFilter())
+                  .withNetworkFilter(List.of(network.getId())));
+
+      final var singleId =
+          dockerClient.containers(
+              dockerClient
+                  .listContainersCmd()
+                  .withLabelFilter(List.of(dockerDiscoveryProperties.idLabel()))
+                  .withNetworkFilter(List.of(network.getId())));
+
       serviceInstanceFlux =
-          networkMono.flatMapMany(
-              network -> {
-                final var multiIds =
-                    dockerClient.containers(
-                        dockerClient
-                            .listContainersCmd()
-                            .withLabelFilter(dockerDiscoveryProperties.idsLabelFilter())
-                            .withNetworkFilter(List.of(network.getId())));
-
-                final var singleId =
-                    dockerClient.containers(
-                        dockerClient
-                            .listContainersCmd()
-                            .withLabelFilter(List.of(dockerDiscoveryProperties.idLabel()))
-                            .withNetworkFilter(List.of(network.getId())));
-
-                return Flux.concat(multiIds, singleId)
-                    .distinct()
-                    .flatMap(container -> instanceStream(container, network));
-              });
+          Flux.concat(multiIds, singleId)
+              .distinct()
+              .flatMap(container -> instanceStream(container, network));
     }
 
     refreshSubscription =
@@ -211,24 +198,26 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
                     return Mono.just(next);
                   }
                 })
-            .filter(i -> publish)
             .map(Map::values)
             .flatMapMany(Flux::fromIterable)
             .flatMap(Flux::fromIterable)
-            .map(
-                serviceInstance -> {
-                  publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceInstance));
-                  return true;
-                })
             .collectList()
-            .map(
-                ignored -> {
-                  publisher.publishEvent(new RefreshRoutesEvent(this));
-                  return true;
-                })
-            // silently drop errors, if there is an error it just means there's nothing to subscribe
-            // to
-            .onErrorReturn(false)
-            .subscribe();
+            // When shutting down CancellationException may get raised this will prevent publication
+            .onErrorReturn(CancellationException.class, List.of())
+            .subscribe(
+                serviceInstances -> {
+                  if (publish) {
+
+                    serviceInstances.forEach(
+                        serviceInstance ->
+                            publisher.publishEvent(
+                                new InstanceRegisteredEvent<>(this, serviceInstance)));
+                    if (!serviceInstances.isEmpty()) {
+                      publisher.publishEvent(new RefreshRoutesEvent(this));
+                    }
+                  } else {
+                    dockerEventWatcher.startWatching();
+                  }
+                });
   }
 }
