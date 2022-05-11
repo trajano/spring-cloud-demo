@@ -32,6 +32,8 @@ curl --header 'Authorization: Bearer BEARER' http://localhost:28082/whoami
 
 ```
 artillery run gateway/src/test/artillery/functional-test.yml
-artillery run -q --output report.json --environment localhost-direct-heavy-load gateway/src/test/artillery/functional-test.yml && artillery report report.json && start report.json.html 
+artillery run -q --output report.json --environment localhost-direct-heavy-load gateway/src/test/artillery/functional-test.yml && artillery report report.json && start report.json.html
+artillery run gateway/src/test/artillery/functional-test.yml 
+artillery run -q --output report.json --environment api-heavy-load gateway/src/test/artillery/functional-test.yml && artillery report report.json && start report.json.html 
 artillery run --environment localhost-traefik-ludicrous-load gateway/src/test/artillery/functional-test.yml
 ```

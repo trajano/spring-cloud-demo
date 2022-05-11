@@ -18,20 +18,43 @@ services:
       - --entrypoints.http.address=:80
       - --providers.docker.exposedByDefault=false
       - --providers.docker.swarmMode=true
-      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      #- --providers.docker.endpoint=unix:///var/run/docker.sock
+      - --providers.docker.endpoint=http://daemon:2375
       - --providers.docker.network=edge
       # - --providers.docker.useBindPortIP=true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - edge
-#    healthcheck:
-#      test: traefik healthcheck --ping
+      - daemon
+    healthcheck:
+      test: traefik healthcheck --ping
     deploy:
       mode: global
       resources:
         limits:
           memory: 256m
+  daemon:
+    image: tecnativa/docker-socket-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - daemon
+    environment:
+      NETWORKS: 1
+      SERVICES: 1
+      TASKS: 1
+    labels:
+      - co.elastic.logs/enabled=false
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 32M
   gateway:
     build:
       context: .
@@ -40,6 +63,7 @@ services:
     environment:
       - SPRING_REDIS_HOST=redis
       - DOCKER_DISCOVERY_SWARMMODE=true
+      - DOCKER_HOST=tcp://daemon:2375
       - LOGGING_LEVEL_NET_TRAJANO_SWARM_GATEWAY_DISCOVERY=info
       - LOGGING_LEVEL_ROOT=error
       - GATEWAY_ROOTHTMLREDIRECTURI=http://localhost:28080/apidoc
@@ -90,6 +114,7 @@ services:
     networks:
       - services
       - edge
+      - daemon
       - default
   jwks-provider:
     build:
@@ -100,6 +125,10 @@ services:
       - SPRING_REDIS_HOST=redis
     networks:
       - default
+    deploy:
+      resources:
+        limits:
+          memory: 128m
   apidoc:
     image: redocly/redoc
     environment:
@@ -229,6 +258,9 @@ services:
     networks:
       - services
 networks:
+  daemon:
+    internal: true
+    attachable: false
   edge:
     name: edge
     internal: false

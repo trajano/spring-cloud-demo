@@ -22,12 +22,16 @@ COPY --from=extractor /w/jwks-provider/* /w/
 ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
 HEALTHCHECK --interval=5s --start-period=60s \
     CMD curl -sfo /dev/null http://localhost:8080/actuator/health
+USER 5000
 EXPOSE 8080
 
 FROM openjdk:17-jdk as sample-service
 WORKDIR /w
 COPY --from=extractor /w/sample-service/* /w/
 ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
+HEALTHCHECK --interval=5s --start-period=60s \
+    CMD curl -sfo /dev/null http://localhost:8080/actuator/health
+USER 5000
 EXPOSE 8080
 
 FROM openjdk:17-jdk as gateway
@@ -37,4 +41,6 @@ COPY --from=doc-builder /w/dist/openapi.json /
 ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
 HEALTHCHECK --interval=5s --start-period=60s \
     CMD curl -sfo /dev/null http://localhost:8080/actuator/health
+# Must be root in order to access /var/run/docker.sock
+# USER 5000
 EXPOSE 8080
