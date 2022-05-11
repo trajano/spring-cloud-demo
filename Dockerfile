@@ -12,7 +12,7 @@ RUN --mount=type=cache,target=/home/gradle/.gradle/caches gradle build -x test
 
 FROM openjdk:17-jdk as extractor
 WORKDIR /w
-COPY extract.sh /w/extract.sh
+COPY bin/extract.sh /w/extract.sh
 COPY --from=builder /w/*/build/libs/*.jar /w/
 RUN sh ./extract.sh
 
