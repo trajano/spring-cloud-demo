@@ -44,3 +44,14 @@ HEALTHCHECK --interval=5s --start-period=60s \
 # Must be root in order to access /var/run/docker.sock
 # USER 5000
 EXPOSE 8080
+
+FROM openjdk:17-jdk-alpine as gateway-alpine
+WORKDIR /w
+COPY --from=extractor /w/gateway/* /w/
+COPY --from=doc-builder /w/dist/openapi.json /
+ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
+HEALTHCHECK --interval=5s --start-period=60s \
+    CMD wget -qO /dev/null http://localhost:8080/actuator/health
+# Must be root in order to access /var/run/docker.sock
+# USER 5000
+EXPOSE 8080

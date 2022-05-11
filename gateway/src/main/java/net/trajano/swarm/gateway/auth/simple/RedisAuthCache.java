@@ -3,8 +3,6 @@ package net.trajano.swarm.gateway.auth.simple;
 import java.security.*;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import javax.annotation.PostConstruct;
 import javax.crypto.KeyGenerator;
 import lombok.RequiredArgsConstructor;
@@ -61,15 +59,7 @@ public class RedisAuthCache {
           Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
           "generateRefreshToken");
 
-  /**
-   * The key regeneration scheduler. This is a single thread executor as there's only one of these.
-   */
-  private final ScheduledExecutorService scheduledExecutorService =
-      Executors.newSingleThreadScheduledExecutor();
-
   private KeyGenerator keyGenerator;
-
-  private KeyPairGenerator keyPairGenerator;
 
   private KeyFactory rsaKeyFactory;
 
@@ -109,18 +99,9 @@ public class RedisAuthCache {
 
     try {
       keyGenerator = KeyGenerator.getInstance("AES");
-      keyPairGenerator = KeyPairGenerator.getInstance(RSA);
-      keyPairGenerator.initialize(2048);
       secureRandom = SecureRandom.getInstanceStrong();
       keyGenerator.init(256, secureRandom);
       rsaKeyFactory = KeyFactory.getInstance(RSA);
-      //      generateSigningKeys();
-      //      scheduledExecutorService.scheduleAtFixedRate(
-      //          this::generateSigningKeys,
-      //          redisKeyBlocks.nextTimeBlockForSigningKeys().getEpochSecond()
-      //              - Instant.now().getEpochSecond(),
-      //          simpleAuthServiceProperties.getSigningKeyExpiresInSeconds(),
-      //          TimeUnit.SECONDS);
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException(e);
     }

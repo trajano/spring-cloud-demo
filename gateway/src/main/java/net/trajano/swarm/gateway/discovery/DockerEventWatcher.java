@@ -80,10 +80,11 @@ public class DockerEventWatcher { // implements ApplicationListener<ContextClose
 
     final Flux<Event> publishingEventFlux =
         eventFlux()
+            .cache(Duration.ofSeconds(1))
             .publishOn(dockerWatchScheduler)
             // only take one event per second to avoid flooding
             // .sampleFirst(Duration.ofSeconds(1))
-            .sample(Duration.ofSeconds(1))
+            // .sample(Duration.ofSeconds(1))
             .onErrorResume(
                 AsynchronousCloseException.class,
                 throwable -> {
