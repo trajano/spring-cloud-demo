@@ -37,6 +37,133 @@ class InfiniteFluxTest {
   }
 
   @Test
+  void erroringTestWithInfiniteFlux() {
+
+    var firstError = new AtomicBoolean(false);
+    var completeCount = new AtomicInteger(0);
+    // This is the source flux which will be resubscribed if needed.
+    var val = new AtomicInteger(0);
+
+    var testFlux =
+        Flux.<Integer>generate(
+            sink1 -> {
+              int signal = val.getAndIncrement();
+
+              if (!firstError.get() && signal == 3) {
+                firstError.set(true);
+                val.set(0);
+                sink1.error(new IllegalStateException("first error"));
+              } else if (completeCount.get() < 3 && signal == 10) {
+                completeCount.incrementAndGet();
+                val.set(0);
+                sink1.complete();
+              } else if (completeCount.get() == 3 && signal == 10) {
+                sink1.error(new IndexOutOfBoundsException("force complete"));
+              } else {
+                sink1.next(signal);
+              }
+            });
+
+    StepVerifier.create(testFlux)
+        .expectNext(0)
+        .expectNext(1)
+        .expectNext(2)
+        .expectError(IllegalStateException.class)
+        .verify();
+  }
+
+  @Test
+  void withInfiniteFluxSource() {
+
+    var firstError = new AtomicBoolean(false);
+    var completeCount = new AtomicInteger(0);
+    // This is the source flux which will be resubscribed if needed.
+    var val = new AtomicInteger(0);
+
+    var testFlux =
+        Flux.<Integer>generate(
+            sink1 -> {
+              int signal = val.getAndIncrement();
+
+              if (!firstError.get() && signal == 3) {
+                firstError.set(true);
+                val.set(0);
+                sink1.error(new IllegalStateException("first error"));
+              } else if (completeCount.get() < 3 && signal == 10) {
+                completeCount.incrementAndGet();
+                val.set(0);
+                sink1.complete();
+              } else if (completeCount.get() == 3 && signal == 10) {
+                sink1.error(new IndexOutOfBoundsException("force complete"));
+              } else {
+                sink1.next(signal);
+              }
+            });
+
+    Function<Throwable, Publisher<Integer>> recoverFromThrow = throwable -> testFlux;
+
+    var recoveringFromThrowFlux =
+        // testFlux.onErrorReturn(-1);
+        testFlux.onErrorResume(IllegalStateException.class, recoverFromThrow);
+
+    var foreverFlux =
+        Flux.<Flux<Integer>>generate((sink) -> sink.next(recoveringFromThrowFlux))
+            .flatMap(flux -> flux);
+
+    StepVerifier.create(foreverFlux)
+        .expectNext(0)
+        .expectNext(1)
+        .expectNext(2)
+        // restart
+        .expectNext(0)
+        .expectNext(1)
+        .expectNext(2)
+        .expectNext(3)
+        .expectNext(4)
+        .expectNext(5)
+        .expectNext(6)
+        .expectNext(7)
+        .expectNext(8)
+        .expectNext(9)
+        // complete 0
+        .expectNext(0)
+        .expectNext(1)
+        .expectNext(2)
+        .expectNext(3)
+        .expectNext(4)
+        .expectNext(5)
+        .expectNext(6)
+        .expectNext(7)
+        .expectNext(8)
+        .expectNext(9)
+        // complete 1
+        .expectNext(0)
+        .expectNext(1)
+        .expectNext(2)
+        .expectNext(3)
+        .expectNext(4)
+        .expectNext(5)
+        .expectNext(6)
+        .expectNext(7)
+        .expectNext(8)
+        .expectNext(9)
+        // complete 2
+        .expectNext(0)
+        .expectNext(1)
+        .expectNext(2)
+        .expectNext(3)
+        .expectNext(4)
+        .expectNext(5)
+        .expectNext(6)
+        .expectNext(7)
+        .expectNext(8)
+        .expectNext(9)
+        // complete 3
+        .expectError(IndexOutOfBoundsException.class)
+        .verify();
+  }
+
+  @Test
   void onFirstErrorAndFirstCompleteIWillResume2() {
 
     var firstError = new AtomicBoolean(false);

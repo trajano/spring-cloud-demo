@@ -9,8 +9,6 @@ import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.docker.ReactiveDockerClient;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanCreationNotAllowedException;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
@@ -200,33 +198,34 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
     refreshSubscription =
         serviceInstanceFlux
             .collect(Collectors.groupingBy(ServiceInstance::getServiceId))
-            .doOnNext(servicesRef::set)
-            // This is thrown when the context is shutting down.
-            .onErrorReturn(BeanCreationNotAllowedException.class, servicesRef.get())
-            .onErrorReturn(BeanCreationException.class, servicesRef.get())
-            .onErrorReturn(IllegalStateException.class, servicesRef.get())
-            .subscribe(
-                servicesMap -> {
-                  final Boolean disposed =
-                      Optional.ofNullable(refreshSubscription)
-                          .map(Disposable::isDisposed)
-                          .orElse(true);
-                  log.info(
-                      "Refreshed {} serviceCount={} publish={} disposed={}",
-                      this,
-                      servicesRef.get().size(),
-                      publish,
-                      disposed);
-                  if (publish && Boolean.TRUE.equals(!disposed)) {
-                    servicesMap
-                        .values()
-                        .forEach(
-                            serviceInstance ->
-                                publisher.publishEvent(
-                                    new InstanceRegisteredEvent<>(this, serviceInstance)));
-
-                    publisher.publishEvent(new RefreshRoutesEvent(this));
+            // don't bother doing anything if it is the same
+            .flatMap(
+                next -> {
+                  if (next.equals(servicesRef.get())) {
+                    return Mono.empty();
+                  } else {
+                    servicesRef.set(next);
+                    return Mono.just(next);
                   }
-                });
+                })
+            .filter(i -> publish)
+            .map(Map::values)
+            .flatMapMany(Flux::fromIterable)
+            .flatMap(Flux::fromIterable)
+            .map(
+                serviceInstance -> {
+                  publisher.publishEvent(new InstanceRegisteredEvent<>(this, serviceInstance));
+                  return true;
+                })
+            .collectList()
+            .map(
+                ignored -> {
+                  publisher.publishEvent(new RefreshRoutesEvent(this));
+                  return true;
+                })
+            // silently drop errors, if there is an error it just means there's nothing to subscribe
+            // to
+            .onErrorReturn(false)
+            .subscribe();
   }
 }
