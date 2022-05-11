@@ -53,7 +53,7 @@ public class RedisJwksProvider implements JwksProvider {
             redisKeyBlocks.currentSigningRedisKey(),
             redisKeyBlocks.nextTimeBlockForSigningKeysAdjustedForAccessTokenExpiration(
                 accessTokenExpirationInSeconds))
-        .publishOn(Schedulers.boundedElastic());
+        .publishOn(scheduler);
   }
 
   @Override
@@ -67,7 +67,7 @@ public class RedisJwksProvider implements JwksProvider {
                   .randomMember(redisKeyBlocks.currentSigningRedisKey())
                   .map(RedisJwksProvider::stringToJwks);
             })
-        .publishOn(Schedulers.boundedElastic());
+        .publishOn(scheduler);
   }
 
   private static JsonWebKeySet stringToJwks(String s) {
