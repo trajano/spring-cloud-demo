@@ -10,7 +10,6 @@ import com.github.dockerjava.api.model.Event;
 import com.github.dockerjava.api.model.EventType;
 import com.github.dockerjava.api.model.Service;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +22,7 @@ import reactor.core.publisher.Mono;
 @Component
 @RequiredArgsConstructor
 public class ReactiveDockerClient {
+  private final DockerProperties dockerProperties;
   private final DockerClient dockerClient;
 
   public DockerClient blockingClient() {
@@ -41,11 +41,13 @@ public class ReactiveDockerClient {
    */
   public Flux<Event> events(EventsCmd eventsCmd) {
 
-    return Flux.create(
-        sink -> {
-          var sinkResultCallback = new FluxSinkEventCallback(sink);
-          eventsCmd.exec(sinkResultCallback);
-        });
+    final Flux<Event> eventFlux =
+        Flux.create(
+            sink -> {
+              var sinkResultCallback = new FluxSinkEventCallback(sink);
+              eventsCmd.exec(sinkResultCallback);
+            });
+    return eventFlux.retry();
   }
 
   public Flux<Event> serviceEvents() {
@@ -97,10 +99,10 @@ public class ReactiveDockerClient {
     public void onError(Throwable throwable) {
       try {
         super.close();
+        fluxSink.error(throwable);
       } catch (IOException e) {
-        throw new UncheckedIOException(e);
+        fluxSink.error(e);
       }
-      fluxSink.error(throwable);
     }
 
     @Override

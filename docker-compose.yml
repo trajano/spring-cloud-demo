@@ -63,6 +63,7 @@ services:
     environment:
       - SPRING_REDIS_HOST=redis
       - DOCKER_DISCOVERY_SWARMMODE=true
+      - DOCKER_DISCOVERY_DAEMONFULLACCESS=false
       - DOCKER_HOST=tcp://daemon:2375
       - LOGGING_LEVEL_NET_TRAJANO_SWARM_GATEWAY_DISCOVERY=info
       - LOGGING_LEVEL_ROOT=error
@@ -109,8 +110,8 @@ services:
           #memory: 512m
           memory: 256m
 
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - services
       - edge

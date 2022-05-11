@@ -7,15 +7,15 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import java.time.Duration;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
+@RequiredArgsConstructor
 public class DockerClientProvider {
 
-  @Value("${docker.host:unix:///var/run/docker.sock}")
-  private String dockerHost;
+  private final DockerProperties dockerProperties;
 
   @Bean(destroyMethod = "close")
   DockerClient dockerClient(
@@ -28,7 +28,7 @@ public class DockerClientProvider {
   DockerClientConfig dockerClientConfig() {
 
     return DefaultDockerClientConfig.createDefaultConfigBuilder()
-        .withDockerHost(dockerHost)
+        .withDockerHost(dockerProperties.getHost())
         .build();
   }
 

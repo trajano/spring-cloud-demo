@@ -19,6 +19,9 @@ public class DockerDiscoveryProperties {
   /** Swarm mode. If true, it will scan services rather than containers. */
   private boolean swarmMode = false;
 
+  /** Indicates where the connection to the Docker daemon has full permissions. */
+  private boolean daemonFullAccess = true;
+
   public List<String> idsLabelFilter() {
 
     return List.of(idsLabel());

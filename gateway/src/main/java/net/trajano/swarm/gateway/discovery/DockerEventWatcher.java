@@ -50,9 +50,15 @@ public class DockerEventWatcher { // implements ApplicationListener<ContextClose
     return sourceFlux.flatMap(this::handleScenarioWhenOnlyReplicaCountsAreChanged);
   }
 
+  /**
+   * This can only be done if there is a full access to the docker endpoint
+   *
+   * @param event
+   * @return
+   */
   private Publisher<? extends Event> handleScenarioWhenOnlyReplicaCountsAreChanged(Event event) {
 
-    if (event.getType() == EventType.SERVICE)
+    if (event.getType() == EventType.SERVICE && dockerDiscoveryProperties.isDaemonFullAccess()) {
       if (event.getActor().getAttributes().containsKey("replicas.new")) {
         final var serviceId = event.getActor().getAttributes().get("name");
         log.debug(
@@ -67,6 +73,7 @@ public class DockerEventWatcher { // implements ApplicationListener<ContextClose
             .exec();
         return Flux.empty();
       }
+    }
     return Flux.just(event);
   }
 
