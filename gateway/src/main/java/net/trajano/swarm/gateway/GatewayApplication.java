@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * <a href="https://www.baeldung.com/spring-data-disable-auto-config>Exclusions</a> are done to
@@ -19,6 +20,7 @@ public class GatewayApplication {
 
   public static void main(String[] args) {
 
+    Schedulers.enableMetrics();
     //    BlockHound.install();
     SpringApplication.run(GatewayApplication.class, args);
   }
