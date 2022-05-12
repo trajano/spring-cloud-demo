@@ -1,8 +1,14 @@
 package net.trajano.swarm.gateway.discovery;
 
 import com.github.dockerjava.api.model.Network;
+import java.io.UncheckedIOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,9 +22,12 @@ import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
+import org.xbill.DNS.*;
+import org.xbill.DNS.lookup.LookupSession;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Slf4j
 public class DockerServiceInstanceLister implements ApplicationListener<ContextClosedEvent> {
@@ -35,6 +44,8 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
 
   private Disposable refreshSubscription;
 
+  private Executor dnsExecutor = Executors.newSingleThreadExecutor();
+
   public DockerServiceInstanceLister(
       ApplicationEventPublisher publisher,
       ReactiveDockerClient dockerClient,
@@ -43,6 +54,7 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
     this.publisher = publisher;
     this.dockerClient = dockerClient;
     this.dockerDiscoveryProperties = dockerDiscoveryProperties;
+
     dockerEventWatcher = new DockerEventWatcher(this, dockerDiscoveryProperties, dockerClient);
   }
 
@@ -77,13 +89,15 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
         Util.getServiceIdsFromLabels(dockerDiscoveryProperties, service.getSpec().getLabels())
             .toList();
 
-    return Flux.fromStream(
-        serviceNetworks.stream()
-            .filter(n -> n.get("Target").equals(network.getId()))
-            .flatMap(n -> ((List<String>) n.get("Aliases")).stream())
-            .flatMap(Util::getIpAddresses)
-            .flatMap(
-                address ->
+    return Flux.fromIterable(serviceNetworks)
+        .log()
+        .filter(stringObjectMap -> network.getId().equals(stringObjectMap.get("Target")))
+        .flatMap(n -> Flux.fromIterable((List<String>) n.get("Aliases")))
+        .flatMap(hostname -> getIpAddressesFlux(hostname))
+        .log()
+        .flatMap(
+            address ->
+                Flux.fromStream(
                     serviceIds.stream()
                         .map(
                             serviceId ->
@@ -92,6 +106,21 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
                                     dockerDiscoveryProperties.getLabelPrefix(),
                                     serviceId,
                                     address))));
+    //    return Flux.fromStream(
+    //        serviceNetworks.stream()
+    //            .filter(n -> n.get("Target").equals(network.getId()))
+    //            .flatMap(n -> ((List<String>) n.get("Aliases")).stream())
+    //            .flatMap(Util::getIpAddresses)
+    //            .flatMap(
+    //                address ->
+    //                    serviceIds.stream()
+    //                        .map(
+    //                            serviceId ->
+    //                                new DockerServiceInstance(
+    //                                    service,
+    //                                    dockerDiscoveryProperties.getLabelPrefix(),
+    //                                    serviceId,
+    //                                    address))));
   }
 
   private Flux<ServiceInstance> instanceStream(
@@ -219,5 +248,38 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
                     dockerEventWatcher.startWatching();
                   }
                 });
+  }
+
+  private Flux<String> getIpAddressesFlux(String hostname) {
+
+    final var name = Name.fromConstantString(hostname);
+    return Mono.fromCallable(
+            () -> {
+              try {
+                var resolver = new SimpleResolver();
+                //                resolver.setTCP(true);
+                resolver.setTimeout(Duration.ofSeconds(5));
+                return resolver;
+              } catch (UnknownHostException e) {
+                throw new UncheckedIOException(e);
+              }
+            })
+        .map(
+            resolver ->
+                LookupSession.defaultBuilder()
+                    .ndots(0)
+                    .clearCaches()
+                    .resolver(resolver)
+                    .executor(dnsExecutor)
+                    .build())
+        .flatMap(s -> Mono.fromCompletionStage(s.lookupAsync(name, Type.A)))
+        .publishOn(Schedulers.boundedElastic())
+        .flatMapMany(result -> Flux.fromIterable(result.getRecords()))
+        .map(ARecord.class::cast)
+        .map(ARecord::getAddress)
+        .map(InetAddress::getHostAddress)
+        .switchIfEmpty(Flux.just(hostname))
+        .doOnError(throwable -> log.error("Got {} looking up {}", throwable, hostname))
+        .onErrorReturn(hostname);
   }
 }

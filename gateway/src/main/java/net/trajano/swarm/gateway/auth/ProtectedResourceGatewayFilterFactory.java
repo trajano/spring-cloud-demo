@@ -17,6 +17,8 @@ import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * Checks if the service is protected, signified by `protected` metadata not being present or
@@ -31,6 +33,12 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
     extends AbstractGatewayFilterFactory<ProtectedResourceGatewayFilterFactory.Config> {
 
   private final ReactiveDiscoveryClient discoveryClient;
+
+  private final Scheduler protectedResourceScheduler =
+      Schedulers.newBoundedElastic(
+          Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+          Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+          "protected-resource");
 
   private final IdentityService<A, R, P> identityService;
 
@@ -55,7 +63,7 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
             .next()
             .map(ServiceInstance::getMetadata)
             .map(metadata -> Boolean.parseBoolean(metadata.getOrDefault("protected", "true")))
-            .filter(serviceProtected -> serviceProtected)
+            .publishOn(protectedResourceScheduler)
             .flatMap(
                 serviceProtected -> {
                   if (!serviceProtected) {

@@ -100,27 +100,31 @@ public class SimpleIdentityService<P>
   public Mono<JwtClaims> getClaims(String accessToken) {
 
     var jwtConsumerMono =
-        jsonWebKeySet()
-            .map(
-                jwks ->
-                    new JwtConsumerBuilder()
-                        .setVerificationKeyResolver(
-                            new JwksVerificationKeyResolver(jwks.getJsonWebKeys()))
-                        .setRequireSubject()
-                        .setRequireExpirationTime()
-                        .setRequireJwtId()
-                        .setAllowedClockSkewInSeconds(10)
-                        .setJwsAlgorithmConstraints(
-                            AlgorithmConstraints.ConstraintType.PERMIT,
-                            AlgorithmIdentifiers.RSA_USING_SHA256)
-                        .build());
+        jwksProvider
+            .jsonWebKeySetWithDuration()
+            .publishOn(jwtConsumerScheduler)
+            .flatMap(
+                t ->
+                    Mono.just(
+                            new JwtConsumerBuilder()
+                                .setVerificationKeyResolver(
+                                    new JwksVerificationKeyResolver(t.getT1().getJsonWebKeys()))
+                                .setRequireSubject()
+                                .setRequireExpirationTime()
+                                .setRequireJwtId()
+                                .setAllowedClockSkewInSeconds(10)
+                                .setJwsAlgorithmConstraints(
+                                    AlgorithmConstraints.ConstraintType.PERMIT,
+                                    AlgorithmIdentifiers.RSA_USING_SHA256)
+                                .build())
+                        .cache(t.getT2()));
 
     final Mono<String> jwtMono =
         Mono.fromCallable(
                 () ->
                     ZLibStringCompression.decompressIfNeeded(
                         accessToken, properties.getJwtSizeLimitInBytes()))
-            .publishOn(Schedulers.boundedElastic());
+            .publishOn(jwtConsumerScheduler);
 
     return Mono.zip(jwtMono, jwtConsumerMono)
         .flatMap(t -> getClaims(t.getT1(), t.getT2()))

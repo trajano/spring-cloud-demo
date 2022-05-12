@@ -10,11 +10,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.validation.constraints.NotNull;
-import org.xbill.DNS.ARecord;
-import org.xbill.DNS.Name;
-import org.xbill.DNS.SimpleResolver;
-import org.xbill.DNS.Type;
+import org.xbill.DNS.*;
 import org.xbill.DNS.lookup.LookupSession;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 public class Util {
 
@@ -80,6 +80,21 @@ public class Util {
                 ? Stream.of(labels.get(config.idLabel()))
                 : Stream.empty())
         .distinct();
+  }
+
+  public static Flux<String> getIpAddressesFlux(String hostname, Resolver resolver) {
+
+    final var name = Name.fromConstantString(hostname);
+    return Mono.just(
+            LookupSession.defaultBuilder().ndots(0).clearCaches().resolver(resolver).build())
+        .flatMap(s -> Mono.fromCompletionStage(s.lookupAsync(name, Type.A)))
+        .publishOn(Schedulers.boundedElastic())
+        .flatMapMany(result -> Flux.fromIterable(result.getRecords()))
+        .map(ARecord.class::cast)
+        .map(ARecord::getAddress)
+        .map(InetAddress::getHostAddress)
+        .switchIfEmpty(Flux.just(hostname))
+        .onErrorReturn(hostname);
   }
 
   public static Stream<String> getIpAddresses(String hostname) {

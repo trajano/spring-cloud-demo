@@ -10,7 +10,7 @@ config:
       # arrivalRate: 4
 #      maxVusers: 2
   http:
-    timeout: 10
+    timeout: 20
   environments:
     localhost-direct-small-load:
       target: "http://localhost:28082"
@@ -76,7 +76,7 @@ config:
           # it will be part of the limit
           maxVusers: 750
     api-heavy-load:
-      target: "https://api.trajano.net"
+      target: "https://m0.lj-ppe.devhaus.net"
       phases:
         - name: warmup
           duration: 10
@@ -138,27 +138,27 @@ scenarios:
             Authorization: "Bearer {{ access_token }}"
           expect:
             - statusCode: 200
-      - post:
-          url: "/refresh"
-          form:
-            refresh_token: "{{ refresh_token }}"
-            grant_type: refresh_token
-          headers:
-            Content-Type: application/x-www-form-urlencoded
-          capture:
-            - json: "$.access_token"
-              as: "access_token"
-            - json: "$.refresh_token"
-              as: "refresh_token"
-          expect:
-            - statusCode: 200
-      - get:
-          url: "/whoami"
-          headers:
-            Accept: application/json
-            Authorization: "Bearer {{ access_token }}"
-          expect:
-            - statusCode: 200
+#      - post:
+#          url: "/refresh"
+#          form:
+#            refresh_token: "{{ refresh_token }}"
+#            grant_type: refresh_token
+#          headers:
+#            Content-Type: application/x-www-form-urlencoded
+#          capture:
+#            - json: "$.access_token"
+#              as: "access_token"
+#            - json: "$.refresh_token"
+#              as: "refresh_token"
+#          expect:
+#            - statusCode: 200
+#      - get:
+#          url: "/whoami"
+#          headers:
+#            Accept: application/json
+#            Authorization: "Bearer {{ access_token }}"
+#          expect:
+#            - statusCode: 200
       - post:
           url: "/logout"
           form:

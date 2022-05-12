@@ -1,4 +1,8 @@
 spring:
+  redis:
+    lettuce:
+      pool:
+        max-wait: 2s
   sleuth:
     reactor:
       instrumentation-type: decorate_queues

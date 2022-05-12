@@ -9,16 +9,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import net.trajano.swarm.gateway.jwks.JwksProvider;
-import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.lang.JoseException;
 import org.springframework.data.redis.core.ReactiveHashOperations;
-import org.springframework.data.redis.core.ReactiveSetOperations;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.data.redis.core.ReactiveValueOperations;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
@@ -61,8 +58,6 @@ public class RedisAuthCache {
 
   private KeyGenerator keyGenerator;
 
-  private KeyFactory rsaKeyFactory;
-
   private SecureRandom secureRandom;
 
   private static JsonWebKeySet stringToJwks(String s) {
@@ -101,7 +96,6 @@ public class RedisAuthCache {
       keyGenerator = KeyGenerator.getInstance("AES");
       secureRandom = SecureRandom.getInstanceStrong();
       keyGenerator.init(256, secureRandom);
-      rsaKeyFactory = KeyFactory.getInstance(RSA);
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException(e);
     }
@@ -110,29 +104,6 @@ public class RedisAuthCache {
   public Mono<Boolean> isJwtIdValid(String jwtId) {
 
     return redisTemplate.hasKey(redisKeyBlocks.accessTokenJtiKey(jwtId));
-  }
-
-  public Flux<JsonWebKey> jwks() {
-
-    final ReactiveSetOperations<String, String> ops = redisTemplate.opsForSet();
-
-    return redisTemplate
-        .getExpire(redisKeyBlocks.currentSigningRedisKey())
-        .publishOn(Schedulers.boundedElastic())
-        .filter(duration -> !duration.isZero())
-        // at this point a I have a duration that is positive or empty or else illegal state since
-        // signing keys must always have an expiration and must exist
-        .switchIfEmpty(Mono.error(new IllegalStateException("Expected signing keys to exist")))
-        .flatMapMany(
-            duration ->
-                Flux.merge(
-                        ops.scan(redisKeyBlocks.currentSigningRedisKey()),
-                        ops.scan(redisKeyBlocks.previousSigningRedisKey()))
-                    .publishOn(Schedulers.boundedElastic())
-                    .map(RedisAuthCache::stringToJwks)
-                    .flatMap(jwks -> Flux.fromIterable(jwks.getJsonWebKeys()))
-                    .filter(jwk -> RSA.equals(jwk.getKeyType()))
-                    .cache(duration));
   }
 
   public AuthenticationItem populateClaimsFromSecret(AuthenticationItem authenticationItem) {

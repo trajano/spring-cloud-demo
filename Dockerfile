@@ -38,7 +38,10 @@ FROM openjdk:17-jdk as gateway
 WORKDIR /w
 COPY --from=extractor /w/gateway/* /w/
 COPY --from=doc-builder /w/dist/openapi.json /
-ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java","-Dorg.slf4j.simpleLogger.defaultLogLevel=debug","org.springframework.boot.loader.JarLauncher"]
+
+# ENTRYPOINT ["java","-XX:+AllowRedefinitionToAddDeleteMethods","org.springframework.boot.loader.JarLauncher"]
+#ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
 HEALTHCHECK --interval=5s --start-period=60s \
     CMD curl -sfo /dev/null http://localhost:8080/actuator/health
 # Must be root in order to access /var/run/docker.sock
@@ -50,6 +53,8 @@ WORKDIR /w
 COPY --from=extractor /w/gateway/* /w/
 COPY --from=doc-builder /w/dist/openapi.json /
 ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
+# ENTRYPOINT ["java","-XX:+AllowRedefinitionToAddDeleteMethods","org.springframework.boot.loader.JarLauncher"]
+#ENTRYPOINT ["java","-Dorg.slf4j.simpleLogger.defaultLogLevel=trace","org.springframework.boot.loader.JarLauncher"]
 HEALTHCHECK --interval=5s --start-period=60s \
     CMD wget -qO /dev/null http://localhost:8080/actuator/health
 # Must be root in order to access /var/run/docker.sock

@@ -65,7 +65,9 @@ services:
       - DOCKER_DISCOVERY_SWARMMODE=true
 #      - DOCKER_DISCOVERY_DAEMONFULLACCESS=false
 #      - DOCKER_HOST=tcp://daemon:2375
-      - LOGGING_LEVEL_NET_TRAJANO=info
+      # - LOGGING_LEVEL_NET_TRAJANO=trace
+      - LOGGING_LEVEL_NET_TRAJANO=debug
+      - LOGGING_LEVEL_ORG_XBILL=trace
       - LOGGING_LEVEL_ROOT=error
       # - LOGGING_LEVEL_NET_TRAJANO_SWARM_GATEWAY_DISCOVERY=debug
       #- LOGGING_LEVEL_ROOT=error
@@ -194,73 +196,73 @@ services:
       docker.xxx.path: /xxx/**
     networks:
       - services
-  wsecho:
-    image: solsson/websocat
-    command: "--text ws-l:0.0.0.0:8080 broadcast:mirror:"
-    deploy:
-      labels:
-        docker.ids: wsecho
-        docker.wsecho.path: /wsecho/**
-        docker.wsecho.port: 8080
-      resources:
-        limits:
-          memory: 64m
-      replicas: 0
-      endpoint_mode: vip
-    networks:
-      - services
-  httpbin:
-    image: kennethreitz/httpbin
-    deploy:
-      labels:
-        docker.ids: httpbin
-        docker.httpbin.path: /httpbin/**
-        docker.httpbin.path.replacement: /$${remaining}
-        docker.httpbin.port: 80
-      resources:
-        limits:
-          memory: 64m
-      replicas: 0
-      endpoint_mode: vip
-    networks:
-      - services
-  whoami2:
-    image: containous/whoami
-    deploy:
-      labels:
-        traefik.enable: "true"
-        traefik.http.routers.whoami2.rule: "PathPrefix(`/w/`)"
-        traefik.http.routers.whoami2.entryPoints: "http"
-        traefik.http.routers.whoami2.priority: "1000"
-        traefik.http.services.whoami2.loadbalancer.server.port: "80"
-
-        docker.ids: whoami2
-        docker.whoami2.path: /whoami2/**
-        docker.whoami2.path.replacement: /$${remaining}
-        docker.whoami2.port: 80
-      replicas: 0
-      endpoint_mode: vip
-      resources:
-        limits:
-          memory: 64m
-    networks:
-      - services
-      - edge
-  whoami3:
-    image: containous/whoami
-    deploy:
-      labels:
-        docker.ids: whoami3
-        docker.whoami3.path: /non/**
-        docker.whoami3.path.replacement: /$${remaining}
-        docker.whoami3.port: 80
-      replicas: 0
-      endpoint_mode: vip
-      resources:
-        limits:
-          memory: 64m
-    networks:
-      - services
+#  wsecho:
+#    image: solsson/websocat
+#    command: "--text ws-l:0.0.0.0:8080 broadcast:mirror:"
+#    deploy:
+#      labels:
+#        docker.ids: wsecho
+#        docker.wsecho.path: /wsecho/**
+#        docker.wsecho.port: 8080
+#      resources:
+#        limits:
+#          memory: 64m
+#      replicas: 0
+#      endpoint_mode: vip
+#    networks:
+#      - services
+#  httpbin:
+#    image: kennethreitz/httpbin
+#    deploy:
+#      labels:
+#        docker.ids: httpbin
+#        docker.httpbin.path: /httpbin/**
+#        docker.httpbin.path.replacement: /$${remaining}
+#        docker.httpbin.port: 80
+#      resources:
+#        limits:
+#          memory: 64m
+#      replicas: 0
+#      endpoint_mode: vip
+#    networks:
+#      - services
+#  whoami2:
+#    image: containous/whoami
+#    deploy:
+#      labels:
+#        traefik.enable: "true"
+#        traefik.http.routers.whoami2.rule: "PathPrefix(`/w/`)"
+#        traefik.http.routers.whoami2.entryPoints: "http"
+#        traefik.http.routers.whoami2.priority: "1000"
+#        traefik.http.services.whoami2.loadbalancer.server.port: "80"
+#
+#        docker.ids: whoami2
+#        docker.whoami2.path: /whoami2/**
+#        docker.whoami2.path.replacement: /$${remaining}
+#        docker.whoami2.port: 80
+#      replicas: 0
+#      endpoint_mode: vip
+#      resources:
+#        limits:
+#          memory: 64m
+#    networks:
+#      - services
+#      - edge
+#  whoami3:
+#    image: containous/whoami
+#    deploy:
+#      labels:
+#        docker.ids: whoami3
+#        docker.whoami3.path: /non/**
+#        docker.whoami3.path.replacement: /$${remaining}
+#        docker.whoami3.port: 80
+#      replicas: 0
+#      endpoint_mode: vip
+#      resources:
+#        limits:
+#          memory: 64m
+#    networks:
+#      - services
 networks:
   daemon:
     internal: true
@@ -270,3 +272,4 @@ networks:
     internal: false
   services:
     name: services
+    attachable: true

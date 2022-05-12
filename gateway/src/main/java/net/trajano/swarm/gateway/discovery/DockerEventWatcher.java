@@ -20,7 +20,9 @@ public class DockerEventWatcher { // implements ApplicationListener<ContextClose
   private final DockerServiceInstanceLister dockerServiceInstanceLister;
 
   private final DockerDiscoveryProperties dockerDiscoveryProperties;
-  private final Scheduler dockerWatchScheduler = Schedulers.newSingle("docker-watch");
+  private final Scheduler dockerWatchScheduler =
+      Schedulers.newBoundedElastic(
+          10, Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE, "docker-watch");
 
   private final ReactiveDockerClient reactiveDockerClient;
 

@@ -18,6 +18,8 @@ import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactive
 public class GatewayApplication {
 
   public static void main(String[] args) {
+
+    //    BlockHound.install();
     SpringApplication.run(GatewayApplication.class, args);
   }
 }

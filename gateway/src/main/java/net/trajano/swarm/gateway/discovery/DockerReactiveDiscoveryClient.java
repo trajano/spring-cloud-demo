@@ -37,7 +37,7 @@ public class DockerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
       return Flux.empty();
     }
     final var instances = dockerServiceInstanceLister.getInstances(serviceId);
-    log.debug("instances: {}", instances);
+    log.trace("instances: {}", instances);
     return Flux.fromIterable(instances);
   }
 
@@ -45,7 +45,7 @@ public class DockerReactiveDiscoveryClient implements ReactiveDiscoveryClient {
   public Flux<String> getServices() {
 
     final var services = dockerServiceInstanceLister.getServices();
-    log.debug("services: {}", services);
+    log.trace("services: {}", services);
     return Flux.fromIterable(services);
   }
 }
