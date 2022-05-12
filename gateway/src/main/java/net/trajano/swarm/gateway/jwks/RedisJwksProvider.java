@@ -55,8 +55,7 @@ public class RedisJwksProvider implements JwksProvider {
                         .flatMap(jwks -> Flux.fromIterable(jwks.getJsonWebKeys()))
                         .filter(jwk -> RSA.equals(jwk.getKeyType()))
                         .collectList()
-                        .map(JsonWebKeySet::new)
-                        .cache(duration),
+                        .map(JsonWebKeySet::new),
                     Mono.just(duration)));
   }
 

@@ -47,6 +47,11 @@ public class SimpleIdentityService<P>
           Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
           Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
           "jwtConsumer");
+  private final Scheduler refreshTokenScheduler =
+      Schedulers.newBoundedElastic(
+          Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+          Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+          "refreshToken");
 
   /**
    * {@inheritDoc} Performs an authentication check. If {@link
@@ -101,23 +106,21 @@ public class SimpleIdentityService<P>
 
     var jwtConsumerMono =
         jwksProvider
-            .jsonWebKeySetWithDuration()
+            .jsonWebKeySet()
             .publishOn(jwtConsumerScheduler)
-            .flatMap(
+            .map(
                 t ->
-                    Mono.just(
-                            new JwtConsumerBuilder()
-                                .setVerificationKeyResolver(
-                                    new JwksVerificationKeyResolver(t.getT1().getJsonWebKeys()))
-                                .setRequireSubject()
-                                .setRequireExpirationTime()
-                                .setRequireJwtId()
-                                .setAllowedClockSkewInSeconds(10)
-                                .setJwsAlgorithmConstraints(
-                                    AlgorithmConstraints.ConstraintType.PERMIT,
-                                    AlgorithmIdentifiers.RSA_USING_SHA256)
-                                .build())
-                        .cache(t.getT2()));
+                    new JwtConsumerBuilder()
+                        .setVerificationKeyResolver(
+                            new JwksVerificationKeyResolver(t.getJsonWebKeys()))
+                        .setRequireSubject()
+                        .setRequireExpirationTime()
+                        .setRequireJwtId()
+                        .setAllowedClockSkewInSeconds(10)
+                        .setJwsAlgorithmConstraints(
+                            AlgorithmConstraints.ConstraintType.PERMIT,
+                            AlgorithmIdentifiers.RSA_USING_SHA256)
+                        .build());
 
     final Mono<String> jwtMono =
         Mono.fromCallable(
@@ -153,6 +156,7 @@ public class SimpleIdentityService<P>
   public Mono<String> getRefreshTokenKey(String refreshToken) {
 
     return jsonWebKeySet()
+        .publishOn(refreshTokenScheduler)
         .map(
             jwks ->
                 new JwtConsumerBuilder()

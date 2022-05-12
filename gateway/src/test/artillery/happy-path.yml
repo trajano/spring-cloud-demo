@@ -138,20 +138,20 @@ scenarios:
             Authorization: "Bearer {{ access_token }}"
           expect:
             - statusCode: 200
-#      - post:
-#          url: "/refresh"
-#          form:
-#            refresh_token: "{{ refresh_token }}"
-#            grant_type: refresh_token
-#          headers:
-#            Content-Type: application/x-www-form-urlencoded
-#          capture:
-#            - json: "$.access_token"
-#              as: "access_token"
-#            - json: "$.refresh_token"
-#              as: "refresh_token"
-#          expect:
-#            - statusCode: 200
+      - post:
+          url: "/refresh"
+          form:
+            refresh_token: "{{ refresh_token }}"
+            grant_type: refresh_token
+          headers:
+            Content-Type: application/x-www-form-urlencoded
+          capture:
+            - json: "$.access_token"
+              as: "access_token"
+            - json: "$.refresh_token"
+              as: "refresh_token"
+          expect:
+            - statusCode: 200
 #      - get:
 #          url: "/whoami"
 #          headers:

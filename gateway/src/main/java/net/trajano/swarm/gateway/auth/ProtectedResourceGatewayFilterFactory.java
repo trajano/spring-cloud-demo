@@ -70,7 +70,7 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
                     log.trace("service not protected");
                     return chain.filter(exchange);
                   } else {
-                    log.debug("service protected");
+                    log.trace("service protected");
 
                     final String authorization =
                         exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
