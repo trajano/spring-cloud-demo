@@ -84,7 +84,7 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
     final var spec = (Map<String, Object>) service.getRawValues().get("Spec");
     final var mode = (Map<String, Object>) service.getRawValues().get("Mode");
     // don't bother doing anything if the replica count is zero.
-    if (mode.containsKey("Replicated")) {
+    if (mode != null && mode.containsKey("Replicated")) {
       final Map<String, Object> replicated = (Map<String, Object>) mode.get("Replicated");
       if (replicated.get("Replicas").equals(0)) {
         return Flux.empty();

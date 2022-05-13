@@ -241,8 +241,16 @@ public class SimpleIdentityService<P>
                 AuthenticationItem.builder().refreshToken(unsignedRefereshToken).build())
         .flatMap(redisTokenCache::populateSecretFromRefreshToken)
         .map(redisTokenCache::populateClaimsFromSecret)
-        .flatMap(redisTokenCache::provideClaimsJsonAndUnsignedRefreshToken)
-        .flatMap(redisTokenCache::provideAccessTokenAndRefreshToken)
+        .flatMap(
+            authenticationItem1 ->
+                redisTokenCache
+                    .provideClaimsJsonAndUnsignedRefreshToken(authenticationItem1)
+                    .transform(this::reportExecutionTime2))
+        .flatMap(
+            authenticationItem ->
+                redisTokenCache
+                    .provideAccessTokenAndRefreshToken(authenticationItem)
+                    .transform(this::reportExecutionTime))
         .map(redisTokenCache::provideOAuthToken)
         .map(token -> AuthServiceResponse.builder().operationResponse(token).build())
         .onErrorReturn(
@@ -251,6 +259,34 @@ public class SimpleIdentityService<P>
                 .statusCode(HttpStatus.UNAUTHORIZED)
                 .delay(Duration.ofMillis(properties.getPenaltyDelayInMillis()))
                 .build());
+  }
+
+  private <T> Mono<T> reportExecutionTime(Mono<T> mono) {
+    String taskStartMsKey = "task.start";
+
+    return Mono.deferContextual(
+            ctx ->
+                mono.doOnSuccess(
+                    ignored -> {
+                      var executionTime =
+                          System.currentTimeMillis() - ctx.<Long>get(taskStartMsKey);
+                      log.error("execution time: {}", executionTime);
+                    }))
+        .contextWrite(ctx -> ctx.put(taskStartMsKey, System.currentTimeMillis()));
+  }
+
+  private <T> Mono<T> reportExecutionTime2(Mono<T> mono) {
+    String taskStartMsKey = "task.start";
+
+    return Mono.deferContextual(
+            ctx ->
+                mono.doOnSuccess(
+                    ignored -> {
+                      var executionTime =
+                          System.currentTimeMillis() - ctx.<Long>get(taskStartMsKey);
+                      log.error("execution time 2: {}", executionTime);
+                    }))
+        .contextWrite(ctx -> ctx.put(taskStartMsKey, System.currentTimeMillis()));
   }
 
   /**
