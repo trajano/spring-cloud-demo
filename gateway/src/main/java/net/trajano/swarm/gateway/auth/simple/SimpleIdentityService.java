@@ -47,6 +47,7 @@ public class SimpleIdentityService<P>
           Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
           Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
           "jwtConsumer");
+
   private final Scheduler refreshTokenScheduler =
       Schedulers.newBoundedElastic(
           Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
@@ -239,18 +240,22 @@ public class SimpleIdentityService<P>
         .map(
             unsignedRefereshToken ->
                 AuthenticationItem.builder().refreshToken(unsignedRefereshToken).build())
-        .flatMap(redisTokenCache::populateSecretFromRefreshToken)
+        .flatMap(
+            authenticationItem2 ->
+                redisTokenCache
+                    .populateSecretFromRefreshToken(authenticationItem2)
+                    .transform(mono -> reportExecutionTime(mono, "1")))
         .map(redisTokenCache::populateClaimsFromSecret)
         .flatMap(
             authenticationItem1 ->
                 redisTokenCache
                     .provideClaimsJsonAndUnsignedRefreshToken(authenticationItem1)
-                    .transform(this::reportExecutionTime2))
+                    .transform(mono1 -> reportExecutionTime(mono1, "2")))
         .flatMap(
             authenticationItem ->
                 redisTokenCache
                     .provideAccessTokenAndRefreshToken(authenticationItem)
-                    .transform(this::reportExecutionTime))
+                    .transform(m -> reportExecutionTime(m, "3")))
         .map(redisTokenCache::provideOAuthToken)
         .map(token -> AuthServiceResponse.builder().operationResponse(token).build())
         .onErrorReturn(
@@ -261,8 +266,9 @@ public class SimpleIdentityService<P>
                 .build());
   }
 
-  private <T> Mono<T> reportExecutionTime(Mono<T> mono) {
-    String taskStartMsKey = "task.start";
+  private <T> Mono<T> reportExecutionTime(Mono<T> mono, String tag) {
+
+    String taskStartMsKey = "task.start." + tag;
 
     return Mono.deferContextual(
             ctx ->
@@ -270,21 +276,9 @@ public class SimpleIdentityService<P>
                     ignored -> {
                       var executionTime =
                           System.currentTimeMillis() - ctx.<Long>get(taskStartMsKey);
-                      log.error("execution time: {}", executionTime);
-                    }))
-        .contextWrite(ctx -> ctx.put(taskStartMsKey, System.currentTimeMillis()));
-  }
-
-  private <T> Mono<T> reportExecutionTime2(Mono<T> mono) {
-    String taskStartMsKey = "task.start";
-
-    return Mono.deferContextual(
-            ctx ->
-                mono.doOnSuccess(
-                    ignored -> {
-                      var executionTime =
-                          System.currentTimeMillis() - ctx.<Long>get(taskStartMsKey);
-                      log.error("execution time 2: {}", executionTime);
+                      if (executionTime > 500) {
+                        log.error("execution time {}: {}", tag, executionTime);
+                      }
                     }))
         .contextWrite(ctx -> ctx.put(taskStartMsKey, System.currentTimeMillis()));
   }
@@ -325,6 +319,7 @@ public class SimpleIdentityService<P>
    * @return claims as is if valid.
    */
   private Mono<JwtClaims> validateClaims(JwtClaims jwtClaims) {
+
     try {
       return redisTokenCache
           .isJwtIdValid(jwtClaims.getJwtId())

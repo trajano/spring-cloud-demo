@@ -3,6 +3,7 @@ package net.trajano.swarm.gateway.auth.simple;
 import java.security.*;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import javax.annotation.PostConstruct;
 import javax.crypto.KeyGenerator;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +56,11 @@ public class RedisAuthCache {
           Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
           Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
           "generateRefreshToken");
+  private final Scheduler signingGenerator =
+      Schedulers.newBoundedElastic(
+          Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+          Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+          "signing");
 
   private KeyGenerator keyGenerator;
 
@@ -77,7 +83,7 @@ public class RedisAuthCache {
   private String generateRefreshToken() {
 
     final byte[] bytes = new byte[32];
-    secureRandom.nextBytes(bytes);
+    ThreadLocalRandom.current().nextBytes(bytes);
 
     final var jwtClaims = new JwtClaims();
     jwtClaims.setJwtId(Base64.getUrlEncoder().withoutPadding().encodeToString(bytes));
@@ -147,13 +153,13 @@ public class RedisAuthCache {
                     simpleAuthServiceProperties.isCompressClaims()
                         ? ZLibStringCompression.compress(jwt)
                         : jwt)
-            .subscribeOn(Schedulers.boundedElastic());
+            .publishOn(signingGenerator);
     final var signedRefreshTokenMono =
         jwksProvider
             .getSigningKey(simpleAuthServiceProperties.getAccessTokenExpiresInSeconds())
             .map(
                 signingJwks -> JwtFunctions.sign(signingJwks, authenticationItem.getRefreshToken()))
-            .subscribeOn(Schedulers.boundedElastic());
+            .publishOn(signingGenerator);
 
     return Mono.zip(signedAccessTokenMono, signedRefreshTokenMono)
         .map(t -> authenticationItem.withAccessToken(t.getT1()).withRefreshToken(t.getT2()));

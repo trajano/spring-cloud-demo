@@ -70,7 +70,7 @@ services:
 #      - DOCKER_HOST=tcp://daemon:2375
       # - LOGGING_LEVEL_NET_TRAJANO=trace
       - LOGGING_LEVEL_NET_TRAJANO=debug
-      - LOGGING_LEVEL_ORG_XBILL=trace
+#      - LOGGING_LEVEL_ORG_XBILL=trace
       - LOGGING_LEVEL_ROOT=error
       # - LOGGING_LEVEL_NET_TRAJANO_SWARM_GATEWAY_DISCOVERY=debug
       #- LOGGING_LEVEL_ROOT=error
@@ -106,7 +106,7 @@ services:
         traefik.http.middlewares.actuator.redirectregex.replacement: "/ping"
 
       update_config:
-#        order: start-first
+        order: start-first
         failure_action: pause
 #        parallelism: 1
       restart_policy:

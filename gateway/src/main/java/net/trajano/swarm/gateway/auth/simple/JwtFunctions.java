@@ -7,6 +7,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jws.AlgorithmIdentifiers;
@@ -14,6 +15,7 @@ import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.lang.JoseException;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@Slf4j
 public final class JwtFunctions {
 
   public static final String ALGORITHM_RSA = "RSA";
@@ -39,6 +41,7 @@ public final class JwtFunctions {
 
   public static String sign(JsonWebKeySet jwks, String payload) {
 
+    var start = System.currentTimeMillis();
     var signingKey = getSigningKeyFromJwks(jwks);
     var kid = getVerificationKeyIdFromJwks(jwks);
     final var jws = new JsonWebSignature();
@@ -51,6 +54,11 @@ public final class JwtFunctions {
       return jws.getCompactSerialization();
     } catch (JoseException e) {
       throw new IllegalStateException(e);
+    } finally {
+      final long l = System.currentTimeMillis() - start;
+      if (l > 500) {
+        log.error("Time " + l);
+      }
     }
   }
 
