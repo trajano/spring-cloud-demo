@@ -82,6 +82,15 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
       return Flux.empty();
     }
     final var spec = (Map<String, Object>) service.getRawValues().get("Spec");
+    final var mode = (Map<String, Object>) service.getRawValues().get("Mode");
+    // don't bother doing anything if the replica count is zero.
+    if (mode.containsKey("Replicated")) {
+      final Map<String, Object> replicated = (Map<String, Object>) mode.get("Replicated");
+      if (replicated.get("Replicas").equals(0)) {
+        return Flux.empty();
+      }
+    }
+
     final var taskTemplate = (Map<String, Object>) spec.get("TaskTemplate");
     final var serviceNetworks = (List<Map<String, Object>>) taskTemplate.get("Networks");
 
@@ -93,7 +102,7 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
         .log()
         .filter(stringObjectMap -> network.getId().equals(stringObjectMap.get("Target")))
         .flatMap(n -> Flux.fromIterable((List<String>) n.get("Aliases")))
-        .flatMap(hostname -> getIpAddressesFlux(hostname))
+        .flatMap(this::getIpAddressesFlux)
         .log()
         .flatMap(
             address ->

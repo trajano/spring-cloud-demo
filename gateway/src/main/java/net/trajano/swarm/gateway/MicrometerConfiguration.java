@@ -4,6 +4,7 @@ import io.micrometer.cloudwatch2.CloudWatchConfig;
 import io.micrometer.cloudwatch2.CloudWatchMeterRegistry;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.MeterRegistry;
+import java.time.Duration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
@@ -19,6 +20,12 @@ public class MicrometerConfiguration {
           public String get(String s) {
 
             return null;
+          }
+
+          @Override
+          public Duration step() {
+
+            return Duration.ofSeconds(5);
           }
 
           @Override
