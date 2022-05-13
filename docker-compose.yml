@@ -53,7 +53,7 @@ services:
           - node.role == manager
       resources:
         limits:
-          cpus: '0.5'
+#          cpus: '0.5'
           memory: 32M
   gateway:
     build:
@@ -63,6 +63,9 @@ services:
     environment:
       - SPRING_REDIS_HOST=redis
       - DOCKER_DISCOVERY_SWARMMODE=true
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_REGION=${AWS_REGION:-}
 #      - DOCKER_DISCOVERY_DAEMONFULLACCESS=false
 #      - DOCKER_HOST=tcp://daemon:2375
       # - LOGGING_LEVEL_NET_TRAJANO=trace

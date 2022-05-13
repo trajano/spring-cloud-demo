@@ -22,7 +22,7 @@ ext {
 dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
 	implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-
+	implementation 'io.micrometer:micrometer-registry-cloudwatch2:latest.release'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'

@@ -1,0 +1,33 @@
+package net.trajano.swarm.gateway;
+
+import io.micrometer.cloudwatch2.CloudWatchConfig;
+import io.micrometer.cloudwatch2.CloudWatchMeterRegistry;
+import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
+
+@Component
+public class MicrometerConfiguration {
+  @Bean
+  MeterRegistry meterRegistry() {
+
+    CloudWatchConfig cloudWatchConfig =
+        new CloudWatchConfig() {
+          @Override
+          public String get(String s) {
+
+            return null;
+          }
+
+          @Override
+          public String namespace() {
+
+            return "g2";
+          }
+        };
+    return new CloudWatchMeterRegistry(
+        cloudWatchConfig, Clock.SYSTEM, CloudWatchAsyncClient.create());
+  }
+}

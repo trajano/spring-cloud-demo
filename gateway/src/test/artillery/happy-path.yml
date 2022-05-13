@@ -1,8 +1,8 @@
 config:
   target: "http://localhost:28082"
   plugins:
-    expect:
-      outputFormat: prettyError
+    expect: {}
+#      outputFormat: prettyError
   phases:
     - duration: 1
       arrivalCount: 20

@@ -1,3 +1,4 @@
+This complements my other project [docker-swarm-aws-terraform-module]()
 ## Components
 
 * `gateway` the gateway
