@@ -99,11 +99,9 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
             .toList();
 
     return Flux.fromIterable(serviceNetworks)
-        .log()
         .filter(stringObjectMap -> network.getId().equals(stringObjectMap.get("Target")))
         .flatMap(n -> Flux.fromIterable((List<String>) n.get("Aliases")))
         .flatMap(this::getIpAddressesFlux)
-        .log()
         .flatMap(
             address ->
                 Flux.fromStream(
@@ -115,21 +113,6 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
                                     dockerDiscoveryProperties.getLabelPrefix(),
                                     serviceId,
                                     address))));
-    //    return Flux.fromStream(
-    //        serviceNetworks.stream()
-    //            .filter(n -> n.get("Target").equals(network.getId()))
-    //            .flatMap(n -> ((List<String>) n.get("Aliases")).stream())
-    //            .flatMap(Util::getIpAddresses)
-    //            .flatMap(
-    //                address ->
-    //                    serviceIds.stream()
-    //                        .map(
-    //                            serviceId ->
-    //                                new DockerServiceInstance(
-    //                                    service,
-    //                                    dockerDiscoveryProperties.getLabelPrefix(),
-    //                                    serviceId,
-    //                                    address))));
   }
 
   private Flux<ServiceInstance> instanceStream(

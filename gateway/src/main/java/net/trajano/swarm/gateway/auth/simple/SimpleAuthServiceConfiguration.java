@@ -30,10 +30,9 @@ public class SimpleAuthServiceConfiguration {
 
   @Bean
   <P> SimpleIdentityService<P> simpleAuthService(
-      final RedisAuthCache redisAuthCache,
       final JwksProvider jwksProvider,
       final SimpleAuthServiceProperties simpleAuthServiceProperties) {
 
-    return new SimpleIdentityService<>(simpleAuthServiceProperties, jwksProvider, redisAuthCache);
+    return new SimpleIdentityService<>(jwksProvider);
   }
 }

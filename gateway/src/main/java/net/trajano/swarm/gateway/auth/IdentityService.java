@@ -1,6 +1,5 @@
 package net.trajano.swarm.gateway.auth;
 
-import java.util.Map;
 import org.jose4j.jwt.JwtClaims;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
@@ -49,14 +48,4 @@ public interface IdentityService<A, P> {
 
     return exchange;
   }
-
-  /**
-   * Refreshes the token and returns a new authentication response. May throw a {@link
-   * IllegalArgumentException} if the token is not valid or expired.
-   *
-   * @param secrets obtained from current refresh token
-   * @param headers HTTP headers
-   * @return updated secrets to pass for refresh
-   */
-  Mono<Map<String, String>> refresh(Map<String, String> secrets, HttpHeaders headers);
 }

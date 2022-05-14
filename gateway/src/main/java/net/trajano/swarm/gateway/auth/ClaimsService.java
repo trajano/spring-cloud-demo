@@ -27,6 +27,13 @@ public interface ClaimsService {
 
   Mono<AuthServiceResponse<GatewayResponse>> revoke(String refreshToken, HttpHeaders headers);
 
+  /**
+   * Stores the data and signs the tokens as needed. It will set the expiration times based on the
+   * identity service response as appropriate.
+   *
+   * @param identityServiceResponse
+   * @return
+   */
   Mono<GatewayResponse> storeAndSignIdentityServiceResponse(
       IdentityServiceResponse identityServiceResponse);
 }

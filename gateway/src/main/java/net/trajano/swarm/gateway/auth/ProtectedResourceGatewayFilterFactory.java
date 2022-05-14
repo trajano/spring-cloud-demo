@@ -91,7 +91,6 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
                       final String bearerToken = authorization.substring("Bearer ".length());
                       return claimsService
                           .getClaims(bearerToken)
-                          .log()
                           .flatMap(
                               jwtClaims ->
                                   chain.filter(

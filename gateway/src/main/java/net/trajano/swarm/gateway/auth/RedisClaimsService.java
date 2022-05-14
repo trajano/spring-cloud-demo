@@ -3,10 +3,9 @@ package net.trajano.swarm.gateway.auth;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import net.trajano.swarm.gateway.auth.simple.JwtFunctions;
@@ -22,6 +21,8 @@ import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
+import org.jose4j.jwt.NumericDate;
+import org.jose4j.jwt.ReservedClaimNames;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
@@ -73,15 +74,14 @@ public class RedisClaimsService implements ClaimsService {
 
   private SecureRandom secureRandom;
 
-  private String generateRefreshToken(Random random) {
+  private String generateRefreshToken(Random random, Instant expiresAt) {
 
     final byte[] bytes = new byte[32];
     random.nextBytes(bytes);
 
     final var jwtClaims = new JwtClaims();
     jwtClaims.setJwtId(Base64.getUrlEncoder().withoutPadding().encodeToString(bytes));
-    jwtClaims.setExpirationTimeMinutesInTheFuture(
-        properties.getRefreshTokenExpiresInSeconds() / 60.0f);
+    jwtClaims.setExpirationTime(NumericDate.fromMilliseconds(expiresAt.toEpochMilli()));
     return jwtClaims.toJson();
   }
 
@@ -114,9 +114,7 @@ public class RedisClaimsService implements ClaimsService {
             .publishOn(jwtConsumerScheduler);
 
     return Mono.zip(jwtMono, jwtConsumerMono)
-        .log()
         .flatMap(t -> getClaims(t.getT1(), t.getT2()))
-        .log()
         .flatMap(this::validateClaims);
   }
 
@@ -178,6 +176,11 @@ public class RedisClaimsService implements ClaimsService {
     }
   }
 
+  private Mono<Boolean> isJwtIdValid(String jwtId) {
+
+    return redisTemplate.hasKey(redisKeyBlocks.accessTokenJtiKey(jwtId));
+  }
+
   /**
    * Refreshes the token and returns a new authentication response. May throw a {@link
    * IllegalArgumentException} if the token is not valid or expired.
@@ -224,143 +227,6 @@ public class RedisClaimsService implements ClaimsService {
                 .build());
   }
 
-  @Override
-  public Mono<GatewayResponse> storeAndSignIdentityServiceResponse(
-      IdentityServiceResponse identityServiceResponse) {
-
-    return Mono.zip(
-        args -> {
-          var claims = ((Tuple2<JwtClaims, String>) args[0]).getT1();
-          var unsignedRefreshTokenJson = ((Tuple2<JwtClaims, String>) args[0]).getT2();
-          var jwks = (JsonWebKeySet) args[1];
-          String accessToken = JwtFunctions.sign(jwks, claims.toJson());
-          if (properties.isCompressClaims()) {
-            accessToken = ZLibStringCompression.compress(accessToken);
-          }
-
-          final String refreshToken = JwtFunctions.sign(jwks, unsignedRefreshTokenJson);
-          var oauthTokenResponse = new OAuthTokenResponse();
-          oauthTokenResponse.setOk(true);
-          oauthTokenResponse.setAccessToken(accessToken);
-          oauthTokenResponse.setRefreshToken(refreshToken);
-          oauthTokenResponse.setTokenType("Bearer");
-          oauthTokenResponse.setExpiresIn(properties.getAccessTokenExpiresInSeconds());
-          return oauthTokenResponse;
-        },
-        storeIdentityServiceResponse(identityServiceResponse),
-        jwksProvider.getSigningKey(properties.getAccessTokenExpiresInSeconds()));
-  }
-
-  /**
-   *
-   *
-   * <ol>
-   *   <li>The client claims are modified so that it has a JTI, Expiration and other system claims
-   *       added.
-   *   <li>split
-   *       <ul>
-   *         <li>secret
-   *             <ol>
-   *               <li>The secrets are modified so that it has JTI from the client claims.
-   *               <li>This generates a new refresh token.
-   *               <li>The secrets are stored into refresh-tokens redis.
-   *             </ol>
-   *         <li>The client claims are signed
-   *       </ul>
-   *   <li>access token JTI is stored in another redis cache (used for revocations)
-   * </ol>
-   *
-   * @return
-   */
-  private Mono<Tuple2<JwtClaims, String>> storeIdentityServiceResponse(
-      IdentityServiceResponse identityServiceResponse) {
-
-    final ReactiveValueOperations<String, String> opsForValue = redisTemplate.opsForValue();
-    final ReactiveHashOperations<String, String, String> opsForHash = redisTemplate.opsForHash();
-    return withSystemClaims(identityServiceResponse.getClaims())
-        .flatMap(
-            claims -> {
-              try {
-                final String refreshToken = generateRefreshToken(secureRandom);
-                final String refreshTokenRedisKey = redisKeyBlocks.forRefreshToken(refreshToken);
-                final String jwtId = claims.getJwtId();
-
-                return Mono.ignoreElements(
-                        Mono.just(identityServiceResponse.getSecretClaims())
-                            .map(JwtClaims::toJson)
-                            .flatMap(
-                                secretClaimsJson ->
-                                    opsForHash.putAll(
-                                        refreshTokenRedisKey,
-                                        Map.of("secret", secretClaimsJson, "jti", jwtId)))
-                            .filter(success -> success)
-                            .flatMap(
-                                ig ->
-                                    opsForValue.set(redisKeyBlocks.accessTokenJtiKey(jwtId), jwtId))
-                            .filter(success -> success)
-                            .switchIfEmpty(Mono.error(IllegalStateException::new)))
-                    .thenReturn(Tuples.of(claims, refreshToken));
-              } catch (MalformedClaimException e) {
-                return Mono.error(e);
-              }
-            });
-  }
-
-  /**
-   * Checks if the JwtId is still valid
-   *
-   * @param jwtClaims claims
-   * @return claims as is if valid.
-   */
-  private Mono<JwtClaims> validateClaims(JwtClaims jwtClaims) {
-
-    try {
-      final String jwtId = jwtClaims.getJwtId();
-      return isJwtIdValid(jwtId)
-          .log()
-          .filter(isValid -> isValid)
-          .switchIfEmpty(
-              Mono.error(
-                  new SecurityException(
-                      "unable to find redis key %s"
-                          .formatted(redisKeyBlocks.accessTokenJtiKey(jwtId)))))
-          .map(ignored -> jwtClaims);
-    } catch (MalformedClaimException e) {
-      return Mono.error(e);
-    }
-  }
-
-  private Mono<Boolean> isJwtIdValid(String jwtId) {
-
-    return redisTemplate.hasKey(redisKeyBlocks.accessTokenJtiKey(jwtId));
-  }
-
-  private Mono<JwtClaims> withJti(String jti, JwtClaims sourceClaims) {
-
-    try {
-      final var claims = JwtClaims.parse(sourceClaims.toJson());
-      claims.setJwtId(jti);
-      return Mono.just(claims);
-    } catch (InvalidJwtException e) {
-      return Mono.error(e);
-    }
-  }
-
-  private Mono<JwtClaims> withSystemClaims(JwtClaims sourceClaims) {
-
-    try {
-      final var claims = JwtClaims.parse(sourceClaims.toJson());
-      claims.setGeneratedJwtId();
-      claims.setIssuer(properties.getIssuer());
-
-      claims.setExpirationTimeMinutesInTheFuture(
-          properties.getAccessTokenExpiresInSeconds() / 60.0f);
-      return Mono.just(claims);
-    } catch (InvalidJwtException e) {
-      return Mono.error(e);
-    }
-  }
-
   /**
    * Revokes the token. If the token didn't exist, add a 5-second penalty.
    *
@@ -394,5 +260,195 @@ public class RedisClaimsService implements ClaimsService {
                     .statusCode(HttpStatus.OK)
                     .delay(Duration.ofMillis(properties.getPenaltyDelayInMillis()))
                     .build()));
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  @SuppressWarnings("unchecked")
+  public Mono<GatewayResponse> storeAndSignIdentityServiceResponse(
+      IdentityServiceResponse identityServiceResponse) {
+
+    if (!identityServiceResponse.isOk()) {
+      return Mono.error(IllegalStateException::new);
+    }
+
+    final int accessTokenExpiresInSeconds;
+    try {
+      if (Objects.requireNonNull(identityServiceResponse.getClaims())
+          .hasClaim(ReservedClaimNames.EXPIRATION_TIME)) {
+        final Instant expiresAt =
+            Instant.ofEpochSecond(
+                identityServiceResponse.getClaims().getExpirationTime().getValue());
+        accessTokenExpiresInSeconds = (int) Duration.between(Instant.now(), expiresAt).toSeconds();
+      } else {
+        accessTokenExpiresInSeconds = properties.getAccessTokenExpiresInSeconds();
+      }
+    } catch (MalformedClaimException e) {
+      return Mono.error(e);
+    }
+
+    return Mono.zip(
+        args -> {
+          var claims = ((Tuple2<JwtClaims, String>) args[0]).getT1();
+          var unsignedRefreshTokenJson = ((Tuple2<JwtClaims, String>) args[0]).getT2();
+          var jwks = (JsonWebKeySet) args[1];
+          String accessToken = JwtFunctions.sign(jwks, claims.toJson());
+          if (properties.isCompressClaims()) {
+            accessToken = ZLibStringCompression.compress(accessToken);
+          }
+
+          final String refreshToken = JwtFunctions.sign(jwks, unsignedRefreshTokenJson);
+          var oauthTokenResponse = new OAuthTokenResponse();
+          oauthTokenResponse.setOk(true);
+          oauthTokenResponse.setAccessToken(accessToken);
+          oauthTokenResponse.setRefreshToken(refreshToken);
+          oauthTokenResponse.setTokenType("Bearer");
+          oauthTokenResponse.setExpiresIn(accessTokenExpiresInSeconds);
+          return oauthTokenResponse;
+        },
+        storeIdentityServiceResponse(identityServiceResponse),
+        jwksProvider.getSigningKey(accessTokenExpiresInSeconds));
+  }
+
+  /**
+   *
+   *
+   * <ol>
+   *   <li>The client claims are modified so that it has a JTI, Expiration and other system claims
+   *       added.
+   *   <li>split
+   *       <ul>
+   *         <li>secret
+   *             <ol>
+   *               <li>The secrets are modified so that it has JTI from the client claims.
+   *               <li>This generates a new refresh token.
+   *               <li>The secrets are stored into refresh-tokens redis.
+   *             </ol>
+   *         <li>The client claims are signed
+   *       </ul>
+   *   <li>access token JTI is stored in another redis cache (used for revocations)
+   * </ol>
+   *
+   * @return
+   */
+  private Mono<Tuple2<JwtClaims, String>> storeIdentityServiceResponse(
+      IdentityServiceResponse identityServiceResponse) {
+
+    final ReactiveValueOperations<String, String> opsForValue = redisTemplate.opsForValue();
+    final ReactiveHashOperations<String, String, String> opsForHash = redisTemplate.opsForHash();
+
+    final Instant accessTokenExpiresAt;
+    final Instant refreshTokenExpiresAt;
+    try {
+      if (Objects.requireNonNull(identityServiceResponse.getSecretClaims())
+          .hasClaim(ReservedClaimNames.EXPIRATION_TIME)) {
+        refreshTokenExpiresAt =
+            Instant.ofEpochMilli(
+                identityServiceResponse.getSecretClaims().getExpirationTime().getValueInMillis());
+      } else {
+        refreshTokenExpiresAt =
+            Instant.now().plus(properties.getRefreshTokenExpiresInSeconds(), ChronoUnit.SECONDS);
+      }
+      if (Objects.requireNonNull(identityServiceResponse.getClaims())
+          .hasClaim(ReservedClaimNames.EXPIRATION_TIME)) {
+        accessTokenExpiresAt =
+            Instant.ofEpochMilli(
+                identityServiceResponse.getSecretClaims().getExpirationTime().getValueInMillis());
+      } else {
+        accessTokenExpiresAt =
+            Instant.now().plus(properties.getAccessTokenExpiresInSeconds(), ChronoUnit.SECONDS);
+      }
+    } catch (MalformedClaimException e) {
+      return Mono.error(e);
+    }
+
+    return withSystemClaims(Objects.requireNonNull(identityServiceResponse.getClaims()))
+        .flatMap(
+            claims -> {
+              try {
+                final String refreshToken =
+                    generateRefreshToken(secureRandom, refreshTokenExpiresAt);
+                final String refreshTokenRedisKey = redisKeyBlocks.forRefreshToken(refreshToken);
+                final String jwtId = claims.getJwtId();
+
+                return Mono.ignoreElements(
+                        Mono.just(identityServiceResponse.getSecretClaims())
+                            .map(JwtClaims::toJson)
+                            .flatMap(
+                                secretClaimsJson ->
+                                    opsForHash.putAll(
+                                        refreshTokenRedisKey,
+                                        Map.of("secret", secretClaimsJson, "jti", jwtId)))
+                            .filter(success -> success)
+                            .flatMap(
+                                ig ->
+                                    opsForValue.set(redisKeyBlocks.accessTokenJtiKey(jwtId), jwtId))
+                            .filter(success -> success)
+                            .flatMap(
+                                ig ->
+                                    redisTemplate.expireAt(
+                                        redisKeyBlocks.accessTokenJtiKey(jwtId),
+                                        accessTokenExpiresAt))
+                            .filter(success -> success)
+                            .flatMap(
+                                ig ->
+                                    redisTemplate.expireAt(
+                                        refreshTokenRedisKey, refreshTokenExpiresAt))
+                            .filter(success -> success)
+                            .switchIfEmpty(Mono.error(IllegalStateException::new)))
+                    .thenReturn(Tuples.of(claims, refreshToken));
+              } catch (MalformedClaimException e) {
+                return Mono.error(e);
+              }
+            });
+  }
+
+  /**
+   * Checks if the JwtId is still valid
+   *
+   * @param jwtClaims claims
+   * @return claims as is if valid.
+   */
+  private Mono<JwtClaims> validateClaims(JwtClaims jwtClaims) {
+
+    try {
+      final String jwtId = jwtClaims.getJwtId();
+      return isJwtIdValid(jwtId)
+          .filter(isValid -> isValid)
+          .switchIfEmpty(
+              Mono.error(
+                  new SecurityException(
+                      "unable to find redis key %s"
+                          .formatted(redisKeyBlocks.accessTokenJtiKey(jwtId)))))
+          .map(ignored -> jwtClaims);
+    } catch (MalformedClaimException e) {
+      return Mono.error(e);
+    }
+  }
+
+  private Mono<JwtClaims> withJti(String jti, JwtClaims sourceClaims) {
+
+    try {
+      final var claims = JwtClaims.parse(sourceClaims.toJson());
+      claims.setJwtId(jti);
+      return Mono.just(claims);
+    } catch (InvalidJwtException e) {
+      return Mono.error(e);
+    }
+  }
+
+  private Mono<JwtClaims> withSystemClaims(JwtClaims sourceClaims) {
+
+    try {
+      final var claims = JwtClaims.parse(sourceClaims.toJson());
+      claims.setGeneratedJwtId();
+      claims.setIssuer(properties.getIssuer());
+
+      claims.setExpirationTimeMinutesInTheFuture(
+          properties.getAccessTokenExpiresInSeconds() / 60.0f);
+      return Mono.just(claims);
+    } catch (InvalidJwtException e) {
+      return Mono.error(e);
+    }
   }
 }

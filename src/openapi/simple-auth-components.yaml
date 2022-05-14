@@ -1,6 +1,27 @@
 openapi: 3.1.0
 components:
   schemas:
+    AuthenticationCredentials:
+      type: object
+      required:
+        - username
+        - authenticated
+      properties:
+        username:
+          type: string
+        authenticated:
+          type: boolean
+        accessTokenExpiresInMillis:
+          type: number
+          minimum: 1000
+          description: |
+            Allow request to alter the access token expiration (for testing).
+        refreshTokenExpiresInMillis:
+          type: number
+          minimum: 1000
+          description: |
+            Allow request to alter the refresh token expiration (for testing).
+
     OAuthTokenResponse:
       type: object
       properties:

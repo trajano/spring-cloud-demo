@@ -66,13 +66,10 @@ public abstract class AbstractAuthController<A, P> {
             authenticationRequest ->
                 identityService.authenticate(
                     authenticationRequest, serverWebExchange.getRequest().getHeaders()))
-        .log()
         .filter(IdentityServiceResponse::isOk)
-        .log()
         .flatMap(
             identityServiceResponse ->
                 claimsService.storeAndSignIdentityServiceResponse(identityServiceResponse))
-        .log()
         .doOnNext(
             serviceResponse -> {
               final var serverHttpResponse = serverWebExchange.getResponse();
@@ -84,6 +81,7 @@ public abstract class AbstractAuthController<A, P> {
                 .doOnNext(
                     response -> {
                       final var serverHttpResponse = serverWebExchange.getResponse();
+                      serverHttpResponse.setStatusCode(HttpStatus.UNAUTHORIZED);
                       serverHttpResponse
                           .getHeaders()
                           .add(
@@ -91,22 +89,6 @@ public abstract class AbstractAuthController<A, P> {
                               "Bearer realm=\"%s\"".formatted(authProperties.getRealm()));
                     })
                 .delayElement(Duration.ofMillis(authProperties.getPenaltyDelayInMillis())));
-
-    //    return
-    //        .doOnNext(
-    //            serviceResponse -> {
-    //              final var serverHttpResponse = serverWebExchange.getResponse();
-    //              serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
-    //              addCommonHeaders(serverHttpResponse);
-    //              if (serviceResponse.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-    //                serverHttpResponse
-    //                    .getHeaders()
-    //                    .add(
-    //                        HttpHeaders.WWW_AUTHENTICATE,
-    //                        "Bearer realm=\"%s\"".formatted(authProperties.getRealm()));
-    //              }
-    //            })
-    //        .flatMap(this::addDelaySpecifiedInServiceResponse);
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Bad request")
