@@ -408,3 +408,80 @@ scenarios:
             Accept: application/json
           expect:
             - statusCode: 200
+  - name: Token and timeout tests
+    weight: 2
+    flow:
+      - post:
+          url: "/auth"
+          json:
+            username: good
+            authenticated: true
+            accessTokenExpiresInMillis: 10000
+            refreshTokenExpiresInMillis: 20000
+          headers:
+            Accept: application/json
+            Content-Type: application/json
+          capture:
+            - json: "$.access_token"
+              as: "access_token"
+            - json: "$.refresh_token"
+              as: "refresh_token"
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/whoami"
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          expect:
+            - statusCode: 200
+      - think: 10
+      - get:
+          url: "/whoami"
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          expect:
+            - statusCode: 401
+      - post:
+          url: "/refresh"
+          form:
+            refresh_token: "{{ refresh_token }}"
+            grant_type: refresh_token
+          headers:
+            Content-Type: application/x-www-form-urlencoded
+          capture:
+            - json: "$.access_token"
+              as: "access_token"
+            - json: "$.refresh_token"
+              as: "refresh_token"
+          expect:
+            - statusCode: 200
+      - post:
+          url: "/logout"
+          form:
+            token: "{{ refresh_token }}"
+            token_type_hint: refresh_token
+          headers:
+            Content-Type: application/x-www-form-urlencoded
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/whoami"
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          expect:
+            - statusCode: 401
+      - post:
+          url: "/refresh"
+          form:
+            refresh_token: "{{ refresh_token }}"
+            grant_type: refresh_token
+          headers:
+            Content-Type: application/x-www-form-urlencoded
+          expect:
+            - statusCode: 401
+            - headerEquals:
+                - www-authenticate
+                - Bearer realm="JWT", error="invalid_token"

@@ -353,7 +353,7 @@ public class RedisClaimsService implements ClaimsService {
           .hasClaim(ReservedClaimNames.EXPIRATION_TIME)) {
         accessTokenExpiresAt =
             Instant.ofEpochMilli(
-                identityServiceResponse.getSecretClaims().getExpirationTime().getValueInMillis());
+                identityServiceResponse.getClaims().getExpirationTime().getValueInMillis());
       } else {
         accessTokenExpiresAt =
             Instant.now().plus(properties.getAccessTokenExpiresInSeconds(), ChronoUnit.SECONDS);
