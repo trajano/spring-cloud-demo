@@ -68,7 +68,7 @@ services:
       - AWS_REGION=${AWS_REGION:-}
 #      - DOCKER_DISCOVERY_DAEMONFULLACCESS=false
 #      - DOCKER_HOST=tcp://daemon:2375
-      # - LOGGING_LEVEL_NET_TRAJANO=trace
+      - LOGGING_LEVEL_NET_TRAJANO=trace
       - LOGGING_LEVEL_NET_TRAJANO=debug
 #      - LOGGING_LEVEL_ORG_XBILL=trace
       - LOGGING_LEVEL_ROOT=error

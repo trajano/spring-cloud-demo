@@ -2,6 +2,7 @@ package net.trajano.swarm.gateway.auth;
 
 import static reactor.core.publisher.Mono.fromCallable;
 
+import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.jwks.JwksProvider;
@@ -25,26 +26,29 @@ import reactor.core.scheduler.Schedulers;
  * do not have to form the constructor.
  *
  * @param <A>
- * @param <R>
  * @param <P>
  */
 @Slf4j
-public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
+public abstract class AbstractAuthController<A, P> {
 
   private final Scheduler penaltyScheduler = Schedulers.newParallel("penalty");
 
   @Autowired private AuthProperties authProperties;
 
+  @Autowired private ClaimsService claimsService;
+
   /** */
-  @Autowired private IdentityService<A, R, P> identityService;
+  @Autowired private IdentityService<A, P> identityService;
 
   @Autowired private JwksProvider jwksProvider;
 
   private void addCommonHeaders(ServerHttpResponse serverHttpResponse) {
+
     serverHttpResponse.getHeaders().add(HttpHeaders.CACHE_CONTROL, "no-cache");
   }
 
-  private Mono<R> addDelaySpecifiedInServiceResponse(AuthServiceResponse<R> serviceResponse) {
+  private Mono<GatewayResponse> addDelaySpecifiedInServiceResponse(
+      AuthServiceResponse<GatewayResponse> serviceResponse) {
 
     return fromCallable(serviceResponse::getOperationResponse)
         .delayElement(serviceResponse.getDelay(), penaltyScheduler);
@@ -54,24 +58,55 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
       path = "${auth.controller-mappings.username-password-authentication:/auth}",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       produces = {MediaType.APPLICATION_JSON_VALUE})
-  public Mono<R> authenticate(
+  public Mono<GatewayResponse> authenticate(
       @RequestBody Mono<A> authenticationRequestMono, ServerWebExchange serverWebExchange) {
-    return identityService
-        .authenticate(authenticationRequestMono, serverWebExchange.getRequest().getHeaders())
+
+    return authenticationRequestMono
+        .flatMap(
+            authenticationRequest ->
+                identityService.authenticate(
+                    authenticationRequest, serverWebExchange.getRequest().getHeaders()))
+        .log()
+        .filter(IdentityServiceResponse::isOk)
+        .log()
+        .flatMap(
+            identityServiceResponse ->
+                claimsService.storeAndSignIdentityServiceResponse(identityServiceResponse))
+        .log()
         .doOnNext(
             serviceResponse -> {
               final var serverHttpResponse = serverWebExchange.getResponse();
-              serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
               addCommonHeaders(serverHttpResponse);
-              if (serviceResponse.getStatusCode() == HttpStatus.UNAUTHORIZED) {
-                serverHttpResponse
-                    .getHeaders()
-                    .add(
-                        HttpHeaders.WWW_AUTHENTICATE,
-                        "Bearer realm=\"%s\"".formatted(authProperties.getRealm()));
-              }
+              serverHttpResponse.setStatusCode(HttpStatus.OK);
             })
-        .flatMap(this::addDelaySpecifiedInServiceResponse);
+        .switchIfEmpty(
+            Mono.just(GatewayResponse.builder().ok(false).error("invalid_credentials").build())
+                .doOnNext(
+                    response -> {
+                      final var serverHttpResponse = serverWebExchange.getResponse();
+                      serverHttpResponse
+                          .getHeaders()
+                          .add(
+                              HttpHeaders.WWW_AUTHENTICATE,
+                              "Bearer realm=\"%s\"".formatted(authProperties.getRealm()));
+                    })
+                .delayElement(Duration.ofMillis(authProperties.getPenaltyDelayInMillis())));
+
+    //    return
+    //        .doOnNext(
+    //            serviceResponse -> {
+    //              final var serverHttpResponse = serverWebExchange.getResponse();
+    //              serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
+    //              addCommonHeaders(serverHttpResponse);
+    //              if (serviceResponse.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+    //                serverHttpResponse
+    //                    .getHeaders()
+    //                    .add(
+    //                        HttpHeaders.WWW_AUTHENTICATE,
+    //                        "Bearer realm=\"%s\"".formatted(authProperties.getRealm()));
+    //              }
+    //            })
+    //        .flatMap(this::addDelaySpecifiedInServiceResponse);
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Bad request")
@@ -85,6 +120,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
       path = "${auth.controller-mappings.jwks:/jwks}",
       produces = {MediaType.APPLICATION_JSON_VALUE})
   public Mono<String> jwks() {
+
     return jwksProvider.jsonWebKeySet().map(JsonWebKeySet::toJson);
   }
 
@@ -92,7 +128,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
       path = "${auth.controller-mappings.logout:/logout}",
       consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public Mono<R> logout(
+  public Mono<GatewayResponse> logout(
       @ModelAttribute OAuthRevocationRequest request, ServerWebExchange serverWebExchange) {
 
     if (!request.getToken_type_hint().equals("refresh_token")
@@ -100,7 +136,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
       throw new IllegalArgumentException();
     }
 
-    return identityService
+    return claimsService
         .revoke(request.getToken(), serverWebExchange.getRequest().getHeaders())
         .doOnNext(
             serviceResponse -> {
@@ -114,7 +150,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
   @PostMapping(
       path = "${auth.controller-mappings.refresh:/refresh}",
       consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-  public Mono<R> refreshUrlEncoded(
+  public Mono<GatewayResponse> refreshUrlEncoded(
       @ModelAttribute OAuthRefreshRequest oAuthRefreshRequest,
       ServerWebExchange serverWebExchange) {
 
@@ -122,7 +158,7 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
       throw new IllegalArgumentException();
     }
 
-    return identityService
+    return claimsService
         .refresh(
             oAuthRefreshRequest.getRefresh_token(), serverWebExchange.getRequest().getHeaders())
         .doOnNext(
@@ -140,5 +176,10 @@ public abstract class AbstractAuthController<A, R extends GatewayResponse, P> {
               }
             })
         .flatMap(this::addDelaySpecifiedInServiceResponse);
+
+    //      return identityService
+    //        .refresh(
+    //            oAuthRefreshRequest.getRefresh_token(),
+    // serverWebExchange.getRequest().getHeaders())
   }
 }

@@ -5,12 +5,12 @@ config:
       outputFormat: prettyError
   phases:
     - duration: 1
-      arrivalCount: 20
+      # arrivalCount: 20
       # This should equal the number of scenarios
       # arrivalRate: 4
 #      maxVusers: 2
   http:
-    timeout: 20
+    timeout: 5
   environments:
     localhost-direct-small-load:
       target: "http://localhost:28082"
@@ -75,6 +75,15 @@ config:
           # However, there's still the notion of 120 second default for TcpTimedWaitDelay which means unless the thread is disconnected for 120 seconds
           # it will be part of the limit
           maxVusers: 750
+    api-sane-load:
+      target: "https://m0.pnb.devhaus.net"
+      phases:
+        - name: sane-load
+          duration: 120
+          arrivalRate: 120
+#          arrivalRate: 60
+      http:
+        timeout: 3
     api-heavy-load:
       target: "https://m0.lj-ppe.devhaus.net"
       phases:

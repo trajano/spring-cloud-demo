@@ -40,13 +40,17 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
           Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
           "protected-resource");
 
-  private final IdentityService<A, R, P> identityService;
+  private final IdentityService<A, P> identityService;
+  private final ClaimsService claimsService;
 
   public ProtectedResourceGatewayFilterFactory(
-      ReactiveDiscoveryClient discoveryClient, IdentityService<A, R, P> identityService) {
+      ReactiveDiscoveryClient discoveryClient,
+      ClaimsService claimsService,
+      IdentityService<A, P> identityService) {
 
     super(Config.class);
     this.discoveryClient = discoveryClient;
+    this.claimsService = claimsService;
     this.identityService = identityService;
   }
 
@@ -85,8 +89,9 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
                     } else {
 
                       final String bearerToken = authorization.substring("Bearer ".length());
-                      return identityService
+                      return claimsService
                           .getClaims(bearerToken)
+                          .log()
                           .flatMap(
                               jwtClaims ->
                                   chain.filter(

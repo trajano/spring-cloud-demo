@@ -1,20 +1,21 @@
 package net.trajano.swarm.gateway.auth;
 
-import net.trajano.swarm.gateway.web.GatewayResponse;
+import java.util.Map;
 import org.jose4j.jwt.JwtClaims;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * This interface handles the functionality of an Identity Provider (IP). The IP's responsibiltiy is
- * to provide the access token and provide capability to refresh and revoke the token.
+ * This interface handles provides a bridge to a backend that will handle the authentication and
+ * handle any mutations to service requests that are specific to the application (may move that to
+ * another class later). It does not deal with OAuth tokens as that is done by {@link
+ * ClaimsService}.
  *
  * @param <A> authentication request
- * @param <R> response that extends OAuthResponse so additional data can be embedded.
  * @param <P> profile response
  */
-public interface IdentityService<A, R extends GatewayResponse, P> {
+public interface IdentityService<A, P> {
 
   /**
    * Authenticates the user based on the request.
@@ -23,25 +24,9 @@ public interface IdentityService<A, R extends GatewayResponse, P> {
    * @param headers HTTP headers
    * @return access token response
    */
-  Mono<AuthServiceResponse<R>> authenticate(Mono<A> authenticationRequest, HttpHeaders headers);
+  Mono<IdentityServiceResponse> authenticate(A authenticationRequest, HttpHeaders headers);
 
-  /**
-   * Refreshes the token and returns a new authentication response. May throw a {@link
-   * IllegalArgumentException} if the token is not valid or expired.
-   *
-   * @param refreshToken refresh token
-   * @param headers HTTP headers
-   * @return updated access token response
-   */
-  Mono<AuthServiceResponse<R>> refresh(String refreshToken, HttpHeaders headers);
-
-  /**
-   * Revokes the token also known as logout.
-   *
-   * @param refreshToken
-   * @param headers
-   */
-  Mono<AuthServiceResponse<R>> revoke(String refreshToken, HttpHeaders headers);
+  Mono<IdentityServiceResponse> refresh(JwtClaims secretClaims, HttpHeaders headers);
 
   /**
    * This will be moved to another class what performs the consumption as it's not part of the IP.
@@ -50,16 +35,6 @@ public interface IdentityService<A, R extends GatewayResponse, P> {
    * @return
    */
   Mono<P> getProfile(String accessToken);
-
-  /**
-   * Gets the claims from the access token. May throw a {@link SecurityException} if the access
-   * token is not valid. This does not return null. This will be moved to another class what
-   * performs the consumption as it's not part of the IP.
-   *
-   * @param accessToken access token
-   * @return claims.
-   */
-  Mono<JwtClaims> getClaims(String accessToken);
 
   /**
    * Called by the filter to give an opportunity to mutate the exchange with information from the
@@ -74,4 +49,14 @@ public interface IdentityService<A, R extends GatewayResponse, P> {
 
     return exchange;
   }
+
+  /**
+   * Refreshes the token and returns a new authentication response. May throw a {@link
+   * IllegalArgumentException} if the token is not valid or expired.
+   *
+   * @param secrets obtained from current refresh token
+   * @param headers HTTP headers
+   * @return updated secrets to pass for refresh
+   */
+  Mono<Map<String, String>> refresh(Map<String, String> secrets, HttpHeaders headers);
 }

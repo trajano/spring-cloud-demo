@@ -65,6 +65,7 @@ public final class JwtFunctions {
   private static Key getSigningKeyFromJwks(JsonWebKeySet jwks) {
 
     return jwks.getJsonWebKeys().stream()
+        .peek(System.out::println)
         .filter(jwk -> jwk.getKeyType().equals("oct"))
         .findAny()
         .map(JsonWebKey::getKey)
