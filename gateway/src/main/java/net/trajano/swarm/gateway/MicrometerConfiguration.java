@@ -1,5 +1,6 @@
 package net.trajano.swarm.gateway;
 
+import io.awspring.cloud.autoconfigure.condition.ConditionalOnAwsCloudEnvironment;
 import io.micrometer.cloudwatch2.CloudWatchConfig;
 import io.micrometer.cloudwatch2.CloudWatchMeterRegistry;
 import io.micrometer.core.instrument.Clock;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 
 @Component
+@ConditionalOnAwsCloudEnvironment
 public class MicrometerConfiguration {
   @Bean
   MeterRegistry meterRegistry() {
