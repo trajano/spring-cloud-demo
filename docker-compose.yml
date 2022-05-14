@@ -58,7 +58,7 @@ services:
   gateway:
     build:
       context: .
-      target: gateway-alpine
+      target: gateway
     image: local/gateway
     environment:
       - SPRING_REDIS_HOST=redis

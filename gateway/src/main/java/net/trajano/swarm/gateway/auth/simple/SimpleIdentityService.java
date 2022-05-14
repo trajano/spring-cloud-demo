@@ -157,7 +157,7 @@ public class SimpleIdentityService<P>
   public Mono<String> getRefreshTokenKey(String refreshToken) {
 
     return jsonWebKeySet()
-        .publishOn(refreshTokenScheduler)
+        .publishOn(Schedulers.parallel())
         .map(
             jwks ->
                 new JwtConsumerBuilder()

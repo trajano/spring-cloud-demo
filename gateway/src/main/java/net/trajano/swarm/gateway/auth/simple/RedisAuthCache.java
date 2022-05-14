@@ -3,7 +3,6 @@ package net.trajano.swarm.gateway.auth.simple;
 import java.security.*;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 import javax.annotation.PostConstruct;
 import javax.crypto.KeyGenerator;
 import lombok.RequiredArgsConstructor;
@@ -80,10 +79,10 @@ public class RedisAuthCache {
    *
    * @return refresh token
    */
-  private String generateRefreshToken() {
+  private String generateRefreshToken(Random random) {
 
     final byte[] bytes = new byte[32];
-    ThreadLocalRandom.current().nextBytes(bytes);
+    random.nextBytes(bytes);
 
     final var jwtClaims = new JwtClaims();
     jwtClaims.setJwtId(Base64.getUrlEncoder().withoutPadding().encodeToString(bytes));
@@ -147,22 +146,24 @@ public class RedisAuthCache {
     final var signedAccessTokenMono =
         jwksProvider
             .getSigningKey(simpleAuthServiceProperties.getAccessTokenExpiresInSeconds())
+            .publishOn(Schedulers.parallel())
             .map(signingJwks -> JwtFunctions.sign(signingJwks, authenticationItem.getAccessToken()))
             .map(
                 jwt ->
                     simpleAuthServiceProperties.isCompressClaims()
                         ? ZLibStringCompression.compress(jwt)
-                        : jwt)
-            .publishOn(signingGenerator);
+                        : jwt);
     final var signedRefreshTokenMono =
         jwksProvider
             .getSigningKey(simpleAuthServiceProperties.getAccessTokenExpiresInSeconds())
+            .publishOn(Schedulers.parallel())
             .map(
-                signingJwks -> JwtFunctions.sign(signingJwks, authenticationItem.getRefreshToken()))
-            .publishOn(signingGenerator);
+                signingJwks ->
+                    JwtFunctions.sign(signingJwks, authenticationItem.getRefreshToken()));
 
     return Mono.zip(signedAccessTokenMono, signedRefreshTokenMono)
-        .map(t -> authenticationItem.withAccessToken(t.getT1()).withRefreshToken(t.getT2()));
+        .map(t -> authenticationItem.withAccessToken(t.getT1()).withRefreshToken(t.getT2()))
+        .publishOn(generateRefreshTokenScheduler);
   }
 
   public AuthenticationItem provideClaimsAndSecret(AuthenticationItem authenticationItem) {
@@ -219,7 +220,9 @@ public class RedisAuthCache {
               .thenReturn(authenticationItem.getJwtClaims().toJson());
 
       var refreshTokenMono =
-          Mono.fromCallable(this::generateRefreshToken)
+          Mono.just(secureRandom)
+              .publishOn(Schedulers.parallel())
+              .map(this::generateRefreshToken)
               .publishOn(generateRefreshTokenScheduler)
               .flatMap(
                   refreshToken -> {
