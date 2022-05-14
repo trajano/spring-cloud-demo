@@ -31,7 +31,7 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
 	implementation 'com.github.docker-java:docker-java-core'
 	implementation 'com.github.docker-java:docker-java-transport-httpclient5'
-	implementation 'org.bitbucket.b_c:jose4j:0.7.11'
+	implementation 'org.bitbucket.b_c:jose4j:0.7.12'
 	compileOnly 'org.projectlombok:lombok'
 	implementation 'dnsjava:dnsjava:3.5.0'
 	runtimeOnly 'com.github.ben-manes.caffeine:caffeine'
