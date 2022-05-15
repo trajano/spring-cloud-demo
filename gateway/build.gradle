@@ -34,15 +34,9 @@ dependencies {
 	implementation 'org.bitbucket.b_c:jose4j:0.7.12'
 	compileOnly 'org.projectlombok:lombok'
 	implementation 'dnsjava:dnsjava:3.5.0'
-	runtimeOnly 'com.github.ben-manes.caffeine:caffeine'
 	implementation project(':gateway-common')
 
-
-	implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
-//	implementation 'org.springframework.cloud:spring-cloud-loadbalancer'
-//	compileOnly 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-loadbalancer'
-	 compileOnly 'org.springframework.cloud:spring-cloud-netflix-eureka-client'
-	// annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	runtimeOnly 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'

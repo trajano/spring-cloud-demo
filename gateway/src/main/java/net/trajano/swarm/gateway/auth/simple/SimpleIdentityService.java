@@ -47,7 +47,7 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
 
       Optional.ofNullable(authenticationRequest.getRefreshTokenExpiresInMillis())
           .map(millis -> millis / 60000.0f)
-          .ifPresent(claims::setExpirationTimeMinutesInTheFuture);
+          .ifPresent(secretClaims::setExpirationTimeMinutesInTheFuture);
 
       final IdentityServiceResponse response =
           IdentityServiceResponse.builder()
@@ -55,6 +55,18 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
               .claims(claims)
               .secretClaims(secretClaims)
               .build();
+      //      try {
+      //        System.out.println(
+      //            claims + " " +
+      // Instant.ofEpochMilli(claims.getExpirationTime().getValueInMillis()));
+      //        System.out.println(
+      //            secretClaims
+      //                + " "
+      //                +
+      // Instant.ofEpochMilli(secretClaims.getExpirationTime().getValueInMillis()));
+      //      } catch (MalformedClaimException e) {
+      //
+      //      }
       log.trace("response {}", response);
       return Mono.just(response);
 

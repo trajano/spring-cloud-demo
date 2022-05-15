@@ -158,10 +158,5 @@ public abstract class AbstractAuthController<A, P> {
               }
             })
         .flatMap(this::addDelaySpecifiedInServiceResponse);
-
-    //      return identityService
-    //        .refresh(
-    //            oAuthRefreshRequest.getRefresh_token(),
-    // serverWebExchange.getRequest().getHeaders())
   }
 }
