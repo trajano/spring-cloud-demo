@@ -25,6 +25,12 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
 
   public static final String X_JWT_AUDIENCE = "X-JWT-Audience";
 
+  public static final String REFRESH_TOKEN_EXPIRES_IN_MINUTES_CLAIM =
+      "refresh-token-expires-in-minutes";
+
+  public static final String ACCESS_TOKEN_EXPIRES_IN_MINUTES_CLAIM =
+      "access-token-expires-in-minutes";
+
   private final JwksProvider jwksProvider;
 
   @Override
@@ -34,20 +40,26 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
     if (authenticationRequest.isAuthenticated()) {
       final var claims = new JwtClaims();
       claims.setSubject(authenticationRequest.getUsername());
-      Optional.ofNullable(authenticationRequest.getAccessTokenExpiresInMillis())
-          .map(millis -> millis / 60000.0f)
-          .ifPresent(claims::setExpirationTimeMinutesInTheFuture);
 
       final var secretClaims = new JwtClaims();
       secretClaims.setStringClaim("secret-uuid", UUID.randomUUID().toString());
       secretClaims.setSubject(authenticationRequest.getUsername());
+
       Optional.ofNullable(authenticationRequest.getAccessTokenExpiresInMillis())
           .map(millis -> millis / 60000.0f)
-          .ifPresent(minutes -> secretClaims.setClaim("access-token-expires-in-minutes", minutes));
+          .ifPresent(
+              minutes -> {
+                secretClaims.setClaim(ACCESS_TOKEN_EXPIRES_IN_MINUTES_CLAIM, minutes);
+                claims.setExpirationTimeMinutesInTheFuture(minutes);
+              });
 
       Optional.ofNullable(authenticationRequest.getRefreshTokenExpiresInMillis())
           .map(millis -> millis / 60000.0f)
-          .ifPresent(secretClaims::setExpirationTimeMinutesInTheFuture);
+          .ifPresent(
+              minutes -> {
+                secretClaims.setClaim(REFRESH_TOKEN_EXPIRES_IN_MINUTES_CLAIM, minutes);
+                secretClaims.setExpirationTimeMinutesInTheFuture(minutes);
+              });
 
       final IdentityServiceResponse response =
           IdentityServiceResponse.builder()
@@ -71,8 +83,23 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
       final var claims = new JwtClaims();
       claims.setSubject(secretClaims.getSubject());
 
+      if (secretClaims.hasClaim(ACCESS_TOKEN_EXPIRES_IN_MINUTES_CLAIM)) {
+        claims.setExpirationTimeMinutesInTheFuture(
+            secretClaims
+                .getClaimValue(ACCESS_TOKEN_EXPIRES_IN_MINUTES_CLAIM, Double.class)
+                .floatValue());
+      }
+
+      if (secretClaims.hasClaim(REFRESH_TOKEN_EXPIRES_IN_MINUTES_CLAIM)) {
+        secretClaims.setExpirationTimeMinutesInTheFuture(
+            secretClaims
+                .getClaimValue(REFRESH_TOKEN_EXPIRES_IN_MINUTES_CLAIM, Double.class)
+                .floatValue());
+      }
+
       return Mono.just(
           IdentityServiceResponse.builder()
+              .ok(true)
               .claims(secretClaims)
               .secretClaims(secretClaims)
               .build());

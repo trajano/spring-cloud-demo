@@ -48,6 +48,10 @@ import reactor.util.function.Tuples;
 @RequiredArgsConstructor
 public class RedisClaimsService implements ClaimsService {
 
+  public static final String SECRET_HASH_KEY = "secret";
+
+  public static final String JTI_HASH_KEY = "jti";
+
   private final Scheduler refreshTokenScheduler =
       Schedulers.newBoundedElastic(
           Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
@@ -198,8 +202,11 @@ public class RedisClaimsService implements ClaimsService {
     return getRefreshTokenRedisKey(refreshToken)
         .flatMap(
             redisKey ->
+                redisTemplate.hasKey(redisKey).filter(hasKey -> hasKey).thenReturn(redisKey))
+        .flatMap(
+            redisKey ->
                 opsForHash
-                    .multiGet(redisKey, List.of("jti", "secret"))
+                    .multiGet(redisKey, List.of(JTI_HASH_KEY, SECRET_HASH_KEY))
                     .flatMap(
                         redisItems ->
                             redisTemplate
@@ -219,6 +226,13 @@ public class RedisClaimsService implements ClaimsService {
         .flatMap(this::storeAndSignIdentityServiceResponse)
         .map(
             oauthResponse -> AuthServiceResponse.builder().operationResponse(oauthResponse).build())
+        .switchIfEmpty(
+            Mono.just(
+                AuthServiceResponse.builder()
+                    .operationResponse(new UnauthorizedGatewayResponse())
+                    .statusCode(HttpStatus.UNAUTHORIZED)
+                    .delay(Duration.ofMillis(properties.getPenaltyDelayInMillis()))
+                    .build()))
         .onErrorReturn(
             AuthServiceResponse.builder()
                 .operationResponse(new UnauthorizedGatewayResponse())
@@ -242,7 +256,7 @@ public class RedisClaimsService implements ClaimsService {
     return getRefreshTokenRedisKey(refreshToken)
         .flatMap(
             refreshTokenRedisKey ->
-                ops.get(refreshTokenRedisKey, "jti")
+                ops.get(refreshTokenRedisKey, JTI_HASH_KEY)
                     .flatMap(jti -> redisTemplate.delete(redisKeyBlocks.accessTokenJtiKey(jti)))
                     .defaultIfEmpty(0L)
                     .flatMap(ignored -> redisTemplate.delete(refreshTokenRedisKey)))
@@ -378,7 +392,11 @@ public class RedisClaimsService implements ClaimsService {
                                 secretClaimsJson ->
                                     opsForHash.putAll(
                                         refreshTokenRedisKey,
-                                        Map.of("secret", secretClaimsJson, "jti", jwtId)))
+                                        Map.of(
+                                            SECRET_HASH_KEY,
+                                            secretClaimsJson,
+                                            JTI_HASH_KEY,
+                                            jwtId)))
                             .filter(success -> success)
                             .flatMap(
                                 ig ->
