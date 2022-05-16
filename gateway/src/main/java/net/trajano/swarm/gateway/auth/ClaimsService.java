@@ -8,7 +8,8 @@ import reactor.core.publisher.Mono;
 public interface ClaimsService {
 
   /**
-   * Extract JWT claims from the bearer token.
+   * Extract JWT claims from the bearer token. If the bearer token is invalid, then a
+   * Mono.error(SecurityException) will be returned.
    *
    * @param bearerToken
    * @return

@@ -129,7 +129,7 @@ public class RedisClaimsService implements ClaimsService {
               try {
                 return jwtConsumer.processToClaims(jwt);
               } catch (InvalidJwtException e) {
-                throw new IllegalArgumentException(e);
+                throw new SecurityException(e);
               }
             })
         .publishOn(jwtConsumerScheduler);
@@ -440,7 +440,7 @@ public class RedisClaimsService implements ClaimsService {
                           .formatted(redisKeyBlocks.accessTokenJtiKey(jwtId)))))
           .map(ignored -> jwtClaims);
     } catch (MalformedClaimException e) {
-      return Mono.error(e);
+      return Mono.error(new SecurityException(e));
     }
   }
 

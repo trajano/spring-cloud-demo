@@ -1,9 +1,13 @@
 package net.trajano.swarm.gateway.auth;
 
 import com.google.common.net.HttpHeaders;
+import java.time.Duration;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -29,9 +33,10 @@ import reactor.core.scheduler.Schedulers;
  */
 @Component
 @Slf4j
-public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenResponse, P>
+public class ProtectedResourceGatewayFilterFactory
     extends AbstractGatewayFilterFactory<ProtectedResourceGatewayFilterFactory.Config> {
 
+  private final Logger securityLog = LoggerFactory.getLogger("security");
   private final ReactiveDiscoveryClient discoveryClient;
 
   private final Scheduler protectedResourceScheduler =
@@ -40,16 +45,21 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
           Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
           "protected-resource");
 
-  private final IdentityService<A, P> identityService;
+  private final IdentityService<?, ?> identityService;
+
+  private final AuthProperties authProperties;
+
   private final ClaimsService claimsService;
 
   public ProtectedResourceGatewayFilterFactory(
       ReactiveDiscoveryClient discoveryClient,
+      AuthProperties authProperties,
       ClaimsService claimsService,
-      IdentityService<A, P> identityService) {
+      IdentityService<?, ?> identityService) {
 
     super(Config.class);
     this.discoveryClient = discoveryClient;
+    this.authProperties = authProperties;
     this.claimsService = claimsService;
     this.identityService = identityService;
   }
@@ -95,6 +105,22 @@ public class ProtectedResourceGatewayFilterFactory<A, R extends OAuthTokenRespon
                               jwtClaims ->
                                   chain.filter(
                                       identityService.mutateDownstreamRequest(exchange, jwtClaims)))
+                          .onErrorResume(
+                              SecurityException.class,
+                              ex -> {
+                                ServerWebExchangeUtils.setResponseStatus(
+                                    exchange, HttpStatus.UNAUTHORIZED);
+                                ServerWebExchangeUtils.setAlreadyRouted(exchange);
+                                securityLog.warn(
+                                    "security error obtaining claims: {}", ex.getMessage());
+                                log.debug("security error obtaining claims: {}", ex.getMessage());
+                                return chain
+                                    .filter(exchange)
+                                    .delayElement(
+                                        Duration.ofMillis(authProperties.getPenaltyDelayInMillis()))
+                                    .then(
+                                        respondWithUnauthorized(config, exchange, "invalid_token"));
+                              })
                           .onErrorResume(
                               ex -> {
                                 ServerWebExchangeUtils.setResponseStatus(
