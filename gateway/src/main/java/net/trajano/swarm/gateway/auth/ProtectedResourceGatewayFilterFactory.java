@@ -6,8 +6,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -36,8 +35,9 @@ import reactor.core.scheduler.Schedulers;
 public class ProtectedResourceGatewayFilterFactory
     extends AbstractGatewayFilterFactory<ProtectedResourceGatewayFilterFactory.Config> {
 
-  private final Logger securityLog = LoggerFactory.getLogger("security");
   private final ReactiveDiscoveryClient discoveryClient;
+
+  private final Scheduler penaltyScheduler;
 
   private final Scheduler protectedResourceScheduler =
       Schedulers.newBoundedElastic(
@@ -55,13 +55,15 @@ public class ProtectedResourceGatewayFilterFactory
       ReactiveDiscoveryClient discoveryClient,
       AuthProperties authProperties,
       ClaimsService claimsService,
-      IdentityService<?, ?> identityService) {
+      IdentityService<?, ?> identityService,
+      @Qualifier("penalty") Scheduler penaltyScheduler) {
 
     super(Config.class);
     this.discoveryClient = discoveryClient;
     this.authProperties = authProperties;
     this.claimsService = claimsService;
     this.identityService = identityService;
+    this.penaltyScheduler = penaltyScheduler;
   }
 
   /**
@@ -111,13 +113,12 @@ public class ProtectedResourceGatewayFilterFactory
                                 ServerWebExchangeUtils.setResponseStatus(
                                     exchange, HttpStatus.UNAUTHORIZED);
                                 ServerWebExchangeUtils.setAlreadyRouted(exchange);
-                                securityLog.warn(
-                                    "security error obtaining claims: {}", ex.getMessage());
                                 log.debug("security error obtaining claims: {}", ex.getMessage());
                                 return chain
                                     .filter(exchange)
                                     .delayElement(
-                                        Duration.ofMillis(authProperties.getPenaltyDelayInMillis()))
+                                        Duration.ofMillis(authProperties.getPenaltyDelayInMillis()),
+                                        penaltyScheduler)
                                     .then(
                                         respondWithUnauthorized(config, exchange, "invalid_token"));
                               })

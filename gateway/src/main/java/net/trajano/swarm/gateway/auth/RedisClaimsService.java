@@ -8,6 +8,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.simple.JwtFunctions;
 import net.trajano.swarm.gateway.auth.simple.RedisAuthCache;
 import net.trajano.swarm.gateway.auth.simple.ZLibStringCompression;
@@ -27,6 +28,8 @@ import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.ReactiveHashOperations;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.data.redis.core.ReactiveValueOperations;
@@ -46,11 +49,14 @@ import reactor.util.function.Tuples;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class RedisClaimsService implements ClaimsService {
 
   public static final String SECRET_HASH_KEY = "secret";
 
   public static final String JTI_HASH_KEY = "jti";
+
+  private final Logger securityLog = LoggerFactory.getLogger("security");
 
   private final Scheduler refreshTokenScheduler =
       Schedulers.newBoundedElastic(
@@ -119,7 +125,10 @@ public class RedisClaimsService implements ClaimsService {
 
     return Mono.zip(jwtMono, jwtConsumerMono)
         .flatMap(t -> getClaims(t.getT1(), t.getT2()))
-        .flatMap(this::validateClaims);
+        .flatMap(this::validateClaims)
+        .doOnError(
+            SecurityException.class,
+            ex -> securityLog.warn("security error obtaining claims: {}", ex.getMessage()));
   }
 
   private Mono<JwtClaims> getClaims(String jwt, JwtConsumer jwtConsumer) {
@@ -202,22 +211,31 @@ public class RedisClaimsService implements ClaimsService {
     return getRefreshTokenRedisKey(refreshToken)
         .flatMap(
             redisKey ->
-                redisTemplate.hasKey(redisKey).filter(hasKey -> hasKey).thenReturn(redisKey))
+                redisTemplate
+                    .hasKey(redisKey)
+                    .filter(hasKey -> hasKey)
+                    .switchIfEmpty(
+                        Mono.error(
+                            new SecurityException(
+                                "unable to locate redis key %s".formatted(redisKey))))
+                    .thenReturn(redisKey))
         .flatMap(
             redisKey ->
                 opsForHash
                     .multiGet(redisKey, List.of(JTI_HASH_KEY, SECRET_HASH_KEY))
                     .flatMap(
-                        redisItems ->
-                            redisTemplate
-                                .delete(
-                                    redisKeyBlocks.accessTokenJtiKey(redisItems.get(0)), redisKey)
-                                .thenReturn(redisItems.get(1))))
+                        redisItems -> {
+                          log.error(redisKey + " " + redisItems);
+                          return redisTemplate
+                              .delete(redisKeyBlocks.accessTokenJtiKey(redisItems.get(0)), redisKey)
+                              .thenReturn(redisItems.get(1));
+                        }))
         .flatMap(
             secretClaimsJson -> {
               try {
                 return Mono.just(JwtClaims.parse(secretClaimsJson));
               } catch (InvalidJwtException e) {
+                log.error("unable to parse secret claims, this is a system error", e);
                 return Mono.error(e);
               }
             })
@@ -226,18 +244,23 @@ public class RedisClaimsService implements ClaimsService {
         .flatMap(this::storeAndSignIdentityServiceResponse)
         .map(
             oauthResponse -> AuthServiceResponse.builder().operationResponse(oauthResponse).build())
-        .switchIfEmpty(
-            Mono.just(
-                AuthServiceResponse.builder()
-                    .operationResponse(new UnauthorizedGatewayResponse())
-                    .statusCode(HttpStatus.UNAUTHORIZED)
-                    .delay(Duration.ofMillis(properties.getPenaltyDelayInMillis()))
-                    .build()))
+        .switchIfEmpty(Mono.error(SecurityException::new))
+        .onErrorResume(
+            SecurityException.class,
+            ex -> {
+              securityLog.warn("security error handling refresh request {}", ex.getMessage());
+              return Mono.just(
+                  AuthServiceResponse.builder()
+                      .operationResponse(new UnauthorizedGatewayResponse())
+                      .statusCode(HttpStatus.UNAUTHORIZED)
+                      .delay(Duration.ofMillis(properties.getPenaltyDelayInMillis()))
+                      .build());
+            })
+        .doOnError(ex -> log.error("error processing refresh request", ex))
         .onErrorReturn(
             AuthServiceResponse.builder()
                 .operationResponse(new UnauthorizedGatewayResponse())
                 .statusCode(HttpStatus.UNAUTHORIZED)
-                .delay(Duration.ofMillis(properties.getPenaltyDelayInMillis()))
                 .build());
   }
 
@@ -288,11 +311,9 @@ public class RedisClaimsService implements ClaimsService {
 
     final int accessTokenExpiresInSeconds;
     try {
-      if (Objects.requireNonNull(identityServiceResponse.getClaims())
-          .hasClaim(ReservedClaimNames.EXPIRATION_TIME)) {
-        final Instant expiresAt =
-            Instant.ofEpochSecond(
-                identityServiceResponse.getClaims().getExpirationTime().getValue());
+      final JwtClaims tokenClaims = Objects.requireNonNull(identityServiceResponse.getClaims());
+      if (tokenClaims.hasClaim(ReservedClaimNames.EXPIRATION_TIME)) {
+        final Instant expiresAt = Instant.ofEpochSecond(tokenClaims.getExpirationTime().getValue());
         accessTokenExpiresInSeconds = (int) Duration.between(Instant.now(), expiresAt).toSeconds();
       } else {
         accessTokenExpiresInSeconds = properties.getAccessTokenExpiresInSeconds();
@@ -353,21 +374,20 @@ public class RedisClaimsService implements ClaimsService {
 
     final Instant accessTokenExpiresAt;
     final Instant refreshTokenExpiresAt;
+    final JwtClaims tokenClaims = Objects.requireNonNull(identityServiceResponse.getClaims());
+    final JwtClaims secretClaims =
+        Objects.requireNonNull(identityServiceResponse.getSecretClaims());
     try {
-      if (Objects.requireNonNull(identityServiceResponse.getSecretClaims())
-          .hasClaim(ReservedClaimNames.EXPIRATION_TIME)) {
+      if (secretClaims.hasClaim(ReservedClaimNames.EXPIRATION_TIME)) {
         refreshTokenExpiresAt =
-            Instant.ofEpochMilli(
-                identityServiceResponse.getSecretClaims().getExpirationTime().getValueInMillis());
+            Instant.ofEpochMilli(secretClaims.getExpirationTime().getValueInMillis());
       } else {
         refreshTokenExpiresAt =
             Instant.now().plus(properties.getRefreshTokenExpiresInSeconds(), ChronoUnit.SECONDS);
       }
-      if (Objects.requireNonNull(identityServiceResponse.getClaims())
-          .hasClaim(ReservedClaimNames.EXPIRATION_TIME)) {
+      if (tokenClaims.hasClaim(ReservedClaimNames.EXPIRATION_TIME)) {
         accessTokenExpiresAt =
-            Instant.ofEpochMilli(
-                identityServiceResponse.getClaims().getExpirationTime().getValueInMillis());
+            Instant.ofEpochMilli(tokenClaims.getExpirationTime().getValueInMillis());
       } else {
         accessTokenExpiresAt =
             Instant.now().plus(properties.getAccessTokenExpiresInSeconds(), ChronoUnit.SECONDS);
@@ -376,7 +396,7 @@ public class RedisClaimsService implements ClaimsService {
       return Mono.error(e);
     }
 
-    return withSystemClaims(Objects.requireNonNull(identityServiceResponse.getClaims()))
+    return withSystemClaims(tokenClaims)
         .flatMap(
             claims -> {
               try {
@@ -427,7 +447,7 @@ public class RedisClaimsService implements ClaimsService {
    * @param jwtClaims claims
    * @return claims as is if valid.
    */
-  private Mono<JwtClaims> validateClaims(JwtClaims jwtClaims) {
+  private Mono<JwtClaims> validateClaims(final JwtClaims jwtClaims) {
 
     try {
       final String jwtId = jwtClaims.getJwtId();
@@ -438,20 +458,9 @@ public class RedisClaimsService implements ClaimsService {
                   new SecurityException(
                       "unable to find redis key %s"
                           .formatted(redisKeyBlocks.accessTokenJtiKey(jwtId)))))
-          .map(ignored -> jwtClaims);
+          .thenReturn(jwtClaims);
     } catch (MalformedClaimException e) {
       return Mono.error(new SecurityException(e));
-    }
-  }
-
-  private Mono<JwtClaims> withJti(String jti, JwtClaims sourceClaims) {
-
-    try {
-      final var claims = JwtClaims.parse(sourceClaims.toJson());
-      claims.setJwtId(jti);
-      return Mono.just(claims);
-    } catch (InvalidJwtException e) {
-      return Mono.error(e);
     }
   }
 

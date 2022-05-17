@@ -9,6 +9,7 @@ import net.trajano.swarm.gateway.jwks.JwksProvider;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,20 +19,20 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 
 /**
  * Due to type erasure, this was made abstract so a concrete implementation like
  * SimpleAuthController can be used where the types are fully passed in. Use autowired so subclasses
  * do not have to form the constructor.
  *
+ * <p>Security logging is not performed here, see {@link ClaimsService} implementation for these
+ * logs.
+ *
  * @param <A>
  * @param <P>
  */
 @Slf4j
 public abstract class AbstractAuthController<A, P> {
-
-  private final Scheduler penaltyScheduler = Schedulers.newParallel("penalty");
 
   @Autowired private AuthProperties authProperties;
 
@@ -41,6 +42,10 @@ public abstract class AbstractAuthController<A, P> {
   @Autowired private IdentityService<A, P> identityService;
 
   @Autowired private JwksProvider jwksProvider;
+
+  @Autowired
+  @Qualifier("penalty")
+  private Scheduler penaltyScheduler;
 
   private void addCommonHeaders(ServerHttpResponse serverHttpResponse) {
 
