@@ -93,7 +93,22 @@ public abstract class AbstractAuthController<A, P> {
                               HttpHeaders.WWW_AUTHENTICATE,
                               "Bearer realm=\"%s\"".formatted(authProperties.getRealm()));
                     })
-                .delayElement(Duration.ofMillis(authProperties.getPenaltyDelayInMillis())));
+                .delayElement(Duration.ofMillis(authProperties.getPenaltyDelayInMillis())))
+        .onErrorResume(
+            SecurityException.class,
+            ex ->
+                Mono.just(GatewayResponse.builder().ok(false).error("invalid_credentials").build())
+                    .doOnNext(
+                        response -> {
+                          final var serverHttpResponse = serverWebExchange.getResponse();
+                          serverHttpResponse.setStatusCode(HttpStatus.UNAUTHORIZED);
+                          serverHttpResponse
+                              .getHeaders()
+                              .add(
+                                  HttpHeaders.WWW_AUTHENTICATE,
+                                  "Bearer realm=\"%s\"".formatted(authProperties.getRealm()));
+                        })
+                    .delayElement(Duration.ofMillis(authProperties.getPenaltyDelayInMillis())));
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Bad request")

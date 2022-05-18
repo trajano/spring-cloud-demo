@@ -1,5 +1,6 @@
 package net.trajano.swarm.gateway.auth.simple;
 
+import java.net.URI;
 import lombok.Data;
 import org.springframework.lang.Nullable;
 
@@ -16,4 +17,7 @@ public class SimpleAuthenticationRequest {
   @Nullable private Integer accessTokenExpiresInMillis;
   /** Allow request to alter the refresh token expiration (for testing) */
   @Nullable private Integer refreshTokenExpiresInMillis;
+
+  private URI issuer;
+  private String accessToken;
 }

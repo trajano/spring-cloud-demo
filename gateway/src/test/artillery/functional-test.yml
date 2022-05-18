@@ -28,6 +28,12 @@ config:
       phases:
         - duration: 60
           arrivalRate: 60
+    localhost-direct-medium-long:
+      target: "http://localhost:28082"
+      phases:
+        - duration: 700
+          arrivalRate: 60
+          maxVusers: 100
     localhost-direct-heavy-load:
       target: "http://localhost:28082"
       phases:
@@ -405,6 +411,21 @@ scenarios:
             - statusCode: 200
       - get:
           url: "/openapi.json"
+          headers:
+            Accept: application/json
+          expect:
+            - statusCode: 200
+  - name: JWKS available
+    weight: 1
+    flow:
+      - head:
+          url: "/jwks"
+          headers:
+            Accept: application/json
+          expect:
+            - statusCode: 200
+      - get:
+          url: "/jwks"
           headers:
             Accept: application/json
           expect:

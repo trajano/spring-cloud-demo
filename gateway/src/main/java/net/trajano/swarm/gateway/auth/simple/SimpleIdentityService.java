@@ -1,12 +1,14 @@
 package net.trajano.swarm.gateway.auth.simple;
 
+import java.net.URI;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.IdentityService;
 import net.trajano.swarm.gateway.auth.IdentityServiceResponse;
-import net.trajano.swarm.gateway.jwks.JwksProvider;
+import net.trajano.swarm.gateway.auth.oidc.ReactiveOidcService;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
@@ -31,11 +33,60 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
   public static final String ACCESS_TOKEN_EXPIRES_IN_MINUTES_CLAIM =
       "access-token-expires-in-minutes";
 
-  private final JwksProvider jwksProvider;
+  private final ReactiveOidcService oidcService;
 
   @Override
   public Mono<IdentityServiceResponse> authenticate(
       SimpleAuthenticationRequest authenticationRequest, HttpHeaders headers) {
+    final String authorizationHeader = headers.getFirst(HttpHeaders.AUTHORIZATION);
+    if (Objects.nonNull(authenticationRequest.getAccessToken())
+        && Objects.nonNull(authenticationRequest.getIssuer())) {
+      return oidcAuthenticate(
+          authenticationRequest.getAccessToken(), authenticationRequest.getIssuer());
+    } else if (Objects.nonNull(authorizationHeader)
+        && Objects.nonNull(authenticationRequest.getIssuer())) {
+      return oidcAuthenticate(
+          authorizationHeader.substring("Bearer ".length()), authenticationRequest.getIssuer());
+    } else {
+      return simpleAuthenticate(authenticationRequest);
+    }
+  }
+
+  private Mono<IdentityServiceResponse> oidcAuthenticate(String accessToken, URI issuer) {
+    return oidcService
+        .allowedIssuers()
+        .filter(issuer::equals)
+        .switchIfEmpty(
+            Mono.error(new SecurityException("Issuer %s is not supported".formatted(issuer))))
+        .next()
+        .flatMap(issuerUri -> oidcService.getClaims(issuerUri, accessToken))
+        .flatMap(
+            jwtClaims -> {
+              try {
+                final var claims = new JwtClaims();
+                claims.setSubject(jwtClaims.getSubject());
+                claims.setClaim("userinfo", jwtClaims);
+
+                final var secretClaims = new JwtClaims();
+                secretClaims.setStringClaim("secret-uuid", UUID.randomUUID().toString());
+                secretClaims.setSubject(jwtClaims.getSubject());
+                secretClaims.setClaim("userinfo", jwtClaims);
+                final IdentityServiceResponse response =
+                    IdentityServiceResponse.builder()
+                        .ok(true)
+                        .claims(claims)
+                        .secretClaims(secretClaims)
+                        .build();
+                log.trace("response {}", response);
+                return Mono.just(response);
+              } catch (MalformedClaimException e) {
+                return Mono.error(e);
+              }
+            });
+  }
+
+  private Mono<IdentityServiceResponse> simpleAuthenticate(
+      SimpleAuthenticationRequest authenticationRequest) {
 
     if (authenticationRequest.isAuthenticated()) {
       final var claims = new JwtClaims();
@@ -71,8 +122,7 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
       return Mono.just(response);
 
     } else {
-      return Mono.just(
-          IdentityServiceResponse.builder().ok(false).penaltyDelayInSeconds(2).build());
+      return Mono.error(SecurityException::new);
     }
   }
 

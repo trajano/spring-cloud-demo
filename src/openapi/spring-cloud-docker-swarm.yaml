@@ -16,7 +16,7 @@ servers:
     variables: {}
 paths:
   /auth:
-    $ref: "./auth.yaml#/paths/~1auth"
+    $ref: "./simple-auth.yaml#/paths/~1auth"
   /refresh:
     $ref: "./auth.yaml#/paths/~1refresh"
   /whoami:

@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.ThreadLocalRandom;
 import org.junit.jupiter.api.Test;
 
 class ZLibStringCompressionTest {
@@ -62,5 +65,21 @@ class ZLibStringCompressionTest {
         .getCause()
         .isInstanceOf(IOException.class)
         .hasMessage("Decompressing past limit 20480 bytes");
+  }
+
+  @Test
+  void possibleStarts() {
+
+    final ThreadLocalRandom random = ThreadLocalRandom.current();
+    byte[] sample = new byte[256];
+
+    Set<String> x = new TreeSet<>();
+    for (int i = 0; i < 2000; ++i) {
+      random.nextBytes(sample);
+      final String compress =
+          ZLibStringCompression.compress(Base64.getUrlEncoder().encodeToString(sample));
+      x.add(compress.substring(0, 3));
+    }
+    x.stream().forEach(System.out::println);
   }
 }

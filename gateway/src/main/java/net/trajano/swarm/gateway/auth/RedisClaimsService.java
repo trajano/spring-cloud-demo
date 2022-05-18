@@ -1,5 +1,6 @@
 package net.trajano.swarm.gateway.auth;
 
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.time.Duration;
@@ -10,7 +11,6 @@ import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.simple.JwtFunctions;
-import net.trajano.swarm.gateway.auth.simple.RedisAuthCache;
 import net.trajano.swarm.gateway.auth.simple.ZLibStringCompression;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.common.RedisKeyBlocks;
@@ -73,8 +73,6 @@ public class RedisClaimsService implements ClaimsService {
           "jwtConsumer");
 
   private final AuthProperties properties;
-
-  private final RedisAuthCache redisTokenCache;
 
   private final RedisKeyBlocks redisKeyBlocks;
 
@@ -147,14 +145,27 @@ public class RedisClaimsService implements ClaimsService {
   /**
    * Gets the refresh token redis key from the signed refresh token.
    *
-   * @param refreshToken
-   * @return
+   * @param refreshToken refresh token from the client
+   * @return the refresh token redis key.
    */
   private Mono<String> getRefreshTokenRedisKey(String refreshToken) {
 
+    var refreshTokenJwt =
+        Mono.just(refreshToken)
+            .filter(token -> token.matches("[-_A-Za-z\\d]+\\.[-_A-Za-z\\d]+\\.[-_A-Za-z\\d]+"))
+            .map(
+                token ->
+                    Base64.getUrlEncoder()
+                            .withoutPadding()
+                            .encodeToString(
+                                ("{\"kid\":\"%s\",\"alg\":\"RS256\"}"
+                                        .formatted(token.substring(0, token.indexOf("."))))
+                                    .getBytes(StandardCharsets.US_ASCII))
+                        + token.substring(token.indexOf(".")));
+
     return jwksProvider
         .jsonWebKeySet()
-        .publishOn(Schedulers.parallel())
+        .publishOn(refreshTokenScheduler)
         .map(
             jwks ->
                 new JwtConsumerBuilder()
@@ -167,10 +178,11 @@ public class RedisClaimsService implements ClaimsService {
                         AlgorithmConstraints.ConstraintType.PERMIT,
                         AlgorithmIdentifiers.RSA_USING_SHA256)
                     .build())
+        .flatMap(jwtConsumer -> Mono.zip(Mono.just(jwtConsumer), refreshTokenJwt))
         .flatMap(
-            jwtConsumer -> {
+            t -> {
               try {
-                return Mono.just(jwtConsumer.processToClaims(refreshToken).toJson());
+                return Mono.just(t.getT1().processToClaims(t.getT2()).toJson());
               } catch (InvalidJwtException e) {
                 return Mono.error(e);
               }
@@ -332,7 +344,7 @@ public class RedisClaimsService implements ClaimsService {
             accessToken = ZLibStringCompression.compress(accessToken);
           }
 
-          final String refreshToken = JwtFunctions.sign(jwks, unsignedRefreshTokenJson);
+          final String refreshToken = JwtFunctions.refreshSign(jwks, unsignedRefreshTokenJson);
           var oauthTokenResponse = new OAuthTokenResponse();
           oauthTokenResponse.setOk(true);
           oauthTokenResponse.setAccessToken(accessToken);

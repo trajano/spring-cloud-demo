@@ -1,4 +1,5 @@
 openapi: 3.1.0
+paths:
 components:
   schemas:
     OAuthTokenResponse:
@@ -9,8 +10,16 @@ components:
           example: true
         access_token:
           type: string
+        compressed:
+          type: boolean
+          description: |
+            if true, then the access token value provided is a JWT that is compressed using ZLib compression
+            then re-encoded in base64url
         refresh_token:
           type: string
+          description: |
+            token used with the [refresh token endpoint](#operation/refreshToken).  This is a JWT except the header
+            is simply the key ID value encoded.
         token_type:
           type: string
           enum:
@@ -22,7 +31,7 @@ components:
   headers:
     "X-B3-Traceid":
       description: |
-        Trace ID
+        Trace ID for OpenTracing compatible systems.
       schema:
         type: string
     "Cache-Control":
@@ -49,14 +58,35 @@ components:
         type: number
         example: 42
   responses:
-    invalid-token:
+    authenticated:
+      x-summary: Authenticated
       description: |
-        The request had an invalid token.  By design, there's no other information to indicate why it is invalid but
-        the reasons could be:
+        Authenticated response containing the OAuth standard token response elements.
+      headers:
+        X-B3-Traceid:
+          $ref: "#/components/headers/X-B3-Traceid"
+        X-Trace-ID:
+          $ref: "#/components/headers/X-Trace-ID"
+        Cache-Control:
+          $ref: "#/components/headers/Cache-Control"
+        Content-Type:
+          $ref: "#/components/headers/Content-Type"
+        Content-Length:
+          $ref: "#/components/headers/Content-Length"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/OAuthTokenResponse"
+    invalid-token:
+      x-summary: Invalid token
+      description: |
+        The request had an invalid token. By design, there's no other information to indicate why it is invalid but the reasons could be:
         
         1. the token has expired.
         2. the token was malformed and failed conversion checks.
         3. the signature validation did not pass.
+        
+        In addition, the response will be delayed by a system specified amount as a penalty.
       headers:
         X-B3-Traceid:
           $ref: "#/components/headers/X-B3-Traceid"

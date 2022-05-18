@@ -63,13 +63,18 @@ services:
     environment:
       - SPRING_REDIS_HOST=redis
       - DOCKER_DISCOVERY_SWARMMODE=true
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
-      - AWS_REGION=${AWS_REGION:-}
+#      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+#      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+#      - AWS_REGION=${AWS_REGION:-}
+      - AUTH_OIDC_ALLOWEDISSUERS=https://accounts.google.com
+#      - OIDC_ISSUER=${GOOGLE_ISSUER:https://accounts.google.com}
+#      - OIDC_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+#      - OIDC_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+#      - OIDC_REDIRECT_URI=${GOOGLE_REDIRECT_URI:https://oauth.pstmn.io/v1/callback}
 #      - DOCKER_DISCOVERY_DAEMONFULLACCESS=false
 #      - DOCKER_HOST=tcp://daemon:2375
-      - LOGGING_LEVEL_NET_TRAJANO=trace
-      - LOGGING_LEVEL_NET_TRAJANO=debug
+#      - LOGGING_LEVEL_NET_TRAJANO=trace
+#      - LOGGING_LEVEL_NET_TRAJANO=debug
 #      - LOGGING_LEVEL_ORG_XBILL=trace
       - LOGGING_LEVEL_ROOT=error
       - LOGGING_LEVEL_SECURITY=info
@@ -184,9 +189,10 @@ services:
       labels:
         docker.ids: whoami,xxx
         docker.whoami.path: /whoami/**
-        docker.whoami.path.replacement: /$${remaining}
+        docker.whoami.path.replacement: /api
         docker.whoami.port: 80
         docker.xxx.path: /xxx/**
+        docker.xxx.path.replacement: /$${remaining}
         docker.xxx.port: 80
       replicas: 5
       endpoint_mode: dnsrr

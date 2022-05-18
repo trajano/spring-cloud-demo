@@ -16,7 +16,6 @@ import reactor.core.publisher.Mono;
 
 @SpringBootTest(
     classes = {
-      RedisAuthCache.class,
       SimpleAuthServiceProperties.class,
       SimpleAuthRedisKeyBlocks.class,
       RedisAuthCacheTest.TestConfig.class
@@ -36,11 +35,11 @@ class RedisAuthCacheTest {
     }
   }
 
-  @Autowired RedisAuthCache redisAuthCache;
+  @Autowired SimpleAuthServiceProperties simpleAuthServiceProperties;
 
   @Test
   void contextLoads() {
 
-    assertThat(redisAuthCache).isNotNull();
+    assertThat(simpleAuthServiceProperties).isNotNull();
   }
 }

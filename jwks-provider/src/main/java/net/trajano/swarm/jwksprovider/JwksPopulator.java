@@ -4,8 +4,8 @@ import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -36,6 +36,8 @@ public class JwksPopulator {
 
   private final RedisKeyBlocks redisKeyBlocks;
 
+  private SecureRandom secureRandom;
+
   private final ReactiveStringRedisTemplate redisTemplate;
 
   private KeyPairGenerator keyPairGenerator;
@@ -64,7 +66,15 @@ public class JwksPopulator {
               final var privateKey = keyPair.getPrivate();
               final var publicKey = (RSAPublicKey) keyPair.getPublic();
 
-              final var kid = UUID.randomUUID().toString();
+              // There is no need for the KID to be too long.  3-bytes translates to an 4 or
+              // 5-character
+              // base64 encoded
+              // string which gives enough space to prevent duplicates, should there be a duplicate
+              // it just
+              // reduces the amount of selectable keys, but there will at least be one.
+              final var kidBytes = new byte[3];
+              secureRandom.nextBytes(kidBytes);
+              final var kid = Base64.getUrlEncoder().withoutPadding().encodeToString(kidBytes);
 
               final var jwks = new JsonWebKeySet();
               try {
@@ -89,6 +99,7 @@ public class JwksPopulator {
     try {
       keyPairGenerator = KeyPairGenerator.getInstance(RSA);
       keyPairGenerator.initialize(2048);
+      secureRandom = SecureRandom.getInstanceStrong();
       start();
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException(e);

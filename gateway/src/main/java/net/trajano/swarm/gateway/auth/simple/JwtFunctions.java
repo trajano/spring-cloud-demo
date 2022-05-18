@@ -1,11 +1,16 @@
 package net.trajano.swarm.gateway.auth.simple;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
 import lombok.AccessLevel;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jose4j.jwk.JsonWebKey;
@@ -59,6 +64,32 @@ public final class JwtFunctions {
       if (l > 500) {
         log.error("Time " + l);
       }
+    }
+  }
+
+  @Data
+  private static class JwtHeader {
+    private String kid;
+    private String alg = "RS256";
+  }
+
+  /**
+   * This signs but only stores the key ID in the JOSE header.
+   *
+   * @param jwks jwks
+   * @param payload payload
+   * @return
+   */
+  public static String refreshSign(JsonWebKeySet jwks, String payload) {
+
+    final String signed = sign(jwks, payload);
+    final String jwtHeader = signed.substring(0, signed.indexOf('.'));
+    try {
+      final var header =
+          new ObjectMapper().readValue(Base64.getUrlDecoder().decode(jwtHeader), JwtHeader.class);
+      return header.getKid() + signed.substring(signed.indexOf('.'));
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
     }
   }
 
