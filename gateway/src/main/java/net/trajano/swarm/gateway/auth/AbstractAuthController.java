@@ -60,7 +60,7 @@ public abstract class AbstractAuthController<A, P> {
   }
 
   @PostMapping(
-      path = "${auth.controller-mappings.username-password-authentication:/auth}",
+      path = "${auth.controller-mappings.authentication:/auth}",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       produces = {MediaType.APPLICATION_JSON_VALUE})
   public Mono<GatewayResponse> authenticate(

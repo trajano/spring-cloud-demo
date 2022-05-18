@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class AuthControllerMappingsProperties {
 
-  /** Mapping for the username password authentication endpoint */
-  private String usernamePasswordAuthentication;
+  /** Mapping for the authentication endpoint */
+  private String authentication;
 
   /** Mapping for the jwks endpoint. */
   private String jwks;
