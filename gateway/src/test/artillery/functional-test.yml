@@ -145,7 +145,7 @@ scenarios:
             Authorization: "Bearer {{ access_token }}"
           expect:
             - statusCode: 200
-      - think: 5
+      - think: 10
       - post:
           url: "/logout"
           form:
@@ -156,7 +156,7 @@ scenarios:
           expect:
             - statusCode: 200
   - name: Login request resource and logout with refresh
-    weight: 6
+    weight: 20
     flow:
       - post:
           url: "/auth"
@@ -173,6 +173,31 @@ scenarios:
               as: "refresh_token"
           expect:
             - statusCode: 200
+      - loop:
+          - get:
+              url: "/whoami"
+              headers:
+                Accept: application/json
+                Authorization: "Bearer {{ access_token }}"
+              expect:
+                - statusCode: 200
+          - think: 10
+          - post:
+              url: "/refresh"
+              form:
+                refresh_token: "{{ refresh_token }}"
+                grant_type: refresh_token
+              headers:
+                Content-Type: application/x-www-form-urlencoded
+              capture:
+                - json: "$.access_token"
+                  as: "access_token"
+                - json: "$.refresh_token"
+                  as: "refresh_token"
+              expect:
+                - statusCode: 200
+          - think: 10
+        count: 20
       - get:
           url: "/whoami"
           headers:
@@ -180,29 +205,7 @@ scenarios:
             Authorization: "Bearer {{ access_token }}"
           expect:
             - statusCode: 200
-      - think: 5
-      - post:
-          url: "/refresh"
-          form:
-            refresh_token: "{{ refresh_token }}"
-            grant_type: refresh_token
-          headers:
-            Content-Type: application/x-www-form-urlencoded
-          capture:
-            - json: "$.access_token"
-              as: "access_token"
-            - json: "$.refresh_token"
-              as: "refresh_token"
-          expect:
-            - statusCode: 200
-      - get:
-          url: "/whoami"
-          headers:
-            Accept: application/json
-            Authorization: "Bearer {{ access_token }}"
-          expect:
-            - statusCode: 200
-      - think: 5
+      - think: 10
       - post:
           url: "/logout"
           form:
@@ -213,7 +216,7 @@ scenarios:
           expect:
             - statusCode: 200
   - name: Login request resource and logout with required refresh
-    weight: 2
+    weight: 20
     flow:
       - post:
           url: "/auth"
@@ -230,34 +233,38 @@ scenarios:
               as: "refresh_token"
           expect:
             - statusCode: 200
-      - get:
-          url: "/whoami"
-          headers:
-            Accept: application/json
-            Authorization: "Bearer {{ access_token }}"
-          expect:
-            - statusCode: 200
-      - get:
-          url: "/whoami"
-          headers:
-            Accept: application/json
-            Authorization: "Bearer bad{{ access_token }}"
-          expect:
-            - statusCode: 401
-      - post:
-          url: "/refresh"
-          form:
-            refresh_token: "{{ refresh_token }}"
-            grant_type: refresh_token
-          headers:
-            Content-Type: application/x-www-form-urlencoded
-          capture:
-            - json: "$.access_token"
-              as: "access_token"
-            - json: "$.refresh_token"
-              as: "refresh_token"
-          expect:
-            - statusCode: 200
+      - loop:
+          - get:
+              url: "/whoami"
+              headers:
+                Accept: application/json
+                Authorization: "Bearer {{ access_token }}"
+              expect:
+                - statusCode: 200
+          - think: 10
+          - get:
+              url: "/whoami"
+              headers:
+                Accept: application/json
+                Authorization: "Bearer bad{{ access_token }}"
+              expect:
+                - statusCode: 401
+          - post:
+              url: "/refresh"
+              form:
+                refresh_token: "{{ refresh_token }}"
+                grant_type: refresh_token
+              headers:
+                Content-Type: application/x-www-form-urlencoded
+              capture:
+                - json: "$.access_token"
+                  as: "access_token"
+                - json: "$.refresh_token"
+                  as: "refresh_token"
+              expect:
+                - statusCode: 200
+          - think: 10
+        count: 20
       - get:
           url: "/whoami"
           headers:
@@ -431,7 +438,7 @@ scenarios:
           expect:
             - statusCode: 200
   - name: Token and timeout tests
-    weight: 5
+    weight: 10
     flow:
       - post:
           url: "/auth"

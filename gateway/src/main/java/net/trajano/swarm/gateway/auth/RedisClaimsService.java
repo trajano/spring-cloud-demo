@@ -182,11 +182,12 @@ public class RedisClaimsService implements ClaimsService {
         .flatMap(
             t -> {
               try {
-                return Mono.just(t.getT1().processToClaims(t.getT2()).toJson());
+                return Mono.just(t.getT1().processToClaims(t.getT2()));
               } catch (InvalidJwtException e) {
-                return Mono.error(e);
+                return Mono.error(new SecurityException(e));
               }
             })
+        .map(JwtClaims::toJson)
         .map(redisKeyBlocks::forRefreshToken);
   }
 
@@ -237,7 +238,6 @@ public class RedisClaimsService implements ClaimsService {
                     .multiGet(redisKey, List.of(JTI_HASH_KEY, SECRET_HASH_KEY))
                     .flatMap(
                         redisItems -> {
-                          log.error(redisKey + " " + redisItems);
                           return redisTemplate
                               .delete(redisKeyBlocks.accessTokenJtiKey(redisItems.get(0)), redisKey)
                               .thenReturn(redisItems.get(1));

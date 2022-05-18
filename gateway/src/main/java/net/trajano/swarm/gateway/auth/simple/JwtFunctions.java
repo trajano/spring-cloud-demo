@@ -61,8 +61,10 @@ public final class JwtFunctions {
       throw new IllegalStateException(e);
     } finally {
       final long l = System.currentTimeMillis() - start;
-      if (l > 500) {
-        log.error("Time " + l);
+      if (l > 1000) {
+        log.error("Signature generation time {}ms > 1000ms ", l);
+      } else if (l > 500) {
+        log.warn("Signature generation time {}ms > 500ms ", l);
       }
     }
   }

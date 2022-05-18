@@ -129,7 +129,6 @@ public abstract class AbstractAuthController<A, P> {
   @PostMapping(
       path = "${auth.controller-mappings.logout:/logout}",
       consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-  @ResponseStatus(HttpStatus.NO_CONTENT)
   public Mono<GatewayResponse> logout(
       @ModelAttribute OAuthRevocationRequest request, ServerWebExchange serverWebExchange) {
 
@@ -146,7 +145,15 @@ public abstract class AbstractAuthController<A, P> {
               addCommonHeaders(serverHttpResponse);
               serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
             })
-        .flatMap(this::addDelaySpecifiedInServiceResponse);
+        .flatMap(this::addDelaySpecifiedInServiceResponse)
+        // on security error just return ok and add penalty
+        .onErrorResume(
+            SecurityException.class,
+            ex ->
+                Mono.just(GatewayResponse.builder().ok(true).build())
+                    .delayElement(
+                        Duration.ofMillis(authProperties.getPenaltyDelayInMillis()),
+                        penaltyScheduler));
   }
 
   @PostMapping(
