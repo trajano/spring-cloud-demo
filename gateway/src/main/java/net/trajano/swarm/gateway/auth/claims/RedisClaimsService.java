@@ -1,4 +1,4 @@
-package net.trajano.swarm.gateway.auth;
+package net.trajano.swarm.gateway.auth.claims;
 
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
@@ -10,8 +10,10 @@ import java.util.*;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.trajano.swarm.gateway.auth.simple.JwtFunctions;
-import net.trajano.swarm.gateway.auth.simple.ZLibStringCompression;
+import net.trajano.swarm.gateway.auth.AuthServiceResponse;
+import net.trajano.swarm.gateway.auth.IdentityService;
+import net.trajano.swarm.gateway.auth.IdentityServiceResponse;
+import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.common.RedisKeyBlocks;
 import net.trajano.swarm.gateway.jwks.JwksProvider;

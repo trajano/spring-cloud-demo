@@ -1,4 +1,4 @@
-package net.trajano.swarm.gateway.auth.simple;
+package net.trajano.swarm.gateway.auth.claims;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;

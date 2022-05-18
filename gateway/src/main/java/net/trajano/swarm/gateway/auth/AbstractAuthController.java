@@ -4,6 +4,7 @@ import static reactor.core.publisher.Mono.fromCallable;
 
 import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
+import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.jwks.JwksProvider;
 import net.trajano.swarm.gateway.web.GatewayResponse;

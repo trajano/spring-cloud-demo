@@ -10,13 +10,6 @@ import org.springframework.context.annotation.Configuration;
 public class SimpleAuthServiceConfiguration {
 
   @Bean
-  SimpleAuthRedisKeyBlocks simpleAuthRedisKeyBlocks(
-      final SimpleAuthServiceProperties simpleAuthServiceProperties) {
-
-    return new SimpleAuthRedisKeyBlocks(simpleAuthServiceProperties);
-  }
-
-  @Bean
   <P> SimpleIdentityService<P> simpleAuthService(
       final ReactiveOidcService reactiveOidcService,
       final SimpleAuthServiceProperties simpleAuthServiceProperties) {

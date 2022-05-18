@@ -1,5 +1,6 @@
 package net.trajano.swarm.gateway.auth;
 
+import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import org.jose4j.jwt.JwtClaims;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;

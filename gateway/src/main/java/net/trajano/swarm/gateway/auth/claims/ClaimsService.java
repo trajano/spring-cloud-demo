@@ -1,5 +1,7 @@
-package net.trajano.swarm.gateway.auth;
+package net.trajano.swarm.gateway.auth.claims;
 
+import net.trajano.swarm.gateway.auth.AuthServiceResponse;
+import net.trajano.swarm.gateway.auth.IdentityServiceResponse;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.jose4j.jwt.JwtClaims;
 import org.springframework.http.HttpHeaders;

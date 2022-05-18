@@ -4,6 +4,7 @@ import com.google.common.net.HttpHeaders;
 import java.time.Duration;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
 import org.springframework.beans.factory.annotation.Qualifier;

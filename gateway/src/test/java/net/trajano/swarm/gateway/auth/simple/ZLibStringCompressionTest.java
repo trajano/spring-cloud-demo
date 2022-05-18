@@ -10,6 +10,8 @@ import java.util.Base64;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ThreadLocalRandom;
+
+import net.trajano.swarm.gateway.auth.claims.ZLibStringCompression;
 import org.junit.jupiter.api.Test;
 
 class ZLibStringCompressionTest {

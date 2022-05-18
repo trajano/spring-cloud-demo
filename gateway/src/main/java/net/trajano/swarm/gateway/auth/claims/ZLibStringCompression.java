@@ -1,4 +1,4 @@
-package net.trajano.swarm.gateway.auth.simple;
+package net.trajano.swarm.gateway.auth.claims;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
