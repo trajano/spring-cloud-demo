@@ -161,13 +161,13 @@ scenarios:
               as: "refresh_token"
           expect:
             - statusCode: 200
-#      - get:
-#          url: "/whoami"
-#          headers:
-#            Accept: application/json
-#            Authorization: "Bearer {{ access_token }}"
-#          expect:
-#            - statusCode: 200
+      - get:
+          url: "/whoami"
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          expect:
+            - statusCode: 200
       - post:
           url: "/logout"
           form:
