@@ -1,16 +1,12 @@
 package net.trajano.swarm.gateway;
 
-import java.nio.ByteBuffer;
-import java.security.SecureRandom;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 class FluxPoolTest {
 
-    @Test
+  @Test
   void filterThen() {
 
     var mono = Mono.just(false).filter(i -> i);

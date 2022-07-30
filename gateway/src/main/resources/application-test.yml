@@ -1,6 +1,9 @@
 cloud:
   aws:
     enabled: false
+simple-auth:
+  enabled: true
+
 logging:
   level:
     com.amazonaws.util.EC2MetadataUtils: ERROR
