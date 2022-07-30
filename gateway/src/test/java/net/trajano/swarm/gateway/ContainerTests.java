@@ -1,5 +1,8 @@
 package net.trajano.swarm.gateway;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
 import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import net.trajano.swarm.gateway.auth.simple.SimpleAuthenticationRequest;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -15,10 +18,6 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 
-import java.io.File;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 // @Disabled
 class ContainerTests {
 
@@ -33,11 +32,11 @@ class ContainerTests {
   @Container private static GenericContainer<?> redis;
 
   @Container private static GenericContainer<?> gateway;
+  @Container private static GenericContainer<?> jwksProvider;
 
   @BeforeAll
   static void setup() throws Exception {
 
-    System.out.println(new File("..").getAbsolutePath());
     final var dockerComposeBuildProcess =
         new ProcessBuilder()
             .inheritIO()
@@ -55,6 +54,7 @@ class ContainerTests {
                   createNetworkCmd.withName(networkName);
                 })
             .build();
+
     whoami =
         new GenericContainer<>("containous/whoami")
             .withLabel("docker.ids", "whoami")
@@ -63,12 +63,20 @@ class ContainerTests {
             .withNetworkAliases("whoami")
             .withExposedPorts(80)
             .waitingFor(Wait.forLogMessage(".*Starting up on port 80.*", 1));
+
     redis =
         new GenericContainer<>("redis:6")
             .withNetwork(network)
             .withNetworkAliases("redis")
             .waitingFor(Wait.forLogMessage(".*Ready to accept connections.*", 1));
-    //   new ImageFromDockerfile().withDockerfile(Paths.get("../Dockerfile"))
+
+    jwksProvider =
+        new GenericContainer<>("local/jwks-provider")
+            .dependsOn(redis)
+            .withEnv("SPRING_REDIS_HOST", "redis")
+            .withNetwork(network)
+            .waitingFor(Wait.forHealthcheck());
+
     gateway =
         new GenericContainer<>("local/gateway")
             .dependsOn(redis, whoami)
@@ -79,14 +87,11 @@ class ContainerTests {
             .withFileSystemBind("/var/run/docker.sock", "/var/run/docker.sock")
             .withNetwork(network)
             .withExposedPorts(8080)
-            .withLogConsumer(System.out::print)
-            .waitingFor(Wait.forLogMessage(".*Started GatewayApplication.*", 1));
-    //                        .waitingFor(Wait.forHttp("/actuator/health"));
-    //
-    // .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofSeconds(60)));
+            .waitingFor(Wait.forHealthcheck());
 
     whoami.start();
     redis.start();
+    jwksProvider.start();
     gateway.start();
 
     gatewayUrl =
@@ -103,6 +108,7 @@ class ContainerTests {
     gateway.close();
     redis.close();
     whoami.close();
+    jwksProvider.close();
     network.close();
   }
 
