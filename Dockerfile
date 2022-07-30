@@ -19,7 +19,7 @@ RUN sh ./extract.sh
 FROM openjdk:17-jdk as jwks-provider
 WORKDIR /w
 COPY --from=extractor /w/jwks-provider/* /w/
-ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "org.springframework.boot.loader.JarLauncher"]
 HEALTHCHECK --interval=5s --start-period=60s \
     CMD curl -sfo /dev/null http://localhost:8080/actuator/health
 USER 5000
@@ -28,7 +28,7 @@ EXPOSE 8080
 FROM openjdk:17-jdk as sample-service
 WORKDIR /w
 COPY --from=extractor /w/sample-service/* /w/
-ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "org.springframework.boot.loader.JarLauncher"]
 HEALTHCHECK --interval=5s --start-period=60s \
     CMD curl -sfo /dev/null http://localhost:8080/actuator/health
 USER 5000
@@ -38,7 +38,7 @@ FROM openjdk:17-jdk as gateway
 WORKDIR /w
 COPY --from=extractor /w/gateway/* /w/
 COPY --from=doc-builder /w/dist/openapi.json /
-ENTRYPOINT ["java","-Dorg.slf4j.simpleLogger.defaultLogLevel=debug","org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "-Dorg.slf4j.simpleLogger.defaultLogLevel=debug","org.springframework.boot.loader.JarLauncher"]
 
 # ENTRYPOINT ["java","-XX:+AllowRedefinitionToAddDeleteMethods","org.springframework.boot.loader.JarLauncher"]
 #ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
@@ -52,7 +52,7 @@ FROM openjdk:17-jdk-alpine as gateway-alpine
 WORKDIR /w
 COPY --from=extractor /w/gateway/* /w/
 COPY --from=doc-builder /w/dist/openapi.json /
-ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "org.springframework.boot.loader.JarLauncher"]
 # ENTRYPOINT ["java","-XX:+AllowRedefinitionToAddDeleteMethods","org.springframework.boot.loader.JarLauncher"]
 #ENTRYPOINT ["java","-Dorg.slf4j.simpleLogger.defaultLogLevel=trace","org.springframework.boot.loader.JarLauncher"]
 HEALTHCHECK --interval=5s --start-period=60s \
