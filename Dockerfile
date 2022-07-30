@@ -34,16 +34,19 @@ HEALTHCHECK --interval=5s --start-period=60s \
 USER 5000
 EXPOSE 8080
 
-FROM openjdk:17-jdk as gateway
+#FROM openjdk:17-jdk as gateway
+FROM gcr.io/distroless/java17-debian11 as gateway
 WORKDIR /w
 COPY --from=extractor /w/gateway/* /w/
 COPY --from=doc-builder /w/dist/openapi.json /
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "-Dorg.slf4j.simpleLogger.defaultLogLevel=debug","org.springframework.boot.loader.JarLauncher"]
-
+# ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "-Dorg.slf4j.simpleLogger.defaultLogLevel=debug","org.springframework.boot.loader.JarLauncher"]
 # ENTRYPOINT ["java","-XX:+AllowRedefinitionToAddDeleteMethods","org.springframework.boot.loader.JarLauncher"]
-#ENTRYPOINT ["java","org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "org.springframework.boot.loader.JarLauncher"]
+
 HEALTHCHECK --interval=5s --start-period=60s \
-    CMD curl -sfo /dev/null http://localhost:8080/actuator/health
+    CMD ["java", "-cp", "/w/BOOT-INF/classes", "net.trajano.swarm.gateway.HealthProbe" ]
+#HEALTHCHECK --interval=5s --start-period=60s \
+#    CMD curl -sfo /dev/null http://localhost:8080/actuator/health
 # Must be root in order to access /var/run/docker.sock
 # USER 5000
 EXPOSE 8080

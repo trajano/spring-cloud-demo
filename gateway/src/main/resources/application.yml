@@ -4,6 +4,8 @@ cloud:
       # This is to make it bypass the error message when AWS is not enabled.
       region: us-east-2
 spring:
+  jmx:
+    enabled: true
   redis:
     lettuce:
       pool:
@@ -110,11 +112,14 @@ resilience4j:
         cancelRunningFuture: true
 
 management:
-  endpoint.gateway.enabled: true # default value
-  endpoint:
-    health:
-      show-details: ALWAYS
+#  endpoint.gateway.enabled: true # default value
+#  endpoint:
+#    health:
+#      show-details: ALWAYS
   endpoints:
+    jmx:
+      exposure:
+        include: health
     web:
       exposure:
         #include: health,gateway,info,caches
