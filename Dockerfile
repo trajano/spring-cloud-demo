@@ -1,4 +1,4 @@
-FROM node:16.15.0 as doc-builder
+FROM node:16.16.0 as doc-builder
 RUN npm i -g @redocly/openapi-cli
 WORKDIR /w
 COPY redocly.yaml /w
