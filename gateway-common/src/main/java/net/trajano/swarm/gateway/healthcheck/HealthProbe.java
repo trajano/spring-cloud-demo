@@ -1,4 +1,4 @@
-package net.trajano.swarm.gateway;
+package net.trajano.swarm.gateway.healthcheck;
 
 import com.sun.tools.attach.spi.AttachProvider;
 import java.util.Map;
