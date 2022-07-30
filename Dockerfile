@@ -16,7 +16,8 @@ COPY bin/extract.sh /w/extract.sh
 COPY --from=builder /w/*/build/libs/*.jar /w/
 RUN sh ./extract.sh
 
-FROM openjdk:17-jdk as jwks-provider
+#FROM openjdk:17-jdk as jwks-provider
+FROM gcr.io/distroless/java17-debian11 as jwks-provider
 WORKDIR /w
 COPY --from=extractor /w/jwks-provider/* /w/
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "org.springframework.boot.loader.JarLauncher"]
