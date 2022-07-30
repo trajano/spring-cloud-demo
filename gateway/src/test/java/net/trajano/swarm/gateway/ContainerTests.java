@@ -29,6 +29,21 @@ import java.time.Duration;
 //@Disabled
 class ContainerTests {
 
+    private static String gatewayUrl;
+
+    private static String networkName;
+
+    private static Network network;
+
+    @Container
+    private static GenericContainer<?> whoami;
+
+    @Container
+    private static GenericContainer<?> redis;
+
+    @Container
+    private static GenericContainer<?> gateway;
+
     @BeforeAll
     static void setup() throws Exception {
 
@@ -99,84 +114,6 @@ class ContainerTests {
         network.close();
     }
 
-    private static String gatewayUrl;
-
-    private static String networkName;
-
-    private static Network network;
-
-    @Container
-    private static GenericContainer<?> whoami;
-
-    @Container
-    private static GenericContainer<?> redis;
-
-    @Container
-    private static GenericContainer<?> gateway;
-
-    @Test
-    void whoAmIDirectly() {
-
-        final var url =
-                UriComponentsBuilder.newInstance()
-                        .scheme("http")
-                        .host("localhost")
-                        .port(whoami.getMappedPort(80))
-                        .toUriString();
-
-        final var responseBody =
-                WebTestClient.bindToServer()
-                        .baseUrl(url)
-                        .build()
-                        .get()
-                        .uri("/")
-                        .exchange()
-                        .expectStatus()
-                        .isOk()
-                        .expectBody(String.class)
-                        .returnResult()
-                        .getResponseBody();
-        assertThat(responseBody).contains("GET / HTTP/1.1");
-    }
-
-    @Test
-    void noToken() {
-
-        final var responseBody =
-                WebTestClient.bindToServer()
-                        .baseUrl(gatewayUrl)
-                        .build()
-                        .get()
-                        .uri("/whoami")
-                        .exchange()
-                        .expectStatus()
-                        .isEqualTo(HttpStatus.UNAUTHORIZED)
-                        .expectHeader()
-                        .valueEquals(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"JWT\"")
-                        .expectBody(String.class)
-                        .returnResult()
-                        .getResponseBody();
-        assertThat(responseBody).isEqualTo("{\"ok\":false,\"error\":\"invalid_token\"}");
-    }
-
-    @Test
-    void ping() {
-
-        final var responseBody =
-                WebTestClient.bindToServer()
-                        .baseUrl(gatewayUrl)
-                        .build()
-                        .get()
-                        .uri("/ping")
-                        .exchange()
-                        .expectStatus()
-                        .isOk()
-                        .expectBody(String.class)
-                        .returnResult()
-                        .getResponseBody();
-        assertThat(responseBody).isEqualTo("{\"ok\":true}");
-    }
-
     @Test
     void authenticate() {
 
@@ -222,9 +159,72 @@ class ContainerTests {
                         .returnResult()
                         .getResponseBody();
         assertThat(responseBody).isNotNull();
-        assertThat(responseBody.isOk()).isTrue();
-        assertThat(responseBody.getExpiresIn()).isEqualTo(120);
-        assertThat(responseBody.getTokenType()).isEqualTo("Bearer");
+        assertThat(responseBody.isOk()).isFalse();
+        assertThat(responseBody.getError()).isEqualTo("invalid_credentials");
+
+    }
+
+    @Test
+    void noToken() {
+
+        final var responseBody =
+                WebTestClient.bindToServer()
+                        .baseUrl(gatewayUrl)
+                        .build()
+                        .get()
+                        .uri("/whoami")
+                        .exchange()
+                        .expectStatus()
+                        .isEqualTo(HttpStatus.UNAUTHORIZED)
+                        .expectHeader()
+                        .valueEquals(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"JWT\"")
+                        .expectBody(String.class)
+                        .returnResult()
+                        .getResponseBody();
+        assertThat(responseBody).isEqualTo("{\"ok\":false,\"error\":\"invalid_token\"}");
+    }
+
+    @Test
+    void ping() {
+
+        final var responseBody =
+                WebTestClient.bindToServer()
+                        .baseUrl(gatewayUrl)
+                        .build()
+                        .get()
+                        .uri("/ping")
+                        .exchange()
+                        .expectStatus()
+                        .isOk()
+                        .expectBody(String.class)
+                        .returnResult()
+                        .getResponseBody();
+        assertThat(responseBody).isEqualTo("{\"ok\":true}");
+    }
+
+    @Test
+    void whoAmIDirectly() {
+
+        final var url =
+                UriComponentsBuilder.newInstance()
+                        .scheme("http")
+                        .host("localhost")
+                        .port(whoami.getMappedPort(80))
+                        .toUriString();
+
+        final var responseBody =
+                WebTestClient.bindToServer()
+                        .baseUrl(url)
+                        .build()
+                        .get()
+                        .uri("/")
+                        .exchange()
+                        .expectStatus()
+                        .isOk()
+                        .expectBody(String.class)
+                        .returnResult()
+                        .getResponseBody();
+        assertThat(responseBody).contains("GET / HTTP/1.1");
     }
 
 }
