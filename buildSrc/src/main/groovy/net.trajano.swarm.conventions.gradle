@@ -12,8 +12,8 @@ repositories {
     mavenCentral()
 }
 ext {
-    set('springCloudVersion', "2021.0.1")
-    set('testcontainersVersion', "1.16.2")
+    set('springCloudVersion', "2021.0.3")
+    set('testcontainersVersion', "1.17.3")
 }
 
 jar {

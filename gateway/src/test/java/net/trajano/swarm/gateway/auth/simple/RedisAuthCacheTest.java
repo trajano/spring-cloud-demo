@@ -14,12 +14,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import reactor.core.publisher.Mono;
 
-@SpringBootTest(
-    classes = {
-      SimpleAuthServiceProperties.class,
-      SimpleAuthRedisKeyBlocks.class,
-      RedisAuthCacheTest.TestConfig.class
-    })
+@SpringBootTest(classes = {SimpleAuthServiceProperties.class, RedisAuthCacheTest.TestConfig.class})
 class RedisAuthCacheTest {
 
   @TestConfiguration

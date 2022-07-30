@@ -2,7 +2,7 @@ plugins {
 	id 'org.springframework.boot' version '2.7.2'
 	id 'io.spring.dependency-management' version '1.0.12.RELEASE'
 	id 'net.trajano.swarm.conventions'
-	id "com.diffplug.spotless" version "6.3.0"
+	id "com.diffplug.spotless"
 }
 
 group = 'net.trajano.swarm'
@@ -12,11 +12,6 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
-}
-
-ext {
-	set('springCloudVersion', "2021.0.3")
-	set('testcontainersVersion', "1.17.3")
 }
 
 dependencies {
