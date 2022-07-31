@@ -68,8 +68,8 @@ public class ProtectedResourceGatewayFilterFactory
   }
 
   /**
-   * @param config
-   * @return
+   * @param config filter factory configuration
+   * @return filter
    */
   @Override
   public GatewayFilter apply(final Config config) {

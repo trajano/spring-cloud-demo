@@ -239,11 +239,11 @@ public class RedisClaimsService implements ClaimsService {
                 opsForHash
                     .multiGet(redisKey, List.of(JTI_HASH_KEY, SECRET_HASH_KEY))
                     .flatMap(
-                        redisItems -> {
-                          return redisTemplate
-                              .delete(redisKeyBlocks.accessTokenJtiKey(redisItems.get(0)), redisKey)
-                              .thenReturn(redisItems.get(1));
-                        }))
+                        redisItems ->
+                            redisTemplate
+                                .delete(
+                                    redisKeyBlocks.accessTokenJtiKey(redisItems.get(0)), redisKey)
+                                .thenReturn(redisItems.get(1))))
         .flatMap(
             secretClaimsJson -> {
               try {
