@@ -22,7 +22,9 @@ WORKDIR /w
 COPY --from=extractor /w/jwks-provider/* /w/
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "org.springframework.boot.loader.JarLauncher"]
 HEALTHCHECK --interval=5s --start-period=60s \
-    CMD ["java", "-Dloader.main=net.trajano.swarm.gateway.healthcheck.HealthProbe", "org.springframework.boot.loader.PropertiesLauncher" ]
+    CMD ["java", \
+         "-Dloader.main=net.trajano.swarm.gateway.healthcheck.HealthProbe", \
+         "org.springframework.boot.loader.PropertiesLauncher" ]
 #HEALTHCHECK --interval=5s --start-period=60s \
 #    CMD curl -sfo /dev/null http://localhost:8080/actuator/health
 USER 5000
