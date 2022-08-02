@@ -89,7 +89,7 @@ message ChatMessage {
    * Message ID.  This will allow deleting of the message if necessary.
    */
   string messageId = 1;
-} /**
+  /**
    * User ID it was sent to.
    */
   string from = 2;
