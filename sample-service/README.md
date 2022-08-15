@@ -59,8 +59,8 @@ message ChatRequest {
    */
   string message = 2;
   /**
-   * If true, the message is meant to be an announcement and there can be only one announcement. 
-   * This would be used as the discriminator that would allow  
+   * If true, the message is meant to be an announcement and there can be only one announcement.
+   * This would be used as the discriminator that would allow
    */
   bool announcement = 3;
 };
@@ -71,7 +71,7 @@ message ChatResponse {
    */
   string messageId = 1;
 };
-``` 
+```
 
 This is a request-response with pub/sub system.
 
@@ -93,7 +93,7 @@ message ChatMessage {
    * User ID it was sent to.
    */
   string from = 2;
-  
+
   /**
    * The actual message
    */
@@ -109,11 +109,10 @@ message ChatMeta {
 }
 
 message ChatsResponseChunk {
-  
+
   oneof type {
     ChatMeta meta = 1;
     ChatMessage message = 2;
   }
 };
-``` 
-
+```

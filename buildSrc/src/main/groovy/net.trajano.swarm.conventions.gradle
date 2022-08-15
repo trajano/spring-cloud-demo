@@ -21,6 +21,11 @@ jar {
     enabled = false
 }
 spotless {
+    format "misc", {
+        target '*.gradle', '*.md', '.gitignore'
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
     java {
         importOrder()
         removeUnusedImports()
