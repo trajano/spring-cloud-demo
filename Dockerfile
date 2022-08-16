@@ -5,7 +5,7 @@ COPY redocly.yaml /w
 COPY src/openapi/* /w/src/openapi/
 RUN openapi bundle --output dist/openapi.json
 
-FROM gradle:7.4-jdk17 AS builder
+FROM gradle:7.5-jdk17 AS builder
 WORKDIR /w
 COPY ./ /w
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches gradle build --no-daemon -x test

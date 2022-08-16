@@ -7,11 +7,18 @@ logging:
   level:
     org.springframework.data.repository.config.RepositoryConfigurationDelegate: WARN
 management:
+  health:
+    redis:
+      enabled: true
   endpoint:
     health:
       enabled: true
+      show-details: ALWAYS
   endpoints:
 #    enabled-by-default: false
     jmx:
       exposure:
         include: health
+    web:
+      exposure:
+        include: "*"

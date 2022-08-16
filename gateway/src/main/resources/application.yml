@@ -112,13 +112,16 @@ resilience4j:
         cancelRunningFuture: true
 
 management:
+  health:
+    redis:
+      enabled: true
 #  endpoint.gateway.enabled: true # default value
   endpoint:
     health:
       enabled: true
-#      show-details: ALWAYS
+      show-details: ALWAYS
   endpoints:
-    enabled-by-default: false
+#    enabled-by-default: false
     jmx:
       exposure:
         include: health

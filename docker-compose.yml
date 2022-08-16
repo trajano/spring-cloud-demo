@@ -141,6 +141,8 @@ services:
       - SPRING_REDIS_HOST=redis
     networks:
       - default
+    ports:
+      - 28083:8080
     deploy:
       resources:
         limits:
