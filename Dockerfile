@@ -8,7 +8,7 @@ RUN openapi bundle --output dist/openapi.json
 FROM gradle:7.4-jdk17 AS builder
 WORKDIR /w
 COPY ./ /w
-RUN --mount=type=cache,target=/home/gradle/.gradle/caches gradle build -x test
+RUN --mount=type=cache,target=/home/gradle/.gradle/caches gradle build --no-daemon -x test
 
 FROM openjdk:17-jdk as extractor
 WORKDIR /w

@@ -3,3 +3,15 @@ spring:
     enabled: true
   main:
     banner-mode: "off"
+logging:
+  level:
+    org.springframework.data.repository.config.RepositoryConfigurationDelegate: WARN
+management:
+  endpoint:
+    health:
+      enabled: true
+  endpoints:
+#    enabled-by-default: false
+    jmx:
+      exposure:
+        include: health
