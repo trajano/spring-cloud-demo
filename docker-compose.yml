@@ -179,11 +179,16 @@ services:
       context: .
       target: sample-service
     image: local/sample-service
-    labels:
-      docker.ids: sample
-      docker.sample.path: /sample
-      docker.sample.path.regexp: /sample/(?<remaining>.*)
-      docker.sample.path.replacement: /$${remaining}
+    deploy:
+      labels:
+        docker.ids: sample
+        docker.sample.path: /sample/**
+        docker.sample.path.regexp: /sample/(?<remaining>.*)
+        docker.sample.path.replacement: /$${remaining}
+    networks:
+      - services
+  tomcat:
+    image: tomcat
     networks:
       - services
   whoami:

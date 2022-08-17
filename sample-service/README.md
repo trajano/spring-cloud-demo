@@ -116,3 +116,7 @@ message ChatsResponseChunk {
   }
 };
 ```
+
+## What about envoy?
+
+I'll probably change this later to use [Envoy](https://www.envoyproxy.io/) which can do the HTTP to GRPC mapping but for now I want to determine all the parts and convert later.
