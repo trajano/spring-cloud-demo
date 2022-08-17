@@ -1,4 +1,5 @@
 syntax = "proto3";
+package net.trajano.swarm.sampleservice;
 
 message EchoRequest {
   string message = 1;
