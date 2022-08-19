@@ -10,11 +10,9 @@ import io.grpc.reflection.v1alpha.ServerReflectionResponse;
 import io.grpc.reflection.v1alpha.ServiceResponse;
 import io.grpc.stub.ClientCalls;
 import io.grpc.stub.StreamObserver;
-import java.time.Duration;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -159,25 +157,6 @@ public class GrpcController {
         .forEach(serviceFileProtoObserver::onNext);
     serviceFileProtoObserver.onCompleted();
     serviceFileLatch.await();
-
-    try {
-
-      final var methodDescriptor = methods.get(new GrpcServiceMethod("Echo", "echo"));
-      var builder = DynamicMessage.newBuilder(methodDescriptor.getInputType());
-      JsonFormat.parser().merge("{\"message\":\"foo\"}", builder);
-      final var b = builder.build();
-
-      final var dynamicMessage =
-          ClientCalls.blockingUnaryCall(
-              managedChannel,
-              methodDescriptorFromProtobuf(methodDescriptor),
-              CallOptions.DEFAULT,
-              b);
-
-      System.out.println("GOT " + dynamicMessage);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
   }
 
   // Phase 1 simple strings
@@ -197,19 +176,28 @@ public class GrpcController {
     if (methodDescriptor == null) {
       return Mono.error(new IllegalArgumentException("method is not supported"));
     }
-        if (methodDescriptor.isServerStreaming()) {
-          // may allow single event in the future
-          return Mono.error(
-              new IllegalArgumentException("method sends an event stream, but not requested"));
-        }
+    if (methodDescriptor.isServerStreaming()) {
+      // may allow single event in the future
+      return Mono.error(
+          new IllegalArgumentException("method sends an event stream, but not requested"));
+    }
 
-    var builder = Any.newBuilder();
     try {
+      var builder = DynamicMessage.newBuilder(methodDescriptor.getInputType());
       JsonFormat.parser().merge(json, builder);
-    } catch (InvalidProtocolBufferException e) {
+      final var b = builder.build();
+
+      final var dynamicMessage =
+          ClientCalls.blockingUnaryCall(
+              managedChannel,
+              methodDescriptorFromProtobuf(methodDescriptor),
+              CallOptions.DEFAULT,
+              b);
+
+      return Mono.just(JsonFormat.printer().print(dynamicMessage));
+    } catch (Exception e) {
       return Mono.error(e);
     }
-    return Mono.just("service + " + service + " method " + method + " data" + json);
   }
 
   @PostMapping(
@@ -224,21 +212,50 @@ public class GrpcController {
     if (methodDescriptor == null) {
       throw new IllegalArgumentException("method is not supported");
     }
-    //    if (methodDescriptor.getType().serverSendsOneMessage()) {
-    //      // may allow single event in the future
-    //      throw new IllegalArgumentException("method does not support event stream");
-    //    }
-    return Flux.just(
-            "service1 + " + service + " method " + method + " data" + json,
-            "service2 + " + service + " method " + method + " data" + json)
-        .delayElements(Duration.ofSeconds(1))
-        .map(
-            s ->
-                ServerSentEvent.<String>builder()
-                    .id(UUID.randomUUID().toString())
-                    .event("a")
-                    .comment("comment")
-                    .data(s)
-                    .build());
+    if (!methodDescriptor.isServerStreaming()) {
+      // may allow single event in the future
+      throw new IllegalArgumentException("method does not support event stream");
+    }
+
+    try {
+      var builder = DynamicMessage.newBuilder(methodDescriptor.getInputType());
+      JsonFormat.parser().merge(json, builder);
+      final var b = builder.build();
+
+      return Flux.generate(
+          sink -> {
+            ClientCalls.asyncServerStreamingCall(
+                managedChannel.newCall(
+                    methodDescriptorFromProtobuf(methodDescriptor), CallOptions.DEFAULT),
+                b,
+                new StreamObserver<DynamicMessage>() {
+                  @Override
+                  public void onNext(DynamicMessage dynamicMessage) {
+
+                    try {
+                      sink.next(
+                          ServerSentEvent.<String>builder()
+                              .data(JsonFormat.printer().print(dynamicMessage))
+                              .build());
+                    } catch (InvalidProtocolBufferException e) {
+                      sink.error(e);
+                    }
+                  }
+
+                  @Override
+                  public void onError(Throwable t) {
+                    sink.error(t);
+                  }
+
+                  @Override
+                  public void onCompleted() {
+                    sink.complete();
+                  }
+                });
+          });
+
+    } catch (Exception e) {
+      return Flux.error(e);
+    }
   }
 }
