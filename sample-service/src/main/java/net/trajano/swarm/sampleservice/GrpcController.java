@@ -10,6 +10,7 @@ import io.grpc.reflection.v1alpha.ServerReflectionResponse;
 import io.grpc.reflection.v1alpha.ServiceResponse;
 import io.grpc.stub.ClientCalls;
 import io.grpc.stub.StreamObserver;
+import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -170,7 +172,9 @@ public class GrpcController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public Mono<String> serviceCall(
-      @PathVariable String service, @PathVariable String method, @RequestBody String json) {
+      @PathVariable String service,
+      @PathVariable String method,
+      @RequestBody DataBuffer dataBuffer) {
 
     final var methodDescriptor = methods.get(new GrpcServiceMethod(service, method));
     if (methodDescriptor == null) {
@@ -182,9 +186,9 @@ public class GrpcController {
           new IllegalArgumentException("method sends an event stream, but not requested"));
     }
 
-    try {
+    try (final var jsonReader = new InputStreamReader(dataBuffer.asInputStream())) {
       var builder = DynamicMessage.newBuilder(methodDescriptor.getInputType());
-      JsonFormat.parser().merge(json, builder);
+      JsonFormat.parser().merge(jsonReader, builder);
       final var b = builder.build();
 
       final var dynamicMessage =
@@ -206,7 +210,9 @@ public class GrpcController {
       produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public Flux<ServerSentEvent<String>> serviceCallStreamResult(
-      @PathVariable String service, @PathVariable String method, @RequestBody String json) {
+      @PathVariable String service,
+      @PathVariable String method,
+      @RequestBody DataBuffer dataBuffer) {
 
     final var methodDescriptor = methods.get(new GrpcServiceMethod(service, method));
     if (methodDescriptor == null) {
@@ -217,9 +223,9 @@ public class GrpcController {
       throw new IllegalArgumentException("method does not support event stream");
     }
 
-    try {
+    try (final var jsonReader = new InputStreamReader(dataBuffer.asInputStream())) {
       var builder = DynamicMessage.newBuilder(methodDescriptor.getInputType());
-      JsonFormat.parser().merge(json, builder);
+      JsonFormat.parser().merge(jsonReader, builder);
       final var b = builder.build();
 
       return Flux.generate(
