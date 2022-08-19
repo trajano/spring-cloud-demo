@@ -3,7 +3,6 @@ package net.trajano.swarm.sampleservice;
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import io.grpc.ServerMethodDefinition;
 import io.grpc.protobuf.services.ProtoReflectionService;
 import java.io.IOException;
 import java.util.Set;
@@ -21,7 +20,6 @@ public class GrpcServer {
 
   public GrpcServer(final Set<BindableService> grpcServices) {
     var b = ServerBuilder.forPort(50000);
-    System.out.println(grpcServices);
     grpcServices.forEach(b::addService);
     b.addService(ProtoReflectionService.newInstance());
     server = b.build();
@@ -30,10 +28,6 @@ public class GrpcServer {
   @PostConstruct
   public void start() throws IOException {
     server.start();
-    server.getImmutableServices().stream()
-        .flatMap(s -> s.getMethods().stream())
-        .map(ServerMethodDefinition::getMethodDescriptor)
-        .forEach(System.out::println);
   }
 
   @PreDestroy

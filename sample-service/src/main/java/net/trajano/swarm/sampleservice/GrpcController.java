@@ -1,9 +1,6 @@
 package net.trajano.swarm.sampleservice;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.DescriptorProtos;
-import com.google.protobuf.Descriptors;
-import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.*;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.*;
 import io.grpc.protobuf.lite.ProtoLiteUtils;
@@ -11,6 +8,7 @@ import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import io.grpc.reflection.v1alpha.ServerReflectionRequest;
 import io.grpc.reflection.v1alpha.ServerReflectionResponse;
 import io.grpc.reflection.v1alpha.ServiceResponse;
+import io.grpc.stub.ClientCalls;
 import io.grpc.stub.StreamObserver;
 import java.time.Duration;
 import java.util.HashSet;
@@ -37,39 +35,38 @@ import reactor.core.publisher.Mono;
 @DependsOn("grpcServer")
 public class GrpcController {
 
-  private Map<GrpcServiceMethod, MethodDescriptor<?, ?>> methods = new ConcurrentHashMap<>();
+  private Map<GrpcServiceMethod, Descriptors.MethodDescriptor> methods = new ConcurrentHashMap<>();
 
   private ManagedChannel managedChannel;
 
-  private MethodDescriptor<?, ?> methodDescriptorFromProto(
-      DescriptorProtos.FileDescriptorProto fileDescriptorProto,
-      DescriptorProtos.ServiceDescriptorProto serviceDescriptorProto,
-      DescriptorProtos.MethodDescriptorProto methodDescriptorProto)
-      throws Descriptors.DescriptorValidationException {
-
-    final var fileDescriptor =
-        Descriptors.FileDescriptor.buildFrom(
-            fileDescriptorProto, new Descriptors.FileDescriptor[0]);
-    System.out.println(fileDescriptor);
+  private MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptorFromProtobuf(
+      Descriptors.MethodDescriptor methodDescriptorFromProtobuf) {
 
     final var methodDescriptorBuilder =
-        MethodDescriptor.<Any, Any>newBuilder()
-            .setRequestMarshaller(ProtoLiteUtils.marshaller(Any.getDefaultInstance()))
-            .setResponseMarshaller(ProtoLiteUtils.marshaller(Any.getDefaultInstance()))
+        MethodDescriptor.<DynamicMessage, DynamicMessage>newBuilder()
+            .setRequestMarshaller(
+                ProtoLiteUtils.marshaller(
+                    DynamicMessage.getDefaultInstance(methodDescriptorFromProtobuf.getInputType())))
+            .setResponseMarshaller(
+                ProtoLiteUtils.marshaller(
+                    DynamicMessage.getDefaultInstance(
+                        methodDescriptorFromProtobuf.getOutputType())))
+            .setIdempotent(
+                methodDescriptorFromProtobuf.getOptions().getIdempotencyLevel()
+                    != DescriptorProtos.MethodOptions.IdempotencyLevel.IDEMPOTENCY_UNKNOWN)
             .setFullMethodName(
-                fileDescriptorProto.getPackage()
-                    + "."
-                    + serviceDescriptorProto.getName()
-                    + "/"
-                    + methodDescriptorProto.getName());
+                MethodDescriptor.generateFullMethodName(
+                    methodDescriptorFromProtobuf.getService().getFullName(),
+                    methodDescriptorFromProtobuf.getName()))
+            .setSchemaDescriptor(methodDescriptorFromProtobuf);
 
-    if (!methodDescriptorProto.getServerStreaming()
-        && !methodDescriptorProto.getClientStreaming()) {
+    if (!methodDescriptorFromProtobuf.isServerStreaming()
+        && !methodDescriptorFromProtobuf.isClientStreaming()) {
       methodDescriptorBuilder.setType(MethodDescriptor.MethodType.UNARY);
-    } else if (methodDescriptorProto.getServerStreaming()
-        && !methodDescriptorProto.getClientStreaming()) {
+    } else if (methodDescriptorFromProtobuf.isServerStreaming()
+        && !methodDescriptorFromProtobuf.isClientStreaming()) {
       methodDescriptorBuilder.setType(MethodDescriptor.MethodType.SERVER_STREAMING);
-    } else if (!methodDescriptorProto.getServerStreaming()) {
+    } else if (!methodDescriptorFromProtobuf.isServerStreaming()) {
       methodDescriptorBuilder.setType(MethodDescriptor.MethodType.CLIENT_STREAMING);
     } else {
       methodDescriptorBuilder.setType(MethodDescriptor.MethodType.BIDI_STREAMING);
@@ -80,12 +77,6 @@ public class GrpcController {
   @PostConstruct
   public void obtainDescriptorsFromServer() throws InterruptedException {
 
-    //        final var inProcessServerBuilder = InProcessServerBuilder.forName("internal");
-    //        inProcessServerBuilder.addService()
-    //        final var server = inProcessServerBuilder.build();
-
-    // for now just pretend we got it
-    //
     managedChannel = ManagedChannelBuilder.forAddress("localhost", 50000).usePlaintext().build();
     final var serverReflectionBlockingStub = ServerReflectionGrpc.newStub(managedChannel);
 
@@ -131,18 +122,16 @@ public class GrpcController {
               public void onNext(ServerReflectionResponse value) {
 
                 try {
-                  var fileDescriptorProto =
+                  final var fileDescriptorProto =
                       DescriptorProtos.FileDescriptorProto.parseFrom(
                           value.getFileDescriptorResponse().getFileDescriptorProto(0));
-                  for (var serviceDescriptorProto : fileDescriptorProto.getServiceList()) {
-                    for (var methodDescriptorProto : serviceDescriptorProto.getMethodList()) {
-                      var methodDescriptor =
-                          methodDescriptorFromProto(
-                              fileDescriptorProto, serviceDescriptorProto, methodDescriptorProto);
+                  final var fileDescriptor =
+                      Descriptors.FileDescriptor.buildFrom(
+                          fileDescriptorProto, new Descriptors.FileDescriptor[0]);
+                  for (var service : fileDescriptor.getServices()) {
+                    for (var method : service.getMethods()) {
                       methods.put(
-                          new GrpcServiceMethod(
-                              serviceDescriptorProto.getName(), methodDescriptorProto.getName()),
-                          methodDescriptor);
+                          new GrpcServiceMethod(service.getName(), method.getName()), method);
                     }
                   }
 
@@ -170,27 +159,22 @@ public class GrpcController {
         .forEach(serviceFileProtoObserver::onNext);
     serviceFileProtoObserver.onCompleted();
     serviceFileLatch.await();
-    System.out.println(methods);
 
-    final ClientCall<Any, Any> clientCall =
-        managedChannel.newCall(
-            (MethodDescriptor<Any, Any>) methods.get(new GrpcServiceMethod("Echo", "echo")),
-            CallOptions.DEFAULT);
     try {
-      var builder = Any.newBuilder();
+
+      final var methodDescriptor = methods.get(new GrpcServiceMethod("Echo", "echo"));
+      var builder = DynamicMessage.newBuilder(methodDescriptor.getInputType());
       JsonFormat.parser().merge("{\"message\":\"foo\"}", builder);
       final var b = builder.build();
-      System.out.println(b);
-      clientCall.start(
-          new ClientCall.Listener<Any>() {
-            @Override
-            public void onMessage(Any message) {
 
-              System.out.println("GOT" + message);
-            }
-          },
-          new Metadata());
-      clientCall.sendMessage(b);
+      final var dynamicMessage =
+          ClientCalls.blockingUnaryCall(
+              managedChannel,
+              methodDescriptorFromProtobuf(methodDescriptor),
+              CallOptions.DEFAULT,
+              b);
+
+      System.out.println("GOT " + dynamicMessage);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -213,11 +197,11 @@ public class GrpcController {
     if (methodDescriptor == null) {
       return Mono.error(new IllegalArgumentException("method is not supported"));
     }
-    if (!methodDescriptor.getType().serverSendsOneMessage()) {
-      // may allow single event in the future
-      return Mono.error(
-          new IllegalArgumentException("method sends an event stream, but not requested"));
-    }
+        if (methodDescriptor.isServerStreaming()) {
+          // may allow single event in the future
+          return Mono.error(
+              new IllegalArgumentException("method sends an event stream, but not requested"));
+        }
 
     var builder = Any.newBuilder();
     try {
@@ -240,10 +224,10 @@ public class GrpcController {
     if (methodDescriptor == null) {
       throw new IllegalArgumentException("method is not supported");
     }
-    if (methodDescriptor.getType().serverSendsOneMessage()) {
-      // may allow single event in the future
-      throw new IllegalArgumentException("method does not support event stream");
-    }
+    //    if (methodDescriptor.getType().serverSendsOneMessage()) {
+    //      // may allow single event in the future
+    //      throw new IllegalArgumentException("method does not support event stream");
+    //    }
     return Flux.just(
             "service1 + " + service + " method " + method + " data" + json,
             "service2 + " + service + " method " + method + " data" + json)
