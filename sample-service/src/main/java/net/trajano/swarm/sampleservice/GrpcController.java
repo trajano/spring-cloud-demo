@@ -27,6 +27,7 @@ import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -198,7 +199,8 @@ public class GrpcController {
               CallOptions.DEFAULT,
               b);
 
-      return Mono.just(JsonFormat.printer().print(dynamicMessage));
+      return Mono.just(
+          JsonFormat.printer().omittingInsignificantWhitespace().print(dynamicMessage));
     } catch (Exception e) {
       return Mono.error(e);
     }
@@ -228,37 +230,44 @@ public class GrpcController {
       JsonFormat.parser().merge(jsonReader, builder);
       final var b = builder.build();
 
-      return Flux.generate(
-          sink -> {
-            ClientCalls.asyncServerStreamingCall(
-                managedChannel.newCall(
-                    methodDescriptorFromProtobuf(methodDescriptor), CallOptions.DEFAULT),
-                b,
-                new StreamObserver<DynamicMessage>() {
-                  @Override
-                  public void onNext(DynamicMessage dynamicMessage) {
+      return Flux.<DynamicMessage>create(
+              emitter -> {
+                ClientCalls.asyncServerStreamingCall(
+                    managedChannel.newCall(
+                        methodDescriptorFromProtobuf(methodDescriptor), CallOptions.DEFAULT),
+                    b,
+                    new StreamObserver<>() {
+                      @Override
+                      public void onNext(DynamicMessage dynamicMessage1) {
 
-                    try {
-                      sink.next(
-                          ServerSentEvent.<String>builder()
-                              .data(JsonFormat.printer().print(dynamicMessage))
-                              .build());
-                    } catch (InvalidProtocolBufferException e) {
-                      sink.error(e);
-                    }
-                  }
+                        emitter.next(dynamicMessage1);
+                      }
 
-                  @Override
-                  public void onError(Throwable t) {
-                    sink.error(t);
-                  }
+                      @Override
+                      public void onError(Throwable t) {
 
-                  @Override
-                  public void onCompleted() {
-                    sink.complete();
-                  }
-                });
-          });
+                        emitter.error(t);
+                      }
+
+                      @Override
+                      public void onCompleted() {
+
+                        emitter.complete();
+                      }
+                    });
+              },
+              FluxSink.OverflowStrategy.BUFFER)
+          .map(
+              dynamicMessage -> {
+                try {
+                  return JsonFormat.printer()
+                      .omittingInsignificantWhitespace()
+                      .print(dynamicMessage);
+                } catch (InvalidProtocolBufferException e) {
+                  throw new IllegalStateException(e);
+                }
+              })
+          .map(json -> ServerSentEvent.<String>builder().data(json).build());
 
     } catch (Exception e) {
       return Flux.error(e);
