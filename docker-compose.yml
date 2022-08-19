@@ -185,6 +185,9 @@ services:
         docker.sample.path: /sample/**
         docker.sample.path.regexp: /sample/(?<remaining>.*)
         docker.sample.path.replacement: /$${remaining}
+      resources:
+        limits:
+          memory: 256m
     networks:
       - services
   tomcat:
