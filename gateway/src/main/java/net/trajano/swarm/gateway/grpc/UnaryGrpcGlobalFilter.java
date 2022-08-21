@@ -4,7 +4,8 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.*
 
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
-import io.grpc.*;
+import io.grpc.CallOptions;
+import io.grpc.MethodDescriptor;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import io.grpc.stub.ClientCalls;
 import java.io.IOException;
@@ -23,7 +24,6 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -127,39 +127,12 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
    * @return true if accepted
    */
   private boolean isAccepted(ServerWebExchange exchange) {
-
-    System.out.println(exchange.getRequest());
-    System.out.println(exchange.getRequest().getPath());
-    System.out.println(exchange.getRequest().getCookies());
-    System.out.println(exchange.getRequest().getMethod());
-    System.out.println(exchange.getAttributes());
-    if (log.isWarnEnabled()) {
-      log.warn(
-          "exchange.getRequiredAttribute(GATEWAY_SCHEME_PREFIX_ATTR)={}",
-          (Object) exchange.getRequiredAttribute(GATEWAY_SCHEME_PREFIX_ATTR));
-      log.warn("exchange.getRequest().getMethod()={}", exchange.getRequest().getMethod());
-      log.warn("exchange.getRequest().getPath()={}", exchange.getRequest().getPath());
-      log.warn(
-          "toNormalizedPathSegments(exchange.getRequest().getPath()).length={}",
-          toNormalizedPathSegments(exchange.getRequest().getPath()).length);
-      log.warn(
-          "exchange.getRequest().getHeaders().getContentType()={}",
-          exchange.getRequest().getHeaders().getContentType());
-      log.warn(
-          "exchange.getRequest().getHeaders().getAccept()={}",
-          exchange.getRequest().getHeaders().getAccept());
-    }
-    return ("grpc".equals(exchange.getRequiredAttribute(GATEWAY_SCHEME_PREFIX_ATTR)))
+    return ("grpc".equals(exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR)))
         && exchange.getRequest().getMethod() == HttpMethod.POST
-        && toNormalizedPathSegments(exchange.getRequest().getPath()).length == 2
-        && exchange.getRequest().getHeaders().getContentType() == MediaType.APPLICATION_JSON
+        && ((URI) exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR))
+            .getPath()
+            .matches("/\\w+/\\w+")
+        && MediaType.APPLICATION_JSON.equals(exchange.getRequest().getHeaders().getContentType())
         && exchange.getRequest().getHeaders().getAccept().contains(MediaType.APPLICATION_JSON);
-  }
-
-  private String[] toNormalizedPathSegments(PathContainer pathContainer) {
-    return pathContainer.elements().stream()
-        .filter(element -> !(element instanceof PathContainer.Separator))
-        .map(PathContainer.Element::value)
-        .toArray(String[]::new);
   }
 }
