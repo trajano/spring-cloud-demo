@@ -1,0 +1,76 @@
+plugins {
+	id 'org.springframework.boot' version '2.7.2'
+	id 'io.spring.dependency-management' version '1.0.12.RELEASE'
+	id 'net.trajano.swarm.conventions'
+	id "com.diffplug.spotless"
+	id "com.google.protobuf" version "0.8.19"
+}
+
+group = 'net.trajano.swarm'
+version = '0.0.1-SNAPSHOT'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+ext {
+	set('springCloudVersion', "2021.0.3")
+	set('testcontainersVersion', "1.17.3")
+	set('grpcVersion', "1.48.1")
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
+	implementation "io.grpc:grpc-protobuf"
+	implementation "io.grpc:grpc-services"
+	implementation "io.grpc:grpc-stub"
+	runtimeOnly 'io.grpc:grpc-netty-shaded'
+	implementation 'com.google.protobuf:protobuf-java-util:3.21.5'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.testcontainers:junit-jupiter'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+		mavenBom "io.grpc:grpc-bom:${grpcVersion}"
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+tasks.named('bootBuildImage') {
+	builder = 'paketobuildpacks/builder:tiny'
+	// environment = ['BP_NATIVE_IMAGE': 'true']
+}
+sourceSets {
+	main {
+		java {
+			srcDirs 'build/generated/source/proto/main/grpc'
+			srcDirs 'build/generated/source/proto/main/java'
+		}
+	}
+}
+protobuf {
+	// Configure the protoc executable
+	protoc {
+		// Download from repositories
+		artifact = 'com.google.protobuf:protoc:3.0.0'
+	}
+	plugins {
+		grpc { artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}" }
+	}
+	generateProtoTasks {
+		all()*.plugins { grpc {} }
+	}
+}

@@ -1,0 +1,15 @@
+syntax = "proto3";
+package net.trajano.swarm.sampleservice;
+
+message EchoRequest {
+  string message = 1;
+}
+
+message EchoResponse {
+  string message = 1;
+}
+
+service Echo {
+  rpc echo(EchoRequest) returns (EchoResponse);
+  rpc echoStream(EchoRequest) returns (stream EchoResponse);
+}

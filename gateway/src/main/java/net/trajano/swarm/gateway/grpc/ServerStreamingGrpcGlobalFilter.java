@@ -3,11 +3,13 @@ package net.trajano.swarm.gateway.grpc;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.*;
 
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.CallOptions;
 import io.grpc.MethodDescriptor;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import io.grpc.stub.ClientCalls;
+import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
@@ -24,6 +26,7 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -34,7 +37,7 @@ import reactor.core.publisher.Mono;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
+public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
 
   private final ChannelProvider channelProvider;
 
@@ -74,7 +77,8 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
                 final var grpcMethodDescriptor =
                     GrpcFunctions.methodDescriptorFromProtobuf(t.getT2());
 
-                if (grpcMethodDescriptor.getType() != MethodDescriptor.MethodType.UNARY) {
+                if (grpcMethodDescriptor.getType()
+                    != MethodDescriptor.MethodType.SERVER_STREAMING) {
                   return Mono.error(
                       () ->
                           new IllegalStateException(
@@ -84,17 +88,51 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
                                       grpcMethodDescriptor.getFullMethodName())));
                 }
 
-                final var call = managedChannel.newCall(grpcMethodDescriptor, CallOptions.DEFAULT);
+                final var grpcOutputSteam =
+                    Flux.<DynamicMessage>create(
+                        (emitter) -> {
+                          final var call =
+                              managedChannel.newCall(grpcMethodDescriptor, CallOptions.DEFAULT);
+                          ClientCalls.asyncServerStreamingCall(
+                              call,
+                              inputMessage,
+                              new StreamObserver<>() {
+                                @Override
+                                public void onNext(DynamicMessage dynamicMessage) {
+                                  emitter.next(dynamicMessage);
+                                }
 
-                final var dynamicMessage = ClientCalls.blockingUnaryCall(call, inputMessage);
-                // at this point build the GRPC call?
-                byte[] bytes =
-                    JsonFormat.printer()
-                        .omittingInsignificantWhitespace()
-                        .print(dynamicMessage)
-                        .getBytes(StandardCharsets.UTF_8);
-                var buffer = exchange.getResponse().bufferFactory().wrap(bytes);
-                return exchange.getResponse().writeWith(Flux.just(buffer));
+                                @Override
+                                public void onError(Throwable t) {
+                                  emitter.error(t);
+                                }
+
+                                @Override
+                                public void onCompleted() {
+                                  emitter.complete();
+                                }
+                              });
+                        });
+
+                var dataBufferStream =
+                    grpcOutputSteam
+                        .map(
+                            dynamicMessage -> {
+                              try {
+                                return JsonFormat.printer()
+                                    .omittingInsignificantWhitespace()
+                                    .print(dynamicMessage);
+                              } catch (InvalidProtocolBufferException e) {
+                                throw new RuntimeException(e);
+                              }
+                            })
+                        .map(json -> ServerSentEvent.builder(json).build())
+                        .map(ServerSentEventFunctions::getString)
+                        .map(s -> s.getBytes(StandardCharsets.UTF_8))
+                        .map(bytes -> exchange.getResponse().bufferFactory().wrap(bytes))
+                        .map(Flux::just);
+
+                return exchange.getResponse().writeAndFlushWith(dataBufferStream);
 
               } catch (IOException e) {
                 // Fix this later
@@ -133,6 +171,6 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
             .getPath()
             .matches("/\\w+/\\w+")
         && MediaType.APPLICATION_JSON.equals(exchange.getRequest().getHeaders().getContentType())
-        && exchange.getRequest().getHeaders().getAccept().contains(MediaType.APPLICATION_JSON);
+        && exchange.getRequest().getHeaders().getAccept().contains(MediaType.TEXT_EVENT_STREAM);
   }
 }

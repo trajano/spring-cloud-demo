@@ -1,0 +1,65 @@
+syntax = "proto3";
+package net.trajano.swarm.sampleservice;
+
+message ChatRequest {
+  /**
+   * User name of the recipient.  The recipient must have signed in once.
+   */
+  string to = 1;
+  /**
+   * The message
+   */
+  string message = 2;
+  /**
+   * If true, the message is meant to be an announcement and there can be only one announcement.
+   * This would be used as the discriminator that would allow
+   */
+  bool announcement = 3;
+};
+
+message ChatResponse {
+  /**
+   * Message ID.  This will allow deleting of the message if necessary.
+   */
+  string messageId = 1;
+};
+
+message ChatsRequest {
+};
+
+message ChatMessage {
+  /**
+   * Message ID.  This will allow deleting of the message if necessary.
+   */
+  string messageId = 1;
+  /**
+     * User ID it was sent to.
+     */
+  string from = 2;
+
+  /**
+   * The actual message
+   */
+  string message = 3;
+
+}
+
+message ChatMeta {
+  /**
+   * Announcement message.
+   */
+  ChatMessage announcement = 10;
+}
+
+message ChatsResponseChunk {
+
+  oneof type {
+    ChatMeta meta = 1;
+    ChatMessage message = 2;
+  }
+};
+
+service Chat {
+  rpc send(stream ChatRequest) returns (stream ChatResponse) {}
+  rpc history(ChatsRequest) returns (stream ChatsResponseChunk) {}
+}
