@@ -187,7 +187,7 @@ services:
         docker.sample.path.replacement: /$${remaining}
         # This indicates that the backend is a GRPC service rather than HTTP service, default is `http`
         docker.sample.protocol: grpc
-        # docker.sample.port: 50000
+        docker.sample.port: 50000
       resources:
         limits:
           memory: 256m
