@@ -118,7 +118,7 @@ services:
 #        parallelism: 1
       restart_policy:
         max_attempts: 1
-      replicas: 3
+      replicas: 1
       resources:
         limits:
           #memory: 512m
@@ -185,15 +185,18 @@ services:
         docker.sample.path: /sample/**
         docker.sample.path.regexp: /sample/(?<remaining>.*)
         docker.sample.path.replacement: /$${remaining}
+        # This indicates that the backend is a GRPC service rather than HTTP service, default is `http`
+        docker.sample.protocol: grpc
+        # docker.sample.port: 50000
       resources:
         limits:
           memory: 256m
     networks:
       - services
-  tomcat:
-    image: tomcat
-    networks:
-      - services
+#  tomcat:
+#    image: tomcat
+#    networks:
+#      - services
   whoami:
     image: containous/whoami
     deploy:

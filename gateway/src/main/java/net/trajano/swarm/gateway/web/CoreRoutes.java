@@ -64,6 +64,29 @@ public class CoreRoutes {
                     GatewayResponse.builder().error("service_unavailable").ok(false).build()));
   }
 
+  @Bean
+  RouterFunction<ServerResponse> methodNotAllowed() {
+
+    return route(
+        path("/methodNotAllowed"),
+        request ->
+            ServerResponse.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(
+                    GatewayResponse.builder().error("method_not_allowed").ok(false).build()));
+  }
+
+  @Bean
+  RouterFunction<ServerResponse> clientError() {
+
+    return route(
+        path("/clientError"),
+        request ->
+            ServerResponse.status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(GatewayResponse.builder().error("client_error").ok(false).build()));
+  }
+
   static RequestPredicate gethead(String pathPattern) {
     return methods(HttpMethod.GET, HttpMethod.HEAD).and(path(pathPattern));
   }

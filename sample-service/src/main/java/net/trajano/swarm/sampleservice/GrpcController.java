@@ -46,11 +46,10 @@ public class GrpcController {
     final var methodDescriptorBuilder =
         MethodDescriptor.<DynamicMessage, DynamicMessage>newBuilder(
                 ProtoLiteUtils.marshaller(
-                        DynamicMessage.getDefaultInstance(methodDescriptorFromProtobuf.getInputType())),
-                        ProtoLiteUtils.marshaller(
-                                DynamicMessage.getDefaultInstance(
-                                        methodDescriptorFromProtobuf.getOutputType()))
-                )
+                    DynamicMessage.getDefaultInstance(methodDescriptorFromProtobuf.getInputType())),
+                ProtoLiteUtils.marshaller(
+                    DynamicMessage.getDefaultInstance(
+                        methodDescriptorFromProtobuf.getOutputType())))
             .setIdempotent(
                 methodDescriptorFromProtobuf.getOptions().getIdempotencyLevel()
                     != DescriptorProtos.MethodOptions.IdempotencyLevel.IDEMPOTENCY_UNKNOWN)

@@ -19,6 +19,10 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
 	implementation 'io.awspring.cloud:spring-cloud-aws-autoconfigure:2.4.1'
 	implementation 'io.micrometer:micrometer-registry-cloudwatch2:1.8.5'
+	implementation "io.grpc:grpc-api"
+	implementation "io.grpc:grpc-netty"
+	implementation "io.grpc:grpc-protobuf"
+	implementation "io.grpc:grpc-services"
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
@@ -30,7 +34,6 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	implementation 'dnsjava:dnsjava:3.5.0'
 	implementation project(':gateway-common')
-
 	runtimeOnly 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
 	testImplementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -43,6 +46,7 @@ dependencyManagement {
 	imports {
 		mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
 		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+		mavenBom "io.grpc:grpc-bom:1.48.1"
 		mavenBom "com.github.docker-java:docker-java-bom:3.2.13"
 	}
 }

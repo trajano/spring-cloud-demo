@@ -81,14 +81,19 @@ spring:
                 retries: 3
               methods:
                 - GET
-            - name: CircuitBreaker
-              args:
-                name: "'resilience'"
-                fallbackUri: "'forward:/unavailable'"
             - name: RewritePath
               args:
                 regexp: "metadata['path.regexp']"
                 replacement: "metadata['path.replacement']"
+            - name: Grpc
+              args:
+                host: host
+                useGrpc: "metadata['protocol'] == 'grpc'"
+                port: port
+            - name: CircuitBreaker
+              args:
+                name: "'resilience'"
+                fallbackUri: "'forward:/unavailable'"
 #    inetutils:
 #      ignoredInterfaces:
 #        - docker0

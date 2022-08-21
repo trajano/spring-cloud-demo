@@ -20,6 +20,7 @@ public class DockerServiceInstance implements ServiceInstance {
   private final Map<String, String> metadata;
 
   private final boolean secure;
+  private final String protocol;
 
   private final URI uri;
 
@@ -38,16 +39,24 @@ public class DockerServiceInstance implements ServiceInstance {
           Optional.ofNullable(labels.get("%s.%s.secure".formatted(labelPrefix, serviceId)))
               .map(Boolean::parseBoolean)
               .orElse(false);
+      this.protocol =
+          labels.getOrDefault("%s.%s.protocol".formatted(labelPrefix, serviceId), "http");
     } else {
       this.port = Integer.parseInt(labels.getOrDefault("%s.port".formatted(labelPrefix), "8080"));
       this.secure =
           Boolean.parseBoolean(labels.getOrDefault("%s.secure".formatted(labelPrefix), "false"));
+      this.protocol = "http";
     }
     this.metadata = Util.getMetaDataFromLabels(labelPrefix, serviceId, multiId, labels);
-    if (secure) {
+    if ("http".equals(protocol) && secure) {
       this.uri = URI.create("https://" + host + ":" + port);
-    } else {
+    } else if ("http".equals(protocol)) {
       this.uri = URI.create("http://" + host + ":" + port);
+    } else if ("grpc".equals(protocol) && !secure) {
+      this.uri = URI.create("grpc://" + host + ":" + port);
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported protocol %s and secure %s".formatted(protocol, secure));
     }
   }
 
@@ -73,8 +82,11 @@ public class DockerServiceInstance implements ServiceInstance {
       this.secure =
           Boolean.parseBoolean(
               labels.getOrDefault(labelPrefix + "." + serviceId + ".secure", "false"));
+      this.protocol =
+          labels.getOrDefault("%s.%s.protocol".formatted(labelPrefix, serviceId), "http");
     } else {
       this.secure = Boolean.parseBoolean(labels.getOrDefault(labelPrefix + ".secure", "false"));
+      this.protocol = "http";
     }
     this.metadata = Util.getMetaDataFromLabels(labelPrefix, serviceId, multiId, labels);
     if (secure) {
