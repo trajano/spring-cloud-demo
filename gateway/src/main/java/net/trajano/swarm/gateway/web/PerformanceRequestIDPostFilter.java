@@ -32,6 +32,7 @@ public class PerformanceRequestIDPostFilter implements WebFilter {
 
     final long startNanos = System.nanoTime();
     final String traceId = tracing.currentTraceContext().get().traceIdString();
+    exchange.getAttributes().put(ServerWebExchange.LOG_ID_ATTRIBUTE, Util.toXRay(traceId));
     exchange.getResponse().getHeaders().add("X-B3-Traceid", traceId);
     exchange.getResponse().getHeaders().add("X-Trace-ID", Util.toXRay(traceId));
     return chain

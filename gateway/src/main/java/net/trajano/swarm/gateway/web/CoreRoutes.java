@@ -5,6 +5,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 
 import java.net.URI;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.gateway.filter.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
@@ -56,7 +57,7 @@ public class CoreRoutes {
   RouterFunction<ServerResponse> unavailable() {
 
     return route(
-        path("/unavailable"),
+        path("/unavailable").and(request -> "forward".equals(request.uri().getScheme())),
         request ->
             ServerResponse.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -68,7 +69,7 @@ public class CoreRoutes {
   RouterFunction<ServerResponse> methodNotAllowed() {
 
     return route(
-        path("/methodNotAllowed"),
+        path("/methodNotAllowed").and(request -> "forward".equals(request.uri().getScheme())),
         request ->
             ServerResponse.status(HttpStatus.METHOD_NOT_ALLOWED)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -86,6 +87,13 @@ public class CoreRoutes {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(GatewayResponse.builder().error("client_error").ok(false).build()));
   }
+
+  //  @Bean
+  //  GlobalFilter prioritizedForwardFilter(ForwardRoutingFilter forwardRoutingFilter) {
+  //
+  //    return new OrderedGlobalFilter(
+  //        forwardRoutingFilter, RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER - 1);
+  //  }
 
   static RequestPredicate gethead(String pathPattern) {
     return methods(HttpMethod.GET, HttpMethod.HEAD).and(path(pathPattern));

@@ -12,6 +12,7 @@ import io.grpc.reflection.v1alpha.ServerReflectionRequest;
 import io.grpc.reflection.v1alpha.ServerReflectionResponse;
 import io.grpc.reflection.v1alpha.ServiceResponse;
 import io.grpc.stub.StreamObserver;
+import java.net.URI;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -160,5 +161,17 @@ public class GrpcFunctions {
 
     return servicesFromReflection(serverReflectionBlockingStub)
         .flatMapMany(services -> fileDescriptorForServices(serverReflectionBlockingStub, services));
+  }
+
+  public static Mono<Descriptors.MethodDescriptor> methodDescriptor(
+      URI uri, Flux<Descriptors.FileDescriptor> fileDescriptorFlux) {
+    String[] pathElements = uri.getPath().split("/");
+    return fileDescriptorFlux
+        .flatMap(fileDescriptor -> Flux.fromIterable(fileDescriptor.getServices()))
+        .filter(serviceDescriptor -> pathElements[1].equals(serviceDescriptor.getName()))
+        .flatMap(serviceDescriptor -> Flux.fromIterable(serviceDescriptor.getMethods()))
+        .filter(methodDescriptor -> pathElements[2].equals(methodDescriptor.getName()))
+        //                .map(GrpcFunctions::methodDescriptorFromProtobuf)
+        .last();
   }
 }
