@@ -1,5 +1,7 @@
 package net.trajano.swarm.sampleservice;
 
+import brave.Tracing;
+import brave.grpc.GrpcTracing;
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -8,6 +10,8 @@ import java.io.IOException;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,19 +19,25 @@ import org.springframework.stereotype.Service;
  * the future and the routing logic will be moved to gateway instead.
  */
 @Service
+@Slf4j
 public class GrpcServer {
   private final Server server;
 
-  public GrpcServer(final Set<BindableService> grpcServices) {
-    var b = ServerBuilder.forPort(50000);
+  public GrpcServer(
+      final Set<BindableService> grpcServices,
+      Tracing tracing,
+      @Value("${grpc.port:50000}") int port) {
+    final var interceptor = GrpcTracing.create(tracing).newServerInterceptor();
+    var b = ServerBuilder.forPort(port);
     grpcServices.forEach(b::addService);
-    b.addService(ProtoReflectionService.newInstance());
-    server = b.build();
+    log.info("{} listening on {}", "server", port);
+    this.server = b.addService(ProtoReflectionService.newInstance()).intercept(interceptor).build();
   }
 
   @PostConstruct
   public void start() throws IOException {
     server.start();
+    log.info("{} listening on {}", server, server.getPort());
   }
 
   @PreDestroy

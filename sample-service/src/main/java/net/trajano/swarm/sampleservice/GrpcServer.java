@@ -1,8 +1,7 @@
 package net.trajano.swarm.sampleservice;
 
-import io.grpc.BindableService;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
+import brave.grpc.GrpcTracing;
+import io.grpc.*;
 import io.grpc.protobuf.services.ProtoReflectionService;
 import java.io.IOException;
 import java.util.Set;
@@ -18,10 +17,11 @@ import org.springframework.stereotype.Service;
 public class GrpcServer {
   private final Server server;
 
-  public GrpcServer(final Set<BindableService> grpcServices) {
+  public GrpcServer(final Set<BindableService> grpcServices, GrpcTracing grpcTracing) {
+    final var serverInterceptor = grpcTracing.newServerInterceptor();
     var b = ServerBuilder.forPort(50000);
     grpcServices.forEach(b::addService);
-    b.addService(ProtoReflectionService.newInstance());
+    b.addService(ProtoReflectionService.newInstance()).intercept(serverInterceptor);
     server = b.build();
   }
 

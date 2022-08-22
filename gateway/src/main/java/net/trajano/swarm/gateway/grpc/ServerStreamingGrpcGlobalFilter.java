@@ -87,6 +87,10 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
                                       grpcMethodDescriptor.getType(),
                                       grpcMethodDescriptor.getFullMethodName())));
                 }
+                exchange
+                    .getResponse()
+                    .getHeaders()
+                    .add(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_EVENT_STREAM_VALUE);
 
                 final var grpcOutputSteam =
                     Flux.<DynamicMessage>create(

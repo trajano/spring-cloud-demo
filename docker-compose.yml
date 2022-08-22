@@ -74,7 +74,8 @@ services:
 #      - DOCKER_DISCOVERY_DAEMONFULLACCESS=false
 #      - DOCKER_HOST=tcp://daemon:2375
 #      - LOGGING_LEVEL_NET_TRAJANO=trace
-#      - LOGGING_LEVEL_NET_TRAJANO=debug
+      - LOGGING_LEVEL_NET_TRAJANO=debug
+      - LOGGING_LEVEL_REQUEST=debug
 #      - LOGGING_LEVEL_ORG_XBILL=trace
       - LOGGING_LEVEL_ROOT=error
       - LOGGING_LEVEL_SECURITY=warn
@@ -179,6 +180,8 @@ services:
       context: .
       target: sample-service
     image: local/sample-service
+    environment:
+      - LOGGING_LEVEL_NET_TRAJANO=debug
     deploy:
       labels:
         docker.ids: sample
@@ -186,8 +189,29 @@ services:
         docker.sample.path.regexp: /sample/(?<remaining>.*)
         docker.sample.path.replacement: /$${remaining}
         # This indicates that the backend is a GRPC service rather than HTTP service, default is `http`
-        docker.sample.protocol: grpc
-        docker.sample.port: 50000
+#        docker.sample.protocol: grpc
+#        docker.sample.port: 50000
+      resources:
+        limits:
+          memory: 256m
+    networks:
+      - services
+  grpc-sample:
+    build:
+      context: .
+      target: grpc-service
+    image: local/grpc-service
+    environment:
+      - LOGGING_LEVEL_NET_TRAJANO=debug
+    deploy:
+      labels:
+        docker.ids: grpc
+        docker.grpc.path: /grpc/**
+        docker.grpc.path.regexp: /grpc/(?<remaining>.*)
+        docker.grpc.path.replacement: /$${remaining}
+        # This indicates that the backend is a GRPC service rather than HTTP service, default is `http`
+        docker.grpc.protocol: grpc
+        docker.grpc.port: 50000
       resources:
         limits:
           memory: 256m

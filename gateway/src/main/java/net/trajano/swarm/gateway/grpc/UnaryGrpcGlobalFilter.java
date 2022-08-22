@@ -94,6 +94,14 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
                         .print(dynamicMessage)
                         .getBytes(StandardCharsets.UTF_8);
                 var buffer = exchange.getResponse().bufferFactory().wrap(bytes);
+                exchange
+                    .getResponse()
+                    .getHeaders()
+                    .add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+                exchange
+                    .getResponse()
+                    .getHeaders()
+                    .add(HttpHeaders.CONTENT_LENGTH, String.valueOf(bytes.length));
                 return exchange.getResponse().writeWith(Flux.just(buffer));
 
               } catch (IOException e) {

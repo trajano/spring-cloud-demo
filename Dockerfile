@@ -39,6 +39,15 @@ HEALTHCHECK --interval=5s --start-period=60s \
 USER 5000
 EXPOSE 8080
 
+FROM openjdk:17-jdk as grpc-service
+WORKDIR /w
+COPY --from=extractor /w/grpc-service/* /w/
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "org.springframework.boot.loader.JarLauncher"]
+HEALTHCHECK --interval=5s --start-period=60s \
+    CMD curl -sfo /dev/null http://localhost:8080/actuator/health
+USER 5000
+EXPOSE 8080
+
 #FROM openjdk:17-jdk as gateway
 FROM gcr.io/distroless/java17-debian11 as gateway
 WORKDIR /w
@@ -47,7 +56,6 @@ COPY --from=doc-builder /w/dist/openapi.json /
 # ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "-Dorg.slf4j.simpleLogger.defaultLogLevel=debug","org.springframework.boot.loader.JarLauncher"]
 # ENTRYPOINT ["java","-XX:+AllowRedefinitionToAddDeleteMethods","org.springframework.boot.loader.JarLauncher"]
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "org.springframework.boot.loader.JarLauncher"]
-
 HEALTHCHECK --interval=5s --start-period=60s \
     CMD ["java", "-Dloader.main=net.trajano.swarm.gateway.healthcheck.HealthProbe", "org.springframework.boot.loader.PropertiesLauncher" ]
 #HEALTHCHECK --interval=5s --start-period=60s \

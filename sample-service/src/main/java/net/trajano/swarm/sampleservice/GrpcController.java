@@ -1,5 +1,6 @@
 package net.trajano.swarm.sampleservice;
 
+import brave.grpc.GrpcTracing;
 import com.google.protobuf.*;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.*;
@@ -19,6 +20,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
@@ -35,6 +37,8 @@ import reactor.core.publisher.Mono;
 @Component
 @DependsOn("grpcServer")
 public class GrpcController {
+
+  @Autowired private GrpcTracing grpcTracing;
 
   private Map<GrpcServiceMethod, Descriptors.MethodDescriptor> methods = new ConcurrentHashMap<>();
 
@@ -76,7 +80,11 @@ public class GrpcController {
   @PostConstruct
   public void obtainDescriptorsFromServer() throws InterruptedException {
 
-    managedChannel = ManagedChannelBuilder.forAddress("localhost", 50000).usePlaintext().build();
+    managedChannel =
+        ManagedChannelBuilder.forAddress("localhost", 50000)
+            .usePlaintext()
+            .intercept(grpcTracing.newClientInterceptor())
+            .build();
     final var serverReflectionBlockingStub = ServerReflectionGrpc.newStub(managedChannel);
 
     final var serviceListLatch = new CountDownLatch(1);
@@ -175,6 +183,7 @@ public class GrpcController {
       @PathVariable String method,
       @RequestBody DataBuffer dataBuffer) {
 
+    log.error("ASDJLKDJASKLD");
     final var methodDescriptor = methods.get(new GrpcServiceMethod(service, method));
     if (methodDescriptor == null) {
       return Mono.error(new IllegalArgumentException("method is not supported"));
@@ -214,6 +223,7 @@ public class GrpcController {
       @PathVariable String method,
       @RequestBody DataBuffer dataBuffer) {
 
+    log.error("FOO");
     final var methodDescriptor = methods.get(new GrpcServiceMethod(service, method));
     if (methodDescriptor == null) {
       throw new IllegalArgumentException("method is not supported");
