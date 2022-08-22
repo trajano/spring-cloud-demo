@@ -1,18 +1,23 @@
 package net.trajano.swarm.gateway.grpc;
 
+import brave.grpc.GrpcTracing;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class ChannelProvider {
+
+  private GrpcTracing grpcTracing;
 
   /**
    * Obtains a channel from the map for the {@link ServiceInstance}.
@@ -39,6 +44,7 @@ public class ChannelProvider {
     if (!serviceInstance.isSecure()) {
       b.usePlaintext();
     }
+    b.intercept(grpcTracing.newClientInterceptor());
     return b.build();
   }
 
