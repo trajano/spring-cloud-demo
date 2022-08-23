@@ -13,6 +13,7 @@ public class EchoService extends EchoGrpc.EchoImplBase {
       EchoOuterClass.EchoRequest request,
       StreamObserver<EchoOuterClass.EchoResponse> responseObserver) {
 
+    System.out.println(GrpcServer.JWT_CLAIMS_CONTEXT_KEY.get());
     log.warn("DFSDF");
     responseObserver.onNext(
         EchoOuterClass.EchoResponse.newBuilder().setMessage(request.getMessage()).build());

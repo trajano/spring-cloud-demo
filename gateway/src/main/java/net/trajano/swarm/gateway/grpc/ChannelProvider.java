@@ -3,6 +3,8 @@ package net.trajano.swarm.gateway.grpc;
 import brave.grpc.GrpcTracing;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.grpc.MetricCollectingClientInterceptor;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -17,7 +19,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ChannelProvider {
 
-  private GrpcTracing grpcTracing;
+  private final GrpcTracing grpcTracing;
+  private final MeterRegistry meterRegistry;
 
   /**
    * Obtains a channel from the map for the {@link ServiceInstance}.
@@ -40,11 +43,13 @@ public class ChannelProvider {
    */
   private ManagedChannel buildForServiceInstance(ServiceInstance serviceInstance) {
     final var b =
-        ManagedChannelBuilder.forAddress(serviceInstance.getHost(), serviceInstance.getPort());
+        ManagedChannelBuilder.forAddress(serviceInstance.getHost(), serviceInstance.getPort())
+            .intercept(grpcTracing.newClientInterceptor())
+            .intercept(new MetricCollectingClientInterceptor(meterRegistry));
     if (!serviceInstance.isSecure()) {
       b.usePlaintext();
     }
-    b.intercept(grpcTracing.newClientInterceptor());
+
     return b.build();
   }
 

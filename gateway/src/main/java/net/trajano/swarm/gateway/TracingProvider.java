@@ -1,6 +1,7 @@
 package net.trajano.swarm.gateway;
 
 import brave.Tracing;
+import brave.grpc.GrpcTracing;
 import brave.http.HttpRequestParser;
 import brave.http.HttpResponseParser;
 import brave.http.HttpTags;
@@ -9,10 +10,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@SuppressWarnings("unused")
 public class TracingProvider {
 
   @Bean
-  public HttpTracing httpTracing(Tracing tracing, ExcludedPathPatterns excludedPathPatterns) {
+  GrpcTracing grpcTracing(Tracing tracing) {
+    return GrpcTracing.create(tracing);
+  }
+
+  @Bean
+  HttpTracing httpTracing(Tracing tracing, ExcludedPathPatterns excludedPathPatterns) {
 
     return HttpTracing.newBuilder(tracing)
         .serverRequestParser(

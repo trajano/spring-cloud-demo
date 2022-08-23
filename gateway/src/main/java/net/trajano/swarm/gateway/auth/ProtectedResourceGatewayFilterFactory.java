@@ -105,9 +105,11 @@ public class ProtectedResourceGatewayFilterFactory
                       return claimsService
                           .getClaims(bearerToken)
                           .flatMap(
-                              jwtClaims ->
-                                  chain.filter(
-                                      identityService.mutateDownstreamRequest(exchange, jwtClaims)))
+                              jwtClaims -> {
+                                exchange.getAttributes().put("jwtClaims", jwtClaims);
+                                return chain.filter(
+                                    identityService.mutateDownstreamRequest(exchange, jwtClaims));
+                              })
                           .onErrorResume(
                               SecurityException.class,
                               ex -> {

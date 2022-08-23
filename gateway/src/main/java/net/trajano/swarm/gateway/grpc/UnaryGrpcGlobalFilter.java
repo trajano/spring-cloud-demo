@@ -14,6 +14,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jose4j.jwt.JwtClaims;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -84,7 +85,12 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
                                       grpcMethodDescriptor.getFullMethodName())));
                 }
 
-                final var call = managedChannel.newCall(grpcMethodDescriptor, CallOptions.DEFAULT);
+                final var callOptions =
+                    CallOptions.DEFAULT.withCallCredentials(
+                        new JwtCallCredentials(
+                            ((JwtClaims) exchange.getRequiredAttribute("jwtClaims")).toJson()));
+
+                final var call = managedChannel.newCall(grpcMethodDescriptor, callOptions);
 
                 final var dynamicMessage = ClientCalls.blockingUnaryCall(call, inputMessage);
                 // at this point build the GRPC call?
