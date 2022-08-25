@@ -19,12 +19,12 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class GrpcServer {
-  private final Server server;
-
   public static Metadata.Key<String> JWT_CLAIMS_KEY =
       Metadata.Key.of("jwtClaims", Metadata.ASCII_STRING_MARSHALLER);
 
   public static Context.Key<String> JWT_CLAIMS_CONTEXT_KEY = Context.key("jwtClaims");
+
+  private final Server server;
 
   public GrpcServer(
       final Set<BindableService> grpcServices,
@@ -37,20 +37,13 @@ public class GrpcServer {
     this.server =
         b.addService(ProtoReflectionService.newInstance())
             .intercept(interceptor)
-            .intercept(
-                new ServerInterceptor() {
-                  @Override
-                  public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
-                      ServerCall<ReqT, RespT> call,
-                      Metadata headers,
-                      ServerCallHandler<ReqT, RespT> next) {
-                    final var context =
-                        Context.current()
-                            .withValue(JWT_CLAIMS_CONTEXT_KEY, headers.get(JWT_CLAIMS_KEY));
-                    return Contexts.interceptCall(context, call, headers, next);
-                  }
-                })
+            .intercept(                    new JwtClaimsInterceptor())
             .build();
+  }
+
+  @PreDestroy
+  public void shutdown() throws InterruptedException {
+    server.shutdown().awaitTermination();
   }
 
   @PostConstruct
@@ -59,8 +52,19 @@ public class GrpcServer {
     log.info("{} listening on {}", server, server.getPort());
   }
 
-  @PreDestroy
-  public void shutdown() throws InterruptedException {
-    server.shutdown().awaitTermination();
+  private static class JwtClaimsInterceptor implements ServerInterceptor {
+
+    @Override
+    public <Req, Resp> ServerCall.Listener<Req> interceptCall(
+        ServerCall<Req, Resp> call,
+        Metadata headers,
+        ServerCallHandler<Req, Resp> next) {
+      final var context =
+          Context.current()
+              .withValue(JWT_CLAIMS_CONTEXT_KEY, headers.get(JWT_CLAIMS_KEY));
+      return Contexts.interceptCall(context, call, headers, next);
+    }
+
   }
+
 }
