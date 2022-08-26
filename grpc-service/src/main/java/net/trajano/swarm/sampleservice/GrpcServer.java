@@ -6,7 +6,6 @@ import io.grpc.*;
 import io.grpc.protobuf.services.ProtoReflectionService;
 import java.io.IOException;
 import java.util.Set;
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +36,7 @@ public class GrpcServer {
     this.server =
         b.addService(ProtoReflectionService.newInstance())
             .intercept(interceptor)
-            .intercept(                    new JwtClaimsInterceptor())
+            .intercept(new JwtClaimsInterceptor())
             .build();
   }
 
@@ -46,25 +45,20 @@ public class GrpcServer {
     server.shutdown().awaitTermination();
   }
 
-  @PostConstruct
-  public void start() throws IOException {
+  public Server start() throws IOException {
     server.start();
     log.info("{} listening on {}", server, server.getPort());
+    return server;
   }
 
   private static class JwtClaimsInterceptor implements ServerInterceptor {
 
     @Override
     public <Req, Resp> ServerCall.Listener<Req> interceptCall(
-        ServerCall<Req, Resp> call,
-        Metadata headers,
-        ServerCallHandler<Req, Resp> next) {
+        ServerCall<Req, Resp> call, Metadata headers, ServerCallHandler<Req, Resp> next) {
       final var context =
-          Context.current()
-              .withValue(JWT_CLAIMS_CONTEXT_KEY, headers.get(JWT_CLAIMS_KEY));
+          Context.current().withValue(JWT_CLAIMS_CONTEXT_KEY, headers.get(JWT_CLAIMS_KEY));
       return Contexts.interceptCall(context, call, headers, next);
     }
-
   }
-
 }
