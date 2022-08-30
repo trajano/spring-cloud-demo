@@ -27,7 +27,7 @@ public class GrpcServer {
 
   public GrpcServer(
       final Set<BindableService> grpcServices,
-      Tracing tracing,
+      final Tracing tracing,
       @Value("${grpc.port:50000}") int port) {
     final var interceptor = GrpcTracing.create(tracing).newServerInterceptor();
     var b = ServerBuilder.forPort(port);

@@ -1,2 +1,9 @@
 rootProject.name = 'spring-docker-swarm'
-include('gateway', 'gateway-common', 'sample-service', 'grpc-service', 'jwks-provider')
+include(
+        'gateway',
+        'gateway-common',
+        'sample-service',
+        'grpc-service',
+        'spring-redis-region',
+        'jwks-provider'
+)

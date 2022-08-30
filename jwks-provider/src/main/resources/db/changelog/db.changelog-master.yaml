@@ -1,0 +1,132 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0
+      author: system
+      comment: Seed change set.
+      changes:
+        sql: |
+          select 1 from dual
+  - changeSet:
+      id: KeyPair
+      author: table
+      changes:
+        - createTable:
+            tableName: KeyPair
+            columns:
+              - column:
+                  name: keyId
+                  remarks: Key ID
+                  type: CHAR(4)
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: jwk
+                  remarks: JSON Web Key
+                  type: MEDIUMTEXT
+              - column:
+                  name: expiresOn
+                  remarks: Expires on
+                  type: TIMESTAMP
+        - addNotNullConstraint:
+            tableName: KeyPair
+            columnName: jwk
+            columnDataType: MEDIUMTEXT
+        - addNotNullConstraint:
+            tableName: KeyPair
+            columnName: expiresOn
+            columnDataType: TIMESTAMP
+  - changeSet:
+      id: AccessToken
+      author: table
+      changes:
+        - createTable:
+            tableName: AccessToken
+            columns:
+              - column:
+                  name: jti
+                  remarks: JTI
+                  type: VARCHAR(512)
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: expiresOn
+                  remarks: Expires on
+                  type: TIMESTAMP
+        - addNotNullConstraint:
+            tableName: AccessToken
+            columnName: expiresOn
+            columnDataType: TIMESTAMP
+  - changeSet:
+      id: RefreshToken
+      author: table
+      changes:
+        - createTable:
+            tableName: RefreshToken
+            columns:
+              - column:
+                  name: uuid
+                  remarks: UUID
+                  type: CHAR(36)
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: jti
+                  remarks: JTI
+                  type: VARCHAR(512)
+              - column:
+                  name: secretClaims
+                  remarks: Secret claims
+                  type: MEDIUMTEXT
+              - column:
+                  name: expiresOn
+                  remarks: Expires on
+                  type: TIMESTAMP
+              - column:
+                  name: versionNo
+                  remarks: Optimistic locking version number
+                  type: INTEGER
+        - addNotNullConstraint:
+            tableName: RefreshToken
+            columnName: jti
+            columnDataType: VARCHAR(512)
+        - addNotNullConstraint:
+            tableName: RefreshToken
+            columnName: secretClaims
+            columnDataType: MEDIUMTEXT
+        - addNotNullConstraint:
+            tableName: RefreshToken
+            columnName: expiresOn
+            columnDataType: TIMESTAMP
+        - addNotNullConstraint:
+            tableName: RefreshToken
+            columnName: versionNo
+            columnDataType: INTEGER
+  - changeSet:
+      id: BlockSigningKey
+      author: table
+      changes:
+        - createTable:
+            tableName: BlockSigningKey
+            columns:
+              - column:
+                  name: uuid
+                  remarks: UUID
+                  type: CHAR(36)
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: epochSecondsBlock
+                  remarks: The start of epoch seconds block.JTI
+                  type: BIGINT
+              - column:
+                  name: keyId
+                  remarks: Key ID
+                  type: CHAR(4)
+        - addNotNullConstraint:
+            tableName: BlockSigningKey
+            columnName: epochSecondsBlock
+            columnDataType: BIGINT
+        - addNotNullConstraint:
+            tableName: BlockSigningKey
+            columnName: keyId
+            columnDataType: CHAR(4)

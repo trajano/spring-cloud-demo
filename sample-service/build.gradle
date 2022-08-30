@@ -25,7 +25,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
-	implementation "io.zipkin.brave:brave-instrumentation-grpc:5.13.3"
+	implementation "io.zipkin.brave:brave-instrumentation-grpc:5.13.10"
 	implementation "io.grpc:grpc-protobuf"
 	implementation "io.grpc:grpc-services"
 	implementation "io.grpc:grpc-stub"

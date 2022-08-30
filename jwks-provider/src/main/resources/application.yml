@@ -13,12 +13,12 @@ management:
   endpoint:
     health:
       enabled: true
-#      show-details: ALWAYS
+      show-details: ALWAYS
   endpoints:
     enabled-by-default: false
     jmx:
       exposure:
         include: health
-#    web:
-#      exposure:
-#        include: "*"
+    web:
+      exposure:
+        include: "*"

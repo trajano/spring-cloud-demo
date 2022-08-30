@@ -49,11 +49,12 @@ public class JwksPopulator {
     final ReactiveSetOperations<String, String> setOps = redisTemplate.opsForSet();
     return generateKeyPairs()
         .take(authProperties.getSigningKeysPerBlock())
+        .map(JsonWebKeySet::toJson)
         .flatMap(keyPairJwks -> setOps.add(signingkeyBlock, keyPairJwks))
         .collectList();
   }
 
-  private Flux<String> generateKeyPairs() {
+  private Flux<JsonWebKeySet> generateKeyPairs() {
 
     return Flux.generate(
             (Consumer<SynchronousSink<KeyPair>>)
@@ -85,7 +86,7 @@ public class JwksPopulator {
 
                 jwks.addJsonWebKey(jwkPublic);
                 jwks.addJsonWebKey(JsonWebKey.Factory.newJwk(privateKey));
-                return Mono.just(jwks.toJson());
+                return Mono.just(jwks);
               } catch (JoseException e) {
                 return Mono.error(e);
               }

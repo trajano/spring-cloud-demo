@@ -62,7 +62,8 @@ public class RedisKeyBlocks {
   public Instant startingInstantForSigningKeyTimeBlock(Instant now, int offset) {
 
     return Instant.ofEpochSecond(
-        computeBlock(now.getEpochSecond(), authProperties.getSigningKeyExpiresInSeconds(), offset));
+        computeBlock(
+            now.getEpochSecond(), authProperties.getSigningKeyBlockSizeInSeconds(), offset));
   }
 
   public String accessTokenJtiKey(String jwtId) {

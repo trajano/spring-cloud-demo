@@ -36,5 +36,11 @@ public class AuthProperties {
    */
   private int signingKeyExpiresInSeconds = 240;
 
+  /**
+   * Signing block size in seconds and must be larger than {@link #accessTokenExpiresInSeconds}.
+   * This is kept low to make it easier to test.
+   */
+  private int signingKeyBlockSizeInSeconds = 240;
+
   private int penaltyDelayInMillis = 1000;
 }

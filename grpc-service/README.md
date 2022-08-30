@@ -116,3 +116,21 @@ message ChatsResponseChunk {
 ## What about envoy?
 
 I'll probably change this later to use [Envoy](https://www.envoyproxy.io/) which can do the HTTP to GRPC mapping but for now I want to determine all the parts and convert later.
+
+## Idea
+
+This is to leverage the capabilities of HTTP specifically caching
+```
+GET /sample/[GrpcService]/[grpcMethod]
+```
+What this would map to is a `stream` which will provide the most current data e.g.
+
+```protobuf
+service MyService {
+  rpc method(Request) returns (stream CurrentView) {}
+}
+```
+
+The first call (or perhaps a post construct) will map the request to the most current response.  When there's a new message from the server it will compute the JSON again and return the ETag.  The ETag will tell the client whether the data has been modified or not.
+
+If the returns is not a stream then it's more of a permanent non-updating cache entry.

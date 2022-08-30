@@ -140,6 +140,14 @@ services:
     image: local/jwks-provider
     environment:
       - SPRING_REDIS_HOST=redis
+      - SPRING_LIQUIBASE_DROPFIRST=true
+      - SPRING_LIQUIBASE_USER=gateway-user
+      - SPRING_LIQUIBASE_PASSWORD=password123
+      - SPRING_LIQUIBASE_URL=jdbc:mysql://db/swarm
+      - SPRING_R2DBC_USERNAME=gateway-user
+      - SPRING_R2DBC_PASSWORD=password123
+      - SPRING_R2DBC_URL=r2dbc:mysql://db/swarm
+
     networks:
       - default
     ports:
@@ -169,6 +177,19 @@ services:
       resources:
         limits:
           memory: 128m
+  db:
+    image: mysql:8.0.30
+    environment:
+      MYSQL_ROOT_PASSWORD: somerootpassword
+      MYSQL_USER: gateway-user
+      MYSQL_PASSWORD: password123
+      MYSQL_DATABASE: swarm
+    ports:
+      - 28084:3306
+    deploy:
+      resources:
+        limits:
+          memory: 1g
   redis:
     image: redis:6
     deploy:

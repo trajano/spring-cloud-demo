@@ -1,6 +1,8 @@
 package net.trajano.swarm.sampleservice;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.concurrent.Executors;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -19,6 +21,16 @@ public class SampleServiceApplication {
   @PostConstruct
   public void startServer() throws IOException {
 
-    grpcServer.start();
+    final var executorService = Executors.newSingleThreadExecutor();
+    executorService.submit(
+        () -> {
+          try {
+            grpcServer.start().awaitTermination();
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          } catch (IOException e) {
+            throw new UncheckedIOException(e);
+          }
+        });
   }
 }
