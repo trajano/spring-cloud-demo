@@ -155,7 +155,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 128m
+          memory: 256m
   apidoc:
     image: redocly/redoc
     environment:

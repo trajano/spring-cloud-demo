@@ -1,18 +1,17 @@
 package net.trajano.swarm.gateway.common.domain;
 
 import java.time.Instant;
-import java.util.UUID;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Data
-@Table("RefreshToken")
+@Table
 public class RefreshToken {
 
   /** Primary key */
-  @Id private UUID uuid;
+  @Id private String uuid;
 
   /** JTI claim is used as the key for lookup */
   private String jti;

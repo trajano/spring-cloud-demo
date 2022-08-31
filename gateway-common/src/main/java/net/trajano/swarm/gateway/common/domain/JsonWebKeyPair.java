@@ -1,24 +1,23 @@
 package net.trajano.swarm.gateway.common.domain;
 
+import java.time.Instant;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.lang.Nullable;
 
 /**
- * @param uuid Primary key. This is a UUID but must be represented as string.
- * @param epochSecondsBlock The start of epoch seconds block.
- * @param keyId The key ID
+ * @param expiresOn When does the keypair expire.
  */
 @Table
-public record BlockSigningKey(@Id String uuid, long epochSecondsBlock, String keyId)
+public record JsonWebKeyPair(@Id String keyId, String jwk, Instant expiresOn)
     implements Persistable<String> {
 
   @Nullable
   @Override
   public String getId() {
 
-    return uuid;
+    return keyId;
   }
 
   /**

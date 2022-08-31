@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class JwkProviderApplicationTests {
 
-  @Autowired private JwksPopulator jwksPopulator;
+  @Autowired private JwksDatabasePopulator jwksPopulator;
 
   @Test
   void contextLoads() {

@@ -1,6 +1,9 @@
 package net.trajano.swarm.jwksprovider;
 
-import java.security.*;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.time.Instant;
@@ -28,7 +31,7 @@ import reactor.util.function.Tuples;
 
 @Service
 @RequiredArgsConstructor
-public class JwksPopulator {
+public class JwksRedisPopulator {
 
   public static final String RSA = "RSA";
 

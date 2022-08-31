@@ -32,9 +32,10 @@ public class AuthProperties {
   private int maximumNumberOfSigningKeys = 10;
   /**
    * Signing key time expires in seconds and must be larger than {@link
-   * #accessTokenExpiresInSeconds}. This is kept low to make it easier to test.
+   * #accessTokenExpiresInSeconds} and must be at least 2 times larger than {@link
+   * #signingKeyBlockSizeInSeconds}. This is kept low to make it easier to test.
    */
-  private int signingKeyExpiresInSeconds = 240;
+  private int signingKeyExpiresInSeconds = 240 * 2;
 
   /**
    * Signing block size in seconds and must be larger than {@link #accessTokenExpiresInSeconds}.

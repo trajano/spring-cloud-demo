@@ -7,14 +7,14 @@ databaseChangeLog:
         sql: |
           select 1 from dual
   - changeSet:
-      id: KeyPair
+      id: JsonWebKeyPair
       author: table
       changes:
         - createTable:
-            tableName: KeyPair
+            tableName: json_web_key_pair
             columns:
               - column:
-                  name: keyId
+                  name: key_id
                   remarks: Key ID
                   type: CHAR(4)
                   constraints:
@@ -24,23 +24,33 @@ databaseChangeLog:
                   remarks: JSON Web Key
                   type: MEDIUMTEXT
               - column:
-                  name: expiresOn
+                  name: expires_on
                   remarks: Expires on
                   type: TIMESTAMP
         - addNotNullConstraint:
-            tableName: KeyPair
+            tableName: json_web_key_pair
             columnName: jwk
             columnDataType: MEDIUMTEXT
         - addNotNullConstraint:
-            tableName: KeyPair
-            columnName: expiresOn
+            tableName: json_web_key_pair
+            columnName: expires_on
             columnDataType: TIMESTAMP
+        - addUniqueConstraint:
+            tableName: json_web_key_pair
+            constraintName: json_web_key_pair_key_id_uc
+            columnNames: key_id
+        - createIndex:
+            tableName: json_web_key_pair
+            indexName: json_web_key_pair_expires_on_idx
+            columns:
+              - column:
+                  name: expires_on
   - changeSet:
       id: AccessToken
       author: table
       changes:
         - createTable:
-            tableName: AccessToken
+            tableName: access_token
             columns:
               - column:
                   name: jti
@@ -49,19 +59,25 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
               - column:
-                  name: expiresOn
+                  name: expires_on
                   remarks: Expires on
                   type: TIMESTAMP
         - addNotNullConstraint:
-            tableName: AccessToken
-            columnName: expiresOn
+            tableName: access_token
+            columnName: expires_on
             columnDataType: TIMESTAMP
+        - createIndex:
+            tableName: access_token
+            indexName: access_token_expires_on_idx
+            columns:
+              - column:
+                  name: expires_on
   - changeSet:
       id: RefreshToken
       author: table
       changes:
         - createTable:
-            tableName: RefreshToken
+            tableName: refresh_token
             columns:
               - column:
                   name: uuid
@@ -74,39 +90,49 @@ databaseChangeLog:
                   remarks: JTI
                   type: VARCHAR(512)
               - column:
-                  name: secretClaims
+                  name: secret_claims
                   remarks: Secret claims
                   type: MEDIUMTEXT
               - column:
-                  name: expiresOn
+                  name: expires_on
                   remarks: Expires on
                   type: TIMESTAMP
               - column:
-                  name: versionNo
+                  name: version_no
                   remarks: Optimistic locking version number
                   type: INTEGER
         - addNotNullConstraint:
-            tableName: RefreshToken
+            tableName: refresh_token
             columnName: jti
             columnDataType: VARCHAR(512)
         - addNotNullConstraint:
-            tableName: RefreshToken
-            columnName: secretClaims
+            tableName: refresh_token
+            columnName: secret_claims
             columnDataType: MEDIUMTEXT
         - addNotNullConstraint:
-            tableName: RefreshToken
-            columnName: expiresOn
+            tableName: refresh_token
+            columnName: expires_on
             columnDataType: TIMESTAMP
         - addNotNullConstraint:
-            tableName: RefreshToken
-            columnName: versionNo
+            tableName: refresh_token
+            columnName: version_no
             columnDataType: INTEGER
+        - addUniqueConstraint:
+            tableName: refresh_token
+            constraintName: refresh_token_jti_uc
+            columnNames: jti
+        - createIndex:
+            tableName: refresh_token
+            indexName: refresh_token_expires_on_idx
+            columns:
+              - column:
+                  name: expires_on
   - changeSet:
       id: BlockSigningKey
       author: table
       changes:
         - createTable:
-            tableName: BlockSigningKey
+            tableName: block_signing_key
             columns:
               - column:
                   name: uuid
@@ -115,18 +141,38 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
               - column:
-                  name: epochSecondsBlock
+                  name: epoch_seconds_block
                   remarks: The start of epoch seconds block.JTI
                   type: BIGINT
               - column:
-                  name: keyId
+                  name: key_id
                   remarks: Key ID
                   type: CHAR(4)
         - addNotNullConstraint:
-            tableName: BlockSigningKey
-            columnName: epochSecondsBlock
+            tableName: block_signing_key
+            columnName: epoch_seconds_block
             columnDataType: BIGINT
         - addNotNullConstraint:
-            tableName: BlockSigningKey
-            columnName: keyId
+            tableName: block_signing_key
+            columnName: key_id
             columnDataType: CHAR(4)
+        - addUniqueConstraint:
+            tableName: block_signing_key
+            constraintName: block_signing_key_epoch_seconds_block_key_id_uc
+            columnNames: epoch_seconds_block, key_id
+        - createIndex:
+            tableName: block_signing_key
+            indexName: block_signing_key_epoch_seconds_block_idx
+            columns:
+              - column:
+                  name: epoch_seconds_block
+  - changeSet:
+      id: BlockSigningKey-JsonWebKeyPair
+      author: fk
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: block_signing_key
+            baseColumnNames: key_id
+            referencedTableName: json_web_key_pair
+            referencedColumnNames: key_id
+            constraintName: block_signing_key_json_web_key_pair_fk
