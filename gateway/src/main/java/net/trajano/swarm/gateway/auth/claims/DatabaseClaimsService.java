@@ -6,7 +6,6 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.logging.Level;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.AuthServiceResponse;
@@ -14,11 +13,8 @@ import net.trajano.swarm.gateway.auth.IdentityService;
 import net.trajano.swarm.gateway.auth.IdentityServiceResponse;
 import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import net.trajano.swarm.gateway.common.AuthProperties;
-import net.trajano.swarm.gateway.common.RedisKeyBlocks;
-import net.trajano.swarm.gateway.common.dao.AccessTokens;
 import net.trajano.swarm.gateway.common.dao.JsonWebKeyPairs;
 import net.trajano.swarm.gateway.common.dao.RefreshTokens;
-import net.trajano.swarm.gateway.common.domain.AccessToken;
 import net.trajano.swarm.gateway.common.domain.JsonWebKeyPair;
 import net.trajano.swarm.gateway.common.domain.RefreshToken;
 import net.trajano.swarm.gateway.jwks.DatabaseJwksProvider;
@@ -76,11 +72,7 @@ public class DatabaseClaimsService implements ClaimsService {
 
   private final AuthProperties properties;
 
-  private final RedisKeyBlocks redisKeyBlocks;
-
   private final IdentityService<?, ?> identityService;
-
-  private final AccessTokens accessTokens;
 
   private final RefreshTokens refreshTokens;
 
@@ -90,7 +82,7 @@ public class DatabaseClaimsService implements ClaimsService {
    * Extracts the JTI from the refresh token sent by the client.
    *
    * @param refreshToken refresh token sent by the client
-   * @return a mono with the JTI or error if it is not parsed.
+   * @return a mono with the JTI or error if it is not parsed. An invalid JWT will return empty.
    */
   private Mono<String> extractJti(String refreshToken, HttpHeaders headers) {
     if (!MediaType.APPLICATION_FORM_URLENCODED.equals(headers.getContentType())) {
@@ -128,7 +120,7 @@ public class DatabaseClaimsService implements ClaimsService {
                         new JwksVerificationKeyResolver(jwks.getJsonWebKeys()))
                     .setRequireExpirationTime()
                     .setRequireJwtId()
-                    .setAllowedClockSkewInSeconds(10)
+                    .setAllowedClockSkewInSeconds(properties.getAllowedClockSkewInSeconds())
                     .setJwsAlgorithmConstraints(
                         AlgorithmConstraints.ConstraintType.PERMIT,
                         AlgorithmIdentifiers.RSA_USING_SHA256)
@@ -138,7 +130,7 @@ public class DatabaseClaimsService implements ClaimsService {
               try {
                 return Mono.just(consumer.processToClaims(jwt));
               } catch (InvalidJwtException e) {
-                return Mono.error(e);
+                return Mono.empty();
               }
             })
         .flatMap(
@@ -174,7 +166,7 @@ public class DatabaseClaimsService implements ClaimsService {
                         .setRequireSubject()
                         .setRequireExpirationTime()
                         .setRequireJwtId()
-                        .setAllowedClockSkewInSeconds(10)
+                        .setAllowedClockSkewInSeconds(properties.getAllowedClockSkewInSeconds())
                         .setJwsAlgorithmConstraints(
                             AlgorithmConstraints.ConstraintType.PERMIT,
                             AlgorithmIdentifiers.RSA_USING_SHA256)
@@ -189,7 +181,18 @@ public class DatabaseClaimsService implements ClaimsService {
 
     return Mono.zip(jwtMono, jwtConsumerMono)
         .flatMap(t -> getClaims(t.getT1(), t.getT2()))
-        .flatMap(this::validateClaims)
+        .flatMap(
+            c -> {
+              try {
+                return refreshTokens
+                    .findByJtiAndNotExpired(c.getJwtId(), Instant.now())
+                    .switchIfEmpty(Mono.error(SecurityException::new))
+                    .thenReturn(c);
+              } catch (MalformedClaimException e) {
+                return Mono.error(e);
+              }
+            })
+        .switchIfEmpty(Mono.error(SecurityException::new))
         .doOnError(
             SecurityException.class,
             ex -> securityLog.warn("security error obtaining claims: {}", ex.getMessage()));
@@ -208,11 +211,6 @@ public class DatabaseClaimsService implements ClaimsService {
         .publishOn(jwtConsumerScheduler);
   }
 
-  private Mono<Boolean> isJwtIdValid(String jwtId) {
-
-    return accessTokens.existsByJtiAndNotExpired(jwtId, Instant.now());
-  }
-
   /**
    * Refreshes the token and returns a new authentication response. May throw a {@link
    * IllegalArgumentException} if the token is not valid or expired.
@@ -228,9 +226,6 @@ public class DatabaseClaimsService implements ClaimsService {
     return extractJti(refreshToken, headers)
         .flatMap(jti -> refreshTokens.findByJtiAndNotExpired(jti, Instant.now()))
         .flatMap(
-            refreshTokenDb ->
-                accessTokens.deleteByJti(refreshTokenDb.jti()).thenReturn(refreshTokenDb))
-        .flatMap(
             refreshTokenDb -> {
               try {
                 var secretClaims = JwtClaims.parse(refreshTokenDb.secretClaims());
@@ -244,7 +239,14 @@ public class DatabaseClaimsService implements ClaimsService {
         .flatMap(t -> storeAndSignIdentityServiceResponse(t.getT1(), t.getT2()))
         .map(
             oauthResponse -> AuthServiceResponse.builder().operationResponse(oauthResponse).build())
-        .switchIfEmpty(Mono.error(SecurityException::new))
+        .switchIfEmpty(
+            Mono.just(
+                AuthServiceResponse.builder()
+                    .operationResponse(
+                        new UnauthorizedGatewayResponse("unable to locate the refresh token data"))
+                    .statusCode(HttpStatus.UNAUTHORIZED)
+                    .delay(Duration.ofMillis(properties.getPenaltyDelayInMillis()))
+                    .build()))
         .onErrorResume(
             SecurityException.class,
             ex -> {
@@ -282,9 +284,8 @@ public class DatabaseClaimsService implements ClaimsService {
         .flatMap(jti -> refreshTokens.findByJtiAndNotExpired(jti, Instant.now()))
         .flatMap(
             refreshTokenDb ->
-                accessTokens
-                    .deleteByJti(refreshTokenDb.jti())
-                    .then(refreshTokens.delete(refreshTokenDb))
+                refreshTokens
+                    .delete(refreshTokenDb)
                     .thenReturn(
                         AuthServiceResponse.builder()
                             .operationResponse(GatewayResponse.builder().ok(true).build())
@@ -307,6 +308,8 @@ public class DatabaseClaimsService implements ClaimsService {
     if (!identityServiceResponse.isOk()) {
       return Mono.error(IllegalStateException::new);
     }
+
+    log.error("{}", identityServiceResponse);
 
     final var now = Instant.now();
     final var newJti = UUID.randomUUID().toString();
@@ -338,13 +341,6 @@ public class DatabaseClaimsService implements ClaimsService {
     var updatedAccessToken =
         jwksProvider
             .getSigningKey(0)
-            .flatMap(
-                jwks ->
-                    accessTokens
-                        .save(
-                            new AccessToken(
-                                newJti, JwtFunctions.getKid(jwks), accessTokenExpiresOn))
-                        .thenReturn(jwks))
             .map(
                 jwks -> {
                   var accessToken = JwtFunctions.sign(jwks, tokenClaims.toJson());
@@ -431,28 +427,5 @@ public class DatabaseClaimsService implements ClaimsService {
               oauthTokenResponse.setExpiresIn(accessTokenExpiresInSeconds);
               return oauthTokenResponse;
             });
-  }
-
-  /**
-   * Checks if the JwtId is still valid
-   *
-   * @param jwtClaims claims
-   * @return claims as is if valid.
-   */
-  private Mono<JwtClaims> validateClaims(final JwtClaims jwtClaims) {
-
-    try {
-      final String jwtId = jwtClaims.getJwtId();
-      return isJwtIdValid(jwtId)
-          .filter(isValid -> isValid)
-          .switchIfEmpty(
-              Mono.error(
-                  new SecurityException(
-                      "unable to find redis key %s"
-                          .formatted(redisKeyBlocks.accessTokenJtiKey(jwtId)))))
-          .thenReturn(jwtClaims);
-    } catch (MalformedClaimException e) {
-      return Mono.error(new SecurityException(e));
-    }
   }
 }

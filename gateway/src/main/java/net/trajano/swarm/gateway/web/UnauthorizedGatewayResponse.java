@@ -13,6 +13,11 @@ public class UnauthorizedGatewayResponse extends GatewayResponse {
 
   public UnauthorizedGatewayResponse() {
 
-    super(false, "invalid_token");
+    this(null);
+  }
+
+  public UnauthorizedGatewayResponse(String description) {
+
+    super(false, "invalid_token", description);
   }
 }

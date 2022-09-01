@@ -17,7 +17,7 @@ public class AuthProperties {
 
   private String issuer = "http://localhost";
   private int signingKeysPerBlock = 3;
-
+  private int allowedClockSkewInSeconds = 0;
   /** Access token time expires in seconds. This is kept low to make it easier to test. */
   private int accessTokenExpiresInSeconds = 120;
 

@@ -14,4 +14,5 @@ import lombok.NoArgsConstructor;
 public class GatewayResponse {
   private boolean ok;
   private String error;
+  private String errorDescription;
 }

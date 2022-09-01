@@ -152,7 +152,7 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
       return Mono.just(
           IdentityServiceResponse.builder()
               .ok(true)
-              .claims(secretClaims)
+              .claims(claims)
               .secretClaims(secretClaims)
               .build());
     } catch (MalformedClaimException e) {

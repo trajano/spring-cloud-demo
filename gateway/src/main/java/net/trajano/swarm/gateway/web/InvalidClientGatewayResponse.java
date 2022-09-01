@@ -13,6 +13,6 @@ public class InvalidClientGatewayResponse extends GatewayResponse {
 
   public InvalidClientGatewayResponse() {
 
-    super(false, "invalid_client");
+    super(false, "invalid_client", null);
   }
 }

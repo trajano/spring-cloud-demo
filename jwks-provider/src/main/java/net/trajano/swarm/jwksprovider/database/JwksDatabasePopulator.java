@@ -8,7 +8,6 @@ import javax.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.common.RedisKeyBlocks;
-import net.trajano.swarm.gateway.common.dao.AccessTokens;
 import net.trajano.swarm.gateway.common.dao.BlockSigningKeys;
 import net.trajano.swarm.gateway.common.dao.JsonWebKeyPairs;
 import net.trajano.swarm.gateway.common.dao.RefreshTokens;
@@ -48,7 +47,6 @@ public class JwksDatabasePopulator {
         .flatMapSequential(blockSigningKeys::save);
   }
 
-  private final AccessTokens accessTokens;
   private final RefreshTokens refreshTokens;
   /**
    * Populates the database with the signing keys. This scans the current and the next one to
@@ -67,9 +65,8 @@ public class JwksDatabasePopulator {
     final var nextEpochSecondsBlock = redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 1);
 
     final var removeExpiredEntries =
-        accessTokens
+        refreshTokens
             .deleteExpiredOn(now)
-            .then(refreshTokens.deleteExpiredOn(now))
             .then(blockSigningKeys.deleteBlocksOlderThanBlock(previousEpochSecondsBlock))
             .then(jsonWebKeyPairs.deleteUnused());
 
