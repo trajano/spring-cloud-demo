@@ -111,10 +111,8 @@ public class DatabaseClaimsService implements ClaimsService {
 
     return jsonWebKeyPairs
         .findById(kid)
-        .log("extractjti", Level.SEVERE)
         .map(JsonWebKeyPair::jwk)
         .publishOn(refreshTokenScheduler)
-        .log("extractjti2", Level.SEVERE)
         .flatMap(
             jwk -> {
               try {
