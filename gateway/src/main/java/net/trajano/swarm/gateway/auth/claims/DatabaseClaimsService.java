@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.logging.Level;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.AuthServiceResponse;
@@ -92,7 +93,7 @@ public class DatabaseClaimsService implements ClaimsService {
    * @return a mono with the JTI or error if it is not parsed.
    */
   private Mono<String> extractJti(String refreshToken, HttpHeaders headers) {
-    if (MediaType.APPLICATION_FORM_URLENCODED.equals(headers.getContentType())) {
+    if (!MediaType.APPLICATION_FORM_URLENCODED.equals(headers.getContentType())) {
       return Mono.error(IllegalArgumentException::new);
     }
     if (!refreshToken.matches("[-_A-Za-z\\d]+\\.[-_A-Za-z\\d]+\\.[-_A-Za-z\\d]+")) {
@@ -110,8 +111,10 @@ public class DatabaseClaimsService implements ClaimsService {
 
     return jsonWebKeyPairs
         .findById(kid)
+        .log("extractjti", Level.SEVERE)
         .map(JsonWebKeyPair::jwk)
         .publishOn(refreshTokenScheduler)
+        .log("extractjti2", Level.SEVERE)
         .flatMap(
             jwk -> {
               try {
@@ -226,6 +229,9 @@ public class DatabaseClaimsService implements ClaimsService {
 
     return extractJti(refreshToken, headers)
         .flatMap(jti -> refreshTokens.findByJtiAndNotExpired(jti, Instant.now()))
+        .flatMap(
+            refreshTokenDb ->
+                accessTokens.deleteByJti(refreshTokenDb.jti()).thenReturn(refreshTokenDb))
         .flatMap(
             refreshTokenDb -> {
               try {
@@ -394,8 +400,10 @@ public class DatabaseClaimsService implements ClaimsService {
                         .switchIfEmpty(
                             Mono.create(
                                 sink -> {
+                                  final var unsignedNewRefreshToken =
+                                      generateRefreshToken(newJti, refreshTokenExpiresOn);
                                   final String newRefreshToken =
-                                      JwtFunctions.refreshSign(kp, newJti);
+                                      JwtFunctions.refreshSign(kp, unsignedNewRefreshToken);
                                   sink.success(
                                       new RefreshToken(
                                           UUID.randomUUID().toString(),

@@ -20,7 +20,7 @@ public interface AccessTokens extends ReactiveCrudRepository<AccessToken, String
   @Query("delete from access_token where expires_on <= :on")
   Mono<Void> deleteExpiredOn(Instant on);
 
-  @Query("select count(*) from access_token where expiresOn >= :now and jti = :jti")
+  @Query("select count(*) from access_token where jti = :jti and expires_on >= :now")
   Mono<Long> countByJtiAndNotExpired(String jti, Instant now);
 
   default Mono<Boolean> existsByJtiAndNotExpired(String jti, Instant now) {
