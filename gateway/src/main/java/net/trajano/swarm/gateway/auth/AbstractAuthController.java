@@ -75,7 +75,7 @@ public abstract class AbstractAuthController<A, P> {
         .filter(IdentityServiceResponse::isOk)
         .flatMap(
             identityServiceResponse ->
-                claimsService.storeAndSignIdentityServiceResponse(identityServiceResponse))
+                claimsService.storeAndSignIdentityServiceResponse(identityServiceResponse, null))
         .doOnNext(
             serviceResponse -> {
               final var serverHttpResponse = serverWebExchange.getResponse();

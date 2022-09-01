@@ -1,9 +1,11 @@
 package net.trajano.swarm.gateway;
 
+import net.trajano.swarm.gateway.common.dao.JsonWebKeyPairs;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
+import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 import reactor.core.scheduler.Schedulers;
 
 /**
@@ -16,6 +18,7 @@ import reactor.core.scheduler.Schedulers;
       SimpleDiscoveryClientAutoConfiguration.class,
       SimpleReactiveDiscoveryClientAutoConfiguration.class
     })
+@EnableR2dbcRepositories(basePackageClasses = JsonWebKeyPairs.class)
 public class GatewayApplication {
 
   public static void main(String[] args) {

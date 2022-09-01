@@ -34,9 +34,10 @@ public interface ClaimsService {
    * Stores the data and signs the tokens as needed. It will set the expiration times based on the
    * identity service response as appropriate.
    *
-   * @param identityServiceResponse
-   * @return
+   * @param identityServiceResponse identity service response.
+   * @param jwtId JWT ID of the refresh token, may be null if it is a fresh token.
+   * @return response suitable for the gateway.
    */
   Mono<GatewayResponse> storeAndSignIdentityServiceResponse(
-      IdentityServiceResponse identityServiceResponse);
+      IdentityServiceResponse identityServiceResponse, String jwtId);
 }

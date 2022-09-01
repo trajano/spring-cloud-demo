@@ -1,6 +1,7 @@
 package net.trajano.swarm.gateway.auth.simple;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -127,7 +128,8 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
   }
 
   @Override
-  public Mono<IdentityServiceResponse> refresh(JwtClaims secretClaims, HttpHeaders headers) {
+  public Mono<IdentityServiceResponse> refresh(
+      JwtClaims secretClaims, Instant issuedOn, HttpHeaders headers) {
 
     try {
       final var claims = new JwtClaims();

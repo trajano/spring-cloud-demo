@@ -1,4 +1,4 @@
-package net.trajano.swarm.jwksprovider;
+package net.trajano.swarm.jwksprovider.database;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;

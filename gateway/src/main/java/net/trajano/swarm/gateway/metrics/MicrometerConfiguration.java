@@ -1,4 +1,4 @@
-package net.trajano.swarm.gateway;
+package net.trajano.swarm.gateway.metrics;
 
 import io.awspring.cloud.autoconfigure.condition.ConditionalOnAwsCloudEnvironment;
 import io.micrometer.cloudwatch2.CloudWatchConfig;

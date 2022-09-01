@@ -1,6 +1,5 @@
 package net.trajano.swarm.gateway.common.dao;
 
-import java.time.Instant;
 import net.trajano.swarm.gateway.common.domain.JsonWebKeyPair;
 import org.springframework.data.r2dbc.repository.Modifying;
 import org.springframework.data.r2dbc.repository.Query;
@@ -15,6 +14,7 @@ public interface JsonWebKeyPairs extends ReactiveCrudRepository<JsonWebKeyPair, 
    * @param on processing instant
    */
   @Modifying
-  @Query("delete from json_web_key_pair where expires_on <= :on")
-  Mono<Void> deleteExpiredOn(Instant on);
+  @Query(
+      "delete from json_web_key_pair where key_id not in (select key_id from access_token union select key_id from refresh_token union select key_id from block_signing_key)")
+  Mono<Void> deleteUnused();
 }

@@ -69,6 +69,14 @@ public final class JwtFunctions {
     }
   }
 
+  public static String getKid(JsonWebKeySet kp) {
+    return kp.getJsonWebKeys().stream()
+        .filter(jsonWebKey -> "RSA".equals(jsonWebKey.getKeyType()))
+        .findAny()
+        .orElseThrow(IllegalArgumentException::new)
+        .getKeyId();
+  }
+
   @Data
   private static class JwtHeader {
     private String kid;

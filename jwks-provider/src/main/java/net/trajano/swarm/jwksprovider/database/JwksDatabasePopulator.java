@@ -1,4 +1,4 @@
-package net.trajano.swarm.jwksprovider;
+package net.trajano.swarm.jwksprovider.database;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -8,8 +8,10 @@ import javax.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.common.RedisKeyBlocks;
+import net.trajano.swarm.gateway.common.dao.AccessTokens;
 import net.trajano.swarm.gateway.common.dao.BlockSigningKeys;
 import net.trajano.swarm.gateway.common.dao.JsonWebKeyPairs;
+import net.trajano.swarm.gateway.common.dao.RefreshTokens;
 import net.trajano.swarm.gateway.common.domain.BlockSigningKey;
 import net.trajano.swarm.gateway.common.domain.JsonWebKeyPair;
 import org.springframework.context.annotation.DependsOn;
@@ -46,6 +48,8 @@ public class JwksDatabasePopulator {
         .flatMapSequential(blockSigningKeys::save);
   }
 
+  private final AccessTokens accessTokens;
+  private final RefreshTokens refreshTokens;
   /**
    * Populates the database with the signing keys. This scans the current and the next one to
    * determine which needs to be populated.
@@ -56,14 +60,18 @@ public class JwksDatabasePopulator {
   private Mono<Void> populateDatabase(Instant ignored) {
 
     final var now = Instant.now();
+    final var previousEpochSecondsBlock =
+        redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, -1);
     final var currentEpochSecondsBlock =
         redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 0);
     final var nextEpochSecondsBlock = redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 1);
 
     final var removeExpiredEntries =
-        blockSigningKeys
-            .deleteBlocksOlderThanBlock(currentEpochSecondsBlock)
-            .then(jsonWebKeyPairs.deleteExpiredOn(now));
+        accessTokens
+            .deleteExpiredOn(now)
+            .then(refreshTokens.deleteExpiredOn(now))
+            .then(blockSigningKeys.deleteBlocksOlderThanBlock(previousEpochSecondsBlock))
+            .then(jsonWebKeyPairs.deleteUnused());
 
     // Only pick one either current or next
     final Mono<Instant> keyAndIndexToPopulate =

@@ -1,5 +1,6 @@
 package net.trajano.swarm.gateway.auth;
 
+import java.time.Instant;
 import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import org.jose4j.jwt.JwtClaims;
 import org.springframework.http.HttpHeaders;
@@ -22,11 +23,21 @@ public interface IdentityService<A, P> {
    *
    * @param authenticationRequest authentication request
    * @param headers HTTP headers
-   * @return access token response
+   * @return identity response
    */
   Mono<IdentityServiceResponse> authenticate(A authenticationRequest, HttpHeaders headers);
 
-  Mono<IdentityServiceResponse> refresh(JwtClaims secretClaims, HttpHeaders headers);
+  /**
+   * Refreshes the session with the identity service using the secret claims as the credential data.
+   *
+   * @param secretClaims secret claims
+   * @param issuedOn the initial issued on date for the refresh token. In case the identity server
+   *     would like to prevent indefinite refreshes.
+   * @param headers HTTP headers
+   * @return identity response
+   */
+  Mono<IdentityServiceResponse> refresh(
+      JwtClaims secretClaims, Instant issuedOn, HttpHeaders headers);
 
   /**
    * This will be moved to another class what performs the consumption as it's not part of the IP.

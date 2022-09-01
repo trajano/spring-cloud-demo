@@ -7,11 +7,16 @@ import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.lang.Nullable;
 
 /**
+ * There is no need to store the access token value because it has already been sent and will not be
+ * used by the server again.
+ *
  * @param jti JTI claim is used as the key
+ * @param keyId key ID that is used to validate the token
  * @param expiresOn When does the token expire.
  */
 @Table
-public record AccessToken(@Id String jti, Instant expiresOn) implements Persistable<String> {
+public record AccessToken(@Id String jti, String keyId, Instant expiresOn)
+    implements Persistable<String> {
   @Nullable
   @Override
   public String getId() {

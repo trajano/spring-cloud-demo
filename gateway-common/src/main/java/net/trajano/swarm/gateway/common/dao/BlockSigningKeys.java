@@ -31,6 +31,25 @@ public interface BlockSigningKeys extends ReactiveCrudRepository<BlockSigningKey
   }
 
   @Query(
-      "select KeyPair.jwk from KeyPair, BlockSigningKey where KeyPair.keyId = BlockSigningKey.keyId and epochSecondsBlock = :epochSecondsBlock")
+      "select json_web_key_pair.jwk from json_web_key_pair, block_signing_key where json_web_key_pair.key_id = block_signing_key.key_id and (epoch_seconds_block = :epochSecondsBlock1 or epoch_seconds_block = :epochSecondsBlock2)")
+  Flux<String> jwksForBlocks(long epochSecondsBlock1, long epochSecondsBlock2);
+
+  default Flux<String> jwksForBlocks(Instant epochSecondsBlock1, Instant epochSecondsBlock2) {
+    return jwksForBlocks(epochSecondsBlock1.getEpochSecond(), epochSecondsBlock2.getEpochSecond());
+  }
+
+  @Query(
+      "select json_web_key_pair.jwk from json_web_key_pair, block_signing_key where json_web_key_pair.key_id = block_signing_key.key_id and epoch_seconds_block = :epochSecondsBlock")
   Flux<String> jwksForBlock(long epochSecondsBlock);
+
+  /**
+   * Get a set of JWKS for a single block. Primarily used to take a key pair for signing an access
+   * token with the current epoch seconds block.
+   *
+   * @param epochSecondsBlock epoch seconds block
+   * @return
+   */
+  default Flux<String> jwksForBlock(Instant epochSecondsBlock) {
+    return jwksForBlock(epochSecondsBlock.getEpochSecond());
+  }
 }

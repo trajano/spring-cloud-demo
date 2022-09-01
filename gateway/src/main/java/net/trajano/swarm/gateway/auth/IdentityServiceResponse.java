@@ -29,6 +29,9 @@ public class IdentityServiceResponse {
 
   @Builder.Default private int penaltyDelayInSeconds = 0;
 
+  /** Number of seconds before a refresh can be performed again. */
+  @Builder.Default private int noRefreshUntilAfterSeconds = 0;
+
   /**
    * Claims that are not passed back to the client, but are associated with the refresh token in
    * order to refresh access to the backend. The secret claims will have it's JTI modified to match

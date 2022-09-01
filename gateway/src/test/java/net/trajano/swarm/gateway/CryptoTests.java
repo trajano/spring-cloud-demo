@@ -206,6 +206,25 @@ class CryptoTests {
   }
 
   @Test
+  void refreshToken() throws Exception {
+
+    JwtClaims claims = new JwtClaims();
+    claims.setJwtId(UUID.randomUUID().toString());
+    claims.setExpirationTimeMinutesInTheFuture(20.0001f);
+    claims.setNotBeforeMinutesInThePast(20.0001f);
+
+    final var jws = new JsonWebSignature();
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA512);
+    jws.setPayload(claims.toJson());
+    jws.setKey(signatureKeyPair.getPrivate());
+    var jwsCompactSerialization = jws.getCompactSerialization();
+
+    System.out.println(jwsCompactSerialization.length() + " " + jwsCompactSerialization);
+
+    assertThat(jwsCompactSerialization).isNotBlank();
+  }
+
+  @Test
   void jwtConsumerSecretKey() throws Exception {
 
     JwtClaims claims = new JwtClaims();

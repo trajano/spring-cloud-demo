@@ -1,12 +1,5 @@
 databaseChangeLog:
   - changeSet:
-      id: 0
-      author: system
-      comment: Seed change set.
-      changes:
-        sql: |
-          select 1 from dual
-  - changeSet:
       id: JsonWebKeyPair
       author: table
       changes:
@@ -55,13 +48,17 @@ databaseChangeLog:
               - column:
                   name: jti
                   remarks: JTI
-                  type: VARCHAR(512)
+                  type: CHAR(36)
                   constraints:
                     primaryKey: true
               - column:
                   name: expires_on
                   remarks: Expires on
                   type: TIMESTAMP
+              - column:
+                  name: key_id
+                  remarks: Key ID
+                  type: CHAR(4)
         - addNotNullConstraint:
             tableName: access_token
             columnName: expires_on
@@ -88,15 +85,27 @@ databaseChangeLog:
               - column:
                   name: jti
                   remarks: JTI
-                  type: VARCHAR(512)
+                  type: CHAR(36)
+              - column:
+                  name: token
+                  remarks: The token sent back and forth between client and server.
+                  type: VARCHAR(1024)
               - column:
                   name: secret_claims
                   remarks: Secret claims
                   type: MEDIUMTEXT
               - column:
+                  name: issued_on
+                  remarks: Initially issued on
+                  type: TIMESTAMP
+              - column:
                   name: expires_on
                   remarks: Expires on
                   type: TIMESTAMP
+              - column:
+                  name: key_id
+                  remarks: Key ID
+                  type: CHAR(4)
               - column:
                   name: version_no
                   remarks: Optimistic locking version number
@@ -104,11 +113,19 @@ databaseChangeLog:
         - addNotNullConstraint:
             tableName: refresh_token
             columnName: jti
-            columnDataType: VARCHAR(512)
+            columnDataType: CHAR(36)
+        - addNotNullConstraint:
+            tableName: refresh_token
+            columnName: token
+            columnDataType: VARCHAR(1024)
         - addNotNullConstraint:
             tableName: refresh_token
             columnName: secret_claims
             columnDataType: MEDIUMTEXT
+        - addNotNullConstraint:
+            tableName: refresh_token
+            columnName: issued_on
+            columnDataType: TIMESTAMP
         - addNotNullConstraint:
             tableName: refresh_token
             columnName: expires_on
@@ -176,3 +193,33 @@ databaseChangeLog:
             referencedTableName: json_web_key_pair
             referencedColumnNames: key_id
             constraintName: block_signing_key_json_web_key_pair_fk
+  - changeSet:
+      id: AccessToken-RefreshToken
+      author: fk
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: access_token
+            baseColumnNames: jti
+            referencedTableName: refresh_token
+            referencedColumnNames: jti
+            constraintName: access_token_refresh_token_fk
+  - changeSet:
+      id: AccessToken-JsonWebKeyPair
+      author: fk
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: access_token
+            baseColumnNames: key_id
+            referencedTableName: json_web_key_pair
+            referencedColumnNames: key_id
+            constraintName: access_token_json_web_key_pair_fk
+  - changeSet:
+      id: RefreshToken-JsonWebKeyPair
+      author: fk
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: refresh_token
+            baseColumnNames: key_id
+            referencedTableName: json_web_key_pair
+            referencedColumnNames: key_id
+            constraintName: refresh_token_json_web_key_pair_fk
