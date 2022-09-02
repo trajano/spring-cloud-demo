@@ -13,15 +13,12 @@ import net.trajano.swarm.gateway.auth.IdentityService;
 import net.trajano.swarm.gateway.auth.IdentityServiceResponse;
 import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import net.trajano.swarm.gateway.common.AuthProperties;
-import net.trajano.swarm.gateway.common.dao.JsonWebKeyPairs;
 import net.trajano.swarm.gateway.common.dao.RefreshTokens;
-import net.trajano.swarm.gateway.common.domain.JsonWebKeyPair;
 import net.trajano.swarm.gateway.common.domain.RefreshToken;
 import net.trajano.swarm.gateway.jwks.DatabaseJwksProvider;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
 import org.jose4j.jwa.AlgorithmConstraints;
-import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
@@ -31,7 +28,6 @@ import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver;
-import org.jose4j.lang.JoseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -39,6 +35,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
@@ -76,8 +73,6 @@ public class DatabaseClaimsService implements ClaimsService {
 
   private final RefreshTokens refreshTokens;
 
-  private final JsonWebKeyPairs jsonWebKeyPairs;
-
   /**
    * Extracts the JTI from the refresh token sent by the client.
    *
@@ -101,23 +96,13 @@ public class DatabaseClaimsService implements ClaimsService {
                         .getBytes(StandardCharsets.US_ASCII))
             + refreshToken.substring(refreshToken.indexOf("."));
 
-    return jsonWebKeyPairs
-        .findById(kid)
-        .map(JsonWebKeyPair::jwk)
+    return jwksProvider
+        .getAllVerificationJwks()
         .publishOn(refreshTokenScheduler)
-        .flatMap(
-            jwk -> {
-              try {
-                return Mono.just(new JsonWebKeySet(jwk));
-              } catch (JoseException e) {
-                return Mono.error(e);
-              }
-            })
         .map(
             jwks ->
                 new JwtConsumerBuilder()
-                    .setVerificationKeyResolver(
-                        new JwksVerificationKeyResolver(jwks.getJsonWebKeys()))
+                    .setVerificationKeyResolver(new JwksVerificationKeyResolver(jwks))
                     .setRequireExpirationTime()
                     .setRequireJwtId()
                     .setAllowedClockSkewInSeconds(properties.getAllowedClockSkewInSeconds())
@@ -152,6 +137,7 @@ public class DatabaseClaimsService implements ClaimsService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public Mono<JwtClaims> getClaims(String accessToken) {
 
     var jwtConsumerMono =
@@ -220,6 +206,7 @@ public class DatabaseClaimsService implements ClaimsService {
    * @return updated access token response
    */
   @Override
+  @Transactional
   public Mono<AuthServiceResponse<GatewayResponse>> refresh(
       String refreshToken, HttpHeaders headers) {
 
@@ -277,6 +264,7 @@ public class DatabaseClaimsService implements ClaimsService {
    * @return gateway response
    */
   @Override
+  @Transactional
   public Mono<AuthServiceResponse<GatewayResponse>> revoke(
       String refreshToken, HttpHeaders headers) {
 
@@ -302,14 +290,13 @@ public class DatabaseClaimsService implements ClaimsService {
 
   /** {@inheritDoc} */
   @Override
+  @Transactional
   public Mono<GatewayResponse> storeAndSignIdentityServiceResponse(
       IdentityServiceResponse identityServiceResponse, String jwtId) {
 
     if (!identityServiceResponse.isOk()) {
       return Mono.error(IllegalStateException::new);
     }
-
-    log.error("{}", identityServiceResponse);
 
     final var now = Instant.now();
     final var newJti = UUID.randomUUID().toString();
@@ -382,7 +369,7 @@ public class DatabaseClaimsService implements ClaimsService {
                               final String newRefreshToken =
                                   JwtFunctions.refreshSign(kp, unsignedNewRefreshToken);
                               return new RefreshToken(
-                                  oldRefreshToken.uuid(),
+                                  oldRefreshToken.id(),
                                   newJti,
                                   newRefreshToken,
                                   updatedSecretClaimsJson,
@@ -398,16 +385,17 @@ public class DatabaseClaimsService implements ClaimsService {
                                       generateRefreshToken(newJti, refreshTokenExpiresOn);
                                   final String newRefreshToken =
                                       JwtFunctions.refreshSign(kp, unsignedNewRefreshToken);
-                                  sink.success(
+                                  final var value =
                                       new RefreshToken(
-                                          UUID.randomUUID().toString(),
+                                          null,
                                           newJti,
                                           newRefreshToken,
                                           updatedSecretClaimsJson,
                                           now,
                                           refreshTokenExpiresOn,
                                           JwtFunctions.getKid(kp),
-                                          0));
+                                          0);
+                                  sink.success(value);
                                 })))
             .flatMap(refreshTokens::save)
             .map(RefreshToken::token);

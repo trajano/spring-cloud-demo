@@ -28,6 +28,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
 	implementation 'io.zipkin.brave:brave-instrumentation-p6spy:5.13.11'
 	runtimeOnly 'dev.miku:r2dbc-mysql:0.8.2.RELEASE'
+	//runtimeOnly 'com.github.jasync-sql:jasync-mysql:2.0.8'
+
 	runtimeOnly 'mysql:mysql-connector-java'
 	runtimeOnly 'org.liquibase:liquibase-core'
 	compileOnly 'org.projectlombok:lombok'

@@ -65,6 +65,8 @@ services:
       - SPRING_R2DBC_USERNAME=gateway-user
       - SPRING_R2DBC_PASSWORD=password123
       - SPRING_R2DBC_URL=r2dbc:mysql://db/swarm
+#      - SPRING_R2DBC_POOL_INITIALSIZE=100
+      # - SPRING_R2DBC_POOL_MAXSIZE=50
       - DOCKER_DISCOVERY_SWARMMODE=true
 #      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
 #      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
@@ -192,7 +194,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1g
+          memory: 2g
   redis:
     image: redis:6
     deploy:

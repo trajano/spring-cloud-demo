@@ -1,8 +1,10 @@
 package net.trajano.swarm.gateway.jwks;
 
 import java.time.Duration;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import net.trajano.swarm.gateway.common.RedisKeyBlocks;
+import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.lang.JoseException;
 import org.springframework.data.redis.core.ReactiveSetOperations;
@@ -81,6 +83,12 @@ public class RedisJwksProvider implements JwksProvider {
                   .map(RedisJwksProvider::stringToJwks);
             })
         .publishOn(scheduler);
+  }
+
+  @Override
+  public Mono<List<JsonWebKey>> getAllVerificationJwks() {
+
+    return null;
   }
 
   private static JsonWebKeySet stringToJwks(String s) {

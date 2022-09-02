@@ -1,6 +1,8 @@
 package net.trajano.swarm.gateway.jwks;
 
 import java.time.Duration;
+import java.util.List;
+import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -9,6 +11,8 @@ import reactor.util.function.Tuple2;
 public interface JwksProvider {
 
   Mono<JsonWebKeySet> getSigningKey(int accessTokenExpirationInSeconds);
+
+  Mono<List<JsonWebKey>> getAllVerificationJwks();
 
   Mono<JsonWebKeySet> jsonWebKeySet();
 

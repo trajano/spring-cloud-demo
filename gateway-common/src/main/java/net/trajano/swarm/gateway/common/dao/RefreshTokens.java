@@ -7,7 +7,7 @@ import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Mono;
 
-public interface RefreshTokens extends ReactiveCrudRepository<RefreshToken, String> {
+public interface RefreshTokens extends ReactiveCrudRepository<RefreshToken, Long> {
 
   /**
    * Removes tokens that are expired on the parameter

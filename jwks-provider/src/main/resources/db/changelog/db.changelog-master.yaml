@@ -39,37 +39,6 @@ databaseChangeLog:
               - column:
                   name: expires_on
   - changeSet:
-      id: AccessToken
-      author: table
-      changes:
-        - createTable:
-            tableName: access_token
-            columns:
-              - column:
-                  name: jti
-                  remarks: JTI
-                  type: CHAR(36)
-                  constraints:
-                    primaryKey: true
-              - column:
-                  name: expires_on
-                  remarks: Expires on
-                  type: TIMESTAMP
-              - column:
-                  name: key_id
-                  remarks: Key ID
-                  type: CHAR(4)
-        - addNotNullConstraint:
-            tableName: access_token
-            columnName: expires_on
-            columnDataType: TIMESTAMP
-        - createIndex:
-            tableName: access_token
-            indexName: access_token_expires_on_idx
-            columns:
-              - column:
-                  name: expires_on
-  - changeSet:
       id: RefreshToken
       author: table
       changes:
@@ -77,9 +46,9 @@ databaseChangeLog:
             tableName: refresh_token
             columns:
               - column:
-                  name: uuid
-                  remarks: UUID
-                  type: CHAR(36)
+                  name: id
+                  remarks: primary key
+                  type: BIGINT
                   constraints:
                     primaryKey: true
               - column:
@@ -110,6 +79,10 @@ databaseChangeLog:
                   name: version_no
                   remarks: Optimistic locking version number
                   type: INTEGER
+        - addAutoIncrement:
+            tableName: refresh_token
+            columnName: id
+            columnDataType: BIGINT
         - addNotNullConstraint:
             tableName: refresh_token
             columnName: jti
@@ -193,26 +166,6 @@ databaseChangeLog:
             referencedTableName: json_web_key_pair
             referencedColumnNames: key_id
             constraintName: block_signing_key_json_web_key_pair_fk
-  - changeSet:
-      id: AccessToken-RefreshToken
-      author: fk
-      changes:
-        - addForeignKeyConstraint:
-            baseTableName: access_token
-            baseColumnNames: jti
-            referencedTableName: refresh_token
-            referencedColumnNames: jti
-            constraintName: access_token_refresh_token_fk
-  - changeSet:
-      id: AccessToken-JsonWebKeyPair
-      author: fk
-      changes:
-        - addForeignKeyConstraint:
-            baseTableName: access_token
-            baseColumnNames: key_id
-            referencedTableName: json_web_key_pair
-            referencedColumnNames: key_id
-            constraintName: access_token_json_web_key_pair_fk
   - changeSet:
       id: RefreshToken-JsonWebKeyPair
       author: fk

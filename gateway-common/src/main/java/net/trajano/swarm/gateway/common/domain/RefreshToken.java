@@ -6,7 +6,7 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.relational.core.mapping.Table;
 
 /**
- * @param uuid primary key
+ * @param id primary key (this is auto increment on the database)
  * @param jti JTI claim is used as the key for lookup
  * @param token the JWT that is passed from the client.
  * @param secretClaims JSON claims that are secret and used to refresh the session without asking
@@ -18,7 +18,7 @@ import org.springframework.data.relational.core.mapping.Table;
  */
 @Table
 public record RefreshToken(
-    @Id String uuid,
+    @Id Long id,
     String jti,
     String token,
     String secretClaims,
