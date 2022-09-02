@@ -8,3 +8,4 @@ build
 *.ipr
 *.iws
 .env
+report.json*

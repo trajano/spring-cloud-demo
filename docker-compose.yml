@@ -128,7 +128,7 @@ services:
       resources:
         limits:
           #memory: 512m
-          memory: 512m
+          memory: 768m
           # memory: 256m
 #    user: "5000"
     volumes:
