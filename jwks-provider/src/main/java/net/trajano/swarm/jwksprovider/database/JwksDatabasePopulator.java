@@ -2,7 +2,6 @@ package net.trajano.swarm.jwksprovider.database;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +42,7 @@ public class JwksDatabasePopulator {
         .take(authProperties.getSigningKeysPerBlock())
         .flatMapSequential(jsonWebKeyPairs::save)
         .map(JsonWebKeyPair::keyId)
-        .map(kid -> new BlockSigningKey(UUID.randomUUID().toString(), epochSecondsBlock, kid))
+        .map(kid -> new BlockSigningKey(null, epochSecondsBlock, kid))
         .flatMapSequential(blockSigningKeys::save);
   }
 

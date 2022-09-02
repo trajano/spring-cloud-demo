@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.function.Tuple2;
 
 /**
  * This handles the functionality of an Identity Provider (IP). The IP's responsibility is to
@@ -215,10 +216,10 @@ public class DatabaseClaimsService implements ClaimsService {
         .flatMap(
             refreshTokenDb -> {
               try {
-                var secretClaims = JwtClaims.parse(refreshTokenDb.secretClaims());
+                var secretClaims = JwtClaims.parse(refreshTokenDb.getSecretClaims());
                 return Mono.zip(
-                    identityService.refresh(secretClaims, refreshTokenDb.issuedOn(), headers),
-                    Mono.just(refreshTokenDb.jti()));
+                    identityService.refresh(secretClaims, refreshTokenDb.getIssuedOn(), headers),
+                    Mono.just(refreshTokenDb.getJti()));
               } catch (InvalidJwtException e) {
                 return Mono.error(e);
               }
@@ -354,51 +355,41 @@ public class DatabaseClaimsService implements ClaimsService {
 
     final var refreshTokenExpiresOn = now.plusSeconds(refreshTokenExpiresInSeconds);
 
+    final var keyPair = jwksProvider.getSigningKey(0);
+
+    final var existingRecord =
+        Mono.justOrEmpty(jwtId)
+            .flatMap(jti -> refreshTokens.findByJtiAndNotExpired(jti, now))
+            .switchIfEmpty(
+                Mono.fromSupplier(
+                    () ->
+                        RefreshToken.builder()
+                            .issuedOn(Instant.now())
+                            .expiresOn(refreshTokenExpiresOn)
+                            .build()));
+
     final var updatedSecretClaimsJson = updatedSecretClaims.toJson();
+
+    // given a keypair and existing record
     final var updatedRefreshToken =
-        jwksProvider
-            .getSigningKey(0)
+        Mono.zip(keyPair, existingRecord)
             .flatMap(
-                kp ->
-                    Mono.justOrEmpty(jwtId)
-                        .flatMap(jti -> refreshTokens.findByJtiAndNotExpired(jti, now))
-                        .map(
-                            oldRefreshToken -> {
-                              final var unsignedNewRefreshToken =
-                                  generateRefreshToken(newJti, refreshTokenExpiresOn);
-                              final String newRefreshToken =
-                                  JwtFunctions.refreshSign(kp, unsignedNewRefreshToken);
-                              return new RefreshToken(
-                                  oldRefreshToken.id(),
-                                  newJti,
-                                  newRefreshToken,
-                                  updatedSecretClaimsJson,
-                                  oldRefreshToken.issuedOn(),
-                                  refreshTokenExpiresOn,
-                                  JwtFunctions.getKid(kp),
-                                  oldRefreshToken.versionNo());
-                            })
-                        .switchIfEmpty(
-                            Mono.create(
-                                sink -> {
-                                  final var unsignedNewRefreshToken =
-                                      generateRefreshToken(newJti, refreshTokenExpiresOn);
-                                  final String newRefreshToken =
-                                      JwtFunctions.refreshSign(kp, unsignedNewRefreshToken);
-                                  final var value =
-                                      new RefreshToken(
-                                          null,
-                                          newJti,
-                                          newRefreshToken,
-                                          updatedSecretClaimsJson,
-                                          now,
-                                          refreshTokenExpiresOn,
-                                          JwtFunctions.getKid(kp),
-                                          0);
-                                  sink.success(value);
-                                })))
-            .flatMap(refreshTokens::save)
-            .map(RefreshToken::token);
+                t ->
+                    Mono.zip(
+                        Mono.just(t.getT1()),
+                        Mono.just(
+                            t.getT2()
+                                .withJti(newJti)
+                                .withSecretClaims(updatedSecretClaimsJson)
+                                .withKeyId(JwtFunctions.getKid(t.getT1())))))
+            .flatMap(t -> Mono.zip(Mono.just(t.getT1()), refreshTokens.save(t.getT2())))
+            .map(Tuple2::getT1)
+            .map(
+                kp -> {
+                  final var unsignedNewRefreshToken =
+                      generateRefreshToken(newJti, refreshTokenExpiresOn);
+                  return JwtFunctions.refreshSign(kp, unsignedNewRefreshToken);
+                });
 
     // at this point I have both the refresh token and the access token, so I can now assemble the
     // gateway response.

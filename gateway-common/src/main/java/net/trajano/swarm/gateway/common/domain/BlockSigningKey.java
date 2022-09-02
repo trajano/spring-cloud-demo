@@ -6,19 +6,19 @@ import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.lang.Nullable;
 
 /**
- * @param uuid Primary key. This is a UUID but must be represented as string.
+ * @param id primary key (this is auto increment on the database)
  * @param epochSecondsBlock The start of epoch seconds block.
  * @param keyId The key ID
  */
 @Table
-public record BlockSigningKey(@Id String uuid, long epochSecondsBlock, String keyId)
-    implements Persistable<String> {
+public record BlockSigningKey(@Id Long id, long epochSecondsBlock, String keyId)
+    implements Persistable<Long> {
 
   @Nullable
   @Override
-  public String getId() {
+  public Long getId() {
 
-    return uuid;
+    return id;
   }
 
   /**

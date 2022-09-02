@@ -145,7 +145,7 @@ services:
     image: local/jwks-provider
     environment:
       - SPRING_REDIS_HOST=redis
-      # - SPRING_LIQUIBASE_DROPFIRST=true
+      - SPRING_LIQUIBASE_DROPFIRST=true
       - SPRING_LIQUIBASE_USER=gateway-user
       - SPRING_LIQUIBASE_PASSWORD=password123
       - SPRING_LIQUIBASE_URL=jdbc:mysql://db/swarm

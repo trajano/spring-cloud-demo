@@ -56,10 +56,6 @@ databaseChangeLog:
                   remarks: JTI
                   type: CHAR(36)
               - column:
-                  name: token
-                  remarks: The token sent back and forth between client and server.
-                  type: VARCHAR(1024)
-              - column:
                   name: secret_claims
                   remarks: Secret claims
                   type: MEDIUMTEXT
@@ -87,10 +83,6 @@ databaseChangeLog:
             tableName: refresh_token
             columnName: jti
             columnDataType: CHAR(36)
-        - addNotNullConstraint:
-            tableName: refresh_token
-            columnName: token
-            columnDataType: VARCHAR(1024)
         - addNotNullConstraint:
             tableName: refresh_token
             columnName: secret_claims
@@ -125,9 +117,9 @@ databaseChangeLog:
             tableName: block_signing_key
             columns:
               - column:
-                  name: uuid
-                  remarks: UUID
-                  type: CHAR(36)
+                  name: id
+                  remarks: Primary key
+                  type: BIGINT
                   constraints:
                     primaryKey: true
               - column:
@@ -138,6 +130,10 @@ databaseChangeLog:
                   name: key_id
                   remarks: Key ID
                   type: CHAR(4)
+        - addAutoIncrement:
+            tableName: block_signing_key
+            columnName: id
+            columnDataType: BIGINT
         - addNotNullConstraint:
             tableName: block_signing_key
             columnName: epoch_seconds_block
