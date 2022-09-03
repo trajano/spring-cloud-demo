@@ -1,12 +1,15 @@
-package net.trajano.swarm.gateway.jwks;
+package net.trajano.swarm.gateway.datasource.redis;
 
 import java.time.Duration;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import net.trajano.swarm.gateway.common.RedisKeyBlocks;
+import net.trajano.swarm.gateway.jwks.JwksProvider;
+import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
+import net.trajano.swarm.gateway.redis.UserSession;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.lang.JoseException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.ReactiveSetOperations;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ import reactor.util.function.Tuple2;
 
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "auth", name = "datasource", havingValue = "REDIS")
 public class RedisJwksProvider implements JwksProvider {
 
   private static final String RSA = "RSA";
@@ -85,11 +89,18 @@ public class RedisJwksProvider implements JwksProvider {
         .publishOn(scheduler);
   }
 
+  /**
+   * Gets all the verification JWKs but generally won't be used because the JWT is part of the data
+   *
+   * @return
+   */
   @Override
   public Mono<List<JsonWebKey>> getAllVerificationJwks() {
 
-    return null;
+    return redisUserSessions.findAll().map(UserSession::getVerificationJwk).collectList();
   }
+
+  private final RedisUserSessions redisUserSessions;
 
   private static JsonWebKeySet stringToJwks(String s) {
 

@@ -1,7 +1,8 @@
 package net.trajano.swarm.gateway.jwks;
 
 import lombok.RequiredArgsConstructor;
-import net.trajano.swarm.gateway.common.RedisKeyBlocks;
+import net.trajano.swarm.gateway.datasource.redis.RedisJwksProvider;
+import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.ReactiveHealthIndicator;
 import org.springframework.data.redis.core.ReactiveSetOperations;

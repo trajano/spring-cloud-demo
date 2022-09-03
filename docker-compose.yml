@@ -137,6 +137,7 @@ services:
       - services
       - edge
       - daemon
+      - redis
       - default
   jwks-provider:
     build:
@@ -155,6 +156,7 @@ services:
 
     networks:
       - default
+      - redis
     ports:
       - 28083:8080
     deploy:
@@ -201,6 +203,9 @@ services:
       resources:
         limits:
           memory: 1g
+    networks:
+      - redis
+
   sample:
     build:
       context: .
@@ -270,6 +275,19 @@ services:
       docker.xxx.path: /xxx/**
     networks:
       - services
+  redis-commander:
+    image: ghcr.io/joeferner/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=swarm:redis:6379
+    ports:
+      - "28085:8081"
+    networks:
+      - redis
+    deploy:
+      resources:
+        limits:
+          memory: 64m
+
 #  wsecho:
 #    image: solsson/websocat
 #    command: "--text ws-l:0.0.0.0:8080 broadcast:mirror:"
@@ -339,6 +357,9 @@ services:
 #      - services
 networks:
   daemon:
+    internal: true
+    attachable: false
+  redis:
     internal: true
     attachable: false
   edge:

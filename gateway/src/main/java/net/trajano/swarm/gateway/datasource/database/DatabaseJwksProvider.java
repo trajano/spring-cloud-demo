@@ -1,18 +1,19 @@
-package net.trajano.swarm.gateway.jwks;
+package net.trajano.swarm.gateway.datasource.database;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
-import net.trajano.swarm.gateway.common.RedisKeyBlocks;
 import net.trajano.swarm.gateway.common.dao.BlockSigningKeys;
 import net.trajano.swarm.gateway.common.dao.JsonWebKeyPairs;
 import net.trajano.swarm.gateway.common.domain.JsonWebKeyPair;
+import net.trajano.swarm.gateway.jwks.JwksProvider;
+import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.lang.JoseException;
-import org.springframework.context.annotation.Primary;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,7 +23,7 @@ import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 
 @Service
-@Primary
+@ConditionalOnProperty(prefix = "auth", name = "datasource", havingValue = "DATABASE")
 public class DatabaseJwksProvider implements JwksProvider {
 
   private static final String RSA = "RSA";

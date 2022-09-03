@@ -1,16 +1,17 @@
-package net.trajano.swarm.gateway.common;
+package net.trajano.swarm.gateway.redis;
 
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import net.trajano.swarm.gateway.common.AuthProperties;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class RedisKeyBlocks {
 
-  private static final String SIGNING_KEYS_FORMAT = "%s:::signing-keys:::%d";
+  private static final String SIGNING_KEYS_FORMAT = "%s:signing-keys:%d";
 
-  private static final String REFRESH_TOKEN_KEYFORMAT = "%s:::refresh-token:::%s";
+  private static final String REFRESH_TOKEN_KEY_FORMAT = "%s:::refresh-token:::%s";
   public static final String ACCESS_TOKEN_JTI_DATA_KEY_FORMAT = "%s:::access-token-jti:::%s";
 
   private final AuthProperties authProperties;
@@ -29,7 +30,7 @@ public class RedisKeyBlocks {
 
   public String forRefreshToken(String refreshToken) {
 
-    return REFRESH_TOKEN_KEYFORMAT.formatted(authProperties.getRedisPrefix(), refreshToken);
+    return REFRESH_TOKEN_KEY_FORMAT.formatted(authProperties.getRedisPrefix(), refreshToken);
   }
 
   public String nextSigningRedisKey() {

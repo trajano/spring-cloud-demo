@@ -1,4 +1,4 @@
-package net.trajano.swarm.gateway.auth.claims;
+package net.trajano.swarm.gateway.datasource.redis;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -12,10 +12,12 @@ import net.trajano.swarm.gateway.auth.AuthServiceResponse;
 import net.trajano.swarm.gateway.auth.IdentityService;
 import net.trajano.swarm.gateway.auth.IdentityServiceResponse;
 import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
+import net.trajano.swarm.gateway.auth.claims.ClaimsService;
+import net.trajano.swarm.gateway.auth.claims.JwtFunctions;
+import net.trajano.swarm.gateway.auth.claims.ZLibStringCompression;
 import net.trajano.swarm.gateway.common.AuthProperties;
-import net.trajano.swarm.gateway.common.dao.RefreshTokens;
-import net.trajano.swarm.gateway.common.domain.RefreshToken;
-import net.trajano.swarm.gateway.jwks.DatabaseJwksProvider;
+import net.trajano.swarm.gateway.jwks.JwksProvider;
+import net.trajano.swarm.gateway.redis.UserSession;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
 import org.jose4j.jwa.AlgorithmConstraints;
@@ -49,8 +51,8 @@ import reactor.util.function.Tuple2;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@ConditionalOnProperty("spring.r2dbc.url")
-public class DatabaseClaimsService implements ClaimsService {
+@ConditionalOnProperty(prefix = "auth", name = "datasource", havingValue = "REDIS")
+public class RedisClaimsService implements ClaimsService {
 
   private final Logger securityLog = LoggerFactory.getLogger("security");
 
@@ -60,7 +62,7 @@ public class DatabaseClaimsService implements ClaimsService {
           Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
           "refreshToken");
 
-  private final DatabaseJwksProvider jwksProvider;
+  private final JwksProvider jwksProvider;
 
   private final Scheduler jwtConsumerScheduler =
       Schedulers.newBoundedElastic(
@@ -71,8 +73,6 @@ public class DatabaseClaimsService implements ClaimsService {
   private final AuthProperties properties;
 
   private final IdentityService<?, ?> identityService;
-
-  private final RefreshTokens refreshTokens;
 
   /**
    * Extracts the JTI from the refresh token sent by the client.
@@ -171,8 +171,8 @@ public class DatabaseClaimsService implements ClaimsService {
         .flatMap(
             c -> {
               try {
-                return refreshTokens
-                    .findByJtiAndNotExpired(c.getJwtId(), Instant.now())
+                return redisUserSessions
+                    .findById(UUID.fromString(c.getJwtId()))
                     .switchIfEmpty(Mono.error(SecurityException::new))
                     .thenReturn(c);
               } catch (MalformedClaimException e) {
@@ -198,6 +198,7 @@ public class DatabaseClaimsService implements ClaimsService {
         .publishOn(jwtConsumerScheduler);
   }
 
+  private final RedisUserSessions redisUserSessions;
   /**
    * Refreshes the token and returns a new authentication response. May throw a {@link
    * IllegalArgumentException} if the token is not valid or expired.
@@ -212,18 +213,13 @@ public class DatabaseClaimsService implements ClaimsService {
       String refreshToken, HttpHeaders headers) {
 
     return extractJti(refreshToken, headers)
-        .flatMap(jti -> refreshTokens.findByJtiAndNotExpired(jti, Instant.now()))
+        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti)))
         .flatMap(
-            refreshTokenDb -> {
-              try {
-                var secretClaims = JwtClaims.parse(refreshTokenDb.getSecretClaims());
-                return Mono.zip(
-                    identityService.refresh(secretClaims, refreshTokenDb.getIssuedOn(), headers),
-                    Mono.just(refreshTokenDb.getJti()));
-              } catch (InvalidJwtException e) {
-                return Mono.error(e);
-              }
-            })
+            userSession ->
+                Mono.zip(
+                    identityService.refresh(
+                        userSession.getSecretClaims(), userSession.getIssuedOn(), headers),
+                    Mono.just(userSession.getJwtId().toString())))
         .flatMap(t -> storeAndSignIdentityServiceResponse(t.getT1(), t.getT2()))
         .map(
             oauthResponse -> AuthServiceResponse.builder().operationResponse(oauthResponse).build())
@@ -270,11 +266,11 @@ public class DatabaseClaimsService implements ClaimsService {
       String refreshToken, HttpHeaders headers) {
 
     return extractJti(refreshToken, headers)
-        .flatMap(jti -> refreshTokens.findByJtiAndNotExpired(jti, Instant.now()))
+        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti)))
         .flatMap(
-            refreshTokenDb ->
-                refreshTokens
-                    .delete(refreshTokenDb)
+            userSession ->
+                redisUserSessions
+                    .delete(userSession)
                     .thenReturn(
                         AuthServiceResponse.builder()
                             .operationResponse(GatewayResponse.builder().ok(true).build())
@@ -359,16 +355,14 @@ public class DatabaseClaimsService implements ClaimsService {
 
     final var existingRecord =
         Mono.justOrEmpty(jwtId)
-            .flatMap(jti -> refreshTokens.findByJtiAndNotExpired(jti, now))
+            .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti)))
             .switchIfEmpty(
                 Mono.fromSupplier(
                     () ->
-                        RefreshToken.builder()
+                        UserSession.builder()
                             .issuedOn(Instant.now())
-                            .expiresOn(refreshTokenExpiresOn)
+                            .ttl(Duration.between(Instant.now(), refreshTokenExpiresOn).toSeconds())
                             .build()));
-
-    final var updatedSecretClaimsJson = updatedSecretClaims.toJson();
 
     // given a keypair and existing record
     final var updatedRefreshToken =
@@ -379,10 +373,12 @@ public class DatabaseClaimsService implements ClaimsService {
                         Mono.just(t.getT1()),
                         Mono.just(
                             t.getT2()
-                                .withJti(newJti)
-                                .withSecretClaims(updatedSecretClaimsJson)
-                                .withKeyId(JwtFunctions.getKid(t.getT1())))))
-            .flatMap(t -> Mono.zip(Mono.just(t.getT1()), refreshTokens.save(t.getT2())))
+                                .withJwtId(UUID.fromString(newJti))
+                                .withSecretClaims(updatedSecretClaims)
+                                .withVerificationJwk(
+                                    JwtFunctions.getVerificationKeyFromJwks(t.getT1())
+                                        .orElseThrow()))))
+            .flatMap(t -> Mono.zip(Mono.just(t.getT1()), redisUserSessions.save(t.getT2())))
             .map(Tuple2::getT1)
             .map(
                 kp -> {

@@ -44,4 +44,11 @@ public class AuthProperties {
   private int signingKeyBlockSizeInSeconds = 240;
 
   private int penaltyDelayInMillis = 1000;
+
+  private DataSource dataSource = DataSource.REDIS;
+
+  public static enum DataSource {
+    REDIS,
+    DATABASE
+  }
 }

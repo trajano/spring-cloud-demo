@@ -2,6 +2,7 @@ package net.trajano.swarm.gateway.common;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
+import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
 import org.junit.jupiter.api.Test;
 
 class RedisBlockTests {

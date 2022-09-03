@@ -1,3 +1,7 @@
+# Gateway Common
+
+This project contains common elements for gateway services.  So it will have the Spring Data POJO mappings and common functions dealing with JWT.
+
 ## OAuth Token structural requirements
 
 * The tokens are signed JWTs containing claims.

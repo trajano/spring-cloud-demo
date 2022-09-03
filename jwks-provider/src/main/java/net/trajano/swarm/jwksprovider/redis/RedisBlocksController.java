@@ -1,7 +1,7 @@
 package net.trajano.swarm.jwksprovider.redis;
 
 import lombok.RequiredArgsConstructor;
-import net.trajano.swarm.gateway.common.RedisKeyBlocks;
+import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
 import net.trajano.swarm.jwksprovider.Blocks;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;

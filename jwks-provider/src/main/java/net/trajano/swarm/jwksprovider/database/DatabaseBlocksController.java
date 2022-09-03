@@ -2,9 +2,9 @@ package net.trajano.swarm.jwksprovider.database;
 
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
-import net.trajano.swarm.gateway.common.RedisKeyBlocks;
 import net.trajano.swarm.gateway.common.dao.BlockSigningKeys;
 import net.trajano.swarm.gateway.common.domain.BlockSigningKey;
+import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
 import net.trajano.swarm.jwksprovider.Blocks;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.client.discovery.simple.reactive.SimpleReactiveDiscoveryClientAutoConfiguration;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
+import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import reactor.core.scheduler.Schedulers;
 
 /**
@@ -18,6 +19,7 @@ import reactor.core.scheduler.Schedulers;
       SimpleDiscoveryClientAutoConfiguration.class,
       SimpleReactiveDiscoveryClientAutoConfiguration.class
     })
+@EnableRedisRepositories
 @EnableR2dbcRepositories(basePackageClasses = JsonWebKeyPairs.class)
 public class GatewayApplication {
 

@@ -10,15 +10,15 @@ This contains a public/private
 keypair suitable for signature
 generation
 end note
-entity Session <<Hash>> {
-  jti : UUID
+entity UserSession <<Hash>> {
+  jwtId : UUID
   --
   secretClaims : JSON
   issuedOn : Instant
   verificationJwk : JSON Web Key
   <<ttl>> expiresOn: Instant
 }
-note right of Session::verificationJwk
+note right of UserSession::verificationJwk
 This contains the public key only
 suitable for verification
 end note

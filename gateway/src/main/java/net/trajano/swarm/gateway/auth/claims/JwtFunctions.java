@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
+import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -123,10 +124,13 @@ public final class JwtFunctions {
 
   private static String getVerificationKeyIdFromJwks(JsonWebKeySet jwks) {
 
+    return getVerificationKeyFromJwks(jwks).map(JsonWebKey::getKeyId).orElseThrow();
+  }
+
+  public static Optional<JsonWebKey> getVerificationKeyFromJwks(JsonWebKeySet jwks) {
+
     return jwks.getJsonWebKeys().stream()
         .filter(jwk -> jwk.getKeyType().equals(ALGORITHM_RSA))
-        .findAny()
-        .map(JsonWebKey::getKeyId)
-        .orElseThrow();
+        .findAny();
   }
 }

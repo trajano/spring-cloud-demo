@@ -24,7 +24,6 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
-	implementation 'org.bitbucket.b_c:jose4j:0.7.12'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
 	implementation 'io.zipkin.brave:brave-instrumentation-p6spy:5.13.11'
 	runtimeOnly 'dev.miku:r2dbc-mysql:0.8.2.RELEASE'
