@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -51,7 +52,11 @@ import reactor.util.function.Tuple2;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@ConditionalOnProperty(prefix = "auth", name = "datasource", havingValue = "REDIS")
+@ConditionalOnProperty(
+    prefix = "auth",
+    name = "datasource",
+    havingValue = "REDIS",
+    matchIfMissing = true)
 public class RedisClaimsService implements ClaimsService {
 
   private final Logger securityLog = LoggerFactory.getLogger("security");
@@ -97,9 +102,27 @@ public class RedisClaimsService implements ClaimsService {
                         .getBytes(StandardCharsets.US_ASCII))
             + refreshToken.substring(refreshToken.indexOf("."));
 
-    return jwksProvider
-        .getAllVerificationJwks()
+    final UUID jwtId;
+    try {
+      final var nonValidatingConsumer =
+          new JwtConsumerBuilder()
+              .setRequireExpirationTime()
+              .setRequireJwtId()
+              .setAllowedClockSkewInSeconds(properties.getAllowedClockSkewInSeconds())
+              .setJwsAlgorithmConstraints(
+                  AlgorithmConstraints.ConstraintType.PERMIT, AlgorithmIdentifiers.RSA_USING_SHA256)
+              .setSkipSignatureVerification()
+              .build();
+      jwtId = UUID.fromString(nonValidatingConsumer.processToClaims(jwt).getJwtId());
+    } catch (InvalidJwtException | MalformedClaimException e) {
+      return Mono.error(e);
+    }
+
+    return redisUserSessions
+        .findById(jwtId)
         .publishOn(refreshTokenScheduler)
+        .map(UserSession::getVerificationJwk)
+        .map(List::of)
         .map(
             jwks ->
                 new JwtConsumerBuilder()

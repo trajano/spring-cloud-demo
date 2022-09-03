@@ -1,6 +1,7 @@
 package net.trajano.swarm.gateway.redis;
 
 import java.time.Instant;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import org.springframework.stereotype.Service;
@@ -9,16 +10,22 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RedisKeyBlocks {
 
+  public static final String ACCESS_TOKEN_JTI_DATA_KEY_FORMAT = "%s:::access-token-jti:::%s";
+
   private static final String SIGNING_KEYS_FORMAT = "%s:signing-keys:%d";
 
-  private static final String REFRESH_TOKEN_KEY_FORMAT = "%s:::refresh-token:::%s";
-  public static final String ACCESS_TOKEN_JTI_DATA_KEY_FORMAT = "%s:::access-token-jti:::%s";
+  private static final String USER_SESSION_KEY_FORMAT = "%s:user-sessions:%s";
 
   private final AuthProperties authProperties;
 
   public static long computeBlock(long current, long blockSize, int offset) {
 
     return (current / blockSize + offset) * blockSize;
+  }
+
+  public String accessTokenJtiKey(String jwtId) {
+
+    return ACCESS_TOKEN_JTI_DATA_KEY_FORMAT.formatted(authProperties.getRedisPrefix(), jwtId);
   }
 
   public String currentSigningRedisKey() {
@@ -28,9 +35,21 @@ public class RedisKeyBlocks {
         startingInstantForSigningKeyTimeBlock(Instant.now(), 0).getEpochSecond());
   }
 
-  public String forRefreshToken(String refreshToken) {
+  public String forAllUserSessions() {
 
-    return REFRESH_TOKEN_KEY_FORMAT.formatted(authProperties.getRedisPrefix(), refreshToken);
+    return USER_SESSION_KEY_FORMAT.formatted(authProperties.getRedisPrefix(), "*");
+  }
+
+  public String forUserSession(UUID jwtId) {
+
+    return USER_SESSION_KEY_FORMAT.formatted(authProperties.getRedisPrefix(), jwtId);
+  }
+
+  public UUID forUserSessionRedisKey(String redisKey) {
+
+    return UUID.fromString(
+        redisKey.substring(
+            USER_SESSION_KEY_FORMAT.formatted(authProperties.getRedisPrefix(), "").length()));
   }
 
   public String nextSigningRedisKey() {
@@ -65,9 +84,5 @@ public class RedisKeyBlocks {
     return Instant.ofEpochSecond(
         computeBlock(
             now.getEpochSecond(), authProperties.getSigningKeyBlockSizeInSeconds(), offset));
-  }
-
-  public String accessTokenJtiKey(String jwtId) {
-    return ACCESS_TOKEN_JTI_DATA_KEY_FORMAT.formatted(authProperties.getRedisPrefix(), jwtId);
   }
 }

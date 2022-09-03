@@ -21,20 +21,70 @@ import reactor.util.function.Tuple2;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "auth", name = "datasource", havingValue = "REDIS")
+@ConditionalOnProperty(
+    prefix = "auth",
+    name = "datasource",
+    havingValue = "REDIS",
+    matchIfMissing = true)
 public class RedisJwksProvider implements JwksProvider {
 
   private static final String RSA = "RSA";
-
-  private final RedisKeyBlocks redisKeyBlocks;
-
-  private final ReactiveStringRedisTemplate redisTemplate;
 
   final Scheduler scheduler =
       Schedulers.newBoundedElastic(
           Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
           Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
           "jwks");
+
+  private final RedisKeyBlocks redisKeyBlocks;
+
+  private final ReactiveStringRedisTemplate redisTemplate;
+
+  private final RedisUserSessions redisUserSessions;
+
+  private static JsonWebKeySet stringToJwks(String s) {
+
+    try {
+      return new JsonWebKeySet(s);
+    } catch (JoseException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  private Mono<Boolean> adjustExpiration(int accessTokenExpirationInSeconds) {
+
+    return redisTemplate
+        .expireAt(
+            redisKeyBlocks.currentSigningRedisKey(),
+            redisKeyBlocks.nextTimeBlockForSigningKeysAdjustedForAccessTokenExpiration(
+                accessTokenExpirationInSeconds))
+        .publishOn(scheduler);
+  }
+
+  /**
+   * Gets all the verification JWKs but generally won't be used because the JWT is part of the data
+   *
+   * @return all the verification JWKs.
+   */
+  @Override
+  public Mono<List<JsonWebKey>> getAllVerificationJwks() {
+
+    return redisUserSessions.findAll().map(UserSession::getVerificationJwk).collectList();
+  }
+
+  @Override
+  public Mono<JsonWebKeySet> getSigningKey(int accessTokenExpirationInSeconds) {
+
+    return adjustExpiration(accessTokenExpirationInSeconds)
+        .flatMap(
+            x -> {
+              final var opsForSet = redisTemplate.opsForSet();
+              return opsForSet
+                  .randomMember(redisKeyBlocks.currentSigningRedisKey())
+                  .map(RedisJwksProvider::stringToJwks);
+            })
+        .publishOn(scheduler);
+  }
 
   @Override
   public Mono<JsonWebKeySet> jsonWebKeySet() {
@@ -63,51 +113,5 @@ public class RedisJwksProvider implements JwksProvider {
                         .collectList()
                         .map(JsonWebKeySet::new),
                     Mono.just(duration)));
-  }
-
-  private Mono<Boolean> adjustExpiration(int accessTokenExpirationInSeconds) {
-
-    return redisTemplate
-        .expireAt(
-            redisKeyBlocks.currentSigningRedisKey(),
-            redisKeyBlocks.nextTimeBlockForSigningKeysAdjustedForAccessTokenExpiration(
-                accessTokenExpirationInSeconds))
-        .publishOn(scheduler);
-  }
-
-  @Override
-  public Mono<JsonWebKeySet> getSigningKey(int accessTokenExpirationInSeconds) {
-
-    return adjustExpiration(accessTokenExpirationInSeconds)
-        .flatMap(
-            x -> {
-              final var opsForSet = redisTemplate.opsForSet();
-              return opsForSet
-                  .randomMember(redisKeyBlocks.currentSigningRedisKey())
-                  .map(RedisJwksProvider::stringToJwks);
-            })
-        .publishOn(scheduler);
-  }
-
-  /**
-   * Gets all the verification JWKs but generally won't be used because the JWT is part of the data
-   *
-   * @return
-   */
-  @Override
-  public Mono<List<JsonWebKey>> getAllVerificationJwks() {
-
-    return redisUserSessions.findAll().map(UserSession::getVerificationJwk).collectList();
-  }
-
-  private final RedisUserSessions redisUserSessions;
-
-  private static JsonWebKeySet stringToJwks(String s) {
-
-    try {
-      return new JsonWebKeySet(s);
-    } catch (JoseException e) {
-      throw new IllegalStateException(e);
-    }
   }
 }
