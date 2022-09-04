@@ -16,6 +16,7 @@ import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.lang.JoseException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -23,7 +24,8 @@ import reactor.core.publisher.SynchronousSink;
 
 @Service
 @RequiredArgsConstructor
-public class JsonWebKeyPairProvider {
+@ConditionalOnProperty(prefix = "auth", name = "datasource", havingValue = "DATABASE")
+public class DatabaseJsonWebKeyPairProvider {
 
   public static final String RSA = "RSA";
 

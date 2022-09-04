@@ -35,6 +35,12 @@ public class RedisKeyBlocks {
         startingInstantForSigningKeyTimeBlock(Instant.now(), 0).getEpochSecond());
   }
 
+  public String forSigningRedisKey(Instant blockStartInstant) {
+
+    return SIGNING_KEYS_FORMAT.formatted(
+        authProperties.getRedisPrefix(), blockStartInstant.getEpochSecond());
+  }
+
   public String forAllUserSessions() {
 
     return USER_SESSION_KEY_FORMAT.formatted(authProperties.getRedisPrefix(), "*");

@@ -6,6 +6,7 @@ import net.trajano.swarm.gateway.common.dao.BlockSigningKeys;
 import net.trajano.swarm.gateway.common.domain.BlockSigningKey;
 import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
 import net.trajano.swarm.jwksprovider.Blocks;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
@@ -13,6 +14,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "auth", name = "datasource", havingValue = "DATABASE")
 public class DatabaseBlocksController {
 
   private final BlockSigningKeys blockSigningKeys;

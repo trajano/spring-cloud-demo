@@ -17,7 +17,7 @@ public class OAuthTokenResponse extends GatewayResponse {
 
   /** Number of seconds before the token expires in seconds. */
   @JsonProperty("expires_in")
-  private int expiresIn;
+  private long expiresIn;
 
   /**
    * The type of token this is, typically just the string {@code Bearer} and is the default value.

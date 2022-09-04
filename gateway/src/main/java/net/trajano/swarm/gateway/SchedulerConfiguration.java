@@ -11,4 +11,15 @@ public class SchedulerConfiguration {
   Scheduler penalty() {
     return Schedulers.newParallel("penalty");
   }
+
+  /**
+   * Sets the refresh token is an unbounded queue which number of processors + 1 is active
+   *
+   * @return scheduler.
+   */
+  @Bean
+  Scheduler refreshTokenScheduler() {
+    return Schedulers.newBoundedElastic(
+        Runtime.getRuntime().availableProcessors() + 1, Integer.MAX_VALUE, "refreshToken");
+  }
 }

@@ -5,9 +5,10 @@ config:
       outputFormat: prettyError
   phases:
     - duration: 1
+      # arrivalCount:
       # arrivalCount: 20
       # This should equal the number of scenarios
-      # arrivalRate: 4
+      arrivalRate: 1
 #      maxVusers: 2
   http:
     timeout: 5
@@ -161,6 +162,23 @@ scenarios:
               as: "refresh_token"
           expect:
             - statusCode: 200
+
+      - post:
+          url: "/grpc/Echo/echo"
+          json:
+            message: Hello world
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          capture:
+            - json: "$.message"
+              as: message
+          expect:
+            - statusCode: 200
+            - equals:
+                - "{{ message }}"
+                - "Hello world"
+
       - get:
           url: "/whoami"
           headers:

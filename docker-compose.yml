@@ -62,9 +62,9 @@ services:
     image: local/gateway
     environment:
       - SPRING_REDIS_HOST=redis
-      - SPRING_R2DBC_USERNAME=gateway-user
-      - SPRING_R2DBC_PASSWORD=password123
-      - SPRING_R2DBC_URL=r2dbc:mysql://db/swarm
+#      - SPRING_R2DBC_USERNAME=gateway-user
+#      - SPRING_R2DBC_PASSWORD=password123
+#      - SPRING_R2DBC_URL=r2dbc:mysql://db/swarm
 #      - SPRING_R2DBC_POOL_INITIALSIZE=100
       # - SPRING_R2DBC_POOL_MAXSIZE=50
       - DOCKER_DISCOVERY_SWARMMODE=true
@@ -80,7 +80,7 @@ services:
 #      - DOCKER_HOST=tcp://daemon:2375
 #      - LOGGING_LEVEL_NET_TRAJANO=trace
       - LOGGING_LEVEL_NET_TRAJANO=debug
-      - LOGGING_LEVEL_REQUEST=debug
+      - LOGGING_LEVEL_REQUEST=warn
 #      - LOGGING_LEVEL_ORG_XBILL=trace
       - LOGGING_LEVEL_ROOT=error
       - LOGGING_LEVEL_SECURITY=warn
@@ -124,11 +124,11 @@ services:
 #        parallelism: 1
       restart_policy:
         max_attempts: 1
-      replicas: 1
+      replicas: 3
       resources:
         limits:
-          #memory: 512m
-          memory: 768m
+          memory: 512m
+          # memory: 768m
           # memory: 256m
 #    user: "5000"
     volumes:
@@ -146,13 +146,13 @@ services:
     image: local/jwks-provider
     environment:
       - SPRING_REDIS_HOST=redis
-      - SPRING_LIQUIBASE_DROPFIRST=true
-      - SPRING_LIQUIBASE_USER=gateway-user
-      - SPRING_LIQUIBASE_PASSWORD=password123
-      - SPRING_LIQUIBASE_URL=jdbc:mysql://db/swarm
-      - SPRING_R2DBC_USERNAME=gateway-user
-      - SPRING_R2DBC_PASSWORD=password123
-      - SPRING_R2DBC_URL=r2dbc:mysql://db/swarm
+#      - SPRING_LIQUIBASE_DROPFIRST=true
+#      - SPRING_LIQUIBASE_USER=gateway-user
+#      - SPRING_LIQUIBASE_PASSWORD=password123
+#      - SPRING_LIQUIBASE_URL=jdbc:mysql://db/swarm
+#      - SPRING_R2DBC_USERNAME=gateway-user
+#      - SPRING_R2DBC_PASSWORD=password123
+#      - SPRING_R2DBC_URL=r2dbc:mysql://db/swarm
 
     networks:
       - default

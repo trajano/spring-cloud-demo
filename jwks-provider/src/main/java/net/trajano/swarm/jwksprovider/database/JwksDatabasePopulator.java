@@ -12,6 +12,7 @@ import net.trajano.swarm.gateway.common.dao.RefreshTokens;
 import net.trajano.swarm.gateway.common.domain.BlockSigningKey;
 import net.trajano.swarm.gateway.common.domain.JsonWebKeyPair;
 import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 import reactor.core.Disposable;
@@ -21,13 +22,14 @@ import reactor.core.publisher.Mono;
 @Service
 @RequiredArgsConstructor
 @DependsOn("liquibase")
+@ConditionalOnProperty(prefix = "auth", name = "datasource", havingValue = "DATABASE")
 public class JwksDatabasePopulator {
 
   private final AuthProperties authProperties;
 
   private final RedisKeyBlocks redisKeyBlocks;
 
-  private final JsonWebKeyPairProvider jsonWebKeyPairProvider;
+  private final DatabaseJsonWebKeyPairProvider jsonWebKeyPairProvider;
 
   private final BlockSigningKeys blockSigningKeys;
 
