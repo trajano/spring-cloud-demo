@@ -8,6 +8,22 @@ import reactor.core.scheduler.Schedulers;
 @Configuration
 public class SchedulerConfiguration {
   @Bean
+  Scheduler jwtConsumerScheduler() {
+    return Schedulers.newBoundedElastic(
+        Runtime.getRuntime().availableProcessors() + 1,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+        "jwtConsumer");
+  }
+
+  @Bean
+  Scheduler jwksScheduler() {
+    return Schedulers.newBoundedElastic(
+        Runtime.getRuntime().availableProcessors() + 1,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+        "jwks");
+  }
+
+  @Bean
   Scheduler penalty() {
     return Schedulers.newParallel("penalty");
   }
@@ -20,6 +36,8 @@ public class SchedulerConfiguration {
   @Bean
   Scheduler refreshTokenScheduler() {
     return Schedulers.newBoundedElastic(
-        Runtime.getRuntime().availableProcessors() + 1, Integer.MAX_VALUE, "refreshToken");
+        Runtime.getRuntime().availableProcessors() + 1,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+        "refreshToken");
   }
 }

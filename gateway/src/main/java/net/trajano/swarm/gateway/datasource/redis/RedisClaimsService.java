@@ -64,11 +64,7 @@ public class RedisClaimsService implements ClaimsService {
 
   private final JwksProvider jwksProvider;
 
-  private final Scheduler jwtConsumerScheduler =
-      Schedulers.newBoundedElastic(
-          Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
-          Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-          "jwtConsumer");
+  private final Scheduler jwtConsumerScheduler;
 
   private final AuthProperties properties;
 

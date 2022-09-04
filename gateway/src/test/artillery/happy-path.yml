@@ -126,6 +126,12 @@ scenarios:
   - name: Happy path
     weight: 1
     flow:
+      - get:
+          url: "/jwks"
+          headers:
+            Accept: application/json
+          expect:
+            - statusCode: 200
       - post:
           url: "/auth"
           json:

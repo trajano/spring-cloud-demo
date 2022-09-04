@@ -14,6 +14,12 @@ public interface JwksProvider {
 
   Mono<List<JsonWebKey>> getAllVerificationJwks();
 
+  /**
+   * Returns the active JSON Web Key set excluding private keys. This set is returned to /jwks and
+   * is used for access token validation.
+   *
+   * @return Json web key set
+   */
   Mono<JsonWebKeySet> jsonWebKeySet();
 
   Mono<Tuple2<JsonWebKeySet, Duration>> jsonWebKeySetWithDuration();

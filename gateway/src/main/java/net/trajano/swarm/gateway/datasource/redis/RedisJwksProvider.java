@@ -2,7 +2,8 @@ package net.trajano.swarm.gateway.datasource.redis;
 
 import java.time.Duration;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicReference;
 import net.trajano.swarm.gateway.jwks.JwksProvider;
 import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
 import net.trajano.swarm.gateway.redis.UserSession;
@@ -10,17 +11,14 @@ import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.lang.JoseException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.redis.core.ReactiveSetOperations;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 
 @Service
-@RequiredArgsConstructor
 @ConditionalOnProperty(
     prefix = "auth",
     name = "datasource",
@@ -30,17 +28,67 @@ public class RedisJwksProvider implements JwksProvider {
 
   private static final String RSA = "RSA";
 
-  final Scheduler scheduler =
-      Schedulers.newBoundedElastic(
-          Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
-          Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-          "jwks");
-
-  private final RedisKeyBlocks redisKeyBlocks;
-
-  private final ReactiveStringRedisTemplate redisTemplate;
+  private final Scheduler jwksScheduler;
 
   private final RedisUserSessions redisUserSessions;
+
+  private final Mono<JsonWebKeySet> cachedJsonWebKeySet;
+
+  private final Mono<List<JsonWebKeySet>> cachedSigningJsonWebKeySet;
+
+  public RedisJwksProvider(
+      Scheduler jwksScheduler,
+      RedisKeyBlocks redisKeyBlocks,
+      ReactiveStringRedisTemplate redisTemplate,
+      RedisUserSessions redisUserSessions) {
+
+    this.jwksScheduler = jwksScheduler;
+    this.redisUserSessions = redisUserSessions;
+
+    final var setOps = redisTemplate.opsForSet();
+
+    final var lastProcessedRedisSigningKeyForJwks = new AtomicReference<String>(null);
+    this.cachedJsonWebKeySet =
+        Flux.just(redisKeyBlocks.previousSigningRedisKey(), redisKeyBlocks.currentSigningRedisKey())
+            .publishOn(jwksScheduler)
+            .flatMap(setOps::members)
+            .map(RedisJwksProvider::stringToJwks)
+            .flatMap(keySet -> Flux.fromIterable(keySet.getJsonWebKeys()))
+            .filter(jwk -> RSA.equals(jwk.getKeyType()))
+            .reduceWith(
+                JsonWebKeySet::new,
+                (acc, current) -> {
+                  acc.addJsonWebKey(current);
+                  return acc;
+                })
+            .doOnNext(
+                ignored ->
+                    lastProcessedRedisSigningKeyForJwks.set(
+                        redisKeyBlocks.currentSigningRedisKey()))
+            .cacheInvalidateIf(
+                ignored ->
+                    !redisKeyBlocks
+                        .currentSigningRedisKey()
+                        .equals(lastProcessedRedisSigningKeyForJwks.get()));
+
+    final var lastProcessedRedisSigningKeyForSigningKeys = new AtomicReference<String>(null);
+
+    this.cachedSigningJsonWebKeySet =
+        setOps
+            .members(redisKeyBlocks.currentSigningRedisKey())
+            .publishOn(jwksScheduler)
+            .map(RedisJwksProvider::stringToJwks)
+            .collectList()
+            .doOnNext(
+                ignored ->
+                    lastProcessedRedisSigningKeyForSigningKeys.set(
+                        redisKeyBlocks.currentSigningRedisKey()))
+            .cacheInvalidateIf(
+                ignored ->
+                    !redisKeyBlocks
+                        .currentSigningRedisKey()
+                        .equals(lastProcessedRedisSigningKeyForSigningKeys.get()));
+  }
 
   private static JsonWebKeySet stringToJwks(String s) {
 
@@ -51,16 +99,6 @@ public class RedisJwksProvider implements JwksProvider {
     }
   }
 
-  private Mono<Boolean> adjustExpiration(int accessTokenExpirationInSeconds) {
-
-    return redisTemplate
-        .expireAt(
-            redisKeyBlocks.currentSigningRedisKey(),
-            redisKeyBlocks.nextTimeBlockForSigningKeysAdjustedForAccessTokenExpiration(
-                accessTokenExpirationInSeconds))
-        .publishOn(scheduler);
-  }
-
   /**
    * Gets all the verification JWKs but generally won't be used because the JWT is part of the data
    *
@@ -69,49 +107,29 @@ public class RedisJwksProvider implements JwksProvider {
   @Override
   public Mono<List<JsonWebKey>> getAllVerificationJwks() {
 
-    return redisUserSessions.findAll().map(UserSession::getVerificationJwk).collectList();
+    return redisUserSessions
+        .findAll()
+        .publishOn(jwksScheduler)
+        .map(UserSession::getVerificationJwk)
+        .collectList();
   }
 
   @Override
   public Mono<JsonWebKeySet> getSigningKey(int accessTokenExpirationInSeconds) {
 
-    return adjustExpiration(accessTokenExpirationInSeconds)
-        .flatMap(
-            x -> {
-              final var opsForSet = redisTemplate.opsForSet();
-              return opsForSet
-                  .randomMember(redisKeyBlocks.currentSigningRedisKey())
-                  .map(RedisJwksProvider::stringToJwks);
-            })
-        .publishOn(scheduler);
+    return cachedSigningJsonWebKeySet.map(
+        list -> list.get(ThreadLocalRandom.current().nextInt(list.size())));
   }
 
   @Override
   public Mono<JsonWebKeySet> jsonWebKeySet() {
 
-    return jsonWebKeySetWithDuration().map(Tuple2::getT1);
+    return cachedJsonWebKeySet;
   }
 
   @Override
   public Mono<Tuple2<JsonWebKeySet, Duration>> jsonWebKeySetWithDuration() {
 
-    final ReactiveSetOperations<String, String> setOps = redisTemplate.opsForSet();
-
-    return redisTemplate
-        .getExpire(redisKeyBlocks.currentSigningRedisKey())
-        .flatMap(
-            duration ->
-                Mono.zip(
-                    Flux.just(
-                            redisKeyBlocks.previousSigningRedisKey(),
-                            redisKeyBlocks.currentSigningRedisKey())
-                        .flatMap(setOps::members)
-                        .publishOn(scheduler)
-                        .map(RedisJwksProvider::stringToJwks)
-                        .flatMap(jwks -> Flux.fromIterable(jwks.getJsonWebKeys()))
-                        .filter(jwk -> RSA.equals(jwk.getKeyType()))
-                        .collectList()
-                        .map(JsonWebKeySet::new),
-                    Mono.just(duration)));
+    throw new UnsupportedOperationException();
   }
 }
