@@ -1,9 +1,6 @@
 package net.trajano.swarm.jwksprovider.redis;
 
-import java.time.Duration;
 import java.time.Instant;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
@@ -11,9 +8,7 @@ import net.trajano.swarm.jwksprovider.JsonWebKeyPairProvider;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Service;
-import reactor.core.Disposable;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +22,6 @@ public class JwksRedisPopulator {
 
   private final JsonWebKeyPairProvider jsonWebKeyPairProvider;
 
-  private Disposable subscription;
-
   private Mono<Void> buildEntryForBlock(String key) {
 
     final var ops = redisTemplate.opsForSet();
@@ -41,7 +34,7 @@ public class JwksRedisPopulator {
         .then();
   }
 
-  private Mono<Void> buildEntryIfItDoesNotExistForBlock(
+  public Mono<Void> buildEntryIfItDoesNotExistForBlock(
       Instant startingInstantForSigningKeyTimeBlock) {
 
     final var key = redisKeyBlocks.forSigningRedisKey(startingInstantForSigningKeyTimeBlock);
@@ -68,34 +61,5 @@ public class JwksRedisPopulator {
                 return Mono.just(false);
               }
             });
-  }
-
-  private Mono<Void> populateRedis(Instant now) {
-
-    // build the entry if it does not exist
-    return buildEntryIfItDoesNotExistForBlock(
-            redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 0))
-        .then(
-            buildEntryIfItDoesNotExistForBlock(
-                redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 1)));
-  }
-
-  @PostConstruct
-  public void start() {
-
-    subscription =
-        Mono.fromCallable(Instant::now)
-            .publishOn(Schedulers.boundedElastic())
-            .delayElement(Duration.ofSeconds(10))
-            .repeat()
-            .flatMap(this::populateRedis)
-            .subscribe();
-  }
-
-  @PreDestroy
-  @SuppressWarnings("unused")
-  public void stop() {
-
-    subscription.dispose();
   }
 }

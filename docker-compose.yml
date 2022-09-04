@@ -80,7 +80,8 @@ services:
 #      - DOCKER_HOST=tcp://daemon:2375
 #      - LOGGING_LEVEL_NET_TRAJANO=trace
       - LOGGING_LEVEL_NET_TRAJANO=debug
-      - LOGGING_LEVEL_REQUEST=warn
+      - LOGGING_LEVEL_REQUEST=error
+      # - LOGGING_LEVEL_REQUEST=warn
 #      - LOGGING_LEVEL_ORG_XBILL=trace
       - LOGGING_LEVEL_ROOT=error
       - LOGGING_LEVEL_SECURITY=warn

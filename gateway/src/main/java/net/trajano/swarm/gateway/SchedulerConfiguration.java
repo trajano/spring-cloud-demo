@@ -7,20 +7,43 @@ import reactor.core.scheduler.Schedulers;
 
 @Configuration
 public class SchedulerConfiguration {
+
   @Bean
   Scheduler jwtConsumerScheduler() {
     return Schedulers.newBoundedElastic(
-        Runtime.getRuntime().availableProcessors() + 1,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
         Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
         "jwtConsumer");
+  }
+
+  /**
+   * This is used for signing JWTs. It is capped by the processors rather than a large multiplier as
+   * this is a CPU intensive operation and running many in parallel will have detrimental impact.
+   *
+   * @return scheduler
+   */
+  @Bean
+  Scheduler jwtSigningScheduler() {
+    return Schedulers.newBoundedElastic(
+        Runtime.getRuntime().availableProcessors() + 1,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+        "jwtSigning");
   }
 
   @Bean
   Scheduler jwksScheduler() {
     return Schedulers.newBoundedElastic(
-        Runtime.getRuntime().availableProcessors() + 1,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
         Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
         "jwks");
+  }
+
+  @Bean
+  Scheduler grpcScheduler() {
+    return Schedulers.newBoundedElastic(
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+        "grpc");
   }
 
   @Bean
@@ -36,8 +59,24 @@ public class SchedulerConfiguration {
   @Bean
   Scheduler refreshTokenScheduler() {
     return Schedulers.newBoundedElastic(
-        Runtime.getRuntime().availableProcessors() + 1,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
         Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
         "refreshToken");
+  }
+
+  @Bean
+  Scheduler logoutScheduler() {
+    return Schedulers.newBoundedElastic(
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+        "logout");
+  }
+
+  @Bean
+  Scheduler authenticationScheduler() {
+    return Schedulers.newBoundedElastic(
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+        "authentication");
   }
 }

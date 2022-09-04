@@ -66,10 +66,11 @@ public class RedisJwksProvider implements JwksProvider {
                     lastProcessedRedisSigningKeyForJwks.set(
                         redisKeyBlocks.currentSigningRedisKey()))
             .cacheInvalidateIf(
-                ignored ->
-                    !redisKeyBlocks
-                        .currentSigningRedisKey()
-                        .equals(lastProcessedRedisSigningKeyForJwks.get()));
+                data ->
+                    data.getJsonWebKeys().isEmpty()
+                        || !redisKeyBlocks
+                            .currentSigningRedisKey()
+                            .equals(lastProcessedRedisSigningKeyForJwks.get()));
 
     final var lastProcessedRedisSigningKeyForSigningKeys = new AtomicReference<String>(null);
 
@@ -84,10 +85,11 @@ public class RedisJwksProvider implements JwksProvider {
                     lastProcessedRedisSigningKeyForSigningKeys.set(
                         redisKeyBlocks.currentSigningRedisKey()))
             .cacheInvalidateIf(
-                ignored ->
-                    !redisKeyBlocks
-                        .currentSigningRedisKey()
-                        .equals(lastProcessedRedisSigningKeyForSigningKeys.get()));
+                data ->
+                    data.isEmpty()
+                        || !redisKeyBlocks
+                            .currentSigningRedisKey()
+                            .equals(lastProcessedRedisSigningKeyForSigningKeys.get()));
   }
 
   private static JsonWebKeySet stringToJwks(String s) {

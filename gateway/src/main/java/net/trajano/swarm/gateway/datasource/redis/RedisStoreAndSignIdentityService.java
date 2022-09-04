@@ -135,24 +135,37 @@ public class RedisStoreAndSignIdentityService {
         .map(refreshContext::withUserSession);
   }
 
-  private RefreshContext signAccessToken(RefreshContext refreshContext) {
+  /**
+   * Signs the access token. This will compress the token if required.
+   *
+   * @param refreshContext refresh context
+   * @return refresh context
+   */
+  private Mono<RefreshContext> signAccessToken(RefreshContext refreshContext) {
 
-    var signedAccessToken =
-        JwtFunctions.sign(
-            refreshContext.getAccessTokenSigningKeyPair(),
-            refreshContext.getAccessTokenClaims().toJson());
-    if (properties.isCompressClaims()) {
-      signedAccessToken = ZLibStringCompression.compress(signedAccessToken);
-    }
-
-    return refreshContext.withAccessToken(signedAccessToken);
+    return Mono.fromSupplier(
+            () ->
+                JwtFunctions.sign(
+                    refreshContext.getAccessTokenSigningKeyPair(),
+                    refreshContext.getAccessTokenClaims().toJson()))
+        .map(
+            signedAccessToken -> {
+              if (properties.isCompressClaims()) {
+                return ZLibStringCompression.compress(signedAccessToken);
+              } else {
+                return signedAccessToken;
+              }
+            })
+        .map(refreshContext::withAccessToken);
   }
 
-  private RefreshContext signRefreshToken(RefreshContext refreshContext) {
-    return refreshContext.withRefreshToken(
-        JwtFunctions.refreshSign(
-            refreshContext.getRefreshTokenSigningKeyPair(),
-            refreshContext.getRefreshTokenClaims().toJson()));
+  private Mono<RefreshContext> signRefreshToken(RefreshContext refreshContext) {
+    return Mono.fromSupplier(
+            () ->
+                JwtFunctions.refreshSign(
+                    refreshContext.getRefreshTokenSigningKeyPair(),
+                    refreshContext.getRefreshTokenClaims().toJson()))
+        .map(refreshContext::withRefreshToken);
   }
 
   public Mono<RefreshContext> storeAndSignIdentityServiceResponse(
@@ -164,19 +177,20 @@ public class RedisStoreAndSignIdentityService {
                 .jwtId(jwtId)
                 .now(now)
                 .build())
-        .publishOn(refreshTokenScheduler)
         .map(this::determineAccessTokenExpiration)
         .map(this::determineRefreshTokenExpiration)
         .flatMap(this::obtainSigningKeys)
         .flatMap(this::obtainExistingOrBuildRefreshToken)
         .map(this::determineAccessTokenClaims)
         .map(this::determineRefreshTokenClaims)
-        .map(this::signAccessToken)
-        .map(this::signRefreshToken)
+        .publishOn(jwtSigningScheduler)
+        .flatMap(this::signAccessToken)
+        .flatMap(this::signRefreshToken)
         .map(this::updateUserSession)
         .flatMap(this::saveUserSession);
   }
 
+  private final Scheduler jwtSigningScheduler;
   /*
         final var now = Instant.now();
 

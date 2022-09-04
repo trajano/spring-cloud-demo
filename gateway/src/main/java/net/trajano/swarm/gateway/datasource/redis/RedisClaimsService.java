@@ -1,10 +1,7 @@
 package net.trajano.swarm.gateway.datasource.redis;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +13,6 @@ import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import net.trajano.swarm.gateway.auth.claims.ZLibStringCompression;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.jwks.JwksProvider;
-import net.trajano.swarm.gateway.redis.UserSession;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
 import org.jose4j.jwa.AlgorithmConstraints;
@@ -73,6 +69,7 @@ public class RedisClaimsService implements ClaimsService {
   private final RedisUserSessions redisUserSessions;
 
   private final RedisStoreAndSignIdentityService redisStoreAndSignIdentityService;
+  private final RedisJtiExtractorService redisJtiExtractorService;
 
   /**
    * Extracts the JTI from the refresh token sent by the client.
@@ -87,64 +84,7 @@ public class RedisClaimsService implements ClaimsService {
     if (!refreshToken.matches("[-_A-Za-z\\d]+\\.[-_A-Za-z\\d]+\\.[-_A-Za-z\\d]+")) {
       return Mono.error(IllegalArgumentException::new);
     }
-    // The JWT that's reconstituted from the original token
-    final var kid = refreshToken.substring(0, refreshToken.indexOf("."));
-    final var jwt =
-        Base64.getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(
-                    ("{\"kid\":\"%s\",\"alg\":\"RS256\"}".formatted(kid))
-                        .getBytes(StandardCharsets.US_ASCII))
-            + refreshToken.substring(refreshToken.indexOf("."));
-
-    final UUID jwtId;
-    try {
-      final var nonValidatingConsumer =
-          new JwtConsumerBuilder()
-              .setRequireExpirationTime()
-              .setRequireJwtId()
-              .setAllowedClockSkewInSeconds(properties.getAllowedClockSkewInSeconds())
-              .setJwsAlgorithmConstraints(
-                  AlgorithmConstraints.ConstraintType.PERMIT, AlgorithmIdentifiers.RSA_USING_SHA256)
-              .setSkipSignatureVerification()
-              .build();
-      jwtId = UUID.fromString(nonValidatingConsumer.processToClaims(jwt).getJwtId());
-    } catch (InvalidJwtException | MalformedClaimException e) {
-      return Mono.error(e);
-    }
-
-    return redisUserSessions
-        .findById(jwtId)
-        .publishOn(refreshTokenScheduler)
-        .map(UserSession::getVerificationJwk)
-        .map(List::of)
-        .map(
-            jwks ->
-                new JwtConsumerBuilder()
-                    .setVerificationKeyResolver(new JwksVerificationKeyResolver(jwks))
-                    .setRequireExpirationTime()
-                    .setRequireJwtId()
-                    .setAllowedClockSkewInSeconds(properties.getAllowedClockSkewInSeconds())
-                    .setJwsAlgorithmConstraints(
-                        AlgorithmConstraints.ConstraintType.PERMIT,
-                        AlgorithmIdentifiers.RSA_USING_SHA256)
-                    .build())
-        .flatMap(
-            consumer -> {
-              try {
-                return Mono.just(consumer.processToClaims(jwt));
-              } catch (InvalidJwtException e) {
-                return Mono.empty();
-              }
-            })
-        .flatMap(
-            jwtClaims -> {
-              try {
-                return Mono.just(jwtClaims.getJwtId());
-              } catch (MalformedClaimException e) {
-                return Mono.error(e);
-              }
-            });
+    return redisJtiExtractorService.extractJti(refreshToken);
   }
 
   @Override
@@ -154,7 +94,6 @@ public class RedisClaimsService implements ClaimsService {
     var jwtConsumerMono =
         jwksProvider
             .jsonWebKeySet()
-            .publishOn(jwtConsumerScheduler)
             .map(
                 t ->
                     new JwtConsumerBuilder()
@@ -171,10 +110,9 @@ public class RedisClaimsService implements ClaimsService {
 
     final Mono<String> jwtMono =
         Mono.fromCallable(
-                () ->
-                    ZLibStringCompression.decompressIfNeeded(
-                        accessToken, properties.getJwtSizeLimitInBytes()))
-            .publishOn(jwtConsumerScheduler);
+            () ->
+                ZLibStringCompression.decompressIfNeeded(
+                    accessToken, properties.getJwtSizeLimitInBytes()));
 
     return Mono.zip(jwtMono, jwtConsumerMono)
         .flatMap(t -> getClaims(t.getT1(), t.getT2()))
@@ -199,10 +137,18 @@ public class RedisClaimsService implements ClaimsService {
 
     return Mono.fromCallable(
             () -> {
+              final var start = System.currentTimeMillis();
               try {
                 return jwtConsumer.processToClaims(jwt);
               } catch (InvalidJwtException e) {
                 throw new SecurityException(e);
+              } finally {
+                final long l = System.currentTimeMillis() - start;
+                if (l > 500) {
+                  log.error("Access Token Signature validation time {}ms > 500ms ", l);
+                } else if (l > 100) {
+                  log.warn("Access Token Signature validation time {}ms > 100ms ", l);
+                }
               }
             })
         .publishOn(jwtConsumerScheduler);

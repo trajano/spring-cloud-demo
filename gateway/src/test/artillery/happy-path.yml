@@ -147,6 +147,22 @@ scenarios:
               as: "refresh_token"
           expect:
             - statusCode: 200
+      - post:
+          url: "/grpc/Echo/echo"
+          json:
+            message: Hello world
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          capture:
+            - json: "$.message"
+              as: message
+          expect:
+            - statusCode: 200
+            - equals:
+                - "{{ message }}"
+                - "Hello world"
+
       - get:
           url: "/whoami"
           headers:
@@ -172,7 +188,7 @@ scenarios:
       - post:
           url: "/grpc/Echo/echo"
           json:
-            message: Hello world
+            message: Bye world
           headers:
             Accept: application/json
             Authorization: "Bearer {{ access_token }}"
@@ -183,7 +199,7 @@ scenarios:
             - statusCode: 200
             - equals:
                 - "{{ message }}"
-                - "Hello world"
+                - "Bye world"
 
       - get:
           url: "/whoami"

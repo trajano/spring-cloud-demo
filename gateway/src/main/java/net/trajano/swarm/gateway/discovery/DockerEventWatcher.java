@@ -50,20 +50,26 @@ public class DockerEventWatcher { // implements ApplicationListener<ContextClose
    */
   private Publisher<? extends Event> handleScenarioWhenOnlyReplicaCountsAreChanged(Event event) {
 
-    if (event.getType() == EventType.SERVICE && dockerDiscoveryProperties.isDaemonFullAccess()) {
+    if (event.getType() == EventType.SERVICE) {
       if (event.getActor().getAttributes().containsKey("replicas.new")) {
         final var serviceId = event.getActor().getAttributes().get("name");
         log.debug(
-            "replica count change detected for {} requesting no-op update to service to trigger another event",
+            "replica count change detected for {} firing a noop event to trigger a refresh in 2 seconds",
             serviceId);
-        final var inspectResult =
-            reactiveDockerClient.blockingClient().inspectServiceCmd(serviceId).exec();
-        reactiveDockerClient
-            .blockingClient()
-            .updateServiceCmd(serviceId, inspectResult.getSpec())
-            .withVersion(inspectResult.getVersion().getIndex())
-            .exec();
-        return Flux.empty();
+        return Flux.just(new Event()).delayElements(Duration.ofSeconds(2));
+
+        //        log.debug(
+        //            "replica count change detected for {} requesting no-op update to service to
+        // trigger another event",
+        //            serviceId);
+        //        final var inspectResult =
+        //            reactiveDockerClient.blockingClient().inspectServiceCmd(serviceId).exec();
+        //        reactiveDockerClient
+        //            .blockingClient()
+        //            .updateServiceCmd(serviceId, inspectResult.getSpec())
+        //            .withVersion(inspectResult.getVersion().getIndex())
+        //            .exec();
+
       }
     }
     return Flux.just(event);

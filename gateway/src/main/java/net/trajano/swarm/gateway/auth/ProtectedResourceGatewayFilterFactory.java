@@ -80,7 +80,6 @@ public class ProtectedResourceGatewayFilterFactory
             .next()
             .map(ServiceInstance::getMetadata)
             .map(metadata -> Boolean.parseBoolean(metadata.getOrDefault("protected", "true")))
-            .publishOn(protectedResourceScheduler)
             .flatMap(
                 serviceProtected -> {
                   if (!serviceProtected) {
@@ -138,7 +137,8 @@ public class ProtectedResourceGatewayFilterFactory
                               });
                     }
                   }
-                });
+                })
+            .subscribeOn(protectedResourceScheduler);
   }
 
   private Mono<Void> respondWithUnauthorized(

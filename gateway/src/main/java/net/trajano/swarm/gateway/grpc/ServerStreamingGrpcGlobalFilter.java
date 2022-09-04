@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 
 /** This is a global filter that routes Unary GRPC calls. */
 @Component
@@ -40,6 +41,7 @@ import reactor.core.publisher.Mono;
 public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
 
   private final ChannelProvider channelProvider;
+  private final Scheduler grpcScheduler;
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -94,7 +96,7 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
 
                 final var grpcOutputSteam =
                     Flux.<DynamicMessage>create(
-                        (emitter) -> {
+                        emitter -> {
                           final var call =
                               managedChannel.newCall(grpcMethodDescriptor, CallOptions.DEFAULT);
                           ClientCalls.asyncServerStreamingCall(
@@ -120,14 +122,15 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
 
                 var dataBufferStream =
                     grpcOutputSteam
-                        .map(
+                        .flatMap(
                             dynamicMessage -> {
                               try {
-                                return JsonFormat.printer()
-                                    .omittingInsignificantWhitespace()
-                                    .print(dynamicMessage);
+                                return Mono.just(
+                                    JsonFormat.printer()
+                                        .omittingInsignificantWhitespace()
+                                        .print(dynamicMessage));
                               } catch (InvalidProtocolBufferException e) {
-                                throw new RuntimeException(e);
+                                return Mono.error(e);
                               }
                             })
                         .map(json -> ServerSentEvent.builder(json).build())
@@ -142,7 +145,8 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
                 // Fix this later
                 return Mono.error(e);
               }
-            });
+            })
+        .subscribeOn(grpcScheduler);
   }
 
   /** Same level as Netty filter */

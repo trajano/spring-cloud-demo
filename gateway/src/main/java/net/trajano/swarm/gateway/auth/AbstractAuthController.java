@@ -37,6 +37,8 @@ public abstract class AbstractAuthController<A, P> {
 
   @Autowired private AuthProperties authProperties;
 
+  @Autowired private Scheduler authenticationScheduler;
+
   @Autowired private ClaimsService claimsService;
 
   /** */
@@ -44,9 +46,15 @@ public abstract class AbstractAuthController<A, P> {
 
   @Autowired private JwksProvider jwksProvider;
 
+  @Autowired private Scheduler jwksScheduler;
+
+  @Autowired private Scheduler logoutScheduler;
+
   @Autowired
   @Qualifier("penalty")
   private Scheduler penaltyScheduler;
+
+  @Autowired private Scheduler refreshTokenScheduler;
 
   private void addCommonHeaders(ServerHttpResponse serverHttpResponse) {
 
@@ -109,7 +117,8 @@ public abstract class AbstractAuthController<A, P> {
                                   HttpHeaders.WWW_AUTHENTICATE,
                                   "Bearer realm=\"%s\"".formatted(authProperties.getRealm()));
                         })
-                    .delayElement(Duration.ofMillis(authProperties.getPenaltyDelayInMillis())));
+                    .delayElement(Duration.ofMillis(authProperties.getPenaltyDelayInMillis())))
+        .subscribeOn(authenticationScheduler);
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Bad request")
@@ -124,7 +133,7 @@ public abstract class AbstractAuthController<A, P> {
       produces = {MediaType.APPLICATION_JSON_VALUE})
   public Mono<String> jwks() {
 
-    return jwksProvider.jsonWebKeySet().map(JsonWebKeySet::toJson);
+    return jwksProvider.jsonWebKeySet().map(JsonWebKeySet::toJson).subscribeOn(jwksScheduler);
   }
 
   @PostMapping(
@@ -154,7 +163,8 @@ public abstract class AbstractAuthController<A, P> {
                 Mono.just(GatewayResponse.builder().ok(true).build())
                     .delayElement(
                         Duration.ofMillis(authProperties.getPenaltyDelayInMillis()),
-                        penaltyScheduler));
+                        penaltyScheduler))
+        .subscribeOn(logoutScheduler);
   }
 
   @PostMapping(
@@ -185,6 +195,7 @@ public abstract class AbstractAuthController<A, P> {
                             .formatted(authProperties.getRealm()));
               }
             })
-        .flatMap(this::addDelaySpecifiedInServiceResponse);
+        .flatMap(this::addDelaySpecifiedInServiceResponse)
+        .subscribeOn(refreshTokenScheduler);
   }
 }
