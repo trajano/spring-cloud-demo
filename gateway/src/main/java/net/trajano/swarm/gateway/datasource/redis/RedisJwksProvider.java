@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import net.trajano.swarm.gateway.jwks.JwksProvider;
 import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
 import net.trajano.swarm.gateway.redis.UserSession;
+import org.jose4j.jwk.EllipticCurveJsonWebKey;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.lang.JoseException;
@@ -25,8 +26,6 @@ import reactor.util.function.Tuple2;
     havingValue = "REDIS",
     matchIfMissing = true)
 public class RedisJwksProvider implements JwksProvider {
-
-  private static final String RSA = "RSA";
 
   private final Scheduler jwksScheduler;
 
@@ -54,7 +53,7 @@ public class RedisJwksProvider implements JwksProvider {
             .flatMap(setOps::members)
             .map(RedisJwksProvider::stringToJwks)
             .flatMap(keySet -> Flux.fromIterable(keySet.getJsonWebKeys()))
-            .filter(jwk -> RSA.equals(jwk.getKeyType()))
+            .filter(jwk -> EllipticCurveJsonWebKey.KEY_TYPE.equals(jwk.getKeyType()))
             .reduceWith(
                 JsonWebKeySet::new,
                 (acc, current) -> {

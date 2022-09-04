@@ -24,7 +24,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /** This primarily tests JOSE4J. */
-class CryptoTests {
+class RsaCryptoTests {
 
   private static KeyPair encryptionKeyPair;
 

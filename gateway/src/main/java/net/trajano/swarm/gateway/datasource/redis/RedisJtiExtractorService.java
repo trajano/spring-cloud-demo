@@ -35,7 +35,8 @@ public class RedisJtiExtractorService {
         Base64.getUrlEncoder()
                 .withoutPadding()
                 .encodeToString(
-                    ("{\"kid\":\"%s\",\"alg\":\"RS256\"}".formatted(kid))
+                    ("{\"kid\":\"%s\",\"alg\":\"%s\"}"
+                            .formatted(kid, AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256))
                         .getBytes(StandardCharsets.US_ASCII))
             + refreshToken.substring(refreshToken.indexOf("."));
 
@@ -54,7 +55,7 @@ public class RedisJtiExtractorService {
                     .setAllowedClockSkewInSeconds(properties.getAllowedClockSkewInSeconds())
                     .setJwsAlgorithmConstraints(
                         AlgorithmConstraints.ConstraintType.PERMIT,
-                        AlgorithmIdentifiers.RSA_USING_SHA256)
+                        AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256)
                     .build())
         .flatMap(
             consumer -> {

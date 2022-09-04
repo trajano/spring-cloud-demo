@@ -33,7 +33,7 @@ public class RedisBlocksController {
     try {
       return new JsonWebKeySet(jwks)
           .getJsonWebKeys().stream()
-              .filter(jwk -> jwk.getKeyType().equals("RSA"))
+              .filter(jwk -> jwk.getKeyType().equals("EC"))
               .map(JsonWebKey::getKeyId)
               .findAny()
               .orElseThrow();

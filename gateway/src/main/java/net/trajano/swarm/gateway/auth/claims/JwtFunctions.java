@@ -24,23 +24,17 @@ import org.jose4j.lang.JoseException;
 @Slf4j
 public final class JwtFunctions {
 
+  public static final String ALGORITHM_EC = "EC";
   public static final String ALGORITHM_RSA = "RSA";
 
   private static KeyFactory rsaKeyFactory;
+  private static KeyFactory ecKeyFactory;
 
   static {
     try {
       rsaKeyFactory = KeyFactory.getInstance(ALGORITHM_RSA);
+      ecKeyFactory = KeyFactory.getInstance(ALGORITHM_EC);
     } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
-  public static JsonWebKeySet toJwks(String s) {
-
-    try {
-      return (new JsonWebKeySet(s));
-    } catch (JoseException e) {
       throw new IllegalStateException(e);
     }
   }
@@ -53,7 +47,7 @@ public final class JwtFunctions {
     final var jws = new JsonWebSignature();
     jws.setKeyIdHeaderValue(kid);
     jws.setPayload(payload);
-    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA256);
+    jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256);
     jws.setKey(signingKey);
     try {
       jws.sign();
@@ -72,7 +66,7 @@ public final class JwtFunctions {
 
   public static String getKid(JsonWebKeySet kp) {
     return kp.getJsonWebKeys().stream()
-        .filter(jsonWebKey -> "RSA".equals(jsonWebKey.getKeyType()))
+        .filter(jsonWebKey -> !"oct".equals(jsonWebKey.getKeyType()))
         .findAny()
         .orElseThrow(IllegalArgumentException::new)
         .getKeyId();
@@ -81,7 +75,7 @@ public final class JwtFunctions {
   @Data
   private static class JwtHeader {
     private String kid;
-    private String alg = "RS256";
+    private String alg = AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256;
   }
 
   /**
@@ -114,7 +108,7 @@ public final class JwtFunctions {
         .map(
             bytes -> {
               try {
-                return rsaKeyFactory.generatePrivate(new PKCS8EncodedKeySpec(bytes));
+                return ecKeyFactory.generatePrivate(new PKCS8EncodedKeySpec(bytes));
               } catch (InvalidKeySpecException e) {
                 throw new IllegalStateException(e);
               }
@@ -129,8 +123,6 @@ public final class JwtFunctions {
 
   public static Optional<JsonWebKey> getVerificationKeyFromJwks(JsonWebKeySet jwks) {
 
-    return jwks.getJsonWebKeys().stream()
-        .filter(jwk -> jwk.getKeyType().equals(ALGORITHM_RSA))
-        .findAny();
+    return jwks.getJsonWebKeys().stream().filter(jwk -> !"oct".equals(jwk.getKeyType())).findAny();
   }
 }

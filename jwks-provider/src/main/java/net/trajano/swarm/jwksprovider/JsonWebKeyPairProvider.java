@@ -1,16 +1,16 @@
 package net.trajano.swarm.jwksprovider;
 
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
-import java.security.interfaces.RSAPublicKey;
 import java.util.function.Consumer;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import net.trajano.swarm.gateway.common.AuthProperties;
+import org.jose4j.jwk.EcJwkGenerator;
+import org.jose4j.jwk.EllipticCurveJsonWebKey;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.jws.AlgorithmIdentifiers;
+import org.jose4j.keys.EllipticCurves;
 import org.jose4j.lang.JoseException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -20,15 +20,9 @@ import reactor.core.publisher.SynchronousSink;
 @RequiredArgsConstructor
 public class JsonWebKeyPairProvider {
 
-  public static final String RSA = "RSA";
-
   /** Possible characters for the KID */
   private static final char[] POSSIBLE_KID_CHARACTERS =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
-
-  private final AuthProperties authProperties;
-
-  private final KeyPairGenerator keyPairGenerator;
 
   private final SecureRandom secureRandom;
 
@@ -59,11 +53,18 @@ public class JsonWebKeyPairProvider {
 
     jsonWebKeySetFlux =
         Flux.generate(
-                (Consumer<SynchronousSink<KeyPair>>)
+                (Consumer<SynchronousSink<EllipticCurveJsonWebKey>>)
                     synchronousSink -> {
-                      final var keyPair = keyPairGenerator.generateKeyPair();
-                      synchronousSink.next(keyPair);
+                      try {
+                        synchronousSink.next(
+                            EcJwkGenerator.generateJwk(EllipticCurves.P256, null, secureRandom));
+                      } catch (JoseException e) {
+                        synchronousSink.error(e);
+                      }
                     })
+            .map(
+                webKeyPair ->
+                    new KeyPair(webKeyPair.getECPublicKey(), webKeyPair.getEcPrivateKey()))
             .map(this::makeJwksFromJavaCryptoKeyPair);
   }
 
@@ -77,13 +78,13 @@ public class JsonWebKeyPairProvider {
 
     try {
       final var privateKey = keyPair.getPrivate();
-      final var publicKey = (RSAPublicKey) keyPair.getPublic();
+      final var publicKey = keyPair.getPublic();
 
       final var jwks = new JsonWebKeySet();
       final var jwkPublic = JsonWebKey.Factory.newJwk(publicKey);
       jwkPublic.setKeyId(generateKid());
       jwkPublic.setUse("sig");
-      jwkPublic.setAlgorithm(AlgorithmIdentifiers.RSA_USING_SHA256);
+      jwkPublic.setAlgorithm(AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256);
 
       jwks.addJsonWebKey(jwkPublic);
       jwks.addJsonWebKey(JsonWebKey.Factory.newJwk(privateKey));

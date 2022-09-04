@@ -105,7 +105,7 @@ public class RedisClaimsService implements ClaimsService {
                         .setAllowedClockSkewInSeconds(properties.getAllowedClockSkewInSeconds())
                         .setJwsAlgorithmConstraints(
                             AlgorithmConstraints.ConstraintType.PERMIT,
-                            AlgorithmIdentifiers.RSA_USING_SHA256)
+                            AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256)
                         .build());
 
     final Mono<String> jwtMono =
