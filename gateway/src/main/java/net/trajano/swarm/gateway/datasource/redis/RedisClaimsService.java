@@ -52,12 +52,6 @@ public class RedisClaimsService implements ClaimsService {
 
   private final Logger securityLog = LoggerFactory.getLogger("security");
 
-  private final Scheduler refreshTokenScheduler =
-      Schedulers.newBoundedElastic(
-          Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
-          Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-          "refreshToken");
-
   private final JwksProvider jwksProvider;
 
   private final Scheduler jwtConsumerScheduler;
