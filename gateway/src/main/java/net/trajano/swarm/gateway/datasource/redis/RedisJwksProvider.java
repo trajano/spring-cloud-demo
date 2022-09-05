@@ -1,6 +1,7 @@
 package net.trajano.swarm.gateway.datasource.redis;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,6 +36,41 @@ public class RedisJwksProvider implements JwksProvider {
 
   private final Mono<List<JsonWebKeySet>> cachedSigningJsonWebKeySet;
 
+  private Mono<JsonWebKeySet> getJsonWebKeySet(
+      RedisKeyBlocks redisKeyBlocks, ReactiveStringRedisTemplate redisTemplate) {
+
+    final var setOps = redisTemplate.opsForSet();
+    return Mono.fromSupplier(Instant::now)
+        .flatMapMany(
+            now ->
+                Flux.just(
+                    redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, -1),
+                    redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 0)))
+        .map(redisKeyBlocks::forSigningRedisKey)
+        .flatMap(setOps::members)
+        .map(RedisJwksProvider::stringToJwks)
+        .flatMap(keySet -> Flux.fromIterable(keySet.getJsonWebKeys()))
+        .filter(jwk -> EllipticCurveJsonWebKey.KEY_TYPE.equals(jwk.getKeyType()))
+        .reduceWith(
+            JsonWebKeySet::new,
+            (acc, current) -> {
+              acc.addJsonWebKey(current);
+              return acc;
+            });
+  }
+
+  private Mono<List<JsonWebKeySet>> getSigningJsonWebKeySets(
+      RedisKeyBlocks redisKeyBlocks, ReactiveStringRedisTemplate redisTemplate) {
+
+    final var setOps = redisTemplate.opsForSet();
+    return Mono.fromSupplier(Instant::now)
+        .map(now -> redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 0))
+        .map(redisKeyBlocks::forSigningRedisKey)
+        .flatMapMany(setOps::members)
+        .map(RedisJwksProvider::stringToJwks)
+        .collectList();
+  }
+
   public RedisJwksProvider(
       Scheduler jwksScheduler,
       RedisKeyBlocks redisKeyBlocks,
@@ -44,22 +80,9 @@ public class RedisJwksProvider implements JwksProvider {
     this.jwksScheduler = jwksScheduler;
     this.redisUserSessions = redisUserSessions;
 
-    final var setOps = redisTemplate.opsForSet();
-
     final var lastProcessedRedisSigningKeyForJwks = new AtomicReference<String>(null);
     this.cachedJsonWebKeySet =
-        Flux.just(redisKeyBlocks.previousSigningRedisKey(), redisKeyBlocks.currentSigningRedisKey())
-            .publishOn(jwksScheduler)
-            .flatMap(setOps::members)
-            .map(RedisJwksProvider::stringToJwks)
-            .flatMap(keySet -> Flux.fromIterable(keySet.getJsonWebKeys()))
-            .filter(jwk -> EllipticCurveJsonWebKey.KEY_TYPE.equals(jwk.getKeyType()))
-            .reduceWith(
-                JsonWebKeySet::new,
-                (acc, current) -> {
-                  acc.addJsonWebKey(current);
-                  return acc;
-                })
+        getJsonWebKeySet(redisKeyBlocks, redisTemplate)
             .doOnNext(
                 ignored ->
                     lastProcessedRedisSigningKeyForJwks.set(
@@ -74,11 +97,7 @@ public class RedisJwksProvider implements JwksProvider {
     final var lastProcessedRedisSigningKeyForSigningKeys = new AtomicReference<String>(null);
 
     this.cachedSigningJsonWebKeySet =
-        setOps
-            .members(redisKeyBlocks.currentSigningRedisKey())
-            .publishOn(jwksScheduler)
-            .map(RedisJwksProvider::stringToJwks)
-            .collectList()
+        getSigningJsonWebKeySets(redisKeyBlocks, redisTemplate)
             .doOnNext(
                 ignored ->
                     lastProcessedRedisSigningKeyForSigningKeys.set(
