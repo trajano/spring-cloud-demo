@@ -1,0 +1,39 @@
+@startuml
+
+actor "App/Client" as app
+boundary "Traefik" as traefik
+participant "Token\nServer" as auth
+participant "Identity\nProvider" as ip
+participant "Services" as services
+
+app -> traefik ++: /auth
+traefik -> auth ++ : /auth
+auth -> ip ++ : credentials
+return sessionID\nor other secrets\nfor reauthentication
+return OAuthToken
+return OAuthToken
+
+app -> traefik ++: /refresh\n+ refresh_token
+traefik -> auth ++ : /refresh\n+ refresh_token
+auth -> ip ++ : sessionID\nor other secrets\nfor reauthentication
+return updated sessionID\nor other secrets\nfor reauthentication
+return OAuthToken
+return OAuthToken
+
+app -> traefik ++: /service/call\n+ access token
+traefik -> auth ++ : /service/call\n+ access token
+auth -> auth : validate token\n(just JWT signature)
+return 200 OK
+traefik -> services ++ : /service/call + token
+return service response
+return service response
+
+app -> traefik ++: /logout\n+ refresh_token
+traefik -> auth ++ : /logout\n+ refresh_token
+auth -> ip ++ : sessionID\nor other secrets\nfor logout
+return 200 OK
+return 200 OK
+return 200 OK
+
+
+@enduml

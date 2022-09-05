@@ -62,6 +62,7 @@ services:
     image: local/gateway
     environment:
       - SPRING_REDIS_HOST=redis
+      - SPRING_NETTY_LEAKDETECTION=paranoid
 #      - SPRING_R2DBC_USERNAME=gateway-user
 #      - SPRING_R2DBC_PASSWORD=password123
 #      - SPRING_R2DBC_URL=r2dbc:mysql://db/swarm
