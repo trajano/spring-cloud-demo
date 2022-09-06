@@ -8,10 +8,10 @@ import io.grpc.CallOptions;
 import io.grpc.MethodDescriptor;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import io.grpc.stub.ClientCalls;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jose4j.jwt.JwtClaims;
@@ -29,7 +29,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 
@@ -51,6 +50,7 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
     }
 
     ServerWebExchangeUtils.setAlreadyRouted(exchange);
+
     final Response<ServiceInstance> r =
         exchange.getRequiredAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR);
 
@@ -65,13 +65,181 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
         GrpcFunctions.methodDescriptor(
             uri, GrpcFunctions.fileDescriptors(serverReflectionStub).map(GrpcFunctions::buildFrom));
 
-    return Mono.zip(
-            cacheRequestBodyAndRequest(
-                exchange, serverHttpRequest -> DataBufferUtils.join(serverHttpRequest.getBody())),
-            methodDescriptorMono)
+    // Request input stream, note that this needs to be closed at the end.
+    final var requestInputStreamMono =
+        exchange
+            .getRequest()
+            .getBody()
+            .map(dataBuffer -> dataBuffer.asInputStream(true))
+            .reduce(SequenceInputStream::new);
+
+    final var bodyMono = DataBufferUtils.join(exchange.getRequest().getBody());
+    if (false) {
+      try (var pos = new PipedOutputStream();
+          var pis = new PipedInputStream(pos); ) {
+        return DataBufferUtils.write(exchange.getRequest().getBody().log("BODY"), pos)
+            .log("AAAA")
+            .doOnNext(DataBufferUtils::release)
+            .then(
+                exchange
+                    .getResponse()
+                    .writeWith(
+                        Mono.just(
+                            exchange
+                                .getResponse()
+                                .bufferFactory()
+                                .wrap(("Hel" + pis + " l2o").getBytes(StandardCharsets.UTF_8)))))
+            .then(chain.filter(exchange));
+
+      } catch (IOException e) {
+        return Mono.error(e);
+      }
+    }
+    if (false) {
+      return requestInputStreamMono
+          .doOnNext(
+              inputStream -> {
+                try {
+                  inputStream.close();
+                } catch (IOException e) {
+                  throw new RuntimeException(e);
+                }
+              })
+          .then(
+              exchange
+                  .getResponse()
+                  .writeWith(
+                      Mono.just(
+                          exchange
+                              .getResponse()
+                              .bufferFactory()
+                              .wrap("Hell2o".getBytes(StandardCharsets.UTF_8)))))
+          .then(chain.filter(exchange));
+    }
+
+    if (false) {
+      return exchange
+          .getRequest()
+          .getBody()
+          .log("BODYxx", Level.SEVERE)
+          .doOnNext(
+              bodydMono -> {
+                try {
+                  System.out.println(bodydMono);
+                  System.out.println(bodydMono.asByteBuffer());
+                  System.out.println(bodydMono.asByteBuffer().array().length);
+                  System.out.println(
+                      new String(bodydMono.asByteBuffer().array(), StandardCharsets.UTF_8));
+                } catch (Throwable x) {
+                  x.printStackTrace();
+                } finally {
+                  System.out.println(DataBufferUtils.release(bodydMono));
+                }
+              })
+          .then(
+              exchange
+                  .getResponse()
+                  .writeWith(
+                      Mono.just(
+                          exchange
+                              .getResponse()
+                              .bufferFactory()
+                              .wrap("Hell2o".getBytes(StandardCharsets.UTF_8)))))
+          .then(chain.filter(exchange));
+    }
+
+    if (false) {
+      return exchange
+          .getRequest()
+          .getBody()
+          .log("BODY", Level.SEVERE)
+          .doOnNext(DataBufferUtils::release)
+          .then(
+              exchange
+                  .getResponse()
+                  .writeWith(
+                      Mono.just(
+                          exchange
+                              .getResponse()
+                              .bufferFactory()
+                              .wrap("Hell2o".getBytes(StandardCharsets.UTF_8)))))
+          .then(chain.filter(exchange));
+    }
+    if (false) {
+      return bodyMono
+          .flatMap(
+              buffer ->
+                  exchange
+                      .getResponse()
+                      .writeWith(
+                          Mono.just(
+                              exchange
+                                  .getResponse()
+                                  .bufferFactory()
+                                  .wrap("Hello".getBytes(StandardCharsets.UTF_8)))))
+          .then(chain.filter(exchange));
+    }
+
+    if (true) {
+      return Mono.zip(requestInputStreamMono, methodDescriptorMono)
+          .flatMap(
+              t -> {
+                try (final var jsonReader = new InputStreamReader(t.getT1())) {
+
+                  var builder = DynamicMessage.newBuilder(t.getT2().getInputType());
+                  parser.merge(jsonReader, builder);
+                  final var inputMessage = builder.build();
+
+                  final var grpcMethodDescriptor =
+                      GrpcFunctions.methodDescriptorFromProtobuf(t.getT2());
+
+                  if (grpcMethodDescriptor.getType() != MethodDescriptor.MethodType.UNARY) {
+                    return Mono.error(
+                        () ->
+                            new IllegalStateException(
+                                "Expected Unary, but got %s for %s"
+                                    .formatted(
+                                        grpcMethodDescriptor.getType(),
+                                        grpcMethodDescriptor.getFullMethodName())));
+                  }
+
+                  final var callOptions =
+                      CallOptions.DEFAULT.withCallCredentials(
+                          new JwtCallCredentials(
+                              ((JwtClaims) exchange.getRequiredAttribute("jwtClaims")).toJson()));
+
+                  final var call = managedChannel.newCall(grpcMethodDescriptor, callOptions);
+
+                  final var dynamicMessage = ClientCalls.blockingUnaryCall(call, inputMessage);
+                  // at this point build the GRPC call?
+                  final byte[] bytes =
+                      JsonFormat.printer()
+                          .omittingInsignificantWhitespace()
+                          .print(dynamicMessage)
+                          .getBytes(StandardCharsets.UTF_8);
+                  final var exchangeResponse = exchange.getResponse();
+                  var buffer = exchangeResponse.bufferFactory().wrap(bytes);
+                  exchangeResponse
+                      .getHeaders()
+                      .add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+                  exchangeResponse
+                      .getHeaders()
+                      .add(HttpHeaders.CONTENT_LENGTH, String.valueOf(bytes.length));
+
+                  return exchangeResponse.writeWith(Mono.just(buffer)).then(chain.filter(exchange));
+
+                } catch (IOException e) {
+                  // Fix this later
+                  return Mono.error(e);
+                }
+              })
+          .subscribeOn(grpcScheduler);
+    }
+
+    return Mono.zip(bodyMono, methodDescriptorMono)
         .flatMap(
             t -> {
-              try (final var jsonReader = new InputStreamReader(t.getT1().asInputStream())) {
+              try (final var jsonReader = new InputStreamReader(t.getT1().asInputStream(true))) {
 
                 var builder = DynamicMessage.newBuilder(t.getT2().getInputType());
                 parser.merge(jsonReader, builder);
@@ -99,27 +267,25 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
 
                 final var dynamicMessage = ClientCalls.blockingUnaryCall(call, inputMessage);
                 // at this point build the GRPC call?
-                byte[] bytes =
+                final byte[] bytes =
                     JsonFormat.printer()
                         .omittingInsignificantWhitespace()
                         .print(dynamicMessage)
                         .getBytes(StandardCharsets.UTF_8);
-                var buffer = exchange.getResponse().bufferFactory().wrap(bytes);
-                exchange
-                    .getResponse()
+                final var exchangeResponse = exchange.getResponse();
+                var buffer = exchangeResponse.bufferFactory().wrap(bytes);
+                exchangeResponse
                     .getHeaders()
                     .add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-                exchange
-                    .getResponse()
+                exchangeResponse
                     .getHeaders()
                     .add(HttpHeaders.CONTENT_LENGTH, String.valueOf(bytes.length));
-                return exchange.getResponse().writeWith(Flux.just(buffer));
+
+                return exchangeResponse.writeWith(Mono.just(buffer)).then(chain.filter(exchange));
 
               } catch (IOException e) {
                 // Fix this later
                 return Mono.error(e);
-              } finally {
-                exchange.getAttributes().remove(CACHED_REQUEST_BODY_ATTR);
               }
             })
         .subscribeOn(grpcScheduler);

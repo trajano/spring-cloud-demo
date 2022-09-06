@@ -1,6 +1,5 @@
 package net.trajano.swarm.gateway;
 
-import io.grpc.netty.shaded.io.netty.util.ResourceLeakDetector;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
@@ -21,7 +20,7 @@ public class GatewayApplication {
 
   public static void main(String[] args) {
 
-    ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
+    //    ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
     Schedulers.enableMetrics();
     //    BlockHound.install();
     SpringApplication.run(GatewayApplication.class, args);

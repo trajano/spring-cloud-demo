@@ -126,7 +126,7 @@ services:
 #        parallelism: 1
       restart_policy:
         max_attempts: 1
-      replicas: 3
+      #replicas: 3
       resources:
         limits:
           memory: 512m
