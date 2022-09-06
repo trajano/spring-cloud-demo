@@ -14,6 +14,8 @@ import com.github.dockerjava.api.command.ListServicesCmd;
 import com.github.dockerjava.api.model.*;
 import java.util.List;
 import java.util.Map;
+
+import net.trajano.swarm.gateway.datasource.redis.RedisJwksProvider;
 import net.trajano.swarm.gateway.discovery.DockerEventWatcher;
 import net.trajano.swarm.gateway.discovery.DockerServiceInstanceLister;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,7 @@ import reactor.core.publisher.Mono;
 @MockBean(
     classes = {
       DockerEventWatcher.class,
+            RedisJwksProvider.class,
     })
 class GatewayApplicationTests {
 
