@@ -27,6 +27,8 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.PooledDataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -131,7 +133,17 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
             .getRequest()
             .getBody()
             .map(dataBuffer -> dataBuffer.asInputStream(true))
-            .reduce(SequenceInputStream::new);
+            .reduce(SequenceInputStream::new)
+            .doOnDiscard(
+                SequenceInputStream.class,
+                sequenceInputStream -> {
+                  try {
+                    sequenceInputStream.close();
+                  } catch (IOException e) {
+                    // no-op;
+                  }
+                })
+            .doOnDiscard(PooledDataBuffer.class, DataBufferUtils::release);
 
     return Mono.zip(requestInputStreamMono, methodDescriptorMono)
         .flatMap(

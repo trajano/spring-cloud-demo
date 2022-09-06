@@ -62,6 +62,7 @@ services:
     image: local/gateway
     environment:
       - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_LETTUCE_POOL_MAXACTIVE=30
       - SPRING_NETTY_LEAKDETECTION=paranoid
 #      - SPRING_R2DBC_USERNAME=gateway-user
 #      - SPRING_R2DBC_PASSWORD=password123
@@ -73,6 +74,7 @@ services:
 #      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
 #      - AWS_REGION=${AWS_REGION:-}
       - AUTH_OIDC_ALLOWEDISSUERS=https://accounts.google.com
+      - AUTH_USESECURERANDOM=false
 #      - OIDC_ISSUER=${GOOGLE_ISSUER:https://accounts.google.com}
 #      - OIDC_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
 #      - OIDC_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
@@ -81,8 +83,8 @@ services:
 #      - DOCKER_HOST=tcp://daemon:2375
 #      - LOGGING_LEVEL_NET_TRAJANO=trace
       - LOGGING_LEVEL_NET_TRAJANO=debug
-      - LOGGING_LEVEL_REQUEST=error
-      # - LOGGING_LEVEL_REQUEST=warn
+      # - LOGGING_LEVEL_REQUEST=error
+      - LOGGING_LEVEL_REQUEST=warn
 #      - LOGGING_LEVEL_ORG_XBILL=trace
       - LOGGING_LEVEL_ROOT=error
       - LOGGING_LEVEL_SECURITY=warn

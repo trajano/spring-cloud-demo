@@ -8,34 +8,34 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "auth")
 @Data
 public class AuthProperties {
-  private String realm = "JWT";
-
-  /** Prefix for keys. */
-  private String redisPrefix = "gateway";
-  /** Maximum expected size of JWT when decompressed. Defaults to 4096 bytes. */
-  private int jwtSizeLimitInBytes = 4096;
-
-  private String issuer = "http://localhost";
-  private int signingKeysPerBlock = 3;
-  private int allowedClockSkewInSeconds = 0;
   /** Access token time expires in seconds. This is kept low to make it easier to test. */
   private int accessTokenExpiresInSeconds = 120;
 
-  /** Refresh token time expires in seconds. This is kept low to make it easier to test. */
-  private int refreshTokenExpiresInSeconds = 1200;
-
-  private int maximumNumberOfSigningKeysToPresent = 3;
+  private int allowedClockSkewInSeconds = 0;
 
   /** If true, the JWT is compressed when placed in the access token. */
   private boolean compressClaims = true;
 
+  private DataSource dataSource = DataSource.REDIS;
+
+  private String issuer = "http://localhost";
+
+  /** Maximum expected size of JWT when decompressed. Defaults to 4096 bytes. */
+  private int jwtSizeLimitInBytes = 4096;
+
   private int maximumNumberOfSigningKeys = 10;
-  /**
-   * Signing key time expires in seconds and must be larger than {@link
-   * #accessTokenExpiresInSeconds} and must be at least 2 times larger than {@link
-   * #signingKeyBlockSizeInSeconds}. This is kept low to make it easier to test.
-   */
-  private int signingKeyExpiresInSeconds = 240 * 2;
+
+  private int maximumNumberOfSigningKeysToPresent = 3;
+
+  private int penaltyDelayInMillis = 1000;
+
+  private String realm = "JWT";
+
+  /** Prefix for keys. */
+  private String redisPrefix = "gateway";
+
+  /** Refresh token time expires in seconds. This is kept low to make it easier to test. */
+  private int refreshTokenExpiresInSeconds = 1200;
 
   /**
    * Signing block size in seconds and must be larger than {@link #accessTokenExpiresInSeconds}.
@@ -43,9 +43,20 @@ public class AuthProperties {
    */
   private int signingKeyBlockSizeInSeconds = 240;
 
-  private int penaltyDelayInMillis = 1000;
+  /**
+   * Signing key time expires in seconds and must be larger than {@link
+   * #accessTokenExpiresInSeconds} and must be at least 2 times larger than {@link
+   * #signingKeyBlockSizeInSeconds}. This is kept low to make it easier to test.
+   */
+  private int signingKeyExpiresInSeconds = 240 * 2;
 
-  private DataSource dataSource = DataSource.REDIS;
+  private int signingKeysPerBlock = 3;
+
+  /**
+   * If disabled, {@link java.util.concurrent.ThreadLocalRandom} would be used to generate the UUIDs
+   * which is more performant, but may cause delays when there isn't enough entropy generated.
+   */
+  private boolean useSecureRandom = true;
 
   public static enum DataSource {
     REDIS,

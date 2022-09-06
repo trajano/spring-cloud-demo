@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.IdentityService;
@@ -35,6 +36,9 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
       "access-token-expires-in-minutes";
 
   private final ReactiveOidcService oidcService;
+
+  /** Provides non-cryptographically secure UUIDs for testing. */
+  private final ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
 
   @Override
   public Mono<IdentityServiceResponse> authenticate(
@@ -69,7 +73,11 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
                 claims.setClaim("userinfo", jwtClaims);
 
                 final var secretClaims = new JwtClaims();
-                secretClaims.setStringClaim("secret-uuid", UUID.randomUUID().toString());
+
+                secretClaims.setStringClaim(
+                    "secret-uuid",
+                    new UUID(threadLocalRandom.nextLong(), threadLocalRandom.nextLong())
+                        .toString());
                 secretClaims.setSubject(jwtClaims.getSubject());
                 secretClaims.setClaim("userinfo", jwtClaims);
                 final IdentityServiceResponse response =
@@ -94,7 +102,9 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
       claims.setSubject(authenticationRequest.getUsername());
 
       final var secretClaims = new JwtClaims();
-      secretClaims.setStringClaim("secret-uuid", UUID.randomUUID().toString());
+      secretClaims.setStringClaim(
+          "secret-uuid",
+          new UUID(threadLocalRandom.nextLong(), threadLocalRandom.nextLong()).toString());
       secretClaims.setSubject(authenticationRequest.getUsername());
 
       Optional.ofNullable(authenticationRequest.getAccessTokenExpiresInMillis())

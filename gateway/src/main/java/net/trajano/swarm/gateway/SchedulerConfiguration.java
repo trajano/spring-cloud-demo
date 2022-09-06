@@ -9,6 +9,30 @@ import reactor.core.scheduler.Schedulers;
 public class SchedulerConfiguration {
 
   @Bean
+  Scheduler authenticationScheduler() {
+    return Schedulers.newBoundedElastic(
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+        "authentication");
+  }
+
+  @Bean
+  Scheduler grpcScheduler() {
+    return Schedulers.newBoundedElastic(
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+        "grpc");
+  }
+
+  @Bean
+  Scheduler jwksScheduler() {
+    return Schedulers.newBoundedElastic(
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+        "jwks");
+  }
+
+  @Bean
   Scheduler jwtConsumerScheduler() {
     return Schedulers.newBoundedElastic(
         Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
@@ -31,19 +55,11 @@ public class SchedulerConfiguration {
   }
 
   @Bean
-  Scheduler jwksScheduler() {
+  Scheduler logoutScheduler() {
     return Schedulers.newBoundedElastic(
         Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
         Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-        "jwks");
-  }
-
-  @Bean
-  Scheduler grpcScheduler() {
-    return Schedulers.newBoundedElastic(
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-        "grpc");
+        "logout");
   }
 
   @Bean
@@ -62,21 +78,5 @@ public class SchedulerConfiguration {
         Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
         Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
         "refreshToken");
-  }
-
-  @Bean
-  Scheduler logoutScheduler() {
-    return Schedulers.newBoundedElastic(
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-        "logout");
-  }
-
-  @Bean
-  Scheduler authenticationScheduler() {
-    return Schedulers.newBoundedElastic(
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-        "authentication");
   }
 }

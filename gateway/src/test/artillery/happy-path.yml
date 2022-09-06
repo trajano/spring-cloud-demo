@@ -147,21 +147,21 @@ scenarios:
               as: "refresh_token"
           expect:
             - statusCode: 200
-#      - post:
-#          url: "/grpc/Echo/echo"
-#          json:
-#            message: Hello world
-#          headers:
-#            Accept: application/json
-#            Authorization: "Bearer {{ access_token }}"
-#          capture:
-#            - json: "$.message"
-#              as: message
-#          expect:
-#            - statusCode: 200
-#            - equals:
-#                - "{{ message }}"
-#                - "Hello world"
+      - post:
+          url: "/grpc/Echo/echo"
+          json:
+            message: Hello world
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          capture:
+            - json: "$.message"
+              as: message
+          expect:
+            - statusCode: 200
+            - equals:
+                - "{{ message }}"
+                - "Hello world"
 
       - get:
           url: "/whoami"
@@ -185,21 +185,21 @@ scenarios:
           expect:
             - statusCode: 200
 
-#      - post:
-#          url: "/grpc/Echo/echo"
-#          json:
-#            message: Bye world
-#          headers:
-#            Accept: application/json
-#            Authorization: "Bearer {{ access_token }}"
-#          capture:
-#            - json: "$.message"
-#              as: message
-#          expect:
-#            - statusCode: 200
-#            - equals:
-#                - "{{ message }}"
-#                - "Bye world"
+      - post:
+          url: "/grpc/Echo/echo"
+          json:
+            message: Bye world
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          capture:
+            - json: "$.message"
+              as: message
+          expect:
+            - statusCode: 200
+            - equals:
+                - "{{ message }}"
+                - "Bye world"
 
       - get:
           url: "/whoami"

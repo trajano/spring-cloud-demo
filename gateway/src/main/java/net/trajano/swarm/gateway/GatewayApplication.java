@@ -22,7 +22,12 @@ public class GatewayApplication {
 
     //    ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
     Schedulers.enableMetrics();
-    //    BlockHound.install();
+    //    BlockHound.builder().allowBlockingCallsInside("java.util.UUID", "randomUUID").install();
+    //    Schedulers.addExecutorServiceDecorator(
+    //        "ABC",
+    //        (scheduler, scheduledExecutorService) ->
+    //            new DelegateScheduleExecutorService(scheduledExecutorService));
+
     SpringApplication.run(GatewayApplication.class, args);
   }
 }
