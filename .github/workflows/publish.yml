@@ -27,7 +27,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [gateway,jwks-provider,sample-service]
+        target:
+          - gateway
+          - jwks-provider
+          - grpc-service
+          - sample-service
     permissions:
       contents: read
       packages: write

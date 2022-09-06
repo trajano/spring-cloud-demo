@@ -135,7 +135,7 @@ class ContainerTests {
             .getResponseBody();
     assertThat(responseBody).isNotNull();
     assertThat(responseBody.isOk()).isTrue();
-    assertThat(responseBody.getExpiresIn()).isEqualTo(120);
+    assertThat(responseBody.getExpiresIn()).isLessThanOrEqualTo(120);
     assertThat(responseBody.getTokenType()).isEqualTo("Bearer");
   }
 
