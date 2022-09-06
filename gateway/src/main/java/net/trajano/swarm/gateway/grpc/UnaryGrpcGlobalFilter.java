@@ -20,6 +20,7 @@ import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
@@ -40,6 +41,7 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
 
   private final ChannelProvider channelProvider;
   private final Scheduler grpcScheduler;
+  private final JsonFormat.Parser parser = JsonFormat.parser();
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -48,6 +50,7 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
       return chain.filter(exchange);
     }
 
+    ServerWebExchangeUtils.setAlreadyRouted(exchange);
     final Response<ServiceInstance> r =
         exchange.getRequiredAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR);
 
@@ -63,7 +66,7 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
             uri, GrpcFunctions.fileDescriptors(serverReflectionStub).map(GrpcFunctions::buildFrom));
 
     return Mono.zip(
-            cacheRequestBody(
+            cacheRequestBodyAndRequest(
                 exchange, serverHttpRequest -> DataBufferUtils.join(serverHttpRequest.getBody())),
             methodDescriptorMono)
         .flatMap(
@@ -71,7 +74,7 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
               try (final var jsonReader = new InputStreamReader(t.getT1().asInputStream())) {
 
                 var builder = DynamicMessage.newBuilder(t.getT2().getInputType());
-                JsonFormat.parser().merge(jsonReader, builder);
+                parser.merge(jsonReader, builder);
                 final var inputMessage = builder.build();
 
                 final var grpcMethodDescriptor =
@@ -115,6 +118,8 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
               } catch (IOException e) {
                 // Fix this later
                 return Mono.error(e);
+              } finally {
+                exchange.getAttributes().remove(CACHED_REQUEST_BODY_ATTR);
               }
             })
         .subscribeOn(grpcScheduler);

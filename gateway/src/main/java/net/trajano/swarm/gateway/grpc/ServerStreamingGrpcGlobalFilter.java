@@ -21,6 +21,7 @@ import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
@@ -49,6 +50,7 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
     if (!isAccepted(exchange)) {
       return chain.filter(exchange);
     }
+    ServerWebExchangeUtils.setAlreadyRouted(exchange);
 
     final Response<ServiceInstance> r =
         exchange.getRequiredAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR);
@@ -144,6 +146,8 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
               } catch (IOException e) {
                 // Fix this later
                 return Mono.error(e);
+              } finally {
+                exchange.getAttributes().remove(CACHED_REQUEST_BODY_ATTR);
               }
             })
         .subscribeOn(grpcScheduler);

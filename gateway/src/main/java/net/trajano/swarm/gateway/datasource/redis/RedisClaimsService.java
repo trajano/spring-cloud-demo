@@ -33,7 +33,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 
 /**
  * This handles the functionality of an Identity Provider (IP). The IP's responsibility is to

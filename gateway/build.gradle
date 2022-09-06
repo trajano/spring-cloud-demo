@@ -18,9 +18,9 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
 	implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
 	implementation 'io.awspring.cloud:spring-cloud-aws-autoconfigure:2.4.2'
-	implementation 'io.micrometer:micrometer-registry-cloudwatch2:1.8.5'
+	implementation 'io.micrometer:micrometer-registry-cloudwatch2:1.9.3'
 	implementation "io.grpc:grpc-api"
-	implementation "io.grpc:grpc-netty"
+	implementation "io.grpc:grpc-netty-shaded"
 	implementation "io.grpc:grpc-protobuf"
 	implementation "io.grpc:grpc-services"
 	implementation "io.zipkin.brave:brave-instrumentation-grpc"
@@ -34,7 +34,7 @@ dependencies {
 	implementation 'com.github.docker-java:docker-java-core'
 	implementation 'com.github.docker-java:docker-java-transport-httpclient5'
 	compileOnly 'org.projectlombok:lombok'
-	implementation 'dnsjava:dnsjava:3.5.0'
+	implementation 'dnsjava:dnsjava:3.5.1'
 	implementation project(':gateway-common')
 	runtimeOnly 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
 	testImplementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'

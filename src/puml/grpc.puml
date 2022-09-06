@@ -1,0 +1,8 @@
+@startuml
+
+participant "Token\nServer" as auth
+participant "Identity\nProvider" as ip
+participant "Services" as services
+
+
+@enduml

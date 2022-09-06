@@ -4,6 +4,7 @@ include(
         'gateway-common',
         'sample-service',
         'grpc-service',
+        'dynamic-grpc-client',
         'spring-redis-region',
         'jwks-provider'
 )
