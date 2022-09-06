@@ -2,16 +2,20 @@ package net.trajano.swarm.gateway.grpc;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.*;
 
+import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.CallOptions;
+import io.grpc.Channel;
 import io.grpc.MethodDescriptor;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import io.grpc.stub.ClientCalls;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.SequenceInputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.logging.Level;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jose4j.jwt.JwtClaims;
@@ -22,7 +26,6 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -40,7 +43,57 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
 
   private final ChannelProvider channelProvider;
   private final Scheduler grpcScheduler;
-  private final JsonFormat.Parser parser = JsonFormat.parser();
+  private final JsonFormat.Parser jsonParser = JsonFormat.parser();
+  private final JsonFormat.Printer jsonPrinter =
+      JsonFormat.printer().omittingInsignificantWhitespace();
+
+  private Mono<DynamicMessage> assembleAndSendMessage(
+      ServerWebExchange exchange,
+      Channel managedChannel,
+      InputStream inputStream,
+      Descriptors.MethodDescriptor methodDescriptor) {
+
+    try (final var jsonReader = new InputStreamReader(inputStream)) {
+
+      var builder = DynamicMessage.newBuilder(methodDescriptor.getInputType());
+      jsonParser.merge(jsonReader, builder);
+      final var inputMessage = builder.build();
+
+      final var grpcMethodDescriptor = GrpcFunctions.methodDescriptorFromProtobuf(methodDescriptor);
+
+      if (grpcMethodDescriptor.getType() != MethodDescriptor.MethodType.UNARY) {
+        return Mono.error(
+            () ->
+                new IllegalStateException(
+                    "Expected Unary, but got %s for %s"
+                        .formatted(
+                            grpcMethodDescriptor.getType(),
+                            grpcMethodDescriptor.getFullMethodName())));
+      }
+
+      final var callOptions =
+          CallOptions.DEFAULT.withCallCredentials(
+              new JwtCallCredentials(
+                  ((JwtClaims) exchange.getRequiredAttribute("jwtClaims")).toJson()));
+
+      final var call = managedChannel.newCall(grpcMethodDescriptor, callOptions);
+
+      final var dynamicMessage = ClientCalls.blockingUnaryCall(call, inputMessage);
+      // at this point build the GRPC call?
+      return Mono.just(dynamicMessage);
+    } catch (IOException e) {
+      // Fix this later
+      return Mono.error(e);
+    }
+  }
+
+  private Mono<byte[]> dynamicMessageToBytes(DynamicMessage dynamicMessage) {
+    try {
+      return Mono.just(jsonPrinter.print(dynamicMessage).getBytes(StandardCharsets.UTF_8));
+    } catch (IOException e) {
+      return Mono.error(e);
+    }
+  }
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -73,221 +126,29 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
             .map(dataBuffer -> dataBuffer.asInputStream(true))
             .reduce(SequenceInputStream::new);
 
-    final var bodyMono = DataBufferUtils.join(exchange.getRequest().getBody());
-    if (false) {
-      try (var pos = new PipedOutputStream();
-          var pis = new PipedInputStream(pos); ) {
-        return DataBufferUtils.write(exchange.getRequest().getBody().log("BODY"), pos)
-            .log("AAAA")
-            .doOnNext(DataBufferUtils::release)
-            .then(
-                exchange
-                    .getResponse()
-                    .writeWith(
-                        Mono.just(
-                            exchange
-                                .getResponse()
-                                .bufferFactory()
-                                .wrap(("Hel" + pis + " l2o").getBytes(StandardCharsets.UTF_8)))))
-            .then(chain.filter(exchange));
-
-      } catch (IOException e) {
-        return Mono.error(e);
-      }
-    }
-    if (false) {
-      return requestInputStreamMono
-          .doOnNext(
-              inputStream -> {
-                try {
-                  inputStream.close();
-                } catch (IOException e) {
-                  throw new RuntimeException(e);
-                }
-              })
-          .then(
-              exchange
-                  .getResponse()
-                  .writeWith(
-                      Mono.just(
-                          exchange
-                              .getResponse()
-                              .bufferFactory()
-                              .wrap("Hell2o".getBytes(StandardCharsets.UTF_8)))))
-          .then(chain.filter(exchange));
-    }
-
-    if (false) {
-      return exchange
-          .getRequest()
-          .getBody()
-          .log("BODYxx", Level.SEVERE)
-          .doOnNext(
-              bodydMono -> {
-                try {
-                  System.out.println(bodydMono);
-                  System.out.println(bodydMono.asByteBuffer());
-                  System.out.println(bodydMono.asByteBuffer().array().length);
-                  System.out.println(
-                      new String(bodydMono.asByteBuffer().array(), StandardCharsets.UTF_8));
-                } catch (Throwable x) {
-                  x.printStackTrace();
-                } finally {
-                  System.out.println(DataBufferUtils.release(bodydMono));
-                }
-              })
-          .then(
-              exchange
-                  .getResponse()
-                  .writeWith(
-                      Mono.just(
-                          exchange
-                              .getResponse()
-                              .bufferFactory()
-                              .wrap("Hell2o".getBytes(StandardCharsets.UTF_8)))))
-          .then(chain.filter(exchange));
-    }
-
-    if (false) {
-      return exchange
-          .getRequest()
-          .getBody()
-          .log("BODY", Level.SEVERE)
-          .doOnNext(DataBufferUtils::release)
-          .then(
-              exchange
-                  .getResponse()
-                  .writeWith(
-                      Mono.just(
-                          exchange
-                              .getResponse()
-                              .bufferFactory()
-                              .wrap("Hell2o".getBytes(StandardCharsets.UTF_8)))))
-          .then(chain.filter(exchange));
-    }
-    if (false) {
-      return bodyMono
-          .flatMap(
-              buffer ->
-                  exchange
-                      .getResponse()
-                      .writeWith(
-                          Mono.just(
-                              exchange
-                                  .getResponse()
-                                  .bufferFactory()
-                                  .wrap("Hello".getBytes(StandardCharsets.UTF_8)))))
-          .then(chain.filter(exchange));
-    }
-
-    if (true) {
-      return Mono.zip(requestInputStreamMono, methodDescriptorMono)
-          .flatMap(
-              t -> {
-                try (final var jsonReader = new InputStreamReader(t.getT1())) {
-
-                  var builder = DynamicMessage.newBuilder(t.getT2().getInputType());
-                  parser.merge(jsonReader, builder);
-                  final var inputMessage = builder.build();
-
-                  final var grpcMethodDescriptor =
-                      GrpcFunctions.methodDescriptorFromProtobuf(t.getT2());
-
-                  if (grpcMethodDescriptor.getType() != MethodDescriptor.MethodType.UNARY) {
-                    return Mono.error(
-                        () ->
-                            new IllegalStateException(
-                                "Expected Unary, but got %s for %s"
-                                    .formatted(
-                                        grpcMethodDescriptor.getType(),
-                                        grpcMethodDescriptor.getFullMethodName())));
-                  }
-
-                  final var callOptions =
-                      CallOptions.DEFAULT.withCallCredentials(
-                          new JwtCallCredentials(
-                              ((JwtClaims) exchange.getRequiredAttribute("jwtClaims")).toJson()));
-
-                  final var call = managedChannel.newCall(grpcMethodDescriptor, callOptions);
-
-                  final var dynamicMessage = ClientCalls.blockingUnaryCall(call, inputMessage);
-                  // at this point build the GRPC call?
-                  final byte[] bytes =
-                      JsonFormat.printer()
-                          .omittingInsignificantWhitespace()
-                          .print(dynamicMessage)
-                          .getBytes(StandardCharsets.UTF_8);
-                  final var exchangeResponse = exchange.getResponse();
-                  var buffer = exchangeResponse.bufferFactory().wrap(bytes);
-                  exchangeResponse
-                      .getHeaders()
-                      .add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-                  exchangeResponse
-                      .getHeaders()
-                      .add(HttpHeaders.CONTENT_LENGTH, String.valueOf(bytes.length));
-
-                  return exchangeResponse.writeWith(Mono.just(buffer)).then(chain.filter(exchange));
-
-                } catch (IOException e) {
-                  // Fix this later
-                  return Mono.error(e);
-                }
-              })
-          .subscribeOn(grpcScheduler);
-    }
-
-    return Mono.zip(bodyMono, methodDescriptorMono)
+    return Mono.zip(requestInputStreamMono, methodDescriptorMono)
         .flatMap(
             t -> {
-              try (final var jsonReader = new InputStreamReader(t.getT1().asInputStream(true))) {
-
-                var builder = DynamicMessage.newBuilder(t.getT2().getInputType());
-                parser.merge(jsonReader, builder);
-                final var inputMessage = builder.build();
-
-                final var grpcMethodDescriptor =
-                    GrpcFunctions.methodDescriptorFromProtobuf(t.getT2());
-
-                if (grpcMethodDescriptor.getType() != MethodDescriptor.MethodType.UNARY) {
-                  return Mono.error(
-                      () ->
-                          new IllegalStateException(
-                              "Expected Unary, but got %s for %s"
-                                  .formatted(
-                                      grpcMethodDescriptor.getType(),
-                                      grpcMethodDescriptor.getFullMethodName())));
-                }
-
-                final var callOptions =
-                    CallOptions.DEFAULT.withCallCredentials(
-                        new JwtCallCredentials(
-                            ((JwtClaims) exchange.getRequiredAttribute("jwtClaims")).toJson()));
-
-                final var call = managedChannel.newCall(grpcMethodDescriptor, callOptions);
-
-                final var dynamicMessage = ClientCalls.blockingUnaryCall(call, inputMessage);
-                // at this point build the GRPC call?
-                final byte[] bytes =
-                    JsonFormat.printer()
-                        .omittingInsignificantWhitespace()
-                        .print(dynamicMessage)
-                        .getBytes(StandardCharsets.UTF_8);
-                final var exchangeResponse = exchange.getResponse();
-                var buffer = exchangeResponse.bufferFactory().wrap(bytes);
-                exchangeResponse
-                    .getHeaders()
-                    .add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-                exchangeResponse
-                    .getHeaders()
-                    .add(HttpHeaders.CONTENT_LENGTH, String.valueOf(bytes.length));
-
-                return exchangeResponse.writeWith(Mono.just(buffer)).then(chain.filter(exchange));
-
-              } catch (IOException e) {
-                // Fix this later
-                return Mono.error(e);
-              }
+              final var inputStream = t.getT1();
+              final var methodDescriptor = t.getT2();
+              return assembleAndSendMessage(
+                  exchange, managedChannel, inputStream, methodDescriptor);
             })
+        .flatMap(this::dynamicMessageToBytes)
+        .flatMap(
+            messageBytes -> {
+              final var exchangeResponse = exchange.getResponse();
+              var buffer = exchangeResponse.bufferFactory().wrap(messageBytes);
+              exchangeResponse
+                  .getHeaders()
+                  .add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+              exchangeResponse
+                  .getHeaders()
+                  .add(HttpHeaders.CONTENT_LENGTH, String.valueOf(messageBytes.length));
+
+              return exchangeResponse.writeWith(Mono.just(buffer));
+            })
+        .then(chain.filter(exchange))
         .subscribeOn(grpcScheduler);
   }
 

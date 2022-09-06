@@ -12,6 +12,7 @@ import io.grpc.stub.ClientCalls;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.SequenceInputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,6 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.NettyRoutingFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
-import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -66,13 +66,17 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
         GrpcFunctions.methodDescriptor(
             uri, GrpcFunctions.fileDescriptors(serverReflectionStub).map(GrpcFunctions::buildFrom));
 
-    return Mono.zip(
-            cacheRequestBody(
-                exchange, serverHttpRequest -> DataBufferUtils.join(serverHttpRequest.getBody())),
-            methodDescriptorMono)
+    // Request input stream, note that this needs to be closed at the end.
+    final var requestInputStreamMono =
+        exchange
+            .getRequest()
+            .getBody()
+            .map(dataBuffer -> dataBuffer.asInputStream(true))
+            .reduce(SequenceInputStream::new);
+    return Mono.zip(requestInputStreamMono, methodDescriptorMono)
         .flatMap(
             t -> {
-              try (final var jsonReader = new InputStreamReader(t.getT1().asInputStream())) {
+              try (final var jsonReader = new InputStreamReader(t.getT1())) {
 
                 var builder = DynamicMessage.newBuilder(t.getT2().getInputType());
                 JsonFormat.parser().merge(jsonReader, builder);
@@ -146,8 +150,6 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
               } catch (IOException e) {
                 // Fix this later
                 return Mono.error(e);
-              } finally {
-                exchange.getAttributes().remove(CACHED_REQUEST_BODY_ATTR);
               }
             })
         .subscribeOn(grpcScheduler);
