@@ -8,6 +8,7 @@ import com.google.protobuf.util.JsonFormat;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.MethodDescriptor;
+import io.grpc.StatusRuntimeException;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import io.grpc.stub.ClientCalls;
 import java.io.IOException;
@@ -47,19 +48,25 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
   private final JsonFormat.Printer jsonPrinter =
       JsonFormat.printer().omittingInsignificantWhitespace();
 
+  private Mono<DynamicMessage> assembleRequest(
+      final InputStream inputStream, final Descriptors.MethodDescriptor methodDescriptor) {
+    try (final var jsonReader = new InputStreamReader(inputStream)) {
+      var builder = DynamicMessage.newBuilder(methodDescriptor.getInputType());
+      jsonParser.merge(jsonReader, builder);
+      return Mono.just(builder.build());
+    } catch (IOException e) {
+      // Fix this later
+      return Mono.error(e);
+    }
+  }
+
   private Mono<DynamicMessage> assembleAndSendMessage(
       ServerWebExchange exchange,
       Channel managedChannel,
-      InputStream inputStream,
-      Descriptors.MethodDescriptor methodDescriptor) {
+      DynamicMessage request,
+      MethodDescriptor<DynamicMessage, DynamicMessage> grpcMethodDescriptor) {
 
-    try (final var jsonReader = new InputStreamReader(inputStream)) {
-
-      var builder = DynamicMessage.newBuilder(methodDescriptor.getInputType());
-      jsonParser.merge(jsonReader, builder);
-      final var inputMessage = builder.build();
-
-      final var grpcMethodDescriptor = GrpcFunctions.methodDescriptorFromProtobuf(methodDescriptor);
+    try {
 
       if (grpcMethodDescriptor.getType() != MethodDescriptor.MethodType.UNARY) {
         return Mono.error(
@@ -78,10 +85,10 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
 
       final var call = managedChannel.newCall(grpcMethodDescriptor, callOptions);
 
-      final var dynamicMessage = ClientCalls.blockingUnaryCall(call, inputMessage);
+      final var dynamicMessage = ClientCalls.blockingUnaryCall(call, request);
       // at this point build the GRPC call?
       return Mono.just(dynamicMessage);
-    } catch (IOException e) {
+    } catch (StatusRuntimeException e) {
       // Fix this later
       return Mono.error(e);
     }
@@ -131,8 +138,17 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
             t -> {
               final var inputStream = t.getT1();
               final var methodDescriptor = t.getT2();
+              return Mono.zip(
+                  assembleRequest(inputStream, methodDescriptor),
+                  Mono.just(GrpcFunctions.methodDescriptorFromProtobuf(methodDescriptor)));
+            })
+        .flatMap(
+            t -> {
+              final var request = t.getT1();
+              final var grpcMethodDescriptor = t.getT2();
+
               return assembleAndSendMessage(
-                  exchange, managedChannel, inputStream, methodDescriptor);
+                  exchange, managedChannel, request, grpcMethodDescriptor);
             })
         .flatMap(this::dynamicMessageToBytes)
         .flatMap(
