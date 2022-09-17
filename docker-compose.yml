@@ -79,8 +79,8 @@ services:
 #      - OIDC_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
 #      - OIDC_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
 #      - OIDC_REDIRECT_URI=${GOOGLE_REDIRECT_URI:https://oauth.pstmn.io/v1/callback}
-#      - DOCKER_DISCOVERY_DAEMONFULLACCESS=false
-#      - DOCKER_HOST=tcp://daemon:2375
+      - DOCKER_DISCOVERY_DAEMONFULLACCESS=false
+      - DOCKER_HOST=tcp://daemon:2375
 #      - LOGGING_LEVEL_NET_TRAJANO=trace
       - LOGGING_LEVEL_NET_TRAJANO=debug
       # - LOGGING_LEVEL_REQUEST=error
