@@ -1,0 +1,381 @@
+version: "3.8"
+services:
+  edge:
+    image: traefik:latest
+    ports:
+#      - 28083:8080
+      - 28080:80
+    command:
+      - --global.checknewversion=false
+      - --global.sendanonymoususage=false
+
+      - --accesslog
+      - --api
+      - --api.dashboard
+      - --api.insecure
+      - --ping
+      # - --log.level=debug
+      - --entrypoints.http.address=:80
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.swarmMode=true
+      #- --providers.docker.endpoint=unix:///var/run/docker.sock
+      - --providers.docker.endpoint=http://daemon:2375
+      - --providers.docker.network=edge
+      # - --providers.docker.useBindPortIP=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - edge
+      - daemon
+    healthcheck:
+      test: traefik healthcheck --ping
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 256m
+  daemon:
+    image: tecnativa/docker-socket-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - daemon
+    environment:
+      NETWORKS: 1
+      SERVICES: 1
+      TASKS: 1
+    labels:
+      - co.elastic.logs/enabled=false
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+#          cpus: '0.5'
+          memory: 32M
+  gateway:
+    build:
+      context: .
+      target: gateway
+    image:  ghcr.io/trajano/gateway:rework
+    environment:
+      - SPRING_REDIS_CLUSTER_MAXREDIRECTS=3
+      - SPRING_REDIS_CLUSTER_NODES=corecache.internal:6379
+      - SPRING_REDIS_LETTUCE_POOL_MAXACTIVE=30
+      - SPRING_NETTY_LEAKDETECTION=paranoid
+#      - SPRING_R2DBC_USERNAME=gateway-user
+#      - SPRING_R2DBC_PASSWORD=password123
+#      - SPRING_R2DBC_URL=r2dbc:mysql://db/swarm
+#      - SPRING_R2DBC_POOL_INITIALSIZE=100
+      # - SPRING_R2DBC_POOL_MAXSIZE=50
+      - DOCKER_DISCOVERY_SWARMMODE=true
+#      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+#      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+#      - AWS_REGION=${AWS_REGION:-}
+      - AUTH_OIDC_ALLOWEDISSUERS=https://accounts.google.com
+      - AUTH_USESECURERANDOM=false
+#      - OIDC_ISSUER=${GOOGLE_ISSUER:https://accounts.google.com}
+#      - OIDC_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+#      - OIDC_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+#      - OIDC_REDIRECT_URI=${GOOGLE_REDIRECT_URI:https://oauth.pstmn.io/v1/callback}
+#      - DOCKER_DISCOVERY_DAEMONFULLACCESS=false
+      - DOCKER_HOST=tcp://daemon:2375
+#      - LOGGING_LEVEL_NET_TRAJANO=trace
+      - LOGGING_LEVEL_NET_TRAJANO=debug
+      # - LOGGING_LEVEL_REQUEST=error
+      - LOGGING_LEVEL_REQUEST=warn
+#      - LOGGING_LEVEL_ORG_XBILL=trace
+      - LOGGING_LEVEL_ROOT=error
+      - LOGGING_LEVEL_SECURITY=warn
+      # - LOGGING_LEVEL_SECURITY=info
+      # - LOGGING_LEVEL_NET_TRAJANO_SWARM_GATEWAY_DISCOVERY=debug
+      #- LOGGING_LEVEL_ROOT=error
+      - GATEWAY_ROOTHTMLREDIRECTURI=http://localhost:28080/apidoc
+#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_SLEUTH=warn
+    ports:
+      - 28082:8080
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.docker.network: edge
+        traefik.http.routers.gateway.rule: "PathPrefix(`/`)"
+        traefik.http.routers.gateway.priority: "1"
+        traefik.http.services.gateway.loadbalancer.server.port: "8080"
+        traefik.http.services.gateway.loadbalancer.healthcheck.path: /ping
+        traefik.http.services.gateway.loadbalancer.healthcheck.port: "8080"
+        traefik.http.services.gateway.loadbalancer.healthcheck.interval: "10s"
+
+        traefik.http.routers.dashboard.rule: (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
+        traefik.http.routers.dashboard.entryPoints: http
+        traefik.http.routers.dashboard.service: api@internal
+
+        traefik.http.middlewares.strip-prefix.chain.middlewares: strip-prefix-1,strip-prefix-2
+        traefik.http.middlewares.strip-prefix-1.redirectregex.regex: "^(https?://[^/]+/[a-z0-9_]+)$$"
+        traefik.http.middlewares.strip-prefix-1.redirectregex.replacement: "$$1/"
+        traefik.http.middlewares.strip-prefix-1.redirectregex.permanent: "true"
+        traefik.http.middlewares.strip-prefix-2.stripprefixregex.regex: /[a-z0-9_]+
+
+        traefik.http.routers.actuator.rule: "PathPrefix(`/actuator`)"
+        traefik.http.routers.actuator.priority: "1000"
+        traefik.http.routers.actuator.middlewares: actuator
+        traefik.http.middlewares.actuator.redirectregex.regex: ".*"
+        traefik.http.middlewares.actuator.redirectregex.replacement: "/ping"
+
+      update_config:
+        order: start-first
+        failure_action: pause
+#        parallelism: 1
+      restart_policy:
+        max_attempts: 1
+      placement:
+        constraints:
+          - node.role != manager
+      replicas: 5
+      resources:
+        limits:
+          # memory: 512m
+          memory: 1g
+          # memory: 768m
+          # memory: 256m
+#    user: "5000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - services
+      - edge
+      - daemon
+      - redis
+      - default
+  jwks-provider:
+    build:
+      context: .
+      target: jwks-provider
+    image: ghcr.io/trajano/jwks-provider:rework
+    environment:
+      - SPRING_REDIS_CLUSTER_MAXREDIRECTS=3
+      - SPRING_REDIS_CLUSTER_NODES=corecache.internal:6379
+#      - SPRING_REDIS_HOST=redis
+#      - SPRING_LIQUIBASE_DROPFIRST=true
+#      - SPRING_LIQUIBASE_USER=gateway-user
+#      - SPRING_LIQUIBASE_PASSWORD=password123
+#      - SPRING_LIQUIBASE_URL=jdbc:mysql://db/swarm
+#      - SPRING_R2DBC_USERNAME=gateway-user
+#      - SPRING_R2DBC_PASSWORD=password123
+#      - SPRING_R2DBC_URL=r2dbc:mysql://db/swarm
+
+    networks:
+      - default
+      - redis
+    ports:
+      - 28083:8080
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+  apidoc:
+    image: redocly/redoc
+    environment:
+      SPEC_URL: http://localhost:28080/openapi.json
+      BASE_PATH: /apidoc
+    networks:
+      - edge
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.docker.network: edge
+        traefik.http.routers.apidoc.rule: "PathPrefix(`/apidoc`)"
+        traefik.http.routers.apidoc.priority: "1000"
+        traefik.http.routers.apidoc.middlewares: strip-prefix
+        traefik.http.services.apidoc.loadbalancer.server.port: "80"
+        traefik.http.services.apidoc.loadbalancer.healthcheck.path: /
+        traefik.http.services.apidoc.loadbalancer.healthcheck.port: "80"
+        traefik.http.services.apidoc.loadbalancer.healthcheck.interval: "10s"
+      resources:
+        limits:
+          memory: 128m
+  db:
+    image: mysql:8.0.30
+    environment:
+      MYSQL_ROOT_PASSWORD: somerootpassword
+      MYSQL_USER: gateway-user
+      MYSQL_PASSWORD: password123
+      MYSQL_DATABASE: swarm
+    ports:
+      - 28084:3306
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+  redis:
+    image: redis:6
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    networks:
+      - redis
+
+  sample:
+    build:
+      context: .
+      target: sample-service
+    image: ghcr.io/trajano/sample-service:rework
+    environment:
+      - LOGGING_LEVEL_NET_TRAJANO=debug
+    deploy:
+      labels:
+        docker.ids: sample
+        docker.sample.path: /sample/**
+        docker.sample.path.regexp: /sample/(?<remaining>.*)
+        docker.sample.path.replacement: /$${remaining}
+        # This indicates that the backend is a GRPC service rather than HTTP service, default is `http`
+#        docker.sample.protocol: grpc
+#        docker.sample.port: 50000
+      resources:
+        limits:
+          memory: 256m
+    networks:
+      - services
+  grpc-sample:
+    build:
+      context: .
+      target: grpc-service
+    image: ghcr.io/trajano/grpc-service:rework
+    environment:
+      - LOGGING_LEVEL_NET_TRAJANO=debug
+    deploy:
+      labels:
+        docker.ids: grpc
+        docker.grpc.path: /grpc/**
+        docker.grpc.path.regexp: /grpc/(?<remaining>.*)
+        docker.grpc.path.replacement: /$${remaining}
+        # This indicates that the backend is a GRPC service rather than HTTP service, default is `http`
+        docker.grpc.protocol: grpc
+        docker.grpc.port: 50000
+      resources:
+        limits:
+          memory: 256m
+    networks:
+      - services
+#  tomcat:
+#    image: tomcat
+#    networks:
+#      - services
+  whoami:
+    image: containous/whoami
+    deploy:
+      labels:
+        docker.ids: whoami,xxx
+        docker.whoami.path: /whoami/**
+        docker.whoami.path.replacement: /api
+        docker.whoami.port: 80
+        docker.xxx.path: /xxx/**
+        docker.xxx.path.replacement: /$${remaining}
+        docker.xxx.port: 80
+      replicas: 5
+      endpoint_mode: dnsrr
+      resources:
+        limits:
+          memory: 64m
+    labels:
+      docker.ids: whoami,xxx
+      docker.whoami.path: /whoami/**
+      docker.whoami.path.replacement: /$${remaining}
+      docker.xxx.path: /xxx/**
+    networks:
+      - services
+  redis-commander:
+    image: ghcr.io/joeferner/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=swarm:redis:6379
+    ports:
+      - "28085:8081"
+    networks:
+      - redis
+    deploy:
+      resources:
+        limits:
+          memory: 64m
+
+#  wsecho:
+#    image: solsson/websocat
+#    command: "--text ws-l:0.0.0.0:8080 broadcast:mirror:"
+#    deploy:
+#      labels:
+#        docker.ids: wsecho
+#        docker.wsecho.path: /wsecho/**
+#        docker.wsecho.port: 8080
+#      resources:
+#        limits:
+#          memory: 64m
+#      replicas: 0
+#      endpoint_mode: vip
+#    networks:
+#      - services
+#  httpbin:
+#    image: kennethreitz/httpbin
+#    deploy:
+#      labels:
+#        docker.ids: httpbin
+#        docker.httpbin.path: /httpbin/**
+#        docker.httpbin.path.replacement: /$${remaining}
+#        docker.httpbin.port: 80
+#      resources:
+#        limits:
+#          memory: 64m
+#      replicas: 0
+#      endpoint_mode: vip
+#    networks:
+#      - services
+#  whoami2:
+#    image: containous/whoami
+#    deploy:
+#      labels:
+#        traefik.enable: "true"
+#        traefik.http.routers.whoami2.rule: "PathPrefix(`/w/`)"
+#        traefik.http.routers.whoami2.entryPoints: "http"
+#        traefik.http.routers.whoami2.priority: "1000"
+#        traefik.http.services.whoami2.loadbalancer.server.port: "80"
+#
+#        docker.ids: whoami2
+#        docker.whoami2.path: /whoami2/**
+#        docker.whoami2.path.replacement: /$${remaining}
+#        docker.whoami2.port: 80
+#      replicas: 0
+#      endpoint_mode: vip
+#      resources:
+#        limits:
+#          memory: 64m
+#    networks:
+#      - services
+#      - edge
+#  whoami3:
+#    image: containous/whoami
+#    deploy:
+#      labels:
+#        docker.ids: whoami3
+#        docker.whoami3.path: /non/**
+#        docker.whoami3.path.replacement: /$${remaining}
+#        docker.whoami3.port: 80
+#      replicas: 0
+#      endpoint_mode: vip
+#      resources:
+#        limits:
+#          memory: 64m
+#    networks:
+#      - services
+networks:
+  daemon:
+    internal: true
+    attachable: false
+  redis:
+    internal: true
+    attachable: false
+  edge:
+    name: edge
+    internal: false
+  services:
+    name: services
+    attachable: true
