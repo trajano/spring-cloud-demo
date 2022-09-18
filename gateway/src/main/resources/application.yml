@@ -71,6 +71,7 @@ spring:
             - RemoveRequestHeader='Cookie'
             - RemoveRequestHeader='X-Jwt-Assertion'
             # Prevent propagation of traces
+            - RemoveRequestHeader='X-Amzn-Trace-Id'
             - RemoveRequestHeader='X-B3-TraceId'
             - RemoveRequestHeader='X-Trace-ID'
             - name: ProtectedResource
