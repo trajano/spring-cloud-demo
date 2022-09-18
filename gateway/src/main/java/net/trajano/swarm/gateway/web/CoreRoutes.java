@@ -57,7 +57,7 @@ public class CoreRoutes {
   RouterFunction<ServerResponse> unavailable() {
 
     return route(
-        path("/unavailable").and(request -> "forward".equals(request.uri().getScheme())),
+        path("/unavailable"),
         request ->
             ServerResponse.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .contentType(MediaType.APPLICATION_JSON)

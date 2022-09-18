@@ -55,7 +55,12 @@ public class CustomErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
           .contentType(MediaType.APPLICATION_JSON)
           .body(
               BodyInserters.fromValue(
-                  GatewayResponse.builder().ok(false).error("not_found").build()));
+                  GatewayResponse.builder()
+                      .ok(false)
+                      .error("not_found")
+                      .errorDescription(
+                          "" + request.uri() + " " + request.path() + " " + request.attributes())
+                      .build()));
     } else if (errorStatus >= 400 && errorStatus < 500) {
       return ServerResponse.status(errorStatus)
           .contentType(MediaType.APPLICATION_JSON)

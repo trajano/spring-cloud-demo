@@ -47,6 +47,8 @@ public class ChannelProvider implements DisposableBean {
     final var b =
         ManagedChannelBuilder.forAddress(serviceInstance.getHost(), serviceInstance.getPort())
             .executor(grpcExecutor)
+            .enableRetry()
+            .maxRetryAttempts(2)
             .intercept(grpcTracing.newClientInterceptor())
             .intercept(new MetricCollectingClientInterceptor(meterRegistry));
     if (!serviceInstance.isSecure()) {

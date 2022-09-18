@@ -38,7 +38,7 @@ dependencies {
 	implementation 'dnsjava:dnsjava:3.5.1'
 	implementation project(':gateway-common')
 	runtimeOnly 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
-	testImplementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
+	implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'

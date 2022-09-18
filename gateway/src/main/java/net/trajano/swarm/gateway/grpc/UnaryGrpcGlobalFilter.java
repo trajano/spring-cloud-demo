@@ -178,10 +178,6 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
 
               return exchangeResponse.writeWith(Mono.just(buffer));
             })
-        //        .switchIfEmpty(
-        //            Mono.error(
-        //                new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Missing
-        // data")))
         .subscribeOn(grpcScheduler);
   }
 
