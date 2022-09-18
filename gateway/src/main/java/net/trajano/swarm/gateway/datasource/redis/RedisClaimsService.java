@@ -115,7 +115,7 @@ public class RedisClaimsService implements ClaimsService {
                 return redisUserSessions
                     .findById(UUID.fromString(c.getJwtId()))
                     .switchIfEmpty(Mono.error(SecurityException::new))
-                    .thenReturn(c);
+                    .map(i -> c);
               } catch (MalformedClaimException e) {
                 return Mono.error(e);
               }

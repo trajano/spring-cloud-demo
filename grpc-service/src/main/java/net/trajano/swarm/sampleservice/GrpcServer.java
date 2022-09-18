@@ -6,8 +6,10 @@ import io.grpc.*;
 import io.grpc.protobuf.services.ProtoReflectionService;
 import java.io.IOException;
 import java.util.Set;
-import javax.annotation.PreDestroy;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +19,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class GrpcServer {
+public class GrpcServer implements DisposableBean {
   public static Metadata.Key<String> JWT_CLAIMS_KEY =
       Metadata.Key.of("jwtClaims", Metadata.ASCII_STRING_MARSHALLER);
 
@@ -25,12 +27,16 @@ public class GrpcServer {
 
   private final Server server;
 
+  /** Define an executor to handle the work rather than relying on the default. */
+  private final ExecutorService executor =
+      Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
   public GrpcServer(
       final Set<BindableService> grpcServices,
       final Tracing tracing,
       @Value("${grpc.port:50000}") int port) {
     final var interceptor = GrpcTracing.create(tracing).newServerInterceptor();
-    var b = ServerBuilder.forPort(port);
+    var b = ServerBuilder.forPort(port).executor(executor);
     grpcServices.forEach(b::addService);
     log.info("{} listening on {}", "server", port);
     this.server =
@@ -40,8 +46,9 @@ public class GrpcServer {
             .build();
   }
 
-  @PreDestroy
-  public void shutdown() throws InterruptedException {
+  @Override
+  public void destroy() throws Exception {
+    executor.shutdown();
     server.shutdown().awaitTermination();
   }
 

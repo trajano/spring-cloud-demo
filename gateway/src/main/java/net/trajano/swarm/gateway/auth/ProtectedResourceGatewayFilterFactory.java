@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
@@ -95,9 +96,7 @@ public class ProtectedResourceGatewayFilterFactory
 
                       ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
                       ServerWebExchangeUtils.setAlreadyRouted(exchange);
-                      return chain
-                          .filter(exchange)
-                          .then(respondWithUnauthorized(config, exchange, null));
+                      return respondWithUnauthorized(config, exchange, null);
                     } else {
 
                       final String bearerToken = authorization.substring("Bearer ".length());
@@ -115,25 +114,25 @@ public class ProtectedResourceGatewayFilterFactory
                                 ServerWebExchangeUtils.setResponseStatus(
                                     exchange, HttpStatus.UNAUTHORIZED);
                                 ServerWebExchangeUtils.setAlreadyRouted(exchange);
-                                log.debug("security error obtaining claims: {}", ex.getMessage());
-                                return chain
-                                    .filter(exchange)
+                                log.debug(
+                                    "SecurityException obtaining claims: {}", ex.getMessage(), ex);
+                                return respondWithUnauthorized(config, exchange, "invalid_token")
                                     .delayElement(
                                         Duration.ofMillis(authProperties.getPenaltyDelayInMillis()),
-                                        penaltyScheduler)
-                                    .then(
-                                        respondWithUnauthorized(config, exchange, "invalid_token"));
+                                        penaltyScheduler);
                               })
                           .onErrorResume(
+                              ex -> !(ex instanceof ResponseStatusException),
                               ex -> {
                                 ServerWebExchangeUtils.setResponseStatus(
                                     exchange, HttpStatus.UNAUTHORIZED);
                                 ServerWebExchangeUtils.setAlreadyRouted(exchange);
-                                log.warn("error obtaining claims: {}", ex.getMessage());
-                                return chain
-                                    .filter(exchange)
-                                    .then(
-                                        respondWithUnauthorized(config, exchange, "invalid_token"));
+                                log.warn(
+                                    "{} when obtaining claims: {}",
+                                    ex.getClass(),
+                                    ex.getMessage(),
+                                    ex);
+                                return respondWithUnauthorized(config, exchange, "invalid_token");
                               });
                     }
                   }
@@ -147,6 +146,7 @@ public class ProtectedResourceGatewayFilterFactory
     return Mono.defer(
         () -> {
           final var response = exchange.getResponse();
+          response.setStatusCode(HttpStatus.UNAUTHORIZED);
           if (error != null) {
             response
                 .getHeaders()

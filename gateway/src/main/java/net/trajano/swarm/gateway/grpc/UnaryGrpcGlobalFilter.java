@@ -31,9 +31,11 @@ import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.core.io.buffer.PooledDataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
@@ -176,6 +178,9 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
 
               return exchangeResponse.writeWith(Mono.just(buffer));
             })
+        .switchIfEmpty(
+            Mono.error(
+                new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Missing data")))
         .then(chain.filter(exchange))
         .subscribeOn(grpcScheduler);
   }

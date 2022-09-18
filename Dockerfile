@@ -59,9 +59,10 @@ COPY --from=extractor /w/gateway/* /w/
 COPY --from=doc-builder /w/dist/openapi.json /
 # ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "-Dorg.slf4j.simpleLogger.defaultLogLevel=debug","org.springframework.boot.loader.JarLauncher"]
 # ENTRYPOINT ["java","-XX:+AllowRedefinitionToAddDeleteMethods","org.springframework.boot.loader.JarLauncher"]
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", \
-"-XX:+AllowRedefinitionToAddDeleteMethods", \
- "org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java", \
+  "-Djava.security.egd=file:/dev/./urandom", \
+  "-XX:MaxRAMPercentage=80", \
+  "org.springframework.boot.loader.JarLauncher" ]
 HEALTHCHECK --interval=5s --start-period=60s \
     CMD ["java", "-Dloader.main=net.trajano.swarm.gateway.healthcheck.HealthProbe", "org.springframework.boot.loader.PropertiesLauncher" ]
 #HEALTHCHECK --interval=5s --start-period=60s \
@@ -74,7 +75,10 @@ FROM openjdk:17-jdk-alpine as gateway-alpine
 WORKDIR /w
 COPY --from=extractor /w/gateway/* /w/
 COPY --from=doc-builder /w/dist/openapi.json /
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java", \
+  "-Djava.security.egd=file:/dev/./urandom", \
+  "-XX:MaxRAMPercentage=80", \
+  "org.springframework.boot.loader.JarLauncher" ]
 # ENTRYPOINT ["java","-XX:+AllowRedefinitionToAddDeleteMethods","org.springframework.boot.loader.JarLauncher"]
 #ENTRYPOINT ["java","-Dorg.slf4j.simpleLogger.defaultLogLevel=trace","org.springframework.boot.loader.JarLauncher"]
 HEALTHCHECK --interval=5s --start-period=60s \

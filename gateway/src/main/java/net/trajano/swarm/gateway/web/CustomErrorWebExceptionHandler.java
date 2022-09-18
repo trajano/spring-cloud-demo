@@ -1,7 +1,6 @@
 package net.trajano.swarm.gateway.web;
 
 import brave.Tracing;
-import java.util.Map;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
@@ -20,15 +19,6 @@ import reactor.core.publisher.Mono;
 public class CustomErrorWebExceptionHandler extends AbstractErrorWebExceptionHandler {
 
   private final Tracing tracing;
-  /**
-   * Get the HTTP error status information from the error map.
-   *
-   * @param errorAttributes the current error information
-   * @return the error HTTP status
-   */
-  protected int getHttpStatus(Map<String, Object> errorAttributes) {
-    return (int) errorAttributes.get("status");
-  }
 
   /**
    * Create a new {@code AbstractErrorWebExceptionHandler}.
@@ -58,9 +48,15 @@ public class CustomErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
 
   private Mono<ServerResponse> renderErrorResponse(ServerRequest request) {
 
-    int errorStatus =
-        (int) getErrorAttributes(request, ErrorAttributeOptions.defaults()).get("status");
-    if (errorStatus >= 400 && errorStatus < 500) {
+    final var errorAttributes = getErrorAttributes(request, ErrorAttributeOptions.defaults());
+    int errorStatus = (int) errorAttributes.get("status");
+    if (errorStatus == 404) {
+      return ServerResponse.status(errorStatus)
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+              BodyInserters.fromValue(
+                  GatewayResponse.builder().ok(false).error("not_found").build()));
+    } else if (errorStatus >= 400 && errorStatus < 500) {
       return ServerResponse.status(errorStatus)
           .contentType(MediaType.APPLICATION_JSON)
           .body(
