@@ -51,8 +51,7 @@ public abstract class AbstractAuthController<A, P> {
   @Autowired private Scheduler logoutScheduler;
 
   @Autowired
-  @Qualifier("penalty")
-  private Scheduler penaltyScheduler;
+  @Qualifier("penalty") private Scheduler penaltyScheduler;
 
   @Autowired private Scheduler refreshTokenScheduler;
 

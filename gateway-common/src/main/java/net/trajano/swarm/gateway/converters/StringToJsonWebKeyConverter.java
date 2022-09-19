@@ -11,8 +11,7 @@ import org.springframework.stereotype.Component;
 @ReadingConverter
 public class StringToJsonWebKeyConverter implements Converter<String, JsonWebKey> {
 
-  @Nullable
-  @Override
+  @Nullable @Override
   public JsonWebKey convert(final String source) {
 
     try {

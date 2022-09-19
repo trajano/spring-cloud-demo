@@ -14,8 +14,7 @@ import org.springframework.lang.Nullable;
 public record BlockSigningKey(@Id Long id, long epochSecondsBlock, String keyId)
     implements Persistable<Long> {
 
-  @Nullable
-  @Override
+  @Nullable @Override
   public Long getId() {
 
     return id;

@@ -10,8 +10,7 @@ import org.springframework.stereotype.Component;
 @WritingConverter
 public class JwtClaimsToStringConverter implements Converter<JwtClaims, String> {
 
-  @Nullable
-  @Override
+  @Nullable @Override
   public String convert(final JwtClaims source) {
 
     return source.toJson();

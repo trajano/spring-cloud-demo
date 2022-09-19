@@ -11,8 +11,7 @@ import org.springframework.stereotype.Component;
 @ReadingConverter
 public class StringToJwtClaimsConverter implements Converter<String, JwtClaims> {
 
-  @Nullable
-  @Override
+  @Nullable @Override
   public JwtClaims convert(final String source) {
 
     try {

@@ -10,8 +10,7 @@ import org.springframework.stereotype.Component;
 @WritingConverter
 public class JsonWebKeyToStringConverter implements Converter<JsonWebKey, String> {
 
-  @Nullable
-  @Override
+  @Nullable @Override
   public String convert(final JsonWebKey source) {
 
     return source.toJson();

@@ -13,8 +13,7 @@ import org.springframework.lang.Nullable;
 public record JsonWebKeyPair(@Id String keyId, String jwk, Instant expiresOn)
     implements Persistable<String> {
 
-  @Nullable
-  @Override
+  @Nullable @Override
   public String getId() {
 
     return keyId;

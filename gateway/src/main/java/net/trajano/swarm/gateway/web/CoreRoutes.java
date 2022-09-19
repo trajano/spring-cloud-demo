@@ -18,8 +18,7 @@ import org.springframework.web.reactive.function.server.*;
 @SuppressWarnings("unused")
 public class CoreRoutes {
 
-  @Value("${gateway.root-html-redirect-uri:#{null}}")
-  private URI rootHtmlRedirectUri;
+  @Value("${gateway.root-html-redirect-uri:#{null}}") private URI rootHtmlRedirectUri;
 
   @Bean
   RouterFunction<ServerResponse> htmlRedirect() {
