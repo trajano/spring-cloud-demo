@@ -24,12 +24,6 @@ dependencies {
 	api 'org.bitbucket.b_c:jose4j:0.8.0'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation "org.springframework.boot:spring-boot-starter-log4j2"
-	modules {
-		module("org.springframework.boot:spring-boot-starter-logging") {
-			replacedBy("org.springframework.boot:spring-boot-starter-log4j2", "Use Log4j2 instead of Logback")
-		}
-	}
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
