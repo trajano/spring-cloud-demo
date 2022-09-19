@@ -30,8 +30,8 @@ import reactor.core.scheduler.Scheduler;
  * <p>Security logging is not performed here, see {@link ClaimsService} implementation for these
  * logs.
  *
- * @param <A>
- * @param <P>
+ * @param <A> authentication request
+ * @param <P> profile type (may be removed later)
  */
 @Slf4j
 public abstract class AbstractAuthController<A, P> {

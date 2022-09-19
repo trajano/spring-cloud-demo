@@ -28,4 +28,8 @@ public class OAuthTokenResponse extends GatewayResponse {
   /** The refresh token that would be used to generate a new the access token. */
   @JsonProperty("refresh_token")
   private String refreshToken;
+
+  /** The profile information would be encoded as a JWT here that is signed with a key.  This may be JWE in the future to protect data in transit, but may be overkill since it's already TLS. */
+  @JsonProperty("id_token")
+  private String idToken;
 }

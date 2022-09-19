@@ -10,6 +10,7 @@ This contains a public/private
 keypair suitable for signature
 generation
 end note
+
 entity UserSession <<Hash>> {
   jwtId : UUID
   --
@@ -22,5 +23,24 @@ note right of UserSession::verificationJwk
 This contains the public key only
 suitable for verification
 end note
+
+
+entity Acme <<Hash>> {
+  caEndpoint : URL
+  names: List<DNS Names>
+  --
+  keyStore
+
+  challengeToken
+  challengeAuthorization
+
+  keyStore SHA512
+  nodeUpdating: boolean
+
+  userKeyPair
+  domainKeyPair
+  tosUrl
+  certificate
+}
 
 @enduml
