@@ -1,5 +1,7 @@
 package net.trajano.swarm.gateway;
 
+import java.security.Security;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
@@ -20,7 +22,9 @@ public class GatewayApplication {
 
   public static void main(String[] args) {
 
-    //    ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
+    final BouncyCastleProvider bouncyCastleProvider = new BouncyCastleProvider();
+    Security.insertProviderAt(bouncyCastleProvider, 1);
+    //        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
     Schedulers.enableMetrics();
     //    BlockHound.builder().allowBlockingCallsInside("java.util.UUID", "randomUUID").install();
     //    Schedulers.addExecutorServiceDecorator(

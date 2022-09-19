@@ -6,7 +6,7 @@ This complements my other project [docker-swarm-aws-terraform-module]()
 * `sample-service` this is a sample service endpoint that exposes HTTP, SSE, and WebSocket endpoints.  This is exposed via discovery.
 * `grpc-service`  this is a sample service endpoint that is GRPC directly.  This is exposed via discovery.
 * `acme` this uses acme4j to provide the LetsEncrypt certificates into Redis.  It also handles the token endpoint and gateway routes to this directly, it is not exposed via discovery. **LATER**
-* `redirect` this is a service that redirects GET requests to a different URL.  Primarily used to redirect from HTTP to HTTPS 
+* `redirect` this is a service that redirects GET requests to a different URL.  Primarily used to redirect from HTTP to HTTPS
 
 ## Opening in IntelliJ
 

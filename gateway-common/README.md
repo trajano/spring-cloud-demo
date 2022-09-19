@@ -54,10 +54,10 @@ Why not use database?
 
 > Complexity of handling data when the Redis installation is a cluster.  In addition there's a chance of data loss that's implied by the clustering of Redis.  That's basically why it was dropped at one point.
 > However, it was determined that using a database was *significantly* slower than Redis that it cannot handle a light load.  However, the techniques and structures used from it was ported back to Redis and made more reliable.
-> 
+>
 > In addition, JPA does not support reactive frameworks at the moment.  Instead we use Spring Data R2DBC which works like Spring Data JDBC with support for reactive frameworks.
-> 
-> Optimistic locking using `@Version` wasn't used as data being put in will never be updated, only deleted (via expiration mechanism or explicit revocation) and read.  The only exception would be the refresh token which will be updated. 
+>
+> Optimistic locking using `@Version` wasn't used as data being put in will never be updated, only deleted (via expiration mechanism or explicit revocation) and read.  The only exception would be the refresh token which will be updated.
 
 Why is `jti` the same on access token, refresh token?
 
@@ -75,7 +75,7 @@ Why not use JWE for the access token?
 How does token validation work?
 
 > Gateway and JWKS provider uses the same Redis instance.  This simplifies and speeds up the requests for the token and validation.  There is no need to manage internal state as much on gateway as the performance of direct Redis access is quite fast already.
-> 
+>
 > All active *refresh tokens* and their verification keys are stored in Redis.  The signing keys are not associated with the Refresh token.  Because of this, it didn't make sense to use Kafka to handle the distribution of the keys as it will be stored in a Redis in the end.
 
 Why does `refresh_token` track the initial issuance?
@@ -89,13 +89,13 @@ What validations are done on the access token?
 Why does gateway need to restart if the SSL certificate is updated by LetsEncrypt?
 
 > Limitation of Spring Webflux, it can only read the keystore at start up.  It relies on the fact that there is multiple gateway instances and is configured to restart on `any` condition which is the default.
-> 
+>
 > The way it works is if there is a new certificate `acme` will update the value of the SHA512 of the updated store.
-> 
+>
 > The gateway server will check the value at the end of each request and when it completes it will set the `nodeUpdating` value to true and queue itself for termination.  If it is already `true`, it will not do anything.
-> 
+>
 > When the gateway instance restarts, it clears of the `nodeUpdating` flag so the next request on the other server will have its turn to update.  Only one should update at a time, but even if it is a race condition, it's still okay as everything will resolve in the end.
-> 
+>
 > Even if there is a service that forgets to clear the flag, any new instance will clear it of at startup.
 
 Why does gateway not use distroless Java?
@@ -104,4 +104,4 @@ Why does gateway not use distroless Java?
 
 How do I integrate my own identity provider?
 
-> `simple-auth.enabled: false` and provide an implementation of IdentityService and a @RestController that extends AbstractAuthController with the authentication request type used by identity service passed in as a generic parameter. 
+> `simple-auth.enabled: false` and provide an implementation of IdentityService and a @RestController that extends AbstractAuthController with the authentication request type used by identity service passed in as a generic parameter.

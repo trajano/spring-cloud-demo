@@ -36,7 +36,7 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     implementation 'dnsjava:dnsjava:3.5.1'
     implementation project(':gateway-common')
-
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.71.1'
 
     //	runtimeOnly 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
