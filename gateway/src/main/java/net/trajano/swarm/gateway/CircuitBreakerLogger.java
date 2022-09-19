@@ -1,57 +1,50 @@
 package net.trajano.swarm.gateway;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
+/** Configures the circuit breaker to log events */
 @Component
 @RequiredArgsConstructor
-public class CircuitBreakerLogger {
+public class CircuitBreakerLogger implements InitializingBean {
 
   private final CircuitBreakerRegistry circuitBreakerRegistry;
 
-  private PrintWriter fos;
+  @Override
+  public void afterPropertiesSet() {
 
-  @PostConstruct
-  public void init() {
-
-    try {
-      fos = new PrintWriter(new FileWriter("/tmp/c.log"));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
     circuitBreakerRegistry
-        .circuitBreaker("resilience")
-        .getEventPublisher()
-        .onStateTransition(
-            event -> {
-              fos.println(
-                  event.getCircuitBreakerName()
-                      + event.getStateTransition()
-                      + event.getEventType()
-                      + event.getCreationTime());
-              fos.flush();
-            })
-        .onError(
-            event -> {
-              fos.println(
-                  event.getCircuitBreakerName()
-                      + event.getElapsedDuration()
-                      + event.getEventType()
-                      + event.getCreationTime()
-                      + event.getThrowable());
-              event.getThrowable().printStackTrace(fos);
-              fos.flush();
-            })
-        .onEvent(
-            event -> {
-              fos.println(
-                  event.getCircuitBreakerName() + event.getEventType() + event.getCreationTime());
-            });
-    ;
+        .getAllCircuitBreakers()
+        .map(CircuitBreaker::getEventPublisher)
+        .forEach(this::configureCircuitBreaker);
+  }
+
+  private void configureCircuitBreaker(CircuitBreaker.EventPublisher eventPublisher) {
+
+    eventPublisher.onStateTransition(
+        event -> {
+          final Logger logger =
+              LoggerFactory.getLogger("circuitbreaker." + event.getCircuitBreakerName());
+          logger.warn(
+              "State transition from={} to={}",
+              event.getStateTransition().getFromState().name(),
+              event.getStateTransition().getToState().name());
+        });
+
+    eventPublisher.onError(
+        event -> {
+          final Logger logger =
+              LoggerFactory.getLogger("circuitbreaker." + event.getCircuitBreakerName());
+          logger.error(
+              "{} duration={}ms",
+              event.getThrowable().getMessage(),
+              event.getElapsedDuration().toMillis(),
+              event.getThrowable());
+        });
   }
 }
