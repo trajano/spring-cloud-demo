@@ -119,7 +119,8 @@ public abstract class AbstractAuthController<A, P> {
                                   "Bearer realm=\"%s\"".formatted(authProperties.getRealm()));
                         })
                     .delayElement(Duration.ofMillis(authProperties.getPenaltyDelayInMillis())))
-        .onErrorResume(TimeoutException.class, ex1 -> respondWithServiceUnavailable(serverWebExchange))
+        .onErrorResume(
+            TimeoutException.class, ex1 -> respondWithServiceUnavailable(serverWebExchange))
         .subscribeOn(authenticationScheduler);
   }
 
@@ -201,36 +202,41 @@ public abstract class AbstractAuthController<A, P> {
               }
             })
         .flatMap(this::addDelaySpecifiedInServiceResponse)
-        .onErrorResume(TimeoutException.class, ex1 -> respondWithServiceUnavailable(serverWebExchange))
+        .onErrorResume(
+            TimeoutException.class, ex1 -> respondWithServiceUnavailable(serverWebExchange))
         .subscribeOn(refreshTokenScheduler);
   }
 
-    /**
-     * Handle timeouts gracefully to the client when logging out.  Returns an okay response.
-     * @param exchange web exchange
-     * @return response mono
-     */
-    private Mono<GatewayResponse> respondWithOk(ServerWebExchange exchange) {
-        return Mono.just(GatewayResponse.builder().ok(true).build())
-                .doOnNext(
-                        response -> {
-                            final var serverHttpResponse = exchange.getResponse();
-                            serverHttpResponse.setStatusCode(HttpStatus.OK);
-                        });
-    }
+  /**
+   * Handle timeouts gracefully to the client when logging out. Returns an okay response.
+   *
+   * @param exchange web exchange
+   * @return response mono
+   */
+  private Mono<GatewayResponse> respondWithOk(ServerWebExchange exchange) {
+    log.warn("timed out performing logout request, silently returning OK to client");
+    return Mono.just(GatewayResponse.builder().ok(true).build())
+        .doOnNext(
+            response -> {
+              final var serverHttpResponse = exchange.getResponse();
+              serverHttpResponse.setStatusCode(HttpStatus.OK);
+            });
+  }
 
-    /**
-     * Handle timeouts gracefully to the client.
-     * @param exchange web exchange
-     * @return response mono
-     */
+  /**
+   * Handle timeouts gracefully to the client.
+   *
+   * @param exchange web exchange
+   * @return response mono
+   */
   private Mono<GatewayResponse> respondWithServiceUnavailable(ServerWebExchange exchange) {
+    log.warn("timed out performing request");
     return Mono.just(GatewayResponse.builder().ok(false).error("service_unavailable").build())
         .doOnNext(
             response -> {
               final var serverHttpResponse = exchange.getResponse();
               serverHttpResponse.setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
-                serverHttpResponse.getHeaders().add(HttpHeaders.RETRY_AFTER, "120");
+              serverHttpResponse.getHeaders().add(HttpHeaders.RETRY_AFTER, "120");
             });
   }
 }

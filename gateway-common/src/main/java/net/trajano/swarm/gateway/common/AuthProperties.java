@@ -13,9 +13,7 @@ public class AuthProperties {
 
   private int allowedClockSkewInSeconds = 0;
 
-  /**
-   * Number of milliseconds an authentication should be allowed take.
-   */
+  /** Number of milliseconds an authentication should be allowed take. */
   private int authenticationProcessingTimeoutInMillis = 3000;
 
   /** If true, the JWT is compressed when placed in the access token. */
@@ -39,17 +37,13 @@ public class AuthProperties {
   /** Prefix for keys. */
   private String redisPrefix = "gateway";
 
-  /**
-   * Number of milliseconds a refresh should be allowed take.
-   */
+  /** Number of milliseconds a refresh should be allowed take. */
   private int refreshProcessingTimeoutInMillis = 3000;
 
   /** Refresh token time expires in seconds. This is kept low to make it easier to test. */
   private int refreshTokenExpiresInSeconds = 1200;
 
-  /**
-   * Number of milliseconds a revoke should be allowed take.
-   */
+  /** Number of milliseconds a revoke should be allowed take. */
   private int revokeProcessingTimeoutInMillis = 3000;
 
   /**
