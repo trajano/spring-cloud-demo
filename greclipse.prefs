@@ -1,4 +1,2 @@
 org.eclipse.jdt.core.formatter.tabulation.char=space
-org.eclipse.jdt.core.formatter.tabulation.size=2
-org.eclipse.jdt.core.formatter.indentation.size=2
 org.eclipse.jdt.core.formatter.indent_empty_lines=false

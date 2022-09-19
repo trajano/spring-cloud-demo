@@ -7,4 +7,4 @@ include(
         'dynamic-grpc-client',
         'spring-redis-region',
         'jwks-provider'
-)
+        )

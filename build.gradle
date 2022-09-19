@@ -1,4 +1,14 @@
 plugins {
-	id 'idea'
-	id "com.diffplug.spotless" version "6.11.0"
+    id 'idea'
+    id "com.diffplug.spotless" version "6.11.0"
+}
+spotless {
+    format "misc", {
+        target '*.gradle', '*.md', '.gitignore'
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+repositories {
+    mavenCentral()
 }

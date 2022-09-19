@@ -23,7 +23,7 @@ jar {
 }
 spotless {
     format "misc", {
-        target '*.md', '.gitignore'
+        target '*.gradle', '*.md', '.gitignore'
         trimTrailingWhitespace()
         endWithNewline()
     }
@@ -32,10 +32,6 @@ spotless {
         removeUnusedImports()
         googleJavaFormat()
         formatAnnotations()
-    }
-    groovyGradle {
-        target '*.gradle' // default target of groovyGradle
-        greclipse().configFile rootProject.files('greclipse.prefs')
     }
 }
 build.dependsOn spotlessApply
