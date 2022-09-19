@@ -11,7 +11,7 @@ config:
       arrivalRate: 1
 #      maxVusers: 2
   http:
-    timeout: 5
+    timeout: 6
   environments:
     localhost-direct-small-load:
       target: "http://localhost:28082"
