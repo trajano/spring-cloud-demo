@@ -49,6 +49,7 @@ public class CustomErrorWebExceptionHandler extends AbstractErrorWebExceptionHan
   private Mono<ServerResponse> renderErrorResponse(ServerRequest request) {
 
     final var errorAttributes = getErrorAttributes(request, ErrorAttributeOptions.defaults());
+    System.out.println(request.exchange().getAttributes());
     int errorStatus = (int) errorAttributes.get("status");
     if (errorStatus == 404) {
       return ServerResponse.status(errorStatus)

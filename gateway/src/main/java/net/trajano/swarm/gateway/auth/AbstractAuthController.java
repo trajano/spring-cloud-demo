@@ -3,6 +3,7 @@ package net.trajano.swarm.gateway.auth;
 import static reactor.core.publisher.Mono.fromCallable;
 
 import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import net.trajano.swarm.gateway.common.AuthProperties;
@@ -79,6 +80,7 @@ public abstract class AbstractAuthController<A, P> {
             authenticationRequest ->
                 identityService.authenticate(
                     authenticationRequest, serverWebExchange.getRequest().getHeaders()))
+        .timeout(Duration.ofMillis(authProperties.getAuthenticationProcessingTimeoutInMillis()))
         .filter(IdentityServiceResponse::isOk)
         .flatMap(
             identityServiceResponse ->
@@ -117,6 +119,7 @@ public abstract class AbstractAuthController<A, P> {
                                   "Bearer realm=\"%s\"".formatted(authProperties.getRealm()));
                         })
                     .delayElement(Duration.ofMillis(authProperties.getPenaltyDelayInMillis())))
+        .onErrorResume(TimeoutException.class, ex1 -> respondWithServiceUnavailable(serverWebExchange))
         .subscribeOn(authenticationScheduler);
   }
 
@@ -148,6 +151,7 @@ public abstract class AbstractAuthController<A, P> {
 
     return claimsService
         .revoke(request.getToken(), serverWebExchange.getRequest().getHeaders())
+        .timeout(Duration.ofMillis(authProperties.getRevokeProcessingTimeoutInMillis()))
         .doOnNext(
             serviceResponse -> {
               final var serverHttpResponse = serverWebExchange.getResponse();
@@ -163,6 +167,7 @@ public abstract class AbstractAuthController<A, P> {
                     .delayElement(
                         Duration.ofMillis(authProperties.getPenaltyDelayInMillis()),
                         penaltyScheduler))
+        .onErrorResume(TimeoutException.class, ex1 -> respondWithOk(serverWebExchange))
         .subscribeOn(logoutScheduler);
   }
 
@@ -180,6 +185,7 @@ public abstract class AbstractAuthController<A, P> {
     return claimsService
         .refresh(
             oAuthRefreshRequest.getRefresh_token(), serverWebExchange.getRequest().getHeaders())
+        .timeout(Duration.ofMillis(authProperties.getRefreshProcessingTimeoutInMillis()))
         .doOnNext(
             serviceResponse -> {
               final var serverHttpResponse = serverWebExchange.getResponse();
@@ -195,6 +201,36 @@ public abstract class AbstractAuthController<A, P> {
               }
             })
         .flatMap(this::addDelaySpecifiedInServiceResponse)
+        .onErrorResume(TimeoutException.class, ex1 -> respondWithServiceUnavailable(serverWebExchange))
         .subscribeOn(refreshTokenScheduler);
+  }
+
+    /**
+     * Handle timeouts gracefully to the client when logging out.  Returns an okay response.
+     * @param exchange web exchange
+     * @return response mono
+     */
+    private Mono<GatewayResponse> respondWithOk(ServerWebExchange exchange) {
+        return Mono.just(GatewayResponse.builder().ok(true).build())
+                .doOnNext(
+                        response -> {
+                            final var serverHttpResponse = exchange.getResponse();
+                            serverHttpResponse.setStatusCode(HttpStatus.OK);
+                        });
+    }
+
+    /**
+     * Handle timeouts gracefully to the client.
+     * @param exchange web exchange
+     * @return response mono
+     */
+  private Mono<GatewayResponse> respondWithServiceUnavailable(ServerWebExchange exchange) {
+    return Mono.just(GatewayResponse.builder().ok(false).error("service_unavailable").build())
+        .doOnNext(
+            response -> {
+              final var serverHttpResponse = exchange.getResponse();
+              serverHttpResponse.setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+                serverHttpResponse.getHeaders().add(HttpHeaders.RETRY_AFTER, "120");
+            });
   }
 }
