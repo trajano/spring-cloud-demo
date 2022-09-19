@@ -1,5 +1,5 @@
 plugins {
-	id 'io.spring.dependency-management' version '1.0.12.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.13.RELEASE'
 	id 'net.trajano.swarm.conventions'
 	id 'java-library'
 
@@ -25,12 +25,18 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation "org.springframework.boot:spring-boot-starter-log4j2"
+	modules {
+		module("org.springframework.boot:spring-boot-starter-logging") {
+			replacedBy("org.springframework.boot:spring-boot-starter-log4j2", "Use Log4j2 instead of Logback")
+		}
+	}
 }
 
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-		mavenBom "org.springframework.boot:spring-boot-dependencies:2.6.6"
+		mavenBom "org.springframework.boot:spring-boot-dependencies:2.7.3"
 	}
 }
 

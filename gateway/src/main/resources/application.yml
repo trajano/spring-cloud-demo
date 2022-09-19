@@ -130,11 +130,11 @@ resilience4j:
   timelimiter:
     instances:
       http:
-        timeoutDuration: 5s
+        timeoutDuration: 3s
         cancelRunningFuture: true
       grpc:
         timeoutDuration: 5s
-        cancelRunningFuture: true
+        cancelRunningFuture: false
 
 management:
   health:

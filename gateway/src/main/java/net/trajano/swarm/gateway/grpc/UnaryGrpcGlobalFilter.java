@@ -5,10 +5,7 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.*
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-import io.grpc.MethodDescriptor;
-import io.grpc.StatusRuntimeException;
+import io.grpc.*;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import io.grpc.stub.ClientCalls;
 import java.io.IOException;

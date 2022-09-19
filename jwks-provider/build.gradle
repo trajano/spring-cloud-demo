@@ -1,6 +1,6 @@
 plugins {
 	id 'org.springframework.boot' version '2.7.3'
-	id 'io.spring.dependency-management' version '1.0.12.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.13.RELEASE'
 	id 'net.trajano.swarm.conventions'
 	id "com.diffplug.spotless"
 }
@@ -12,11 +12,6 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
-}
-
-ext {
-	set('springCloudVersion', "2021.0.3")
-	set('testcontainersVersion', "1.17.3")
 }
 
 dependencies {
@@ -31,6 +26,14 @@ dependencies {
 
 //	runtimeOnly 'mysql:mysql-connector-java'
 //	runtimeOnly 'org.liquibase:liquibase-core'
+
+	implementation "org.springframework.boot:spring-boot-starter-log4j2"
+	modules {
+		module("org.springframework.boot:spring-boot-starter-logging") {
+			replacedBy("org.springframework.boot:spring-boot-starter-log4j2", "Use Log4j2 instead of Logback")
+		}
+	}
+
 	compileOnly 'org.projectlombok:lombok'
 	implementation project(':gateway-common')
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'

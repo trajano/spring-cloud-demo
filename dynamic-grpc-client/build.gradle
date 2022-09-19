@@ -1,5 +1,5 @@
 plugins {
-	id 'io.spring.dependency-management' version '1.0.12.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.13.RELEASE'
 	id 'net.trajano.swarm.conventions'
 	id 'java-library'
 
@@ -23,18 +23,23 @@ dependencies {
 	api "io.grpc:grpc-protobuf"
 	api "io.grpc:grpc-services"
 
-	api 'org.springframework.boot:spring-boot'
 	api 'org.springframework:spring-webflux'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation "org.springframework.boot:spring-boot-starter-log4j2"
+	modules {
+		module("org.springframework.boot:spring-boot-starter-logging") {
+			replacedBy("org.springframework.boot:spring-boot-starter-log4j2", "Use Log4j2 instead of Logback")
+		}
+	}
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 dependencyManagement {
 	imports {
-		mavenBom "io.grpc:grpc-bom:1.48.1"
+		mavenBom "io.grpc:grpc-bom:${grpcVersion}"
 		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-		mavenBom "org.springframework.boot:spring-boot-dependencies:2.6.6"
+		mavenBom "org.springframework.boot:spring-boot-dependencies:2.7.3"
 	}
 }
 

@@ -1,6 +1,6 @@
 plugins {
 	id 'org.springframework.boot' version '2.7.3'
-	id 'io.spring.dependency-management' version '1.0.12.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.13.RELEASE'
 	id 'net.trajano.swarm.conventions'
 	id "com.diffplug.spotless"
 	id "com.google.protobuf" version "0.8.19"
@@ -15,23 +15,23 @@ configurations {
 	}
 }
 
-ext {
-	set('springCloudVersion', "2021.0.3")
-	set('testcontainersVersion', "1.17.3")
-	set('grpcVersion', "1.48.1")
-}
-
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
-	implementation "io.zipkin.brave:brave-instrumentation-grpc:5.13.10"
+	implementation 'io.zipkin.brave:brave-instrumentation-grpc'
 	implementation "io.grpc:grpc-protobuf"
 	implementation "io.grpc:grpc-services"
 	implementation "io.grpc:grpc-stub"
 	runtimeOnly 'io.grpc:grpc-netty'
 	implementation 'com.google.protobuf:protobuf-java-util:3.21.5'
 	compileOnly 'org.projectlombok:lombok'
+	implementation "org.springframework.boot:spring-boot-starter-log4j2"
+	modules {
+		module("org.springframework.boot:spring-boot-starter-logging") {
+			replacedBy("org.springframework.boot:spring-boot-starter-log4j2", "Use Log4j2 instead of Logback")
+		}
+	}
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -74,4 +74,8 @@ protobuf {
 	generateProtoTasks {
 		all()*.plugins { grpc {} }
 	}
+}
+
+repositories {
+	mavenCentral()
 }
