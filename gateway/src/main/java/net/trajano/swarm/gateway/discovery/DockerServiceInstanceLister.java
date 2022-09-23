@@ -12,10 +12,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.docker.ReactiveDockerClient;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
@@ -30,7 +30,8 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 @Slf4j
-public class DockerServiceInstanceLister implements ApplicationListener<ContextClosedEvent> {
+public class DockerServiceInstanceLister
+    implements ApplicationListener<ContextClosedEvent>, InitializingBean {
 
   private final ApplicationEventPublisher publisher;
   private final ReactiveDockerClient dockerClient;
@@ -40,11 +41,11 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
   private final AtomicReference<Map<String, List<ServiceInstance>>> servicesRef =
       new AtomicReference<>(Map.of());
 
+  private final Executor dnsExecutor = Executors.newSingleThreadExecutor();
+
   @Getter private volatile boolean closing = false;
 
   private Disposable refreshSubscription;
-
-  private Executor dnsExecutor = Executors.newSingleThreadExecutor();
 
   public DockerServiceInstanceLister(
       ApplicationEventPublisher publisher,
@@ -58,9 +59,48 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
     dockerEventWatcher = new DockerEventWatcher(this, dockerDiscoveryProperties, dockerClient);
   }
 
+  /** Initial refresh. Does not perform publish which causes cycles on startup. */
+  @Override
+  public void afterPropertiesSet() throws Exception {
+
+    refresh(false);
+  }
+
   public List<ServiceInstance> getInstances(String serviceId) {
 
     return servicesRef.get().getOrDefault(serviceId, List.of());
+  }
+
+  private Flux<String> getIpAddressesFlux(String hostname) {
+
+    final var name = Name.fromConstantString(hostname);
+    return Mono.fromCallable(
+            () -> {
+              try {
+                var resolver = new SimpleResolver();
+                resolver.setTimeout(Duration.ofSeconds(5));
+                return resolver;
+              } catch (UnknownHostException e) {
+                throw new UncheckedIOException(e);
+              }
+            })
+        .map(
+            resolver ->
+                LookupSession.defaultBuilder()
+                    .ndots(0)
+                    .clearCaches()
+                    .resolver(resolver)
+                    .executor(dnsExecutor)
+                    .build())
+        .flatMap(s -> Mono.fromCompletionStage(s.lookupAsync(name, Type.A)))
+        .publishOn(Schedulers.boundedElastic())
+        .flatMapMany(result -> Flux.fromIterable(result.getRecords()))
+        .map(ARecord.class::cast)
+        .map(ARecord::getAddress)
+        .map(InetAddress::getHostAddress)
+        .switchIfEmpty(Flux.just(hostname))
+        .doOnError(throwable -> log.error("Got {} looking up {}", throwable, hostname))
+        .onErrorReturn(hostname);
   }
 
   public Set<String> getServices() {
@@ -68,10 +108,29 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
     return servicesRef.get().keySet();
   }
 
-  /** Initial refresh. Does not perform publish which causes cycles on startup. */
-  @PostConstruct
-  public void initialRefresh() {
-    refresh(false);
+  private Flux<ServiceInstance> instanceStream(
+      com.github.dockerjava.api.model.Container container, Network network) {
+
+    return Flux.fromStream(
+        Util.getServiceIdsFromLabels(dockerDiscoveryProperties, container.getLabels())
+            .flatMap(
+                serviceId -> {
+                  if (closing) {
+                    return Stream.empty();
+                  }
+                  try {
+                    return Stream.of(
+                        new DockerServiceInstance(
+                            container,
+                            dockerDiscoveryProperties.getLabelPrefix(),
+                            serviceId,
+                            network));
+                  } catch (IllegalStateException e) {
+                    log.error(
+                        "unable to build instance, likely context is closing {}", e.getMessage());
+                    return Stream.empty();
+                  }
+                }));
   }
 
   @SuppressWarnings("unchecked")
@@ -104,40 +163,14 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
         .flatMap(this::getIpAddressesFlux)
         .flatMap(
             address ->
-                Flux.fromStream(
-                    serviceIds.stream()
-                        .map(
-                            serviceId ->
-                                new DockerServiceInstance(
-                                    service,
-                                    dockerDiscoveryProperties.getLabelPrefix(),
-                                    serviceId,
-                                    address))));
-  }
-
-  private Flux<ServiceInstance> instanceStream(
-      com.github.dockerjava.api.model.Container container, Network network) {
-
-    return Flux.fromStream(
-        Util.getServiceIdsFromLabels(dockerDiscoveryProperties, container.getLabels())
-            .flatMap(
-                serviceId -> {
-                  if (closing) {
-                    return Stream.empty();
-                  }
-                  try {
-                    return Stream.of(
-                        new DockerServiceInstance(
-                            container,
-                            dockerDiscoveryProperties.getLabelPrefix(),
-                            serviceId,
-                            network));
-                  } catch (IllegalStateException e) {
-                    log.error(
-                        "unable to build instance, likely context is closing {}", e.getMessage());
-                    return Stream.empty();
-                  }
-                }));
+                Flux.fromIterable(serviceIds)
+                    .map(
+                        serviceId ->
+                            new DockerServiceInstance(
+                                service,
+                                dockerDiscoveryProperties.getLabelPrefix(),
+                                serviceId,
+                                address)));
   }
 
   @Override
@@ -240,38 +273,5 @@ public class DockerServiceInstanceLister implements ApplicationListener<ContextC
                     dockerEventWatcher.startWatching();
                   }
                 });
-  }
-
-  private Flux<String> getIpAddressesFlux(String hostname) {
-
-    final var name = Name.fromConstantString(hostname);
-    return Mono.fromCallable(
-            () -> {
-              try {
-                var resolver = new SimpleResolver();
-                //                resolver.setTCP(true);
-                resolver.setTimeout(Duration.ofSeconds(5));
-                return resolver;
-              } catch (UnknownHostException e) {
-                throw new UncheckedIOException(e);
-              }
-            })
-        .map(
-            resolver ->
-                LookupSession.defaultBuilder()
-                    .ndots(0)
-                    .clearCaches()
-                    .resolver(resolver)
-                    .executor(dnsExecutor)
-                    .build())
-        .flatMap(s -> Mono.fromCompletionStage(s.lookupAsync(name, Type.A)))
-        .publishOn(Schedulers.boundedElastic())
-        .flatMapMany(result -> Flux.fromIterable(result.getRecords()))
-        .map(ARecord.class::cast)
-        .map(ARecord::getAddress)
-        .map(InetAddress::getHostAddress)
-        .switchIfEmpty(Flux.just(hostname))
-        .doOnError(throwable -> log.error("Got {} looking up {}", throwable, hostname))
-        .onErrorReturn(hostname);
   }
 }
