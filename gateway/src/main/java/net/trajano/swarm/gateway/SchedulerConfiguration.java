@@ -64,7 +64,10 @@ public class SchedulerConfiguration {
 
   @Bean
   Scheduler penalty() {
-    return Schedulers.newParallel("penalty");
+    return Schedulers.newBoundedElastic(
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+        "penalty");
   }
 
   /**
