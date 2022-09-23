@@ -30,6 +30,8 @@ import reactor.core.scheduler.Scheduler;
  * <p>Security logging is not performed here, see {@link ClaimsService} implementation for these
  * logs.
  *
+ * <p>Resilience4J TimeLimiter is not used instead {@link Mono#timeout(Duration)} is used.
+ *
  * @param <A> authentication request
  * @param <P> profile type (may be removed later)
  */
@@ -103,7 +105,8 @@ public abstract class AbstractAuthController<A, P> {
                               HttpHeaders.WWW_AUTHENTICATE,
                               "Bearer realm=\"%s\"".formatted(authProperties.getRealm()));
                     })
-                .delayElement(Duration.ofMillis(authProperties.getPenaltyDelayInMillis())))
+                .delayElement(
+                    Duration.ofMillis(authProperties.getPenaltyDelayInMillis()), penaltyScheduler))
         .onErrorResume(
             SecurityException.class,
             ex ->
@@ -118,7 +121,9 @@ public abstract class AbstractAuthController<A, P> {
                                   HttpHeaders.WWW_AUTHENTICATE,
                                   "Bearer realm=\"%s\"".formatted(authProperties.getRealm()));
                         })
-                    .delayElement(Duration.ofMillis(authProperties.getPenaltyDelayInMillis())))
+                    .delayElement(
+                        Duration.ofMillis(authProperties.getPenaltyDelayInMillis()),
+                        penaltyScheduler))
         .onErrorResume(
             TimeoutException.class, ex1 -> respondWithServiceUnavailable(serverWebExchange))
         .subscribeOn(authenticationScheduler);
