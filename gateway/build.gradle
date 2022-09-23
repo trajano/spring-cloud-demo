@@ -32,6 +32,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.springframework.cloud:spring-cloud-starter-sleuth'
     implementation 'com.github.docker-java:docker-java-core'
+    constraints {
+        implementation('commons-io:commons-io:2.11.0')
+    }
     implementation 'com.github.docker-java:docker-java-transport-httpclient5'
     compileOnly 'org.projectlombok:lombok'
     implementation 'dnsjava:dnsjava:3.5.1'

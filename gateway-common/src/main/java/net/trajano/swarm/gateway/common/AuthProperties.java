@@ -15,7 +15,7 @@ public class AuthProperties {
   private int allowedClockSkewInSeconds = 0;
 
   /** Number of milliseconds an authentication should be allowed take. */
-  private int authenticationProcessingTimeoutInMillis = 3000;
+  private int authenticationProcessingTimeoutInMillis = 4000;
 
   /** If true, the JWT is compressed when placed in the access token. */
   private boolean compressClaims = true;

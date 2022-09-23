@@ -15,7 +15,8 @@ ext {
     set('springCloudVersion', "2021.0.4")
     set('springBootVersion', "2.7.4")
     set('testcontainersVersion', "1.17.3")
-    set('grpcVersion', "1.48.1")
+    set('grpcVersion', "1.49.1")
+    set('snakeyaml.version', '1.31')
 }
 
 jar {
@@ -33,6 +34,24 @@ spotless {
         removeUnusedImports()
         googleJavaFormat()
         formatAnnotations()
+    }
+}
+
+dependencies {
+    constraints {
+        implementation('org.yaml:snakeyaml') {
+            version {
+                reject '[0, 1.31)'
+            }
+            because("CVE https://security.snyk.io/vuln/SNYK-JAVA-ORGYAML-2806360")
+        }
+
+        implementation('commons-io:commons-io') {
+            version {
+                reject '[0, 2.7)'
+            }
+            because("CVE https://security.snyk.io/vuln/SNYK-JAVA-COMMONSIO-1277109")
+        }
     }
 }
 build.dependsOn spotlessApply
