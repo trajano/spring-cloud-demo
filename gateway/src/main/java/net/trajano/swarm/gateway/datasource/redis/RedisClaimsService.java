@@ -2,6 +2,7 @@ package net.trajano.swarm.gateway.datasource.redis;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import net.trajano.swarm.gateway.auth.claims.ZLibStringCompression;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.jwks.JwksProvider;
+import net.trajano.swarm.gateway.redis.UserSession;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
 import org.jose4j.jwa.AlgorithmConstraints;
@@ -25,6 +27,8 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.keys.resolvers.JwksVerificationKeyResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -62,7 +66,31 @@ public class RedisClaimsService implements ClaimsService {
   private final RedisUserSessions redisUserSessions;
 
   private final RedisStoreAndSignIdentityService redisStoreAndSignIdentityService;
+
   private final RedisJtiExtractorService redisJtiExtractorService;
+
+  @Autowired
+  @Qualifier("penalty") private Scheduler penaltyScheduler;
+
+  /**
+   * Builds a valid OAuth token response
+   *
+   * @param accessToken access token JWT
+   * @param refreshToken refresh token JWT
+   * @param accessTokenExpiresAt when the access token is going to expire. *
+   * @return valid OAuth token response.
+   */
+  private OAuthTokenResponse buildValidOAuthTokenResponse(
+      String accessToken, String refreshToken, Instant accessTokenExpiresAt) {
+    var oauthTokenResponse = new OAuthTokenResponse();
+    oauthTokenResponse.setOk(true);
+    oauthTokenResponse.setAccessToken(accessToken);
+    oauthTokenResponse.setRefreshToken(refreshToken);
+    oauthTokenResponse.setTokenType("Bearer");
+    oauthTokenResponse.setExpiresIn(
+        ChronoUnit.SECONDS.between(Instant.now(), accessTokenExpiresAt));
+    return oauthTokenResponse;
+  }
 
   /**
    * Extracts the JTI from the refresh token sent by the client.
@@ -78,6 +106,27 @@ public class RedisClaimsService implements ClaimsService {
       return Mono.error(IllegalArgumentException::new);
     }
     return redisJtiExtractorService.extractJti(refreshToken);
+  }
+
+  private Mono<JwtClaims> getClaims(String jwt, JwtConsumer jwtConsumer) {
+
+    return Mono.fromCallable(
+            () -> {
+              final var start = System.currentTimeMillis();
+              try {
+                return jwtConsumer.processToClaims(jwt);
+              } catch (InvalidJwtException e) {
+                throw new SecurityException(e);
+              } finally {
+                final long l = System.currentTimeMillis() - start;
+                if (l > 500) {
+                  log.error("Access Token Signature validation time {}ms > 500ms ", l);
+                } else if (l > 100) {
+                  log.warn("Access Token Signature validation time {}ms > 100ms ", l);
+                }
+              }
+            })
+        .publishOn(jwtConsumerScheduler);
   }
 
   @Override
@@ -126,27 +175,6 @@ public class RedisClaimsService implements ClaimsService {
             ex -> securityLog.warn("security error obtaining claims: {}", ex.getMessage()));
   }
 
-  private Mono<JwtClaims> getClaims(String jwt, JwtConsumer jwtConsumer) {
-
-    return Mono.fromCallable(
-            () -> {
-              final var start = System.currentTimeMillis();
-              try {
-                return jwtConsumer.processToClaims(jwt);
-              } catch (InvalidJwtException e) {
-                throw new SecurityException(e);
-              } finally {
-                final long l = System.currentTimeMillis() - start;
-                if (l > 500) {
-                  log.error("Access Token Signature validation time {}ms > 500ms ", l);
-                } else if (l > 100) {
-                  log.warn("Access Token Signature validation time {}ms > 100ms ", l);
-                }
-              }
-            })
-        .publishOn(jwtConsumerScheduler);
-  }
-
   /**
    * Refreshes the token and returns a new authentication response. May throw a {@link
    * IllegalArgumentException} if the token is not valid or expired.
@@ -162,13 +190,7 @@ public class RedisClaimsService implements ClaimsService {
 
     return extractJti(refreshToken, headers)
         .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti)))
-        .flatMap(
-            userSession ->
-                Mono.zip(
-                    identityService.refresh(
-                        userSession.getSecretClaims(), userSession.getIssuedOn(), headers),
-                    Mono.just(userSession.getJwtId().toString())))
-        .flatMap(t -> storeAndSignIdentityServiceResponse(t.getT1(), t.getT2()))
+        .flatMap(userSession -> refreshIfNeeded(userSession, headers))
         .map(
             oauthResponse -> AuthServiceResponse.builder().operationResponse(oauthResponse).build())
         .switchIfEmpty(
@@ -196,6 +218,37 @@ public class RedisClaimsService implements ClaimsService {
                 .operationResponse(new UnauthorizedGatewayResponse())
                 .statusCode(HttpStatus.UNAUTHORIZED)
                 .build());
+  }
+
+  /**
+   * This will perform the refresh operation if needed. So if the age of the token is not going to
+   * expire it it will not perform the expensive call back to the identity service nor sign.
+   *
+   * @param userSession user session
+   * @return gateway response
+   */
+  private Mono<? extends GatewayResponse> refreshIfNeeded(
+      UserSession userSession, HttpHeaders headers) {
+
+    if (ChronoUnit.MILLIS.between(userSession.getAccessTokenIssuedOn(), Instant.now())
+        < properties.getMinimumAccessTokenAgeBeforeRefreshInMillis()) {
+      return Mono.just(
+              buildValidOAuthTokenResponse(
+                  userSession.getAccessToken(),
+                  userSession.getRefreshToken(),
+                  userSession.getAccessTokenExpiresAt()))
+          .delayElement(
+              Duration.of(properties.getPenaltyDelayInMillis(), ChronoUnit.MILLIS),
+              penaltyScheduler);
+    }
+
+    // if access token is old enough
+    return identityService
+        .refresh(userSession.getSecretClaims(), userSession.getIssuedOn(), headers)
+        .flatMap(
+            identityServiceResponse ->
+                storeAndSignIdentityServiceResponse(
+                    identityServiceResponse, userSession.getJwtId().toString()));
   }
 
   /**
@@ -245,16 +298,10 @@ public class RedisClaimsService implements ClaimsService {
     return redisStoreAndSignIdentityService
         .storeAndSignIdentityServiceResponse(identityServiceResponse, jwtId, Instant.now())
         .map(
-            refreshContext -> {
-              var oauthTokenResponse = new OAuthTokenResponse();
-              oauthTokenResponse.setOk(true);
-              oauthTokenResponse.setAccessToken(refreshContext.getAccessToken());
-              oauthTokenResponse.setRefreshToken(refreshContext.getRefreshToken());
-              oauthTokenResponse.setTokenType("Bearer");
-              oauthTokenResponse.setExpiresIn(
-                  Duration.between(Instant.now(), refreshContext.getAccessTokenExpiresAt())
-                      .toSeconds());
-              return oauthTokenResponse;
-            });
+            refreshContext ->
+                buildValidOAuthTokenResponse(
+                    refreshContext.getAccessToken(),
+                    refreshContext.getRefreshToken(),
+                    refreshContext.getAccessTokenExpiresAt()));
   }
 }

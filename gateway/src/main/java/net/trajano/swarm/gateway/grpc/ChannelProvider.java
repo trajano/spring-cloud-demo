@@ -46,7 +46,7 @@ public class ChannelProvider implements DisposableBean {
   private ManagedChannel buildForServiceInstance(ServiceInstance serviceInstance) {
     final var b =
         ManagedChannelBuilder.forAddress(serviceInstance.getHost(), serviceInstance.getPort())
-            .directExecutor()
+            //            .directExecutor()
             .enableRetry()
             .maxRetryAttempts(2)
             //            .keepAliveTime(5, TimeUnit.SECONDS)

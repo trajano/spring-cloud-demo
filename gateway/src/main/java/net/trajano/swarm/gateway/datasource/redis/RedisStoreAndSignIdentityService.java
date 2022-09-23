@@ -188,13 +188,16 @@ public class RedisStoreAndSignIdentityService {
 
   private RefreshContext updateUserSession(RefreshContext refreshContext) {
 
+    final var now = Instant.now();
     return refreshContext.withUserSession(
         refreshContext
             .getUserSession()
             .withSecretClaims(refreshContext.getIdentityServiceResponse().getSecretClaims())
-            .withTtl(
-                Duration.between(Instant.now(), refreshContext.getRefreshTokenExpiresAt())
-                    .toSeconds())
+            .withTtl(Duration.between(now, refreshContext.getRefreshTokenExpiresAt()).toSeconds())
+            .withAccessToken(refreshContext.getAccessToken())
+            .withRefreshToken(refreshContext.getRefreshToken())
+            .withAccessTokenExpiresAt(refreshContext.getAccessTokenExpiresAt())
+            .withAccessTokenIssuedOn(now)
             .withVerificationJwk(
                 JwtFunctions.getVerificationKeyFromJwks(
                         refreshContext.getRefreshTokenSigningKeyPair())

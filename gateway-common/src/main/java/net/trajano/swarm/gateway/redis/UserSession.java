@@ -17,14 +17,32 @@ import org.springframework.data.redis.core.TimeToLive;
 @With
 public class UserSession {
 
-  /** Sessions are keyed to a JWT ID which is a UUID. */
-  @Id private UUID jwtId;
+  /**
+   * JWT string for the access token. This is to allow resending the data when refresh was called
+   * too soon.
+   */
+  private String accessToken;
 
-  private JwtClaims secretClaims;
+  /** Instant when the access token will expire. */
+  private Instant accessTokenExpiresAt;
+
+  /** Instant when the last access token as issued. */
+  private Instant accessTokenIssuedOn;
 
   private Instant issuedOn;
 
-  private JsonWebKey verificationJwk;
+  /** Sessions are keyed to a JWT ID which is a UUID. */
+  @Id private UUID jwtId;
+
+  /**
+   * JWT string for the refresh token. This is to allow resending the data when refresh was called
+   * too soon.
+   */
+  private String refreshToken;
+
+  private JwtClaims secretClaims;
 
   @TimeToLive private Long ttl;
+
+  private JsonWebKey verificationJwk;
 }

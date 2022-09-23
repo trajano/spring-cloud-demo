@@ -23,7 +23,14 @@ import reactor.core.publisher.Mono;
 public class RedisUserSessions {
 
   private static final List<String> HASH_KEYS =
-      List.of("secretClaims", "issuedOn", "verificationJwk");
+      List.of(
+          "secretClaims",
+          "issuedOn",
+          "verificationJwk",
+          "accessToken",
+          "refreshToken",
+          "accessTokenExpiresAt",
+          "accessTokenIssuedOn");
 
   private final ReactiveStringRedisTemplate redisTemplate;
 
@@ -79,6 +86,10 @@ public class RedisUserSessions {
                     .secretClaims(convertToJwtClaims(t.getT1().get(0)))
                     .issuedOn(Instant.parse(t.getT1().get(1)))
                     .verificationJwk(convertToJsonWebKey(t.getT1().get(2)))
+                    .accessToken(t.getT1().get(3))
+                    .refreshToken(t.getT1().get(4))
+                    .accessTokenExpiresAt(Instant.parse(t.getT1().get(5)))
+                    .accessTokenIssuedOn(Instant.parse(t.getT1().get(6)))
                     .ttl(t.getT2().toSeconds())
                     .build());
   }
@@ -91,9 +102,20 @@ public class RedisUserSessions {
         .putAll(
             key,
             Map.of(
-                "secretClaims", userSession.getSecretClaims().toJson(),
-                "issuedOn", userSession.getIssuedOn().toString(),
-                "verificationJwk", userSession.getVerificationJwk().toJson()))
+                "secretClaims",
+                userSession.getSecretClaims().toJson(),
+                "issuedOn",
+                userSession.getIssuedOn().toString(),
+                "verificationJwk",
+                userSession.getVerificationJwk().toJson(),
+                "accessToken",
+                userSession.getAccessToken(),
+                "refreshToken",
+                userSession.getRefreshToken(),
+                "accessTokenExpiresAt",
+                userSession.getAccessTokenExpiresAt().toString(),
+                "accessTokenIssuedOn",
+                userSession.getAccessTokenIssuedOn().toString()))
         .filter(success -> success)
         .flatMap(i -> redisTemplate.expire(key, Duration.ofSeconds(userSession.getTtl())))
         .filter(success -> success)

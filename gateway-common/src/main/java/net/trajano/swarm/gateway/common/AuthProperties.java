@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "auth")
 @Data
 public class AuthProperties {
+
   /** Access token time expires in seconds. This is kept low to make it easier to test. */
   private int accessTokenExpiresInSeconds = 120;
 
@@ -29,6 +30,12 @@ public class AuthProperties {
   private int maximumNumberOfSigningKeys = 10;
 
   private int maximumNumberOfSigningKeysToPresent = 3;
+
+  /**
+   * Minimum age for the access token before it needs to be refreshed. If the age is less than the
+   * amount, it will not perform the sign.
+   */
+  private long minimumAccessTokenAgeBeforeRefreshInMillis = 30 * 1000L;
 
   private int penaltyDelayInMillis = 1000;
 
@@ -67,7 +74,7 @@ public class AuthProperties {
    */
   private boolean useSecureRandom = true;
 
-  public static enum DataSource {
+  public enum DataSource {
     REDIS,
     DATABASE
   }
