@@ -34,6 +34,7 @@ public class DockerServiceInstanceLister
     implements ApplicationListener<ContextClosedEvent>, InitializingBean {
 
   private final ApplicationEventPublisher publisher;
+  private final DockerServiceInstanceBuilder dockerServiceInstanceBuilder;
   private final ReactiveDockerClient dockerClient;
 
   private final DockerDiscoveryProperties dockerDiscoveryProperties;
@@ -49,10 +50,12 @@ public class DockerServiceInstanceLister
 
   public DockerServiceInstanceLister(
       ApplicationEventPublisher publisher,
+      DockerServiceInstanceBuilder dockerServiceInstanceBuilder,
       ReactiveDockerClient dockerClient,
       DockerDiscoveryProperties dockerDiscoveryProperties) {
 
     this.publisher = publisher;
+    this.dockerServiceInstanceBuilder = dockerServiceInstanceBuilder;
     this.dockerClient = dockerClient;
     this.dockerDiscoveryProperties = dockerDiscoveryProperties;
 
@@ -157,20 +160,16 @@ public class DockerServiceInstanceLister
         Util.getServiceIdsFromLabels(dockerDiscoveryProperties, service.getSpec().getLabels())
             .toList();
 
-    return Flux.fromIterable(serviceNetworks)
-        .filter(stringObjectMap -> network.getId().equals(stringObjectMap.get("Target")))
-        .flatMap(n -> Flux.fromIterable((List<String>) n.get("Aliases")))
-        .flatMap(this::getIpAddressesFlux)
-        .flatMap(
-            address ->
-                Flux.fromIterable(serviceIds)
-                    .map(
-                        serviceId ->
-                            new DockerServiceInstance(
-                                service,
-                                dockerDiscoveryProperties.getLabelPrefix(),
-                                serviceId,
-                                address)));
+    final var ipAddresses =
+        Flux.fromIterable(serviceNetworks)
+            .filter(stringObjectMap -> network.getId().equals(stringObjectMap.get("Target")))
+            .flatMap(n -> Flux.fromIterable((List<String>) n.get("Aliases")))
+            .flatMap(this::getIpAddressesFlux);
+
+    return ipAddresses.flatMap(
+        address ->
+            Flux.fromIterable(serviceIds)
+                .map(serviceId -> dockerServiceInstanceBuilder.build(service, serviceId, address)));
   }
 
   @Override

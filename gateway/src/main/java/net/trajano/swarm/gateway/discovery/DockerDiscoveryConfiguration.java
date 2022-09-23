@@ -27,10 +27,12 @@ public class DockerDiscoveryConfiguration {
   //  @Lazy
   DockerServiceInstanceLister dockerServiceInstanceLister(
       ApplicationEventPublisher publisher,
+      DockerServiceInstanceBuilder dockerServiceInstanceBuilder,
       ReactiveDockerClient dockerClient,
       DockerDiscoveryProperties config) {
 
-    return new DockerServiceInstanceLister(publisher, dockerClient, config);
+    return new DockerServiceInstanceLister(
+        publisher, dockerServiceInstanceBuilder, dockerClient, config);
   }
 
   @Bean
