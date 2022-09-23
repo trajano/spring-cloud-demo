@@ -11,7 +11,7 @@ config:
       arrivalRate: 1
 #      maxVusers: 2
   http:
-    timeout: 6
+    timeout: 60
   environments:
     localhost-direct-small-load:
       target: "http://localhost:28082"
@@ -132,6 +132,7 @@ scenarios:
             Accept: application/json
           expect:
             - statusCode: 200
+      - think: 1
       - post:
           url: "/auth"
           json:
@@ -147,6 +148,7 @@ scenarios:
               as: "refresh_token"
           expect:
             - statusCode: 200
+      - think: 1
       - post:
           url: "/sample/Echo/echo"
           json:
@@ -162,7 +164,6 @@ scenarios:
             - equals:
                 - "{{ message }}"
                 - "Hello world"
-
       - post:
           url: "/grpc/Echo/echo"
           json:
@@ -178,7 +179,6 @@ scenarios:
             - equals:
                 - "{{ message }}"
                 - "Hello world"
-
       - get:
           url: "/whoami"
           headers:
@@ -186,6 +186,7 @@ scenarios:
             Authorization: "Bearer {{ access_token }}"
           expect:
             - statusCode: 200
+      - think: 3
       - post:
           url: "/refresh"
           form:
@@ -240,6 +241,218 @@ scenarios:
             Authorization: "Bearer {{ access_token }}"
           expect:
             - statusCode: 200
+      - think: 1
+      - post:
+          url: "/logout"
+          form:
+            token: "{{ refresh_token }}"
+            token_type_hint: refresh_token
+          headers:
+            Content-Type: application/x-www-form-urlencoded
+          expect:
+            - statusCode: 200
+  - name: Happy path no refresh
+    weight: 1
+    flow:
+      - get:
+          url: "/jwks"
+          headers:
+            Accept: application/json
+          expect:
+            - statusCode: 200
+      - think: 1
+      - post:
+          url: "/auth"
+          json:
+            username: good
+            authenticated: true
+          headers:
+            Accept: application/json
+            Content-Type: application/json
+          capture:
+            - json: "$.access_token"
+              as: "access_token"
+            - json: "$.refresh_token"
+              as: "refresh_token"
+          expect:
+            - statusCode: 200
+      - think: 1
+      - post:
+          url: "/sample/Echo/echo"
+          json:
+            message: Hello world
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          capture:
+            - json: "$.message"
+              as: message
+          expect:
+            - statusCode: 200
+            - equals:
+                - "{{ message }}"
+                - "Hello world"
+      - post:
+          url: "/grpc/Echo/echo"
+          json:
+            message: Hello world
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          capture:
+            - json: "$.message"
+              as: message
+          expect:
+            - statusCode: 200
+            - equals:
+                - "{{ message }}"
+                - "Hello world"
+      - get:
+          url: "/whoami"
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          expect:
+            - statusCode: 200
+      - think: 3
+
+      - post:
+          url: "/sample/Echo/echo"
+          json:
+            message: Bye world
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          capture:
+            - json: "$.message"
+              as: message
+          expect:
+            - statusCode: 200
+            - equals:
+                - "{{ message }}"
+                - "Bye world"
+
+      - post:
+          url: "/grpc/Echo/echo"
+          json:
+            message: Bye world
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          capture:
+            - json: "$.message"
+              as: message
+          expect:
+            - statusCode: 200
+            - equals:
+                - "{{ message }}"
+                - "Bye world"
+
+      - get:
+          url: "/whoami"
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          expect:
+            - statusCode: 200
+      - think: 1
+      - post:
+          url: "/logout"
+          form:
+            token: "{{ refresh_token }}"
+            token_type_hint: refresh_token
+          headers:
+            Content-Type: application/x-www-form-urlencoded
+          expect:
+            - statusCode: 200
+  - name: Happy path no GRPC
+    weight: 1
+    flow:
+      - get:
+          url: "/jwks"
+          headers:
+            Accept: application/json
+          expect:
+            - statusCode: 200
+      - think: 1
+      - post:
+          url: "/auth"
+          json:
+            username: good
+            authenticated: true
+          headers:
+            Accept: application/json
+            Content-Type: application/json
+          capture:
+            - json: "$.access_token"
+              as: "access_token"
+            - json: "$.refresh_token"
+              as: "refresh_token"
+          expect:
+            - statusCode: 200
+      - think: 1
+      - post:
+          url: "/sample/Echo/echo"
+          json:
+            message: Hello world
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          capture:
+            - json: "$.message"
+              as: message
+          expect:
+            - statusCode: 200
+            - equals:
+                - "{{ message }}"
+                - "Hello world"
+      - get:
+          url: "/whoami"
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          expect:
+            - statusCode: 200
+      - think: 3
+      - post:
+          url: "/refresh"
+          form:
+            refresh_token: "{{ refresh_token }}"
+            grant_type: refresh_token
+          headers:
+            Content-Type: application/x-www-form-urlencoded
+          capture:
+            - json: "$.access_token"
+              as: "access_token"
+            - json: "$.refresh_token"
+              as: "refresh_token"
+          expect:
+            - statusCode: 200
+
+      - post:
+          url: "/sample/Echo/echo"
+          json:
+            message: Bye world
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          capture:
+            - json: "$.message"
+              as: message
+          expect:
+            - statusCode: 200
+            - equals:
+                - "{{ message }}"
+                - "Bye world"
+
+      - get:
+          url: "/whoami"
+          headers:
+            Accept: application/json
+            Authorization: "Bearer {{ access_token }}"
+          expect:
+            - statusCode: 200
+      - think: 1
       - post:
           url: "/logout"
           form:

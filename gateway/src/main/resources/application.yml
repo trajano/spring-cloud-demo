@@ -94,6 +94,7 @@ spring:
             - name: Grpc
               args:
                 serviceId: serviceId
+                instanceId: instanceId
                 host: host
                 useGrpc: "metadata['protocol'] == 'grpc'"
                 port: port
@@ -119,6 +120,10 @@ spring:
 resilience4j:
   circuitbreaker:
     instances:
+      auth:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        automaticTransitionFromOpenToHalfOpenEnabled: true
       http:
         registerHealthIndicator: true
         slidingWindowSize: 100
@@ -129,6 +134,9 @@ resilience4j:
         automaticTransitionFromOpenToHalfOpenEnabled: true
   timelimiter:
     instances:
+      auth:
+        timeoutDuration: 3s
+        cancelRunningFuture: true
       http:
         timeoutDuration: 3s
         cancelRunningFuture: true

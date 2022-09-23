@@ -36,7 +36,8 @@ curl --header 'Authorization: Bearer BEARER' http://localhost:28082/whoami
 
 The following command should run successfully with no errors.
 ```
-artillery run -q --output report.json --environment localhost-direct-heavy-load gateway/src/test/artillery/happy-path.yml && artillery report report.json && start report.json.html
+artillery run -q --output report.json --environment localhost-direct-heavy-load gateway/src/test/artillery/happy-path.yml ; artillery report report.json && start report.json.html
+artillery run -q --output report.json --environment localhost-direct-heavy-load gateway/src/test/artillery/happy-path-no-grpc.yml ; artillery report report.json && start report.json.html
 ```
 ```
 artillery run gateway/src/test/artillery/functional-test.yml

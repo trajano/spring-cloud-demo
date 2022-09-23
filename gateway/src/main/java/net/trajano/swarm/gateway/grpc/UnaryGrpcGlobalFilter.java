@@ -14,6 +14,8 @@ import java.io.InputStreamReader;
 import java.io.SequenceInputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.WeakHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jose4j.jwt.JwtClaims;
@@ -44,6 +46,12 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
   private final ChannelProvider channelProvider;
   private final Scheduler grpcScheduler;
   private final JsonFormat.Parser jsonParser = JsonFormat.parser();
+
+  private record MethodDescriptorCacheKey(String serviceInstanceId, URI uri) {}
+  /** Method descriptor cache. */
+  private final Map<MethodDescriptorCacheKey, Mono<Descriptors.MethodDescriptor>>
+      methodDescriptorCache = new WeakHashMap<>();
+
   private final JsonFormat.Printer jsonPrinter =
       JsonFormat.printer().omittingInsignificantWhitespace();
 
@@ -114,15 +122,22 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
         exchange.getRequiredAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR);
 
     final URI uri = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+    final String serviceInstanceId = r.getServer().getInstanceId();
     final var managedChannel = channelProvider.obtainFor(r.getServer());
-    final var serverReflectionStub = ServerReflectionGrpc.newStub(managedChannel);
 
-    // we are not caching because if the services get updated then we won't know
-    // maybe add the reflection on the service itself since that will be recreated when
-    // the service registers itself.
+    // use the uri to obtain the method descriptor rather than doing reflection.
     final var methodDescriptorMono =
-        GrpcFunctions.methodDescriptor(
-            uri, GrpcFunctions.fileDescriptors(serverReflectionStub).map(GrpcFunctions::buildFrom));
+        methodDescriptorCache.computeIfAbsent(
+            new MethodDescriptorCacheKey(serviceInstanceId, uri),
+            key -> {
+              final var serverReflectionStub = ServerReflectionGrpc.newStub(managedChannel);
+
+              return GrpcFunctions.methodDescriptor(
+                      key.uri(),
+                      GrpcFunctions.fileDescriptors(serverReflectionStub)
+                          .map(GrpcFunctions::buildFrom))
+                  .cache();
+            });
 
     // Request input stream, note that this needs to be closed at the end.
     final var requestInputStreamMono =

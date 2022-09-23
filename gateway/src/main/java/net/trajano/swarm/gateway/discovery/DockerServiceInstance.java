@@ -11,6 +11,7 @@ import org.springframework.cloud.client.ServiceInstance;
 @Data
 public class DockerServiceInstance implements ServiceInstance {
 
+  private final String instanceId;
   private final String serviceId;
 
   private final String host;
@@ -26,6 +27,7 @@ public class DockerServiceInstance implements ServiceInstance {
 
   public DockerServiceInstance(Service service, String labelPrefix, String serviceId, String host) {
 
+    this.instanceId = service.getId() + "-" + service.getUpdatedAt().toInstant();
     this.serviceId = serviceId;
     this.host = host;
     final var labels =
@@ -64,6 +66,7 @@ public class DockerServiceInstance implements ServiceInstance {
       Container container, String labelPrefix, String serviceId, Network network) {
 
     this.serviceId = serviceId;
+    this.instanceId = container.getId();
 
     this.host =
         Optional.ofNullable(container.getNetworkSettings())
@@ -94,6 +97,12 @@ public class DockerServiceInstance implements ServiceInstance {
     } else {
       this.uri = URI.create("http://" + host + ":" + port);
     }
+  }
+
+  @Override
+  public String getInstanceId() {
+
+    return instanceId;
   }
 
   @Override

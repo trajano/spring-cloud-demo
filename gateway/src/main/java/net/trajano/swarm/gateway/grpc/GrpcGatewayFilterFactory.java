@@ -23,6 +23,7 @@ public class GrpcGatewayFilterFactory
       if (!config.isUseGrpc()) {
         return chain.filter(exchange);
       }
+
       //
       //      if (exchange.getRequest().getMethod() != HttpMethod.POST) {
       //
