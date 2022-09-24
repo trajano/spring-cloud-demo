@@ -132,11 +132,11 @@ services:
       placement:
         constraints:
           - node.role != manager
-      replicas: 15
+      replicas: 10
       resources:
         limits:
           # memory: 512m
-          memory: 1g
+          memory: 2g
           # memory: 768m
           # memory: 256m
 #    user: "5000"
