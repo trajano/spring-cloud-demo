@@ -62,7 +62,7 @@ services:
     image:  ghcr.io/trajano/gateway:rework
     environment:
       - SPRING_REDIS_CLUSTER_MAXREDIRECTS=3
-      - SPRING_REDIS_CLUSTER_NODES=corecache.internal:6379
+      - SPRING_REDIS_CLUSTER_NODES=c1.corecache.internal:6379,c2.corecache.internal:6379,c3.corecache.internal:6379,c4.corecache.internal:6379
       - SPRING_REDIS_LETTUCE_POOL_MAXACTIVE=30
       - SPRING_NETTY_LEAKDETECTION=paranoid
 #      - SPRING_R2DBC_USERNAME=gateway-user
@@ -269,7 +269,7 @@ services:
   redis-commander:
     image: ghcr.io/joeferner/redis-commander:latest
     environment:
-      - REDIS_HOSTS=swarm:redis:6379
+      - REDIS_HOSTS=swarm:corecache.internal:6379
     ports:
       - "28085:8081"
     networks:
