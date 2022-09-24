@@ -1,39 +1,39 @@
 version: "3.8"
 services:
-  edge:
-    image: traefik:latest
-    ports:
-#      - 28083:8080
-      - 28080:80
-    command:
-      - --global.checknewversion=false
-      - --global.sendanonymoususage=false
-
-      - --accesslog
-      - --api
-      - --api.dashboard
-      - --api.insecure
-      - --ping
-      # - --log.level=debug
-      - --entrypoints.http.address=:80
-      - --providers.docker.exposedByDefault=false
-      - --providers.docker.swarmMode=true
-      #- --providers.docker.endpoint=unix:///var/run/docker.sock
-      - --providers.docker.endpoint=http://daemon:2375
-      - --providers.docker.network=edge
-      # - --providers.docker.useBindPortIP=true
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - edge
-      - daemon
-    healthcheck:
-      test: traefik healthcheck --ping
-    deploy:
-      mode: global
-      resources:
-        limits:
-          memory: 256m
+#  edge:
+#    image: traefik:latest
+#    ports:
+##      - 28083:8080
+#      - 28080:80
+#    command:
+#      - --global.checknewversion=false
+#      - --global.sendanonymoususage=false
+#
+#      - --accesslog
+#      - --api
+#      - --api.dashboard
+#      - --api.insecure
+#      - --ping
+#      # - --log.level=debug
+#      - --entrypoints.http.address=:80
+#      - --providers.docker.exposedByDefault=false
+#      - --providers.docker.swarmMode=true
+#      #- --providers.docker.endpoint=unix:///var/run/docker.sock
+#      - --providers.docker.endpoint=http://daemon:2375
+#      - --providers.docker.network=edge
+#      # - --providers.docker.useBindPortIP=true
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock:ro
+#    networks:
+#      - edge
+#      - daemon
+#    healthcheck:
+#      test: traefik healthcheck --ping
+#    deploy:
+#      mode: global
+#      resources:
+#        limits:
+#          memory: 256m
   daemon:
     image: tecnativa/docker-socket-proxy
     volumes:
@@ -214,7 +214,7 @@ services:
 #        docker.sample.port: 50000
       resources:
         limits:
-          memory: 256m
+          memory: 512m
     networks:
       - services
   grpc-sample:
@@ -236,7 +236,7 @@ services:
         docker.grpc.port: 50000
       resources:
         limits:
-          memory: 256m
+          memory: 512m
     networks:
       - services
 #  tomcat:
