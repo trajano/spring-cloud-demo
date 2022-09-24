@@ -4,7 +4,6 @@ import static reactor.core.publisher.Mono.fromCallable;
 
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import net.trajano.swarm.gateway.common.AuthProperties;

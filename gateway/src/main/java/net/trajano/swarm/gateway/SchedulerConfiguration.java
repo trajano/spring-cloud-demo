@@ -18,10 +18,7 @@ public class SchedulerConfiguration {
 
   @Bean
   Scheduler grpcScheduler() {
-    return Schedulers.newBoundedElastic(
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-        "grpc");
+    return Schedulers.newParallel("grpc");
   }
 
   @Bean

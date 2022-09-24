@@ -132,7 +132,7 @@ services:
       placement:
         constraints:
           - node.role != manager
-      replicas: 5
+      replicas: 15
       resources:
         limits:
           # memory: 512m
@@ -195,28 +195,6 @@ services:
       resources:
         limits:
           memory: 128m
-  db:
-    image: mysql:8.0.30
-    environment:
-      MYSQL_ROOT_PASSWORD: somerootpassword
-      MYSQL_USER: gateway-user
-      MYSQL_PASSWORD: password123
-      MYSQL_DATABASE: swarm
-    ports:
-      - 28084:3306
-    deploy:
-      resources:
-        limits:
-          memory: 2g
-  redis:
-    image: redis:6
-    deploy:
-      resources:
-        limits:
-          memory: 1g
-    networks:
-      - redis
-
   sample:
     build:
       context: .
@@ -225,6 +203,7 @@ services:
     environment:
       - LOGGING_LEVEL_NET_TRAJANO=debug
     deploy:
+      replicas: 5
       labels:
         docker.ids: sample
         docker.sample.path: /sample/**
@@ -246,6 +225,7 @@ services:
     environment:
       - LOGGING_LEVEL_NET_TRAJANO=debug
     deploy:
+      replicas: 5
       labels:
         docker.ids: grpc
         docker.grpc.path: /grpc/**
