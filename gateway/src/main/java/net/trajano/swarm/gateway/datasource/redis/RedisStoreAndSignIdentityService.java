@@ -31,7 +31,6 @@ import reactor.core.scheduler.Scheduler;
 public class RedisStoreAndSignIdentityService {
 
   private final AuthProperties properties;
-  private final Scheduler refreshTokenScheduler;
   private final JwksProvider jwksProvider;
 
   private final RedisUserSessions redisUserSessions;

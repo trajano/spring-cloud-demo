@@ -26,18 +26,20 @@ public class SchedulerConfiguration {
 
   @Bean
   Scheduler jwksScheduler() {
-    return Schedulers.newBoundedElastic(
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-        "jwks");
+    return Schedulers.boundedElastic();
+    //    return Schedulers.newBoundedElastic(
+    //        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+    //        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+    //        "jwks");
   }
 
   @Bean
   Scheduler jwtConsumerScheduler() {
-    return Schedulers.newBoundedElastic(
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-        "jwtConsumer");
+    return Schedulers.boundedElastic();
+    //    return Schedulers.newBoundedElastic(
+    //        Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE,
+    //        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+    //        "jwtConsumer");
   }
 
   /**

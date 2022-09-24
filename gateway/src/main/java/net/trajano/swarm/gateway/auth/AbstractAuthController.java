@@ -4,6 +4,7 @@ import static reactor.core.publisher.Mono.fromCallable;
 
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import net.trajano.swarm.gateway.common.AuthProperties;
@@ -125,7 +126,10 @@ public abstract class AbstractAuthController<A, P> {
                         Duration.ofMillis(authProperties.getPenaltyDelayInMillis()),
                         penaltyScheduler))
         .onErrorResume(
-            TimeoutException.class, ex1 -> respondWithServiceUnavailable(serverWebExchange))
+            TimeoutException.class,
+            ex1 ->
+                respondWithServiceUnavailable(
+                    serverWebExchange, "Timed out processing authentication request"))
         .subscribeOn(authenticationScheduler);
   }
 
@@ -208,7 +212,10 @@ public abstract class AbstractAuthController<A, P> {
             })
         .flatMap(this::addDelaySpecifiedInServiceResponse)
         .onErrorResume(
-            TimeoutException.class, ex1 -> respondWithServiceUnavailable(serverWebExchange))
+            TimeoutException.class,
+            ex1 ->
+                respondWithServiceUnavailable(
+                    serverWebExchange, "Timed out processing refresh request"))
         .subscribeOn(refreshTokenScheduler);
   }
 
@@ -232,10 +239,12 @@ public abstract class AbstractAuthController<A, P> {
    * Handle timeouts gracefully to the client.
    *
    * @param exchange web exchange
+   * @param message message to log
    * @return response mono
    */
-  private Mono<GatewayResponse> respondWithServiceUnavailable(ServerWebExchange exchange) {
-    log.warn("timed out performing request");
+  private Mono<GatewayResponse> respondWithServiceUnavailable(
+      ServerWebExchange exchange, String message) {
+    log.warn(message);
     return Mono.just(GatewayResponse.builder().ok(false).error("service_unavailable").build())
         .doOnNext(
             response -> {

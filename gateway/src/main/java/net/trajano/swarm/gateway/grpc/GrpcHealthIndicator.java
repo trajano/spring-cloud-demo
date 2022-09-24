@@ -20,11 +20,7 @@ public class GrpcHealthIndicator implements ReactiveHealthIndicator {
     return Mono.fromSupplier(
         () -> {
           final var channels = channelProvider.getChannels();
-          final var allUp =
-              channels.values().stream()
-                  .map(s -> !s.isShutdown() && !s.isTerminated())
-                  .reduce(true, (current, next) -> current && next);
-          return Health.status(allUp ? Status.UP : Status.DOWN).withDetails(channels).build();
+          return Health.status(Status.UP).withDetails(channels).build();
         });
   }
 }
