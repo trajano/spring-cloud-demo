@@ -173,7 +173,6 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
             t -> {
               final var request = t.getT1();
               final var grpcMethodDescriptor = t.getT2();
-              log.warn("req", request);
               return assembleAndSendMessage(
                   exchange, managedChannel, request, grpcMethodDescriptor);
             })
