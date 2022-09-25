@@ -13,7 +13,6 @@ public class EchoService extends EchoGrpc.EchoImplBase {
       EchoOuterClass.EchoRequest request,
       StreamObserver<EchoOuterClass.EchoResponse> responseObserver) {
 
-    log.error("Got {}", request);
     responseObserver.onNext(
         EchoOuterClass.EchoResponse.newBuilder().setMessage(request.getMessage()).build());
     responseObserver.onCompleted();

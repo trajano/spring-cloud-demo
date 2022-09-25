@@ -183,7 +183,6 @@ public class GrpcController {
       @PathVariable String method,
       @RequestBody DataBuffer dataBuffer) {
 
-    log.error("ASDJLKDJASKLD");
     final var methodDescriptor = methods.get(new GrpcServiceMethod(service, method));
     if (methodDescriptor == null) {
       return Mono.error(new IllegalArgumentException("method is not supported"));
