@@ -82,11 +82,11 @@ public abstract class AbstractAuthController<A, P> {
             authenticationRequest ->
                 identityService.authenticate(
                     authenticationRequest, serverWebExchange.getRequest().getHeaders()))
-        .timeout(Duration.ofMillis(authProperties.getAuthenticationProcessingTimeoutInMillis()))
         .filter(IdentityServiceResponse::isOk)
         .flatMap(
             identityServiceResponse ->
                 claimsService.storeAndSignIdentityServiceResponse(identityServiceResponse, null))
+        .timeout(Duration.ofMillis(authProperties.getAuthenticationProcessingTimeoutInMillis()))
         .doOnNext(
             serviceResponse -> {
               final var serverHttpResponse = serverWebExchange.getResponse();

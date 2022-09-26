@@ -94,6 +94,11 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
             });
   }
 
+  /**
+   * Simple authentication used to test.
+   * @param authenticationRequest
+   * @return
+   */
   private Mono<IdentityServiceResponse> simpleAuthenticate(
       SimpleAuthenticationRequest authenticationRequest) {
 
