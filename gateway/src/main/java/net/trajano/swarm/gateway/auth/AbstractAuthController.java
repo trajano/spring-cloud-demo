@@ -3,6 +3,7 @@ package net.trajano.swarm.gateway.auth;
 import static reactor.core.publisher.Mono.fromCallable;
 
 import java.time.Duration;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.claims.ClaimsService;
@@ -125,6 +126,11 @@ public abstract class AbstractAuthController<A, P> {
                         Duration.ofMillis(authProperties.getPenaltyDelayInMillis()),
                         penaltyScheduler))
         .onErrorResume(
+            RejectedExecutionException.class,
+            ex1 ->
+                respondWithServiceUnavailable(
+                    serverWebExchange, "Rejected execution for authentication request"))
+        .onErrorResume(
             TimeoutException.class,
             ex1 ->
                 respondWithServiceUnavailable(
@@ -210,6 +216,11 @@ public abstract class AbstractAuthController<A, P> {
               }
             })
         .flatMap(this::addDelaySpecifiedInServiceResponse)
+        .onErrorResume(
+            RejectedExecutionException.class,
+            ex1 ->
+                respondWithServiceUnavailable(
+                    serverWebExchange, "Rejected execution for refresh request"))
         .onErrorResume(
             TimeoutException.class,
             ex1 ->

@@ -96,6 +96,7 @@ public class SimpleIdentityService<P> implements IdentityService<SimpleAuthentic
 
   /**
    * Simple authentication used to test.
+   *
    * @param authenticationRequest
    * @return
    */

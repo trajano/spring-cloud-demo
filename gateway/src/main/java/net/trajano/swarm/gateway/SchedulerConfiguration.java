@@ -43,13 +43,16 @@ public class SchedulerConfiguration {
    * This is used for signing JWTs. It is capped by the processors rather than a large multiplier as
    * this is a CPU intensive operation and running many in parallel will have detrimental impact.
    *
+   * <p>This is capped so there's not too many requests to do this operation. So it will be bounded
+   * by queue of no more than a set amount that is a function of the number of processors
+   *
    * @return scheduler
    */
   @Bean
   Scheduler jwtSigningScheduler() {
     return Schedulers.newBoundedElastic(
         Runtime.getRuntime().availableProcessors() + 1,
-        Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
+        Runtime.getRuntime().availableProcessors() * 5,
         "jwtSigning");
   }
 
