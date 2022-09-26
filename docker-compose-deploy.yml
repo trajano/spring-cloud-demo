@@ -132,7 +132,8 @@ services:
       placement:
         constraints:
           - node.role != manager
-      replicas: 10
+      mode: global
+      # replicas: 10
       resources:
         limits:
           # memory: 512m
@@ -171,6 +172,9 @@ services:
     ports:
       - 28083:8080
     deploy:
+      placement:
+        constraints:
+          - node.role == manager
       resources:
         limits:
           memory: 256m
@@ -203,7 +207,8 @@ services:
     environment:
       - LOGGING_LEVEL_NET_TRAJANO=debug
     deploy:
-      replicas: 5
+      #replicas: 5
+      mode: global
       labels:
         docker.ids: sample
         docker.sample.path: /sample/**
