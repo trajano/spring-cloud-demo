@@ -2,21 +2,26 @@ package net.trajano.swarm.gateway.grpc;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.*;
 
+import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.CallOptions;
+import io.grpc.Channel;
 import io.grpc.MethodDescriptor;
+import io.grpc.StatusRuntimeException;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import io.grpc.stub.ClientCalls;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.SequenceInputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jose4j.jwt.JwtClaims;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -45,6 +50,72 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
 
   private final ChannelProvider channelProvider;
   private final Scheduler grpcScheduler;
+  private final JsonFormat.Parser jsonParser = JsonFormat.parser();
+
+  private Mono<DynamicMessage> assembleRequest(
+      final InputStream inputStream, final Descriptors.MethodDescriptor methodDescriptor) {
+    try (final var jsonReader = new InputStreamReader(inputStream)) {
+      var builder = DynamicMessage.newBuilder(methodDescriptor.getInputType());
+      jsonParser.merge(jsonReader, builder);
+      return Mono.just(builder.build());
+    } catch (IOException e) {
+      // Fix this later
+      return Mono.error(e);
+    }
+  }
+
+  private Flux<DynamicMessage> assembleAndSendMessage(
+      ServerWebExchange exchange,
+      Channel managedChannel,
+      DynamicMessage request,
+      MethodDescriptor<DynamicMessage, DynamicMessage> grpcMethodDescriptor) {
+
+    try {
+
+      if (grpcMethodDescriptor.getType() != MethodDescriptor.MethodType.SERVER_STREAMING) {
+        return Flux.error(
+            () ->
+                new IllegalStateException(
+                    "Expected Streaming, but got %s for %s"
+                        .formatted(
+                            grpcMethodDescriptor.getType(),
+                            grpcMethodDescriptor.getFullMethodName())));
+      }
+
+      final var callOptions =
+          CallOptions.DEFAULT.withCallCredentials(
+              new JwtCallCredentials(
+                  ((JwtClaims) exchange.getRequiredAttribute("jwtClaims")).toJson()));
+
+      return Flux.<DynamicMessage>create(
+          emitter -> {
+            final var call = managedChannel.newCall(grpcMethodDescriptor, callOptions);
+            ClientCalls.asyncServerStreamingCall(
+                call,
+                request,
+                new StreamObserver<>() {
+                  @Override
+                  public void onCompleted() {
+                    emitter.complete();
+                  }
+
+                  @Override
+                  public void onError(Throwable t) {
+                    emitter.error(t);
+                  }
+
+                  @Override
+                  public void onNext(DynamicMessage dynamicMessage) {
+                    emitter.next(dynamicMessage);
+                  }
+                });
+          });
+
+    } catch (StatusRuntimeException e) {
+      // Fix this later
+      return Flux.error(e);
+    }
+  }
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -81,89 +152,54 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
                   try {
                     sequenceInputStream.close();
                   } catch (IOException e) {
-                    // no-op;
+                    // no-op
                   }
                 })
             .doOnDiscard(PooledDataBuffer.class, DataBufferUtils::release);
 
-    return Mono.zip(requestInputStreamMono, methodDescriptorMono)
+    return chain
+        .filter(exchange)
+        .then(Mono.zip(requestInputStreamMono, methodDescriptorMono))
         .flatMap(
             t -> {
-              try (final var jsonReader = new InputStreamReader(t.getT1())) {
+              final var inputStream = t.getT1();
+              final var methodDescriptor = t.getT2();
+              return Mono.zip(
+                  assembleRequest(inputStream, methodDescriptor),
+                  Mono.just(GrpcFunctions.methodDescriptorFromProtobuf(methodDescriptor)));
+            })
+        .flatMap(
+            t -> {
+              final var request = t.getT1();
+              final var grpcMethodDescriptor = t.getT2();
 
-                var builder = DynamicMessage.newBuilder(t.getT2().getInputType());
-                JsonFormat.parser().merge(jsonReader, builder);
-                final var inputMessage = builder.build();
+              var dataBufferStream =
+                  assembleAndSendMessage(exchange, managedChannel, request, grpcMethodDescriptor)
+                      // send headers on first successful value
+                      .doFirst(
+                          () ->
+                              exchange
+                                  .getResponse()
+                                  .getHeaders()
+                                  .add(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_EVENT_STREAM_VALUE))
+                      .flatMap(
+                          dynamicMessage -> {
+                            try {
+                              return Mono.just(
+                                  JsonFormat.printer()
+                                      .omittingInsignificantWhitespace()
+                                      .print(dynamicMessage));
+                            } catch (InvalidProtocolBufferException e) {
+                              return Mono.error(e);
+                            }
+                          })
+                      .map(json -> ServerSentEvent.builder(json).build())
+                      .map(ServerSentEventFunctions::getString)
+                      .map(s -> s.getBytes(StandardCharsets.UTF_8))
+                      .map(bytes -> exchange.getResponse().bufferFactory().wrap(bytes))
+                      .map(Flux::just);
 
-                final var grpcMethodDescriptor =
-                    GrpcFunctions.methodDescriptorFromProtobuf(t.getT2());
-
-                if (grpcMethodDescriptor.getType()
-                    != MethodDescriptor.MethodType.SERVER_STREAMING) {
-                  return Mono.error(
-                      () ->
-                          new IllegalStateException(
-                              "Expected Unary, but got %s for %s"
-                                  .formatted(
-                                      grpcMethodDescriptor.getType(),
-                                      grpcMethodDescriptor.getFullMethodName())));
-                }
-                exchange
-                    .getResponse()
-                    .getHeaders()
-                    .add(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_EVENT_STREAM_VALUE);
-
-                final var grpcOutputSteam =
-                    Flux.<DynamicMessage>create(
-                        emitter -> {
-                          final var call =
-                              managedChannel.newCall(grpcMethodDescriptor, CallOptions.DEFAULT);
-                          ClientCalls.asyncServerStreamingCall(
-                              call,
-                              inputMessage,
-                              new StreamObserver<>() {
-                                @Override
-                                public void onNext(DynamicMessage dynamicMessage) {
-                                  emitter.next(dynamicMessage);
-                                }
-
-                                @Override
-                                public void onError(Throwable t) {
-                                  emitter.error(t);
-                                }
-
-                                @Override
-                                public void onCompleted() {
-                                  emitter.complete();
-                                }
-                              });
-                        });
-
-                var dataBufferStream =
-                    grpcOutputSteam
-                        .flatMap(
-                            dynamicMessage -> {
-                              try {
-                                return Mono.just(
-                                    JsonFormat.printer()
-                                        .omittingInsignificantWhitespace()
-                                        .print(dynamicMessage));
-                              } catch (InvalidProtocolBufferException e) {
-                                return Mono.error(e);
-                              }
-                            })
-                        .map(json -> ServerSentEvent.builder(json).build())
-                        .map(ServerSentEventFunctions::getString)
-                        .map(s -> s.getBytes(StandardCharsets.UTF_8))
-                        .map(bytes -> exchange.getResponse().bufferFactory().wrap(bytes))
-                        .map(Flux::just);
-
-                return exchange.getResponse().writeAndFlushWith(dataBufferStream);
-
-              } catch (IOException e) {
-                // Fix this later
-                return Mono.error(e);
-              }
+              return exchange.getResponse().writeAndFlushWith(dataBufferStream);
             })
         .subscribeOn(grpcScheduler);
   }

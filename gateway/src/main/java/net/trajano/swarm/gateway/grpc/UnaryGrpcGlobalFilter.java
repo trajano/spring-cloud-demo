@@ -168,7 +168,6 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
                   assembleRequest(inputStream, methodDescriptor),
                   Mono.just(GrpcFunctions.methodDescriptorFromProtobuf(methodDescriptor)));
             })
-        //            .publishOn(grpcScheduler)
         .flatMap(
             t -> {
               final var request = t.getT1();

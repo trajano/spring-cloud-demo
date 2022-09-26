@@ -121,7 +121,7 @@ class GatewayApplicationTests {
             reactiveResilience4JCircuitBreakerFactory
                 .getCircuitBreakerRegistry()
                 .getAllCircuitBreakers())
-        .hasSize(3)
+        .hasSize(4)
         .allSatisfy(
             circuitBreaker -> {
               assertThat(circuitBreaker.getCircuitBreakerConfig()).isNotNull();

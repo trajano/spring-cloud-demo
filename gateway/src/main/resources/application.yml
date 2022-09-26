@@ -54,6 +54,11 @@ spring:
 #          uri: http://whoami2
 #          predicates:
 #            - Path=/who
+      metrics:
+        enabled: true
+        tags:
+          path:
+            enabled: true
       discovery:
         locator:
           enabled: true
@@ -91,6 +96,11 @@ spring:
                 # Choose 'resilience' meta or use the 'protocol' defaulting to 'http'
                 name: "metadata['resilience'] ?: metadata['protocol'] ?: 'http'"
                 fallbackUri: "'forward:/unavailable'"
+            - name: DiscoveryRequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                deny-empty-key: false
             - name: Grpc
               args:
                 serviceId: serviceId
@@ -132,6 +142,10 @@ resilience4j:
         registerHealthIndicator: true
         slidingWindowSize: 100
         automaticTransitionFromOpenToHalfOpenEnabled: true
+      streaming:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        automaticTransitionFromOpenToHalfOpenEnabled: true
   timelimiter:
     instances:
       auth:
@@ -141,7 +155,10 @@ resilience4j:
         timeoutDuration: 3s
         cancelRunningFuture: true
       grpc:
-        timeoutDuration: 5s
+        timeoutDuration: 1000000s
+        cancelRunningFuture: false
+      streaming:
+        timeoutDuration: 1000000s
         cancelRunningFuture: false
 
 management:
