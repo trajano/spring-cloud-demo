@@ -25,7 +25,8 @@ public class EchoController {
   public Mono<EchoResponse> echo(@RequestBody EchoRequest request) {
 
     return Mono.just(
-        EchoResponse.builder().message(request.getMessage()).timestamp(Instant.now()).build());
+        EchoResponse.builder().message(request.getMessage()).timestamp(Instant.now()).build())
+            .delayElement(Duration.ofMillis(100L));
   }
 
   @PostMapping(
