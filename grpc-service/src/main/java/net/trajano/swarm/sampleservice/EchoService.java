@@ -2,6 +2,9 @@ package net.trajano.swarm.sampleservice;
 
 import io.grpc.stub.StreamObserver;
 import java.time.Duration;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,15 +14,19 @@ import reactor.core.publisher.Flux;
 @Slf4j
 public class EchoService extends EchoGrpc.EchoImplBase {
 
+  private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
   @Override
   public void echo(
-      EchoOuterClass.EchoRequest request,
-      StreamObserver<EchoOuterClass.EchoResponse> responseObserver) {
+final      EchoOuterClass.EchoRequest request,
+final      StreamObserver<EchoOuterClass.EchoResponse> responseObserver) {
 
+    final var response = EchoOuterClass.EchoResponse.newBuilder().setMessage(request.getMessage()).build();
     //    System.out.println(GrpcServer.JWT_CLAIMS_CONTEXT_KEY.get());
-    responseObserver.onNext(
-        EchoOuterClass.EchoResponse.newBuilder().setMessage(request.getMessage()).build());
-    responseObserver.onCompleted();
+    executorService.schedule(()-> {
+      responseObserver.onNext(
+              response);
+      responseObserver.onCompleted();
+    }, 100, TimeUnit.MILLISECONDS);
   }
 
   @Override
