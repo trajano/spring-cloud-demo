@@ -1,18 +1,11 @@
 package net.trajano.swarm.gateway.auth;
 
-import static reactor.core.publisher.Mono.fromCallable;
-
-import java.time.Duration;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.jwks.JwksProvider;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.jose4j.jwk.JsonWebKeySet;
-import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
@@ -24,6 +17,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
+import reactor.util.context.Context;
+
+import java.time.Duration;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeoutException;
+
+import static reactor.core.publisher.Mono.fromCallable;
 
 /**
  * Due to type erasure, this was made abstract so a concrete implementation like
@@ -36,7 +36,7 @@ import reactor.core.scheduler.Scheduler;
  * <p>Resilience4J TimeLimiter is not used instead {@link Mono#timeout(Duration)} is used.
  *
  * @param <A> authentication request
- * @param <P> profile type (may be removed later)
+ * @param <P> profile type (maybe removed later)
  */
 @Slf4j
 public abstract class AbstractAuthController<A, P> {
@@ -73,17 +73,24 @@ public abstract class AbstractAuthController<A, P> {
         .delayElement(serviceResponse.getDelay(), penaltyScheduler);
   }
 
-  private Function<GatewayResponse, Publisher<?>> applyMinimumOperationTime(long start) {
+  /**
+   * Provide a function to apply a minimum operation time
+   *
+   * @param i input type ignored
+   * @return a mono that is delayed until a target time.
+   * @param <T> input type that is ignored
+   */
+  private <T> Mono<?> applyMinimumOperationTime(T i) {
 
-    return i ->
-        (start + authProperties.getMinimumOperationTimeInMillis() > System.currentTimeMillis())
-            ? Mono.just(i)
-                .delayElement(
-                    Duration.ofMillis(
-                        start
-                            + authProperties.getMinimumOperationTimeInMillis()
-                            - System.currentTimeMillis()))
-            : Mono.just(i);
+    return Mono.deferContextual(
+            ctx ->
+                Mono.just(
+                    authProperties.getMinimumOperationTimeInMillis()
+                        + (long) ctx.get("startTime")
+                        - System.currentTimeMillis()))
+        .filter(delayTime -> delayTime > 0)
+        .map(Duration::ofMillis)
+        .flatMap(delayTime -> Mono.just(i).delayElement(delayTime));
   }
 
   @PostMapping(
@@ -93,7 +100,6 @@ public abstract class AbstractAuthController<A, P> {
   public Mono<GatewayResponse> authenticate(
       @RequestBody Mono<A> authenticationRequestMono, ServerWebExchange serverWebExchange) {
 
-    final long start = System.currentTimeMillis();
     return authenticationRequestMono
         .flatMap(
             authenticationRequest ->
@@ -151,7 +157,8 @@ public abstract class AbstractAuthController<A, P> {
             ex1 ->
                 respondWithServiceUnavailable(
                     serverWebExchange, "Timed out processing authentication request"))
-        .delayUntil(applyMinimumOperationTime(start))
+        .delayUntil(this::applyMinimumOperationTime)
+        .contextWrite(this::writeStartTimeToContext)
         .subscribeOn(authenticationScheduler);
   }
 
@@ -176,7 +183,6 @@ public abstract class AbstractAuthController<A, P> {
   public Mono<GatewayResponse> logout(
       @ModelAttribute OAuthRevocationRequest request, ServerWebExchange serverWebExchange) {
 
-    final var start = System.currentTimeMillis();
     if (!request.getToken_type_hint().equals("refresh_token")
         || !StringUtils.hasText(request.getToken())) {
       return Mono.error(new IllegalArgumentException());
@@ -201,7 +207,8 @@ public abstract class AbstractAuthController<A, P> {
                         Duration.ofMillis(authProperties.getPenaltyDelayInMillis()),
                         penaltyScheduler))
         .onErrorResume(TimeoutException.class, ex1 -> respondWithOk(serverWebExchange))
-        .delayUntil(applyMinimumOperationTime(start))
+        .delayUntil(this::applyMinimumOperationTime)
+        .contextWrite(this::writeStartTimeToContext)
         .subscribeOn(logoutScheduler);
   }
 
@@ -211,8 +218,6 @@ public abstract class AbstractAuthController<A, P> {
   public Mono<GatewayResponse> refreshUrlEncoded(
       @ModelAttribute OAuthRefreshRequest oAuthRefreshRequest,
       ServerWebExchange serverWebExchange) {
-
-    final var start = System.currentTimeMillis();
 
     if (!oAuthRefreshRequest.getGrant_type().equals("refresh_token")) {
       return Mono.error(new IllegalArgumentException());
@@ -247,7 +252,8 @@ public abstract class AbstractAuthController<A, P> {
             ex1 ->
                 respondWithServiceUnavailable(
                     serverWebExchange, "Timed out processing refresh request"))
-        .delayUntil(applyMinimumOperationTime(start))
+        .delayUntil(this::applyMinimumOperationTime)
+        .contextWrite(this::writeStartTimeToContext)
         .subscribeOn(refreshTokenScheduler);
   }
 
@@ -284,5 +290,9 @@ public abstract class AbstractAuthController<A, P> {
               serverHttpResponse.setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
               serverHttpResponse.getHeaders().add(HttpHeaders.RETRY_AFTER, "120");
             });
+  }
+
+  private Context writeStartTimeToContext(Context ctx) {
+    return ctx.put("startTime", System.currentTimeMillis());
   }
 }
