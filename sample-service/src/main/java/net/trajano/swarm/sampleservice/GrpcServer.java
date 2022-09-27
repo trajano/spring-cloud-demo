@@ -7,13 +7,11 @@ import java.io.IOException;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import org.springframework.stereotype.Service;
 
 /**
  * This is a GRPC server that's running in the same process as the sample, but will be extracted in
  * the future and the routing logic will be moved to gateway instead.
  */
-@Service
 public class GrpcServer {
   private final Server server;
 
