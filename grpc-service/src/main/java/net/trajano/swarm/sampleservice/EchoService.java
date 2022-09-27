@@ -14,19 +14,24 @@ import reactor.core.publisher.Flux;
 @Slf4j
 public class EchoService extends EchoGrpc.EchoImplBase {
 
-  private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+  private final ScheduledExecutorService executorService =
+      Executors.newSingleThreadScheduledExecutor();
+
   @Override
   public void echo(
-final      EchoOuterClass.EchoRequest request,
-final      StreamObserver<EchoOuterClass.EchoResponse> responseObserver) {
+      final EchoOuterClass.EchoRequest request,
+      final StreamObserver<EchoOuterClass.EchoResponse> responseObserver) {
 
-    final var response = EchoOuterClass.EchoResponse.newBuilder().setMessage(request.getMessage()).build();
+    final var response =
+        EchoOuterClass.EchoResponse.newBuilder().setMessage(request.getMessage()).build();
     //    System.out.println(GrpcServer.JWT_CLAIMS_CONTEXT_KEY.get());
-    executorService.schedule(()-> {
-      responseObserver.onNext(
-              response);
-      responseObserver.onCompleted();
-    }, 100, TimeUnit.MILLISECONDS);
+    executorService.schedule(
+        () -> {
+          responseObserver.onNext(response);
+          responseObserver.onCompleted();
+        },
+        100,
+        TimeUnit.MILLISECONDS);
   }
 
   @Override
