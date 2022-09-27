@@ -5,12 +5,14 @@ import static reactor.core.publisher.Mono.fromCallable;
 import java.time.Duration;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.jwks.JwksProvider;
 import net.trajano.swarm.gateway.web.GatewayResponse;
 import org.jose4j.jwk.JsonWebKeySet;
+import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
@@ -71,6 +73,19 @@ public abstract class AbstractAuthController<A, P> {
         .delayElement(serviceResponse.getDelay(), penaltyScheduler);
   }
 
+  private Function<GatewayResponse, Publisher<?>> applyMinimumOperationTime(long start) {
+
+    return i ->
+        (start + authProperties.getMinimumOperationTimeInMillis() > System.currentTimeMillis())
+            ? Mono.just(i)
+                .delayElement(
+                    Duration.ofMillis(
+                        start
+                            + authProperties.getMinimumOperationTimeInMillis()
+                            - System.currentTimeMillis()))
+            : Mono.just(i);
+  }
+
   @PostMapping(
       path = "${auth.controller-mappings.authentication:/auth}",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
@@ -78,6 +93,7 @@ public abstract class AbstractAuthController<A, P> {
   public Mono<GatewayResponse> authenticate(
       @RequestBody Mono<A> authenticationRequestMono, ServerWebExchange serverWebExchange) {
 
+    final long start = System.currentTimeMillis();
     return authenticationRequestMono
         .flatMap(
             authenticationRequest ->
@@ -135,6 +151,7 @@ public abstract class AbstractAuthController<A, P> {
             ex1 ->
                 respondWithServiceUnavailable(
                     serverWebExchange, "Timed out processing authentication request"))
+        .delayUntil(applyMinimumOperationTime(start))
         .subscribeOn(authenticationScheduler);
   }
 
@@ -159,9 +176,10 @@ public abstract class AbstractAuthController<A, P> {
   public Mono<GatewayResponse> logout(
       @ModelAttribute OAuthRevocationRequest request, ServerWebExchange serverWebExchange) {
 
+    final var start = System.currentTimeMillis();
     if (!request.getToken_type_hint().equals("refresh_token")
         || !StringUtils.hasText(request.getToken())) {
-      throw new IllegalArgumentException();
+      return Mono.error(new IllegalArgumentException());
     }
 
     return claimsService
@@ -183,6 +201,7 @@ public abstract class AbstractAuthController<A, P> {
                         Duration.ofMillis(authProperties.getPenaltyDelayInMillis()),
                         penaltyScheduler))
         .onErrorResume(TimeoutException.class, ex1 -> respondWithOk(serverWebExchange))
+        .delayUntil(applyMinimumOperationTime(start))
         .subscribeOn(logoutScheduler);
   }
 
@@ -192,6 +211,8 @@ public abstract class AbstractAuthController<A, P> {
   public Mono<GatewayResponse> refreshUrlEncoded(
       @ModelAttribute OAuthRefreshRequest oAuthRefreshRequest,
       ServerWebExchange serverWebExchange) {
+
+    final var start = System.currentTimeMillis();
 
     if (!oAuthRefreshRequest.getGrant_type().equals("refresh_token")) {
       return Mono.error(new IllegalArgumentException());
@@ -226,6 +247,7 @@ public abstract class AbstractAuthController<A, P> {
             ex1 ->
                 respondWithServiceUnavailable(
                     serverWebExchange, "Timed out processing refresh request"))
+        .delayUntil(applyMinimumOperationTime(start))
         .subscribeOn(refreshTokenScheduler);
   }
 

@@ -37,6 +37,12 @@ public class AuthProperties {
    */
   private long minimumAccessTokenAgeBeforeRefreshInMillis = 30 * 1000L;
 
+  /**
+   * Specifies the minimum time for an auth operation must have. This reduces the load on the system
+   * as it defers the response so it can deflect the load on the system.
+   */
+  private long minimumOperationTimeInMillis = 200L;
+
   private int penaltyDelayInMillis = 1000;
 
   private String realm = "JWT";
