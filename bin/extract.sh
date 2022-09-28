@@ -2,7 +2,7 @@
 set -e
 for jar in *.jar
 do
-  if [ $( jar tf $jar BOOT-INF/layers.idx ) ]
+  if [ "$( jar tf $jar BOOT-INF/layers.idx )" ]
   then
     DIR=$(basename $jar -0.0.1-SNAPSHOT.jar)
     mkdir $DIR
