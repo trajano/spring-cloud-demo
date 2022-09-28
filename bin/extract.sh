@@ -4,6 +4,7 @@ set -x
 rm buildSrc.jar
 rm dynamic-grpc-client-*.jar
 rm gateway-common-*.jar
+rm logging-*.jar
 rm spring-redis-region-*.jar
 for jar in *.jar
 do

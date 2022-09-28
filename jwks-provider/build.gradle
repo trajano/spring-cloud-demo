@@ -22,12 +22,12 @@ dependencies {
 
     compileOnly 'org.projectlombok:lombok'
     implementation project(':gateway-common')
+    implementation project(':logging')
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.testcontainers:junit-jupiter'
 
-    runtimeOnly 'net.logstash.logback:logstash-logback-encoder:7.2'
 
 }
 
