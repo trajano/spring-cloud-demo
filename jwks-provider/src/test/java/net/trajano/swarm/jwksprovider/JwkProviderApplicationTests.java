@@ -1,18 +1,16 @@
 package net.trajano.swarm.jwksprovider;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import net.trajano.swarm.jwksprovider.database.JwksDatabasePopulator;
+import net.trajano.swarm.jwksprovider.redis.JwksRedisPopulator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@MockBean(classes = {JwksDatabasePopulator.class})
 class JwkProviderApplicationTests {
 
-  @Autowired private JwksDatabasePopulator jwksPopulator;
+  @Autowired private JwksRedisPopulator jwksPopulator;
 
   @Test
   void contextLoads() {
