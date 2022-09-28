@@ -1,14 +1,11 @@
 #!/bin/sh
 set -e
-set -x
-rm buildSrc.jar
-rm dynamic-grpc-client-*.jar
-rm gateway-common-*.jar
-rm logging-*.jar
-rm spring-redis-region-*.jar
 for jar in *.jar
 do
-  DIR=$(basename $jar -0.0.1-SNAPSHOT.jar)
-  mkdir $DIR
-  java -Djarmode=layertools -jar $jar extract --destination $DIR
+  if [ $( jar tf $jar BOOT-INF/layers.idx ) ]
+  then
+    DIR=$(basename $jar -0.0.1-SNAPSHOT.jar)
+    mkdir $DIR
+    java -Djarmode=layertools -jar $jar extract --destination $DIR
+  fi
 done
