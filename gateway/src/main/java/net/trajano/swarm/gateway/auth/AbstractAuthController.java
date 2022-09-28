@@ -1,5 +1,10 @@
 package net.trajano.swarm.gateway.auth;
 
+import static reactor.core.publisher.Mono.fromCallable;
+
+import java.time.Duration;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import net.trajano.swarm.gateway.common.AuthProperties;
@@ -18,12 +23,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.util.context.Context;
-
-import java.time.Duration;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeoutException;
-
-import static reactor.core.publisher.Mono.fromCallable;
 
 /**
  * Due to type erasure, this was made abstract so a concrete implementation like

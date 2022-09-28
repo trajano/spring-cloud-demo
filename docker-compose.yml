@@ -60,6 +60,7 @@ services:
       context: .
       target: gateway
     image: local/gateway
+    tty: true
     environment:
       - SPRING_REDIS_HOST=redis
       - SPRING_REDIS_LETTUCE_POOL_MAXACTIVE=30
@@ -84,7 +85,8 @@ services:
 #      - LOGGING_LEVEL_NET_TRAJANO=trace
       - LOGGING_LEVEL_NET_TRAJANO=debug
       # - LOGGING_LEVEL_REQUEST=error
-      - LOGGING_LEVEL_REQUEST=warn
+      # - LOGGING_LEVEL_REQUEST=warn
+      - LOGGING_LEVEL_REQUEST=info
 #      - LOGGING_LEVEL_ORG_XBILL=trace
       - LOGGING_LEVEL_ROOT=error
       - LOGGING_LEVEL_SECURITY=warn
@@ -168,6 +170,7 @@ services:
       - redis
     ports:
       - 28083:8080
+    tty: true
     deploy:
       resources:
         limits:

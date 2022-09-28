@@ -1,6 +1,7 @@
 package net.trajano.swarm.jwksprovider.redis;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
 import net.trajano.swarm.jwksprovider.Blocks;
 import org.jose4j.jwk.JsonWebKey;
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class RedisBlocksController {
 
   private final ReactiveStringRedisTemplate redisTemplate;
@@ -46,7 +48,7 @@ public class RedisBlocksController {
   Mono<Blocks> blocks() {
 
     final var key = redisKeyBlocks.previousSigningRedisKey();
-
+    log.error("key={}", key);
     return Mono.zip(
             getKeyPairs(key).map(this::getKid).collectList(),
             getKeyPairs(redisKeyBlocks.currentSigningRedisKey()).map(this::getKid).collectList(),
