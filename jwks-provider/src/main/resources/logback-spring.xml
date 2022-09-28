@@ -5,6 +5,7 @@
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <layout class="net.logstash.logback.layout.LogstashLayout">
                 <immediateFlush>true</immediateFlush>
+                <lineSeparator>SYSTEM</lineSeparator>
             </layout>
         </appender>
     </springProfile>

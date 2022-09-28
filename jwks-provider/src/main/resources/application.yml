@@ -3,6 +3,10 @@ spring:
     enabled: true
   main:
     banner-mode: "off"
+  sleuth:
+    reactor:
+      instrumentation-type: decorate_queues
+    trace-id128: true
 logging:
   level:
     org.springframework.data.repository.config.RepositoryConfigurationDelegate: WARN
