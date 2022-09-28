@@ -17,11 +17,9 @@ import reactor.core.publisher.Mono;
  * This is a simplistic implementation of using ZLib compression with strings. It is meant to be
  * used with a small strings and not meant for large streaming content.
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ZLibStringCompression {
+public final class ZLibStringCompression {
 
-  /** 2 MB limit by default. */
-  private static final int DEFAULT_LIMIT = 2 * 1024 * 1024;
+  private ZLibStringCompression() {}
 
   public static void compress(InputStream source, OutputStream target) throws IOException {
 

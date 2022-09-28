@@ -135,7 +135,10 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
               return GrpcFunctions.methodDescriptor(
                       key.uri(),
                       GrpcFunctions.fileDescriptors(serverReflectionStub)
-                          .map(GrpcFunctions::buildFrom))
+                          .flatMap(
+                              serviceProto ->
+                                  GrpcFunctions.buildServiceFromProto(
+                                      serverReflectionStub, serviceProto)))
                   .cache();
             });
 

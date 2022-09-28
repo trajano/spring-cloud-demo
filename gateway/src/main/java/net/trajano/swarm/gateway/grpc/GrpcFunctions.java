@@ -3,6 +3,7 @@ package net.trajano.swarm.gateway.grpc;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.MethodDescriptor;
@@ -36,20 +37,18 @@ public class GrpcFunctions {
   }
 
   public static Mono<List<String>> servicesFromReflection(
-      ServerReflectionGrpc.ServerReflectionStub serverReflectionBlockingStub) {
+      ServerReflectionGrpc.ServerReflectionStub serverReflectionStub) {
 
     return Mono.create(
         emitter -> {
           final var serviceListObserver =
-              serverReflectionBlockingStub.serverReflectionInfo(
+              serverReflectionStub.serverReflectionInfo(
                   new StreamObserver<>() {
                     @Override
-                    public void onNext(ServerReflectionResponse value) {
+                    public void onCompleted() {
 
-                      emitter.success(
-                          value.getListServicesResponse().getServiceList().stream()
-                              .map(ServiceResponse::getName)
-                              .toList());
+                      // no-op
+
                     }
 
                     @Override
@@ -59,10 +58,12 @@ public class GrpcFunctions {
                     }
 
                     @Override
-                    public void onCompleted() {
+                    public void onNext(ServerReflectionResponse value) {
 
-                      // no-op
-
+                      emitter.success(
+                          value.getListServicesResponse().getServiceList().stream()
+                              .map(ServiceResponse::getName)
+                              .toList());
                     }
                   });
           serviceListObserver.onNext(
@@ -81,15 +82,9 @@ public class GrpcFunctions {
               serverReflectionBlockingStub.serverReflectionInfo(
                   new StreamObserver<>() {
                     @Override
-                    public void onNext(ServerReflectionResponse value) {
+                    public void onCompleted() {
 
-                      try {
-                        emitter.next(
-                            DescriptorProtos.FileDescriptorProto.parseFrom(
-                                value.getFileDescriptorResponse().getFileDescriptorProto(0)));
-                      } catch (Exception e) {
-                        emitter.error(e);
-                      }
+                      emitter.complete();
                     }
 
                     @Override
@@ -99,9 +94,15 @@ public class GrpcFunctions {
                     }
 
                     @Override
-                    public void onCompleted() {
+                    public void onNext(ServerReflectionResponse value) {
 
-                      emitter.complete();
+                      try {
+                        emitter.next(
+                            DescriptorProtos.FileDescriptorProto.parseFrom(
+                                value.getFileDescriptorResponse().getFileDescriptorProto(0)));
+                      } catch (Exception e) {
+                        emitter.error(e);
+                      }
                     }
                   });
           services.stream()
@@ -114,13 +115,56 @@ public class GrpcFunctions {
   }
 
   public static Descriptors.FileDescriptor buildFrom(
-      DescriptorProtos.FileDescriptorProto descriptorProto) {
+      DescriptorProtos.FileDescriptorProto descriptorProto,
+      Descriptors.FileDescriptor... dependencies) {
     try {
-      return Descriptors.FileDescriptor.buildFrom(
-          descriptorProto, new Descriptors.FileDescriptor[0]);
+      return Descriptors.FileDescriptor.buildFrom(descriptorProto, dependencies);
     } catch (Descriptors.DescriptorValidationException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static Flux<Descriptors.FileDescriptor> fileDescriptorsForDependencies(
+      DescriptorProtos.FileDescriptorProto d,
+      ServerReflectionGrpc.ServerReflectionStub serverReflectionStub) {
+    return Flux.fromIterable(d.getDependencyList())
+        .map(x -> ServerReflectionRequest.newBuilder().setFileByFilename(x).build())
+        .flatMap(
+            depReq ->
+                Mono.<DescriptorProtos.FileDescriptorProto>create(
+                    sink -> {
+                      final var serverReflectionRequestStreamObserver =
+                          serverReflectionStub.serverReflectionInfo(
+                              new StreamObserver<>() {
+                                @Override
+                                public void onCompleted() {
+                                  // no-op
+                                }
+
+                                @Override
+                                public void onError(Throwable t) {
+
+                                  sink.error(t);
+                                }
+
+                                @Override
+                                public void onNext(ServerReflectionResponse value) {
+
+                                  try {
+                                    sink.success(
+                                        DescriptorProtos.FileDescriptorProto.parseFrom(
+                                            value
+                                                .getFileDescriptorResponse()
+                                                .getFileDescriptorProto(0)));
+                                  } catch (InvalidProtocolBufferException e) {
+                                    sink.error(e);
+                                  }
+                                }
+                              });
+                      serverReflectionRequestStreamObserver.onNext(depReq);
+                      serverReflectionRequestStreamObserver.onCompleted();
+                    }))
+        .map(GrpcFunctions::buildFrom);
   }
 
   public static MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptorFromProtobuf(
@@ -163,6 +207,21 @@ public class GrpcFunctions {
         .flatMapMany(services -> fileDescriptorForServices(serverReflectionBlockingStub, services));
   }
 
+  public static Mono<Descriptors.FileDescriptor> buildServiceFromProto(
+      ServerReflectionGrpc.ServerReflectionStub serverReflectionStub,
+      DescriptorProtos.FileDescriptorProto serviceDescriptorProto) {
+    final var fileDescriptorFlux =
+        fileDescriptorsForDependencies(serviceDescriptorProto, serverReflectionStub)
+            .collectList()
+            .map(fileDescriptors -> fileDescriptors.toArray(Descriptors.FileDescriptor[]::new));
+    return Mono.zip(
+        o ->
+            GrpcFunctions.buildFrom(
+                (DescriptorProtos.FileDescriptorProto) o[0], (Descriptors.FileDescriptor[]) o[1]),
+        Mono.just(serviceDescriptorProto),
+        fileDescriptorFlux);
+  }
+
   public static Mono<Descriptors.MethodDescriptor> methodDescriptor(
       URI uri, Flux<Descriptors.FileDescriptor> fileDescriptorFlux) {
     String[] pathElements = uri.getPath().split("/");
@@ -171,7 +230,6 @@ public class GrpcFunctions {
         .filter(serviceDescriptor -> pathElements[1].equals(serviceDescriptor.getName()))
         .flatMap(serviceDescriptor -> Flux.fromIterable(serviceDescriptor.getMethods()))
         .filter(methodDescriptor -> pathElements[2].equals(methodDescriptor.getName()))
-        //                .map(GrpcFunctions::methodDescriptorFromProtobuf)
         .last();
   }
 }

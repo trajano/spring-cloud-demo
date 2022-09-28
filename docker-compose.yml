@@ -246,6 +246,7 @@ services:
     image: local/grpc-service
     environment:
       - LOGGING_LEVEL_NET_TRAJANO=debug
+    tty: true
     deploy:
       labels:
         docker.ids: grpc
@@ -260,6 +261,8 @@ services:
           memory: 256m
     networks:
       - services
+    ports:
+      - "28088:50000"
 #  tomcat:
 #    image: tomcat
 #    networks:

@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class GrpcServer implements DisposableBean {
-  public static final Metadata.Key<String> JWT_CLAIMS_KEY =
+  private static final Metadata.Key<String> JWT_CLAIMS_KEY =
       Metadata.Key.of("jwtClaims", Metadata.ASCII_STRING_MARSHALLER);
 
   public static final Context.Key<String> JWT_CLAIMS_CONTEXT_KEY = Context.key("jwtClaims");

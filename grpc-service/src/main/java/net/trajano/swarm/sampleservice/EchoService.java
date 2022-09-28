@@ -1,5 +1,7 @@
 package net.trajano.swarm.sampleservice;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.util.JsonFormat;
 import io.grpc.stub.StreamObserver;
 import java.time.Duration;
 import java.util.concurrent.Executors;
@@ -22,16 +24,25 @@ public class EchoService extends EchoGrpc.EchoImplBase {
       final EchoOuterClass.EchoRequest request,
       final StreamObserver<EchoOuterClass.EchoResponse> responseObserver) {
 
-    final var response =
-        EchoOuterClass.EchoResponse.newBuilder().setMessage(request.getMessage()).build();
-    //    System.out.println(GrpcServer.JWT_CLAIMS_CONTEXT_KEY.get());
-    executorService.schedule(
-        () -> {
-          responseObserver.onNext(response);
-          responseObserver.onCompleted();
-        },
-        100,
-        TimeUnit.MILLISECONDS);
+    try {
+      final var jwtClaimsStruct = EchoOuterClass.JwtClaims.newBuilder();
+      JsonFormat.parser().merge(GrpcServer.JWT_CLAIMS_CONTEXT_KEY.get(), jwtClaimsStruct);
+
+      final EchoOuterClass.EchoResponse response =
+          EchoOuterClass.EchoResponse.newBuilder()
+              .setMessage(request.getMessage())
+              .setJwtClaims(jwtClaimsStruct)
+              .build();
+      executorService.schedule(
+          () -> {
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+          },
+          100,
+          TimeUnit.MILLISECONDS);
+    } catch (InvalidProtocolBufferException e) {
+      responseObserver.onError(e);
+    }
   }
 
   @Override
