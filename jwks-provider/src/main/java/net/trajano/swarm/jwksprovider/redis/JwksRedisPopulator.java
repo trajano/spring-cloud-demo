@@ -62,9 +62,7 @@ public class JwksRedisPopulator {
     log.debug("populating redis key={} expiration={}", key, expiresAt);
 
     return updateExpirationAndHasKey(key, expiresAt) // don't bother if there's data
-        .log("Exists")
         .filter(exists -> !exists) // don't bother if there's data
-        .log("Missing")
         .flatMap(ignored -> buildEntryForBlock(key, expiresAt));
   }
 
