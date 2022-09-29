@@ -131,6 +131,10 @@ public class GrpcServerReflection {
     return methodDescriptorBuilder.build();
   }
 
+  public Mono<Descriptors.MethodDescriptor> methodDescriptor(URI uri) {
+    return methodDescriptor(uri, fileDescriptors().flatMap(this::buildServiceFromProto));
+  }
+
   public Mono<Descriptors.MethodDescriptor> methodDescriptor(
       URI uri, Flux<Descriptors.FileDescriptor> fileDescriptorFlux) {
     final String[] pathElements = uri.getPath().split("/");

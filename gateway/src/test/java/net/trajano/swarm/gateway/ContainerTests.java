@@ -101,6 +101,8 @@ class ContainerTests {
 
     grpcService =
         new GenericContainer<>("local/grpc-service")
+                .withLabel("docker.ids", "grpc")
+                .withLabel("docker.grpc.path", "/grpc/**")
             .dependsOn(redis)
             .withNetwork(network)
             .withExposedPorts(50000)

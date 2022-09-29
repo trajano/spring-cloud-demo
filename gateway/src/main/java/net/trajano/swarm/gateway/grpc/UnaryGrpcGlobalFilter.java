@@ -49,7 +49,6 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
   private final Scheduler grpcScheduler;
   private final JsonFormat.Parser jsonParser = JsonFormat.parser();
 
-  private record MethodDescriptorCacheKey(String serviceInstanceId, URI uri) {}
   /** Method descriptor cache. */
   private final Map<MethodDescriptorCacheKey, Mono<Descriptors.MethodDescriptor>>
       methodDescriptorCache = new WeakHashMap<>();
@@ -131,16 +130,7 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
     final var methodDescriptorMono =
         methodDescriptorCache.computeIfAbsent(
             new MethodDescriptorCacheKey(serviceInstanceId, uri),
-            key -> {
-              final var grpcServerReflection = new GrpcServerReflection(managedChannel);
-              return grpcServerReflection
-                  .methodDescriptor(
-                      key.uri(),
-                      grpcServerReflection
-                          .fileDescriptors()
-                          .flatMap(grpcServerReflection::buildServiceFromProto))
-                  .cache();
-            });
+            key -> new GrpcServerReflection(managedChannel).methodDescriptor(key.uri()).cache());
 
     // Request input stream, note that this needs to be closed at the end.
     final var requestInputStreamMono =

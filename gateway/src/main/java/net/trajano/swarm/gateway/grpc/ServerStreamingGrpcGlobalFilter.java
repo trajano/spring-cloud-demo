@@ -55,9 +55,7 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
   private final JsonFormat.Parser jsonParser = JsonFormat.parser();
 
   /** Method descriptor cache. */
-  private final Map<
-          ServerStreamingGrpcGlobalFilter.MethodDescriptorCacheKey,
-          Mono<Descriptors.MethodDescriptor>>
+  private final Map<MethodDescriptorCacheKey, Mono<Descriptors.MethodDescriptor>>
       methodDescriptorCache = new WeakHashMap<>();
 
   private Flux<DynamicMessage> assembleAndSendMessage(
@@ -143,17 +141,8 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
     // use the uri to obtain the method descriptor rather than doing reflection.
     final var methodDescriptorMono =
         methodDescriptorCache.computeIfAbsent(
-            new ServerStreamingGrpcGlobalFilter.MethodDescriptorCacheKey(serviceInstanceId, uri),
-            key -> {
-              final var grpcServerReflection = new GrpcServerReflection(managedChannel);
-              return grpcServerReflection
-                  .methodDescriptor(
-                      key.uri(),
-                      grpcServerReflection
-                          .fileDescriptors()
-                          .flatMap(grpcServerReflection::buildServiceFromProto))
-                  .cache();
-            });
+            new MethodDescriptorCacheKey(serviceInstanceId, uri),
+            key -> new GrpcServerReflection(managedChannel).methodDescriptor(key.uri()).cache());
 
     // Request input stream, note that this needs to be closed at the end.
     final var requestInputStreamMono =
@@ -252,6 +241,4 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
         && MediaType.APPLICATION_JSON.equals(exchange.getRequest().getHeaders().getContentType())
         && exchange.getRequest().getHeaders().getAccept().contains(MediaType.TEXT_EVENT_STREAM);
   }
-
-  private record MethodDescriptorCacheKey(String serviceInstanceId, URI uri) {}
 }
