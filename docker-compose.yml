@@ -141,7 +141,7 @@ services:
           memory: 512m
           # memory: 768m
           # memory: 256m
-#    user: "5000"
+    user: "5000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:

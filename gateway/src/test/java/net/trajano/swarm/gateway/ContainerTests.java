@@ -90,9 +90,19 @@ class ContainerTests {
             .withNetwork(network)
             .waitingFor(Wait.forHealthcheck());
 
+    grpcService =
+        new GenericContainer<>("local/grpc-service")
+            .withLabel("docker.ids", "grpc")
+            .withLabel("docker.grpc.path", "/grpc/**")
+            .withLabel("docker.grpc.protocol", "grpc")
+            .withLabel("docker.grpc.port", "50000")
+            .withNetwork(network)
+            .withExposedPorts(50000)
+            .waitingFor(Wait.forHealthcheck());
+
     gateway =
         new GenericContainer<>("local/gateway")
-            .dependsOn(redis, whoami)
+            .dependsOn(redis, whoami, grpcService, jwksProvider)
             .withEnv("DOCKER_DISCOVERY_SWARMMODE", "false")
             .withEnv("DOCKER_DISCOVERY_NETWORK", networkName)
             .withEnv("SPRING_REDIS_HOST", "redis")
@@ -100,17 +110,6 @@ class ContainerTests {
             .withFileSystemBind("/var/run/docker.sock", "/var/run/docker.sock")
             .withNetwork(network)
             .withExposedPorts(8080)
-            .waitingFor(Wait.forHealthcheck());
-
-    grpcService =
-        new GenericContainer<>("local/grpc-service")
-            .withLabel("docker.ids", "grpc")
-            .withLabel("docker.grpc.path", "/grpc/**")
-            .withLabel("docker.grpc.protocol", "grpc")
-            .withLabel("docker.grpc.port", "50000")
-            .dependsOn(redis)
-            .withNetwork(network)
-            .withExposedPorts(50000)
             .waitingFor(Wait.forHealthcheck());
 
     whoami.start();
@@ -183,7 +182,7 @@ class ContainerTests {
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + responseBody.getAccessToken())
             .exchange()
             .expectStatus()
-            .isEqualTo(HttpStatus.OK)
+            .isOk()
             .expectBody(String.class)
             .returnResult()
             .getResponseBody();
@@ -207,7 +206,7 @@ class ContainerTests {
                             .build()))
             .exchange()
             .expectStatus()
-            .isEqualTo(HttpStatus.OK)
+            .isOk()
             .expectBody(String.class)
             .returnResult()
             .getResponseBody();
