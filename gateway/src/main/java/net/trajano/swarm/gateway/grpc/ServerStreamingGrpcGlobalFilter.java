@@ -10,7 +10,6 @@ import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.MethodDescriptor;
 import io.grpc.StatusRuntimeException;
-import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import io.grpc.stub.ClientCalls;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
@@ -19,6 +18,8 @@ import java.io.InputStreamReader;
 import java.io.SequenceInputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.WeakHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jose4j.jwt.JwtClaims;
@@ -47,22 +48,17 @@ import reactor.core.scheduler.Scheduler;
 @Slf4j
 @RequiredArgsConstructor
 public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
-
   private final ChannelProvider channelProvider;
+
   private final Scheduler grpcScheduler;
+
   private final JsonFormat.Parser jsonParser = JsonFormat.parser();
 
-  private Mono<DynamicMessage> assembleRequest(
-      final InputStream inputStream, final Descriptors.MethodDescriptor methodDescriptor) {
-    try (final var jsonReader = new InputStreamReader(inputStream)) {
-      var builder = DynamicMessage.newBuilder(methodDescriptor.getInputType());
-      jsonParser.merge(jsonReader, builder);
-      return Mono.just(builder.build());
-    } catch (IOException e) {
-      // Fix this later
-      return Mono.error(e);
-    }
-  }
+  /** Method descriptor cache. */
+  private final Map<
+          ServerStreamingGrpcGlobalFilter.MethodDescriptorCacheKey,
+          Mono<Descriptors.MethodDescriptor>>
+      methodDescriptorCache = new WeakHashMap<>();
 
   private Flux<DynamicMessage> assembleAndSendMessage(
       ServerWebExchange exchange,
@@ -87,7 +83,7 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
               new JwtCallCredentials(
                   ((JwtClaims) exchange.getRequiredAttribute("jwtClaims")).toJson()));
 
-      return Flux.<DynamicMessage>create(
+      return Flux.create(
           emitter -> {
             final var call = managedChannel.newCall(grpcMethodDescriptor, callOptions);
             ClientCalls.asyncServerStreamingCall(
@@ -117,6 +113,18 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
     }
   }
 
+  private Mono<DynamicMessage> assembleRequest(
+      final InputStream inputStream, final Descriptors.MethodDescriptor methodDescriptor) {
+    try (final var jsonReader = new InputStreamReader(inputStream)) {
+      var builder = DynamicMessage.newBuilder(methodDescriptor.getInputType());
+      jsonParser.merge(jsonReader, builder);
+      return Mono.just(builder.build());
+    } catch (IOException e) {
+      // Fix this later
+      return Mono.error(e);
+    }
+  }
+
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
@@ -129,15 +137,22 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
         exchange.getRequiredAttribute(GATEWAY_LOADBALANCER_RESPONSE_ATTR);
 
     final URI uri = exchange.getRequiredAttribute(GATEWAY_REQUEST_URL_ATTR);
+    final String serviceInstanceId = r.getServer().getInstanceId();
     final var managedChannel = channelProvider.obtainFor(r.getServer());
-    final var serverReflectionStub = ServerReflectionGrpc.newStub(managedChannel);
 
-    // we are not caching because if the services get updated then we won't know
-    // maybe add the reflection on the service itself since that will be recreated when
-    // the service registers itself.
+    // use the uri to obtain the method descriptor rather than doing reflection.
     final var methodDescriptorMono =
-        GrpcFunctions.methodDescriptor(
-            uri, GrpcFunctions.fileDescriptors(serverReflectionStub).map(GrpcFunctions::buildFrom));
+        methodDescriptorCache.computeIfAbsent(
+            new ServerStreamingGrpcGlobalFilter.MethodDescriptorCacheKey(serviceInstanceId, uri),
+            key -> {
+              final var grpcServerReflection = new GrpcServerReflection(managedChannel);
+              return GrpcServerReflection.methodDescriptor(
+                      key.uri(),
+                      grpcServerReflection
+                          .fileDescriptors()
+                          .flatMap(grpcServerReflection::buildServiceFromProto))
+                  .cache();
+            });
 
     // Request input stream, note that this needs to be closed at the end.
     final var requestInputStreamMono =
@@ -166,7 +181,7 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
               final var methodDescriptor = t.getT2();
               return Mono.zip(
                   assembleRequest(inputStream, methodDescriptor),
-                  Mono.just(GrpcFunctions.methodDescriptorFromProtobuf(methodDescriptor)));
+                  Mono.just(GrpcServerReflection.methodDescriptorFromProtobuf(methodDescriptor)));
             })
         .flatMap(
             t -> {
@@ -236,4 +251,6 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
         && MediaType.APPLICATION_JSON.equals(exchange.getRequest().getHeaders().getContentType())
         && exchange.getRequest().getHeaders().getAccept().contains(MediaType.TEXT_EVENT_STREAM);
   }
+
+  private record MethodDescriptorCacheKey(String serviceInstanceId, URI uri) {}
 }

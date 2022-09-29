@@ -6,7 +6,6 @@ import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.*;
-import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import io.grpc.stub.ClientCalls;
 import java.io.IOException;
 import java.io.InputStream;
@@ -130,15 +129,12 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
         methodDescriptorCache.computeIfAbsent(
             new MethodDescriptorCacheKey(serviceInstanceId, uri),
             key -> {
-              final var serverReflectionStub = ServerReflectionGrpc.newStub(managedChannel);
-
-              return GrpcFunctions.methodDescriptor(
+              final var grpcServerReflection = new GrpcServerReflection(managedChannel);
+              return GrpcServerReflection.methodDescriptor(
                       key.uri(),
-                      GrpcFunctions.fileDescriptors(serverReflectionStub)
-                          .flatMap(
-                              serviceProto ->
-                                  GrpcFunctions.buildServiceFromProto(
-                                      serverReflectionStub, serviceProto)))
+                      grpcServerReflection
+                          .fileDescriptors()
+                          .flatMap(grpcServerReflection::buildServiceFromProto))
                   .cache();
             });
 
@@ -169,7 +165,7 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
               final var methodDescriptor = t.getT2();
               return Mono.zip(
                   assembleRequest(inputStream, methodDescriptor),
-                  Mono.just(GrpcFunctions.methodDescriptorFromProtobuf(methodDescriptor)));
+                  Mono.just(GrpcServerReflection.methodDescriptorFromProtobuf(methodDescriptor)));
             })
         .flatMap(
             t -> {

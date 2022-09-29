@@ -1,6 +1,5 @@
 package net.trajano.swarm.gateway;
 
-import static net.trajano.swarm.gateway.grpc.GrpcFunctions.fileDescriptorForService;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.protobuf.Descriptors;
@@ -10,7 +9,7 @@ import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import java.io.File;
 import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import net.trajano.swarm.gateway.auth.simple.SimpleAuthenticationRequest;
-import net.trajano.swarm.gateway.grpc.GrpcFunctions;
+import net.trajano.swarm.gateway.grpc.GrpcServerReflection;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -257,15 +256,13 @@ class ContainerTests {
   @Test
   void grpcFunctions() {
 
-    final var serverReflectionStub = ServerReflectionGrpc.newStub(grpcServiceChannel);
+    final var grpcServerReflection = new GrpcServerReflection(grpcServiceChannel);
     final var block =
-        GrpcFunctions.servicesFromReflection(serverReflectionStub)
+        grpcServerReflection
+            .servicesFromReflection()
             .filter(s -> !ServerReflectionGrpc.SERVICE_NAME.equals(s))
-            .flatMap(service -> fileDescriptorForService(serverReflectionStub, service))
-            .flatMap(
-                serviceDescriptorProto ->
-                    GrpcFunctions.buildServiceFromProto(
-                        serverReflectionStub, serviceDescriptorProto))
+            .flatMap(grpcServerReflection::fileDescriptorForService)
+            .flatMap(grpcServerReflection::buildServiceFromProto)
             .flatMapIterable(Descriptors.FileDescriptor::getServices)
             .flatMapIterable(Descriptors.ServiceDescriptor::getMethods)
             .map(Descriptors.MethodDescriptor::toProto)
