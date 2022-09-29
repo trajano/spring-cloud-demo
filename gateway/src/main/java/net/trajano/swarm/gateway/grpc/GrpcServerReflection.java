@@ -21,7 +21,7 @@ import reactor.core.publisher.Mono;
 /** Facade for the {@link ServerReflectionGrpc.ServerReflectionStub}. */
 public class GrpcServerReflection {
 
-  private ServerReflectionGrpc.ServerReflectionStub serverReflectionStub;
+  private final ServerReflectionGrpc.ServerReflectionStub serverReflectionStub;
 
   public GrpcServerReflection(final Channel channel) {
     this.serverReflectionStub = ServerReflectionGrpc.newStub(channel);
@@ -131,24 +131,9 @@ public class GrpcServerReflection {
     return methodDescriptorBuilder.build();
   }
 
-  public static Mono<Descriptors.FileDescriptor> buildServiceFromProto(
-      ServerReflectionGrpc.ServerReflectionStub serverReflectionStub,
-      DescriptorProtos.FileDescriptorProto serviceDescriptorProto) {
-    final var fileDescriptorFlux =
-        fileDescriptorsForDependencies(serviceDescriptorProto, serverReflectionStub)
-            .collectList()
-            .map(fileDescriptors -> fileDescriptors.toArray(Descriptors.FileDescriptor[]::new));
-    return Mono.zip(
-        o ->
-            GrpcServerReflection.buildFrom(
-                (DescriptorProtos.FileDescriptorProto) o[0], (Descriptors.FileDescriptor[]) o[1]),
-        Mono.just(serviceDescriptorProto),
-        fileDescriptorFlux);
-  }
-
-  public static Mono<Descriptors.MethodDescriptor> methodDescriptor(
+  public Mono<Descriptors.MethodDescriptor> methodDescriptor(
       URI uri, Flux<Descriptors.FileDescriptor> fileDescriptorFlux) {
-    String[] pathElements = uri.getPath().split("/");
+    final String[] pathElements = uri.getPath().split("/");
     return fileDescriptorFlux
         .flatMap(fileDescriptor -> Flux.fromIterable(fileDescriptor.getServices()))
         .filter(serviceDescriptor -> pathElements[1].equals(serviceDescriptor.getName()))

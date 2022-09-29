@@ -5,7 +5,10 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.*
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.util.JsonFormat;
-import io.grpc.*;
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import io.grpc.MethodDescriptor;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ClientCalls;
 import java.io.IOException;
 import java.io.InputStream;
@@ -130,7 +133,8 @@ public class UnaryGrpcGlobalFilter implements GlobalFilter, Ordered {
             new MethodDescriptorCacheKey(serviceInstanceId, uri),
             key -> {
               final var grpcServerReflection = new GrpcServerReflection(managedChannel);
-              return GrpcServerReflection.methodDescriptor(
+              return grpcServerReflection
+                  .methodDescriptor(
                       key.uri(),
                       grpcServerReflection
                           .fileDescriptors()

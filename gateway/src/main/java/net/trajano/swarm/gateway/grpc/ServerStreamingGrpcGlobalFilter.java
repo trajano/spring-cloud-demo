@@ -146,7 +146,8 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
             new ServerStreamingGrpcGlobalFilter.MethodDescriptorCacheKey(serviceInstanceId, uri),
             key -> {
               final var grpcServerReflection = new GrpcServerReflection(managedChannel);
-              return GrpcServerReflection.methodDescriptor(
+              return grpcServerReflection
+                  .methodDescriptor(
                       key.uri(),
                       grpcServerReflection
                           .fileDescriptors()
