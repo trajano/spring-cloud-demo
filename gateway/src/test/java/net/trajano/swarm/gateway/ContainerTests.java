@@ -260,22 +260,24 @@ class ContainerTests {
     final var serverReflectionStub = ServerReflectionGrpc.newStub(grpcServiceChannel);
     final var block =
         GrpcFunctions.servicesFromReflection(serverReflectionStub)
-            .filter(s -> !"grpc.reflection.v1alpha.ServerReflection".equals(s))
+            .filter(s -> !ServerReflectionGrpc.SERVICE_NAME.equals(s))
             .flatMap(service -> fileDescriptorForService(serverReflectionStub, service))
             .flatMap(
                 serviceDescriptorProto ->
                     GrpcFunctions.buildServiceFromProto(
                         serverReflectionStub, serviceDescriptorProto))
-            .map(Descriptors.FileDescriptor::toProto)
-            .collectList()
-            .block();
-    System.out.println(block);
+            .flatMapIterable(Descriptors.FileDescriptor::getServices)
+            .flatMapIterable(Descriptors.ServiceDescriptor::getMethods)
+            .map(Descriptors.MethodDescriptor::toProto)
+            .log()
+            .blockLast();
+    assertThat(block).isNotNull();
   }
 
   /**
    * This main method is used to trigger a test of the GRPC functions with a local server
    *
-   * @param args
+   * @param args args
    */
   public static void main(String[] args) {
     grpcServiceChannel =
@@ -283,7 +285,6 @@ class ContainerTests {
             .directExecutor()
             .usePlaintext()
             .build();
-
     new ContainerTests().grpcFunctions();
     grpcServiceChannel.shutdown();
   }

@@ -12,6 +12,7 @@ import io.grpc.reflection.v1alpha.ServerReflectionResponse;
 import io.grpc.reflection.v1alpha.ServiceResponse;
 import io.grpc.stub.StreamObserver;
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -98,6 +99,17 @@ public class GrpcFunctions {
 
   public static Descriptors.FileDescriptor buildFrom(
       DescriptorProtos.FileDescriptorProto descriptorProto,
+      Collection<Descriptors.FileDescriptor> dependencies) {
+    try {
+      return Descriptors.FileDescriptor.buildFrom(
+          descriptorProto, dependencies.toArray(Descriptors.FileDescriptor[]::new));
+    } catch (Descriptors.DescriptorValidationException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  public static Descriptors.FileDescriptor buildFrom(
+      DescriptorProtos.FileDescriptorProto descriptorProto,
       Descriptors.FileDescriptor... dependencies) {
     try {
       return Descriptors.FileDescriptor.buildFrom(descriptorProto, dependencies);
@@ -146,7 +158,14 @@ public class GrpcFunctions {
                       serverReflectionRequestStreamObserver.onNext(depReq);
                       serverReflectionRequestStreamObserver.onCompleted();
                     }))
-        .map(GrpcFunctions::buildFrom);
+        .flatMap(
+            fileDescriptorProto ->
+                fileDescriptorsForDependencies(fileDescriptorProto, serverReflectionStub)
+                    .collectList()
+                    .map(
+                        dependentFileDescriptors ->
+                            GrpcFunctions.buildFrom(
+                                fileDescriptorProto, dependentFileDescriptors)));
   }
 
   public static MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptorFromProtobuf(

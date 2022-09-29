@@ -1,0 +1,7 @@
+syntax = "proto3";
+package net.trajano.swarm.sampleservice;
+import "import2.proto";
+
+message Import1 {
+  Import2 place = 1000;
+}
