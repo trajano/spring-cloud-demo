@@ -48,7 +48,6 @@ public class RedisBlocksController {
   Mono<Blocks> blocks() {
 
     final var key = redisKeyBlocks.previousSigningRedisKey();
-    log.error("key={}", key);
     return Mono.zip(
             getKeyPairs(key).map(this::getKid).collectList(),
             getKeyPairs(redisKeyBlocks.currentSigningRedisKey()).map(this::getKid).collectList(),

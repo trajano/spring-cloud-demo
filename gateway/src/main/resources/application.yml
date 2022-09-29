@@ -82,11 +82,11 @@ spring:
             - name: ProtectedResource
               args:
                 serviceId: serviceId
-            - name: Retry
-              args:
-                retries: 3
-              methods:
-                - GET
+#            - name: Retry
+#              args:
+#                retries: 3
+#              methods:
+#                - GET
             - name: RewritePath
               args:
                 regexp: "metadata['path.regexp']"
@@ -177,7 +177,7 @@ management:
         include: health
     web:
       exposure:
-        #include: health,gateway,info,caches
+#        include: health,gateway,info,caches
         include: "*"
 #logging:
 #  level:

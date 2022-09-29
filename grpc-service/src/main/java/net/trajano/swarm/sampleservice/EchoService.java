@@ -1,6 +1,7 @@
 package net.trajano.swarm.sampleservice;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.Struct;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.stub.StreamObserver;
 import java.time.Duration;
@@ -25,7 +26,7 @@ public class EchoService extends EchoGrpc.EchoImplBase {
       final StreamObserver<EchoOuterClass.EchoResponse> responseObserver) {
 
     try {
-      final var jwtClaimsStruct = EchoOuterClass.JwtClaims.newBuilder();
+      final var jwtClaimsStruct = Struct.newBuilder();
       JsonFormat.parser().merge(GrpcServer.JWT_CLAIMS_CONTEXT_KEY.get(), jwtClaimsStruct);
 
       final EchoOuterClass.EchoResponse response =

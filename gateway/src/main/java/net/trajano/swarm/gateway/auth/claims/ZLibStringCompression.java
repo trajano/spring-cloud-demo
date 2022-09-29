@@ -6,8 +6,6 @@ import java.util.Base64;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterOutputStream;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.commons.io.output.WriterOutputStream;

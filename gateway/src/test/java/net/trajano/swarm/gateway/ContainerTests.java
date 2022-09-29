@@ -1,10 +1,14 @@
 package net.trajano.swarm.gateway;
 
+import static net.trajano.swarm.gateway.grpc.GrpcFunctions.fileDescriptorForServices;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import java.io.File;
 import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import net.trajano.swarm.gateway.auth.simple.SimpleAuthenticationRequest;
+import net.trajano.swarm.gateway.grpc.GrpcFunctions;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,6 +36,10 @@ class ContainerTests {
   @Container private static GenericContainer<?> redis;
 
   @Container private static GenericContainer<?> gateway;
+
+  /** GRPC Sample server. */
+  @Container private static GenericContainer<?> grpcService;
+
   @Container private static GenericContainer<?> jwksProvider;
 
   @BeforeAll
@@ -89,10 +97,18 @@ class ContainerTests {
             .withExposedPorts(8080)
             .waitingFor(Wait.forHealthcheck());
 
+    grpcService =
+        new GenericContainer<>("local/grpc-service")
+            .dependsOn(redis)
+            .withNetwork(network)
+            .withExposedPorts(50000)
+            .waitingFor(Wait.forHealthcheck());
+
     whoami.start();
     redis.start();
     jwksProvider.start();
     gateway.start();
+    grpcService.start();
 
     gatewayUrl =
         UriComponentsBuilder.newInstance()
@@ -110,6 +126,7 @@ class ContainerTests {
     whoami.close();
     jwksProvider.close();
     network.close();
+    grpcService.close();
   }
 
   @Test
@@ -224,5 +241,26 @@ class ContainerTests {
             .returnResult()
             .getResponseBody();
     assertThat(responseBody).contains("GET / HTTP/1.1");
+  }
+
+  @Test
+  void grpcFunctions() {
+
+    final var localhost =
+        ManagedChannelBuilder.forAddress(grpcService.getHost(), grpcService.getMappedPort(50000))
+            .directExecutor()
+            .usePlaintext()
+            .build();
+    final var serverReflectionStub = ServerReflectionGrpc.newStub(localhost);
+    final var block =
+        GrpcFunctions.servicesFromReflection(serverReflectionStub)
+            .flatMapMany(services -> fileDescriptorForServices(serverReflectionStub, services))
+            .flatMap(
+                serviceDescriptorProto ->
+                    GrpcFunctions.buildServiceFromProto(
+                        serverReflectionStub, serviceDescriptorProto))
+            .collectList()
+            .block();
+    System.out.println(block);
   }
 }

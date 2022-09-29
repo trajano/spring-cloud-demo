@@ -12,9 +12,6 @@
     <springProfile name="!json-logging">
         <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
     </springProfile>
-    <logger name="net.trajano" level="info" additivity="false">
-        <appender-ref ref="CONSOLE"/>
-    </logger>
     <root level="warn">
         <appender-ref ref="CONSOLE"/>
     </root>
