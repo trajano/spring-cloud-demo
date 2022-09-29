@@ -54,7 +54,7 @@ class ContainerTests {
         new ProcessBuilder()
             .inheritIO()
             .redirectErrorStream(true)
-            .command("docker", "compose", "build")
+            .command("docker", "compose", "build", "-q")
             .directory(new File(".."))
             .start();
 
