@@ -3,6 +3,9 @@ package net.trajano.swarm.gateway;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.protobuf.Descriptors;
+import com.google.protobuf.Struct;
+import com.google.protobuf.Value;
+import com.google.protobuf.util.JsonFormat;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
@@ -101,8 +104,10 @@ class ContainerTests {
 
     grpcService =
         new GenericContainer<>("local/grpc-service")
-                .withLabel("docker.ids", "grpc")
-                .withLabel("docker.grpc.path", "/grpc/**")
+            .withLabel("docker.ids", "grpc")
+            .withLabel("docker.grpc.path", "/grpc/**")
+            .withLabel("docker.grpc.protocol", "grpc")
+            .withLabel("docker.grpc.port", "50000")
             .dependsOn(redis)
             .withNetwork(network)
             .withExposedPorts(50000)
@@ -142,7 +147,7 @@ class ContainerTests {
   }
 
   @Test
-  void authenticate() {
+  void authenticate() throws Exception {
 
     final var authenticationRequest = new SimpleAuthenticationRequest();
     authenticationRequest.setAuthenticated(true);
@@ -166,6 +171,48 @@ class ContainerTests {
     assertThat(responseBody.isOk()).isTrue();
     assertThat(responseBody.getExpiresIn()).isLessThanOrEqualTo(120);
     assertThat(responseBody.getTokenType()).isEqualTo("Bearer");
+
+    final var whoAmIBody =
+        WebTestClient.bindToServer()
+            .baseUrl(gatewayUrl)
+            .build()
+            .get()
+            .uri("/whoami")
+            .header(HttpHeaders.ACCEPT, "application/json")
+            .header(HttpHeaders.CONTENT_TYPE, "application/json")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + responseBody.getAccessToken())
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatus.OK)
+            .expectBody(String.class)
+            .returnResult()
+            .getResponseBody();
+    assertThat(whoAmIBody).isNotNull();
+
+    final var grpcBody =
+        WebTestClient.bindToServer()
+            .baseUrl(gatewayUrl)
+            .build()
+            .post()
+            .uri("/grpc/Echo/echo")
+            .header(HttpHeaders.ACCEPT, "application/json")
+            .header(HttpHeaders.CONTENT_TYPE, "application/json")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + responseBody.getAccessToken())
+            .bodyValue(
+                JsonFormat.printer()
+                    .print(
+                        Struct.newBuilder()
+                            .putFields(
+                                "message", Value.newBuilder().setStringValue("Hello world").build())
+                            .build()))
+            .exchange()
+            .expectStatus()
+            .isEqualTo(HttpStatus.OK)
+            .expectBody(String.class)
+            .returnResult()
+            .getResponseBody();
+    assertThat(grpcBody).isNotNull().contains("Hello world");
+    
   }
 
   @Test
