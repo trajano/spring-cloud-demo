@@ -1,10 +1,12 @@
 package net.trajano.swarm.gateway.perf;
 
-import brave.Tracing;
+import java.net.URI;
+import java.util.Collection;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.ExcludedPathPatterns;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -19,12 +21,14 @@ public class PerformanceLoggingRunnable implements Runnable {
 
   private final long startNanos;
 
-  private final Tracing tracing;
-
   @Override
   public void run() {
     if (excludedPathPatterns.isExcludedForServer(
         exchange.getRequest().getPath().pathWithinApplication())) {
+      return;
+    }
+    // if it is not for the original URL don't bother.
+    if (!requestIsForOriginalUrl(exchange)) {
       return;
     }
 
@@ -45,5 +49,11 @@ public class PerformanceLoggingRunnable implements Runnable {
     } else {
       log.info(LOG_MESSAGE_FORMAT, method, requestURI, status, requestTimeInMillisText);
     }
+  }
+
+  private boolean requestIsForOriginalUrl(final ServerWebExchange exchange) {
+    final Collection<URI> originalUris =
+        exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ORIGINAL_REQUEST_URL_ATTR);
+    return originalUris == null || originalUris.contains(exchange.getRequest().getURI());
   }
 }

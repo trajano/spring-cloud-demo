@@ -1,10 +1,11 @@
 package net.trajano.swarm.gateway.perf;
 
-import brave.Tracing;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.ExcludedPathPatterns;
+import net.trajano.swarm.gateway.discovery.Util;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.cloud.sleuth.Span;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
@@ -20,12 +21,15 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class PerformanceRequestIDPostFilter implements WebFilter {
 
-  private final Tracing tracing;
   private final ExcludedPathPatterns excludedPathPatterns;
 
   @Override
-  public Mono<Void> filter(final ServerWebExchange exchange, WebFilterChain chain) {
+  public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
 
+    final Span span = exchange.getRequiredAttribute(Span.class.getName());
+    exchange
+        .getAttributes()
+        .put(ServerWebExchange.LOG_ID_ATTRIBUTE, Util.toXRay(span.context().traceId()));
     // If it was routed by gateway don't bother, Gateway has its own Global filter
     if (ServerWebExchangeUtils.isAlreadyRouted(exchange)) {
       return chain.filter(exchange);
@@ -35,7 +39,6 @@ public class PerformanceRequestIDPostFilter implements WebFilter {
         .filter(exchange)
         .then(
             Mono.fromRunnable(
-                new PerformanceLoggingRunnable(
-                    excludedPathPatterns, exchange, startNanos, tracing)));
+                new PerformanceLoggingRunnable(excludedPathPatterns, exchange, startNanos)));
   }
 }

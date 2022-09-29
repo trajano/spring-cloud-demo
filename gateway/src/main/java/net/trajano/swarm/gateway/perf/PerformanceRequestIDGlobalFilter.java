@@ -27,13 +27,13 @@ public class PerformanceRequestIDGlobalFilter implements GlobalFilter, Ordered {
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
     final long startNanos = System.nanoTime();
-    //    exchange.getAttributes().put(ServerWebExchange.LOG_ID_ATTRIBUTE, Util.toXRay(traceId));
+    //    exchange.getAttributes().put(ServerWebExchange.LOG_ID_ATTRIBUTE,
+    // Util.toXRay(tracing.currentTraceContext().));
     return chain
         .filter(exchange)
         .then(
             Mono.fromRunnable(
-                new PerformanceLoggingRunnable(
-                    excludedPathPatterns, exchange, startNanos, tracing)));
+                new PerformanceLoggingRunnable(excludedPathPatterns, exchange, startNanos)));
   }
 
   @Override

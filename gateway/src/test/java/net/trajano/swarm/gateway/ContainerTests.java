@@ -212,7 +212,6 @@ class ContainerTests {
             .returnResult()
             .getResponseBody();
     assertThat(grpcBody).isNotNull().contains("Hello world");
-    
   }
 
   @Test
