@@ -1,8 +1,10 @@
 package net.trajano.swarm.gateway;
 
-import static net.trajano.swarm.gateway.grpc.GrpcFunctions.fileDescriptorForServices;
+import static net.trajano.swarm.gateway.grpc.GrpcFunctions.fileDescriptorForService;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.protobuf.Descriptors;
+import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import java.io.File;
@@ -22,7 +24,6 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 
-// @Disabled
 class ContainerTests {
 
   private static String gatewayUrl;
@@ -41,6 +42,8 @@ class ContainerTests {
   @Container private static GenericContainer<?> grpcService;
 
   @Container private static GenericContainer<?> jwksProvider;
+
+  private static ManagedChannel grpcServiceChannel;
 
   @BeforeAll
   static void setup() throws Exception {
@@ -116,10 +119,18 @@ class ContainerTests {
             .host("localhost")
             .port(gateway.getMappedPort(8080))
             .toUriString();
+
+    grpcServiceChannel =
+        ManagedChannelBuilder.forAddress(grpcService.getHost(), grpcService.getMappedPort(50000))
+            .directExecutor()
+            .usePlaintext()
+            .build();
   }
 
   @AfterAll
   static void closeResources() {
+
+    grpcServiceChannel.shutdown();
 
     gateway.close();
     redis.close();
@@ -246,21 +257,34 @@ class ContainerTests {
   @Test
   void grpcFunctions() {
 
-    final var localhost =
-        ManagedChannelBuilder.forAddress(grpcService.getHost(), grpcService.getMappedPort(50000))
-            .directExecutor()
-            .usePlaintext()
-            .build();
-    final var serverReflectionStub = ServerReflectionGrpc.newStub(localhost);
+    final var serverReflectionStub = ServerReflectionGrpc.newStub(grpcServiceChannel);
     final var block =
         GrpcFunctions.servicesFromReflection(serverReflectionStub)
-            .flatMapMany(services -> fileDescriptorForServices(serverReflectionStub, services))
+            .filter(s -> !"grpc.reflection.v1alpha.ServerReflection".equals(s))
+            .flatMap(service -> fileDescriptorForService(serverReflectionStub, service))
             .flatMap(
                 serviceDescriptorProto ->
                     GrpcFunctions.buildServiceFromProto(
                         serverReflectionStub, serviceDescriptorProto))
+            .map(Descriptors.FileDescriptor::toProto)
             .collectList()
             .block();
     System.out.println(block);
+  }
+
+  /**
+   * This main method is used to trigger a test of the GRPC functions with a local server
+   *
+   * @param args
+   */
+  public static void main(String[] args) {
+    grpcServiceChannel =
+        ManagedChannelBuilder.forAddress("localhost", 28088)
+            .directExecutor()
+            .usePlaintext()
+            .build();
+
+    new ContainerTests().grpcFunctions();
+    grpcServiceChannel.shutdown();
   }
 }

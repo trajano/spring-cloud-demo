@@ -2,6 +2,7 @@ package net.trajano.swarm.sampleservice;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.google.protobuf.Struct;
 import com.google.protobuf.util.JsonFormat;
 import org.junit.jupiter.api.Test;
 
@@ -9,7 +10,7 @@ class EchoServiceTest {
 
   @Test
   void echo() throws Exception {
-    final var jwtClaimsStruct = EchoOuterClass.JwtClaims.newBuilder();
+    final var jwtClaimsStruct = Struct.newBuilder();
     JsonFormat.parser()
         .merge(
             " {\n"

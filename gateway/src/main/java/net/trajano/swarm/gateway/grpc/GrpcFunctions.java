@@ -4,8 +4,6 @@ import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import io.grpc.MethodDescriptor;
 import io.grpc.protobuf.lite.ProtoLiteUtils;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
@@ -23,26 +21,49 @@ import reactor.core.publisher.Mono;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class GrpcFunctions {
 
-  public static Mono<ManagedChannel> managedChannel(String host, int port, boolean secure) {
+  public static Flux<String> servicesFromReflection(
+      ServerReflectionGrpc.ServerReflectionStub serverReflectionStub) {
 
-    return Mono.defer(
-        () -> {
-          final ManagedChannelBuilder<?> managedChannelBuilder =
-              ManagedChannelBuilder.forAddress(host, port);
-          if (!secure) {
-            managedChannelBuilder.usePlaintext();
-          }
-          return Mono.just(managedChannelBuilder.build());
-        });
+    return Mono.<List<ServiceResponse>>create(
+            emitter -> {
+              final var serviceListObserver =
+                  serverReflectionStub.serverReflectionInfo(
+                      new StreamObserver<>() {
+                        @Override
+                        public void onCompleted() {
+
+                          // no-op
+
+                        }
+
+                        @Override
+                        public void onError(Throwable t) {
+
+                          emitter.error(t);
+                        }
+
+                        @Override
+                        public void onNext(ServerReflectionResponse value) {
+
+                          emitter.success(value.getListServicesResponse().getServiceList());
+                        }
+                      });
+              serviceListObserver.onNext(
+                  ServerReflectionRequest.newBuilder().setListServices("*").build());
+              serviceListObserver.onCompleted();
+            })
+        .flatMapMany(Flux::fromIterable)
+        .map(ServiceResponse::getName);
   }
 
-  public static Mono<List<String>> servicesFromReflection(
-      ServerReflectionGrpc.ServerReflectionStub serverReflectionStub) {
+  public static Mono<DescriptorProtos.FileDescriptorProto> fileDescriptorForService(
+      final ServerReflectionGrpc.ServerReflectionStub serverReflectionBlockingStub,
+      final String service) {
 
     return Mono.create(
         emitter -> {
-          final var serviceListObserver =
-              serverReflectionStub.serverReflectionInfo(
+          final var serviceFileProtoObserver =
+              serverReflectionBlockingStub.serverReflectionInfo(
                   new StreamObserver<>() {
                     @Override
                     public void onCompleted() {
@@ -60,44 +81,8 @@ public class GrpcFunctions {
                     @Override
                     public void onNext(ServerReflectionResponse value) {
 
-                      emitter.success(
-                          value.getListServicesResponse().getServiceList().stream()
-                              .map(ServiceResponse::getName)
-                              .toList());
-                    }
-                  });
-          serviceListObserver.onNext(
-              ServerReflectionRequest.newBuilder().setListServices("*").build());
-          serviceListObserver.onCompleted();
-        });
-  }
-
-  public static Flux<DescriptorProtos.FileDescriptorProto> fileDescriptorForServices(
-      final ServerReflectionGrpc.ServerReflectionStub serverReflectionBlockingStub,
-      final List<String> services) {
-
-    return Flux.create(
-        emitter -> {
-          final var serviceFileProtoObserver =
-              serverReflectionBlockingStub.serverReflectionInfo(
-                  new StreamObserver<>() {
-                    @Override
-                    public void onCompleted() {
-
-                      emitter.complete();
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-
-                      emitter.error(t);
-                    }
-
-                    @Override
-                    public void onNext(ServerReflectionResponse value) {
-
                       try {
-                        emitter.next(
+                        emitter.success(
                             DescriptorProtos.FileDescriptorProto.parseFrom(
                                 value.getFileDescriptorResponse().getFileDescriptorProto(0)));
                       } catch (Exception e) {
@@ -105,11 +90,8 @@ public class GrpcFunctions {
                       }
                     }
                   });
-          services.stream()
-              .map(
-                  name ->
-                      ServerReflectionRequest.newBuilder().setFileContainingSymbol(name).build())
-              .forEach(serviceFileProtoObserver::onNext);
+          serviceFileProtoObserver.onNext(
+              ServerReflectionRequest.newBuilder().setFileContainingSymbol(service).build());
           serviceFileProtoObserver.onCompleted();
         });
   }
@@ -120,7 +102,7 @@ public class GrpcFunctions {
     try {
       return Descriptors.FileDescriptor.buildFrom(descriptorProto, dependencies);
     } catch (Descriptors.DescriptorValidationException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
   }
 
@@ -204,7 +186,7 @@ public class GrpcFunctions {
       ServerReflectionGrpc.ServerReflectionStub serverReflectionBlockingStub) {
 
     return servicesFromReflection(serverReflectionBlockingStub)
-        .flatMapMany(services -> fileDescriptorForServices(serverReflectionBlockingStub, services));
+        .flatMap(service -> fileDescriptorForService(serverReflectionBlockingStub, service));
   }
 
   public static Mono<Descriptors.FileDescriptor> buildServiceFromProto(
