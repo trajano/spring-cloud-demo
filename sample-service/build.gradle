@@ -74,3 +74,4 @@ protobuf {
 repositories {
     mavenCentral()
 }
+tasks.named("spotlessJava").configure { dependsOn("generateProto") }

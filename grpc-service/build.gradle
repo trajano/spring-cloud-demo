@@ -71,3 +71,4 @@ protobuf {
         all()*.plugins { grpc {} }
     }
 }
+tasks.named("spotlessJava").configure { dependsOn("generateProto") }
