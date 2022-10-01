@@ -164,19 +164,7 @@ services:
       target: jwks-provider
     image: ghcr.io/trajano/jwks-provider:rework
     environment:
-      - SPRING_PROFILES_ACTIVE=json-logging
-      - SPRING_REDIS_CLUSTER_MAXREDIRECTS=3
-      - SPRING_REDIS_CLUSTER_NODES=c1.corecache.internal:6379,c2.corecache.internal:6379,c3.corecache.internal:6379,c4.corecache.internal:6379
-      - SPRING_ZIPKIN_SENDER_TYPE=web
-      - SPRING_ZIPKIN_BASEURL=http://zipkin:9411/
-#      - SPRING_REDIS_HOST=redis
-#      - SPRING_LIQUIBASE_DROPFIRST=true
-#      - SPRING_LIQUIBASE_USER=gateway-user
-#      - SPRING_LIQUIBASE_PASSWORD=password123
-#      - SPRING_LIQUIBASE_URL=jdbc:mysql://db/swarm
-#      - SPRING_R2DBC_USERNAME=gateway-user
-#      - SPRING_R2DBC_PASSWORD=password123
-#      - SPRING_R2DBC_URL=r2dbc:mysql://db/swarm
+      <<: *springEnvironment
 
     networks:
       - default
@@ -217,10 +205,7 @@ services:
       target: sample-service
     image: ghcr.io/trajano/sample-service:rework
     environment:
-      - SPRING_PROFILES_ACTIVE=json-logging
-      - SPRING_ZIPKIN_SENDER_TYPE=web
-      - SPRING_ZIPKIN_BASEURL=http://zipkin:9411/
-#      - LOGGING_LEVEL_NET_TRAJANO=debug
+      <<: *springEnvironment
     deploy:
       #replicas: 5
       mode: global
@@ -243,8 +228,7 @@ services:
       target: grpc-service
     image: ghcr.io/trajano/grpc-service:rework
     environment:
-      - SPRING_PROFILES_ACTIVE=json-logging
-#      - LOGGING_LEVEL_NET_TRAJANO=debug
+      <<: *springEnvironment
     deploy:
       replicas: 5
       labels:
