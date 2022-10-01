@@ -1,4 +1,10 @@
 version: "3.8"
+x-spring-environment: &springEnvironment
+  SPRING_PROFILES_ACTIVE: json-logging
+  SPRING_REDIS_CLUSTER_MAXREDIRECTS: 3
+  SPRING_REDIS_CLUSTER_NODES: c1.corecache.internal:6379,c2.corecache.internal:6379,c3.corecache.internal:6379,c4.corecache.internal:6379
+  SPRING_ZIPKIN_SENDER_TYPE: web
+  SPRING_ZIPKIN_BASEURL: http://zipkin:9411/
 services:
 #  edge:
 #    image: traefik:latest
@@ -64,8 +70,10 @@ services:
       - SPRING_PROFILES_ACTIVE=json-logging
       - SPRING_REDIS_CLUSTER_MAXREDIRECTS=3
       - SPRING_REDIS_CLUSTER_NODES=c1.corecache.internal:6379,c2.corecache.internal:6379,c3.corecache.internal:6379,c4.corecache.internal:6379
-      - SPRING_REDIS_LETTUCE_POOL_MAXACTIVE=30
-      - SPRING_NETTY_LEAKDETECTION=paranoid
+      - SPRING_ZIPKIN_SENDER_TYPE=web
+      - SPRING_ZIPKIN_BASEURL=http://zipkin:9411/
+#      - SPRING_REDIS_LETTUCE_POOL_MAXACTIVE=30
+#      - SPRING_NETTY_LEAKDETECTION=paranoid
 #      - SPRING_R2DBC_USERNAME=gateway-user
 #      - SPRING_R2DBC_PASSWORD=password123
 #      - SPRING_R2DBC_URL=r2dbc:mysql://db/swarm
@@ -159,6 +167,8 @@ services:
       - SPRING_PROFILES_ACTIVE=json-logging
       - SPRING_REDIS_CLUSTER_MAXREDIRECTS=3
       - SPRING_REDIS_CLUSTER_NODES=c1.corecache.internal:6379,c2.corecache.internal:6379,c3.corecache.internal:6379,c4.corecache.internal:6379
+      - SPRING_ZIPKIN_SENDER_TYPE=web
+      - SPRING_ZIPKIN_BASEURL=http://zipkin:9411/
 #      - SPRING_REDIS_HOST=redis
 #      - SPRING_LIQUIBASE_DROPFIRST=true
 #      - SPRING_LIQUIBASE_USER=gateway-user
@@ -208,6 +218,8 @@ services:
     image: ghcr.io/trajano/sample-service:rework
     environment:
       - SPRING_PROFILES_ACTIVE=json-logging
+      - SPRING_ZIPKIN_SENDER_TYPE=web
+      - SPRING_ZIPKIN_BASEURL=http://zipkin:9411/
 #      - LOGGING_LEVEL_NET_TRAJANO=debug
     deploy:
       #replicas: 5
@@ -368,3 +380,6 @@ networks:
   services:
     name: services
     attachable: true
+  monitoring:
+    name: monitoring
+    external: true
