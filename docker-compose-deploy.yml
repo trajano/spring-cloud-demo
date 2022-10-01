@@ -4,7 +4,7 @@ x-spring-environment: &springEnvironment
   SPRING_REDIS_CLUSTER_MAXREDIRECTS: 3
   SPRING_REDIS_CLUSTER_NODES: c1.corecache.internal:6379,c2.corecache.internal:6379,c3.corecache.internal:6379,c4.corecache.internal:6379
   SPRING_ZIPKIN_SENDER_TYPE: web
-  SPRING_ZIPKIN_BASEURL: http://zipkin:9411/
+  SPRING_ZIPKIN_BASEURL: http://zipkin:9411/zipkin/
 services:
 #  edge:
 #    image: traefik:latest
@@ -71,7 +71,7 @@ services:
       - SPRING_REDIS_CLUSTER_MAXREDIRECTS=3
       - SPRING_REDIS_CLUSTER_NODES=c1.corecache.internal:6379,c2.corecache.internal:6379,c3.corecache.internal:6379,c4.corecache.internal:6379
       - SPRING_ZIPKIN_SENDER_TYPE=web
-      - SPRING_ZIPKIN_BASEURL=http://zipkin:9411/
+      - SPRING_ZIPKIN_BASEURL=http://zipkin:9411/zipkin/
 #      - SPRING_REDIS_LETTUCE_POOL_MAXACTIVE=30
 #      - SPRING_NETTY_LEAKDETECTION=paranoid
 #      - SPRING_R2DBC_USERNAME=gateway-user
