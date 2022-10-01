@@ -4,6 +4,8 @@ cloud:
       # This is to make it bypass the error message when AWS is not enabled.
       region: us-east-2
 spring:
+  application:
+    name: gateway
   jmx:
     enabled: true
   redis:
