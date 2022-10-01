@@ -1,14 +1,10 @@
 spring:
   application:
-    name: grpc-service
+    name: sample-service
   main:
     banner-mode: "off"
-    web-application-type: none
   jmx:
     enabled: true
-#  application:
-#    admin:
-#      enabled: true
 management:
   endpoint:
     health:
