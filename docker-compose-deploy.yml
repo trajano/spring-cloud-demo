@@ -67,6 +67,7 @@ services:
     image:  ghcr.io/trajano/gateway:rework
     environment:
       <<: *springEnvironment
+      SPRING_SLEUTH_REDIS_REMOTESERVICENAME: gateway-redis
 #      - SPRING_REDIS_LETTUCE_POOL_MAXACTIVE=30
 #      - SPRING_NETTY_LEAKDETECTION=paranoid
 #      - SPRING_R2DBC_USERNAME=gateway-user
@@ -160,7 +161,7 @@ services:
     image: ghcr.io/trajano/jwks-provider:rework
     environment:
       <<: *springEnvironment
-
+      SPRING_SLEUTH_REDIS_REMOTESERVICENAME: gateway-redis
     networks:
       - default
       - redis
