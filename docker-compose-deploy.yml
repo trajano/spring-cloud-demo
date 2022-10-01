@@ -4,6 +4,7 @@ x-spring-environment: &springEnvironment
   SPRING_REDIS_CLUSTER_MAXREDIRECTS: 3
   SPRING_REDIS_CLUSTER_NODES: c1.corecache.internal:6379,c2.corecache.internal:6379,c3.corecache.internal:6379,c4.corecache.internal:6379
   SPRING_ZIPKIN_SENDER_TYPE: kafka
+  SPRING_KAFKA_BOOTSTRAPSERVERS: b1.corekafka.internal:9092,b2.corekafka.internal:9092
 services:
 #  edge:
 #    image: traefik:latest
