@@ -61,6 +61,7 @@ services:
       target: gateway
     image:  ghcr.io/trajano/gateway:rework
     environment:
+      - SPRING_PROFILES_ACTIVE=json-logging
       - SPRING_REDIS_CLUSTER_MAXREDIRECTS=3
       - SPRING_REDIS_CLUSTER_NODES=c1.corecache.internal:6379,c2.corecache.internal:6379,c3.corecache.internal:6379,c4.corecache.internal:6379
       - SPRING_REDIS_LETTUCE_POOL_MAXACTIVE=30
@@ -155,8 +156,9 @@ services:
       target: jwks-provider
     image: ghcr.io/trajano/jwks-provider:rework
     environment:
+      - SPRING_PROFILES_ACTIVE=json-logging
       - SPRING_REDIS_CLUSTER_MAXREDIRECTS=3
-      - SPRING_REDIS_CLUSTER_NODES=corecache.internal:6379
+      - SPRING_REDIS_CLUSTER_NODES=c1.corecache.internal:6379,c2.corecache.internal:6379,c3.corecache.internal:6379,c4.corecache.internal:6379
 #      - SPRING_REDIS_HOST=redis
 #      - SPRING_LIQUIBASE_DROPFIRST=true
 #      - SPRING_LIQUIBASE_USER=gateway-user
@@ -205,7 +207,8 @@ services:
       target: sample-service
     image: ghcr.io/trajano/sample-service:rework
     environment:
-      - LOGGING_LEVEL_NET_TRAJANO=debug
+      - SPRING_PROFILES_ACTIVE=json-logging
+#      - LOGGING_LEVEL_NET_TRAJANO=debug
     deploy:
       #replicas: 5
       mode: global
@@ -228,7 +231,8 @@ services:
       target: grpc-service
     image: ghcr.io/trajano/grpc-service:rework
     environment:
-      - LOGGING_LEVEL_NET_TRAJANO=debug
+      - SPRING_PROFILES_ACTIVE=json-logging
+#      - LOGGING_LEVEL_NET_TRAJANO=debug
     deploy:
       replicas: 5
       labels:
@@ -271,18 +275,18 @@ services:
       docker.xxx.path: /xxx/**
     networks:
       - services
-  redis-commander:
-    image: ghcr.io/joeferner/redis-commander:latest
-    environment:
-      - REDIS_HOSTS=swarm:corecache.internal:6379
-    ports:
-      - "28085:8081"
-    networks:
-      - redis
-    deploy:
-      resources:
-        limits:
-          memory: 64m
+#  redis-commander:
+#    image: ghcr.io/joeferner/redis-commander:latest
+#    environment:
+#      - REDIS_HOSTS=swarm:corecache.internal:6379
+#    ports:
+#      - "28085:8081"
+#    networks:
+#      - redis
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 64m
 
 #  wsecho:
 #    image: solsson/websocat
