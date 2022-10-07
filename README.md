@@ -2,7 +2,7 @@ This complements my other project [docker-swarm-aws-terraform-module]()
 ## Components
 
 * `gateway` the gateway
-* `jwks-provider` generates JWKS and puts them into Redis.  There is only a single instance of this.
+* `jwks-provider` generates JWKS and puts them into Redis.  There is only a single instance of this.  This is implemented as a typical Spring Boot web application rather than WebFlux to make the implementation simpler at the expense of performance which is not needed as it is just a background process providing data.
 * `sample-service` this is a sample service endpoint that exposes HTTP, SSE, and WebSocket endpoints.  This is exposed via discovery.
 * `grpc-service`  this is a sample service endpoint that is GRPC directly.  This is exposed via discovery.
 * `acme` this uses acme4j to provide the LetsEncrypt certificates into Redis.  It also handles the token endpoint and gateway routes to this directly, it is not exposed via discovery. **LATER**

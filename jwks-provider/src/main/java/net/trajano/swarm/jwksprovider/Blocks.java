@@ -9,16 +9,17 @@ import lombok.Data;
 @Builder
 public class Blocks {
 
-  @Builder.Default private long current = Instant.now().getEpochSecond();
+  @Builder.Default private long currentTimestamp = Instant.now().getEpochSecond();
+
   private String previousSigningRedisKey;
 
-  private List<String> hasPreviousSigningRedisKey;
+  private List<String> previous;
 
   private String currentSigningRedisKey;
 
-  private List<String> hasCurrentSigningRedisKey;
+  private List<String> current;
 
   private String nextSigningRedisKey;
 
-  private List<String> hasNextSigningRedisKey;
+  private List<String> next;
 }

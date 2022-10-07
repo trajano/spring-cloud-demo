@@ -1,5 +1,7 @@
 package net.trajano.swarm.jwksprovider.redis;
 
+import java.util.Collection;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
@@ -7,27 +9,29 @@ import net.trajano.swarm.jwksprovider.Blocks;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.lang.JoseException;
-import org.springframework.data.redis.core.ReactiveSetOperations;
-import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
+import org.springframework.data.redis.core.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @RestController
 @RequiredArgsConstructor
 @Slf4j
 public class RedisBlocksController {
 
-  private final ReactiveStringRedisTemplate redisTemplate;
+  private final StringRedisTemplate redisTemplate;
 
   private final RedisKeyBlocks redisKeyBlocks;
 
-  private Flux<String> getKeyPairs(final String redisKey) {
-    final ReactiveSetOperations<String, String> setOps = redisTemplate.opsForSet();
-    return redisTemplate
-        .hasKey(redisKey)
-        .flatMapMany(exists -> Boolean.TRUE.equals(exists) ? setOps.scan(redisKey) : Flux.empty());
+  private Collection<String> getKeyPairs(final String redisKey) {
+    final SetOperations<String, String> setOps = redisTemplate.opsForSet();
+    if (Boolean.TRUE.equals(redisTemplate.hasKey(redisKey))) {
+
+      try (final var scan = setOps.scan(redisKey, ScanOptions.scanOptions().build())) {
+        return scan.stream().toList();
+      }
+    } else {
+      return List.of();
+    }
   }
 
   private String getKid(String jwks) {
@@ -45,22 +49,20 @@ public class RedisBlocksController {
   }
 
   @GetMapping("/redis")
-  Mono<Blocks> blocks() {
+  Blocks blocks() {
 
     final var key = redisKeyBlocks.previousSigningRedisKey();
-    return Mono.zip(
-            getKeyPairs(key).map(this::getKid).collectList(),
-            getKeyPairs(redisKeyBlocks.currentSigningRedisKey()).map(this::getKid).collectList(),
-            getKeyPairs(redisKeyBlocks.nextSigningRedisKey()).map(this::getKid).collectList())
-        .map(
-            t ->
-                Blocks.builder()
-                    .previousSigningRedisKey(key)
-                    .hasPreviousSigningRedisKey(t.getT1())
-                    .currentSigningRedisKey(redisKeyBlocks.currentSigningRedisKey())
-                    .hasCurrentSigningRedisKey(t.getT2())
-                    .nextSigningRedisKey(redisKeyBlocks.nextSigningRedisKey())
-                    .hasNextSigningRedisKey(t.getT3())
-                    .build());
+    var l1 = getKeyPairs(key).stream().map(this::getKid).toList();
+    var l2 =
+        getKeyPairs(redisKeyBlocks.currentSigningRedisKey()).stream().map(this::getKid).toList();
+    var l3 = getKeyPairs(redisKeyBlocks.nextSigningRedisKey()).stream().map(this::getKid).toList();
+    return Blocks.builder()
+        .previousSigningRedisKey(key)
+        .previous(l1)
+        .currentSigningRedisKey(redisKeyBlocks.currentSigningRedisKey())
+        .current(l2)
+        .nextSigningRedisKey(redisKeyBlocks.nextSigningRedisKey())
+        .next(l3)
+        .build();
   }
 }

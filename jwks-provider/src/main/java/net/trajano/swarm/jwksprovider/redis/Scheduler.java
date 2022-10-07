@@ -1,63 +1,51 @@
 package net.trajano.swarm.jwksprovider.redis;
 
-import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.scheduling.annotation.SchedulingConfigurer;
+import org.springframework.scheduling.config.IntervalTask;
+import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.stereotype.Component;
-import reactor.core.Disposable;
-import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class Scheduler implements InitializingBean, DisposableBean {
+public class Scheduler implements SchedulingConfigurer {
   private final JwksRedisPopulator jwksRedisPopulator;
   private final RedisKeyBlocks redisKeyBlocks;
   private final UserSessionCleaner userSessionCleaner;
-  private Disposable subscription;
+  private final AuthProperties authProperties;
 
-  /** Populate then wait then repeat */
+  /**
+   * Places the initial data then starts it to the next block then runs it at an interval
+   *
+   * @param taskRegistrar the registrar to be configured.
+   */
   @Override
-  public void afterPropertiesSet() {
+  public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
 
-    subscription =
-        populateRedis(Instant.now())
-            .then(delayedUntilNextBlock())
-            .repeat()
-            .flatMap(this::populateRedis)
-            .subscribe();
+    populateRedis(Instant.now());
+    var now = Instant.now();
+    final var task =
+        new IntervalTask(
+            () -> populateRedis(Instant.now()),
+            authProperties.getSigningKeyBlockSizeInSeconds() * 1000L,
+            ChronoUnit.MILLIS.between(
+                now, redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 1)));
+    taskRegistrar.addFixedRateTask(task);
   }
 
-  private Mono<Instant> delayedUntilNextBlock() {
-    return Mono.fromCallable(Instant::now)
-        .delayUntil(
-            now ->
-                Mono.just(now)
-                    .delayElement(
-                        Duration.between(
-                            now, redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 1))))
-        .then(Mono.fromCallable(Instant::now));
-  }
-
-  @Override
-  public void destroy() {
-
-    subscription.dispose();
-  }
-
-  private Mono<Void> populateRedis(Instant now) {
+  private void populateRedis(Instant now) {
 
     // build the entry if it does not exist
-    return jwksRedisPopulator
-        .buildEntryIfItDoesNotExistForBlock(
-            redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 0))
-        .then(
-            jwksRedisPopulator.buildEntryIfItDoesNotExistForBlock(
-                redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 1)))
-        .then(userSessionCleaner.cleanUserSessionsThatDoNotHaveExpiration());
+    jwksRedisPopulator.buildEntryIfItDoesNotExistForBlock(
+        redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 0));
+    jwksRedisPopulator.buildEntryIfItDoesNotExistForBlock(
+        redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 1));
+    userSessionCleaner.cleanUserSessionsThatDoNotHaveExpiration();
   }
 }
