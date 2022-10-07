@@ -176,6 +176,13 @@ public abstract class AbstractAuthController<A, P> {
     return jwksProvider.jsonWebKeySet().map(JsonWebKeySet::toJson).subscribeOn(jwksScheduler);
   }
 
+  /**
+   * Performs the logout operation. This will always return a successful response.
+   *
+   * @param request request
+   * @param serverWebExchange server web exchange
+   * @return gateway response which should always be ok.
+   */
   @PostMapping(
       path = "${auth.controller-mappings.logout:/logout}",
       consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -187,28 +194,32 @@ public abstract class AbstractAuthController<A, P> {
       return Mono.error(new IllegalArgumentException());
     }
 
-    return claimsService
-        .revoke(request.getToken(), serverWebExchange.getRequest().getHeaders())
-        .timeout(Duration.ofMillis(authProperties.getRevokeProcessingTimeoutInMillis()))
-        .doOnNext(
-            serviceResponse -> {
-              final var serverHttpResponse = serverWebExchange.getResponse();
-              addCommonHeaders(serverHttpResponse);
-              serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
-            })
-        .flatMap(this::addDelaySpecifiedInServiceResponse)
-        // on security error just return ok and add penalty
-        .onErrorResume(
-            SecurityException.class,
-            ex ->
-                Mono.just(GatewayResponse.builder().ok(true).build())
-                    .delayElement(
-                        Duration.ofMillis(authProperties.getPenaltyDelayInMillis()),
-                        penaltyScheduler))
-        .onErrorResume(TimeoutException.class, ex1 -> respondWithOk(serverWebExchange))
-        .delayUntil(this::applyMinimumOperationTime)
-        .contextWrite(this::writeStartTimeToContext)
-        .subscribeOn(logoutScheduler);
+    final var logoutFromService =
+        claimsService
+            .revoke(request.getToken(), serverWebExchange.getRequest().getHeaders())
+            .doOnNext(
+                serviceResponse -> {
+                  final var serverHttpResponse = serverWebExchange.getResponse();
+                  addCommonHeaders(serverHttpResponse);
+                  serverHttpResponse.setStatusCode(serviceResponse.getStatusCode());
+                })
+            .flatMap(this::addDelaySpecifiedInServiceResponse)
+            // on security error just return ok and add penalty
+            .onErrorResume(
+                SecurityException.class,
+                ex ->
+                    Mono.just(GatewayResponse.builder().ok(true).build())
+                        .delayElement(
+                            Duration.ofMillis(authProperties.getPenaltyDelayInMillis()),
+                            penaltyScheduler))
+            .delayUntil(this::applyMinimumOperationTime);
+
+    final var timeout =
+        Mono.just(GatewayResponse.builder().ok(true).build())
+            .delayElement(Duration.ofMillis(authProperties.getRevokeProcessingTimeoutInMillis()));
+
+    return Mono.firstWithValue(logoutFromService, timeout)
+        .contextWrite(this::writeStartTimeToContext);
   }
 
   @PostMapping(
