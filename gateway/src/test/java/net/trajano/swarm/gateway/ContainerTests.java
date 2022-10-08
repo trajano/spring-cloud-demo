@@ -176,7 +176,7 @@ class ContainerTests {
             .baseUrl(gatewayUrl)
             .build()
             .get()
-            .uri("/whoami")
+            .uri("/whoami/")
             .header(HttpHeaders.ACCEPT, "application/json")
             .header(HttpHeaders.CONTENT_TYPE, "application/json")
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + responseBody.getAccessToken())
