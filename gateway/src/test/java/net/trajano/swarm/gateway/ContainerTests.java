@@ -171,6 +171,20 @@ class ContainerTests {
     assertThat(responseBody.getExpiresIn()).isLessThanOrEqualTo(120);
     assertThat(responseBody.getTokenType()).isEqualTo("Bearer");
 
+    WebTestClient.bindToServer()
+        .baseUrl(gatewayUrl)
+        .build()
+        .get()
+        .uri("/whoami")
+        .header(HttpHeaders.ACCEPT, "application/json")
+        .header(HttpHeaders.CONTENT_TYPE, "application/json")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + responseBody.getAccessToken())
+        .exchange()
+        .expectStatus()
+        .is3xxRedirection()
+        .expectHeader()
+        .valueEquals(HttpHeaders.LOCATION, gatewayUrl + "/whoami/");
+
     final var whoAmIBody =
         WebTestClient.bindToServer()
             .baseUrl(gatewayUrl)
