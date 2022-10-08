@@ -175,27 +175,6 @@ services:
       resources:
         limits:
           memory: 256m
-  apidoc:
-    image: redocly/redoc
-    environment:
-      SPEC_URL: http://localhost:28080/openapi.json
-      BASE_PATH: /apidoc
-    networks:
-      - edge
-    deploy:
-      labels:
-        traefik.enable: "true"
-        traefik.docker.network: edge
-        traefik.http.routers.apidoc.rule: "PathPrefix(`/apidoc`)"
-        traefik.http.routers.apidoc.priority: "1000"
-        traefik.http.routers.apidoc.middlewares: strip-prefix
-        traefik.http.services.apidoc.loadbalancer.server.port: "80"
-        traefik.http.services.apidoc.loadbalancer.healthcheck.path: /
-        traefik.http.services.apidoc.loadbalancer.healthcheck.port: "80"
-        traefik.http.services.apidoc.loadbalancer.healthcheck.interval: "10s"
-      resources:
-        limits:
-          memory: 128m
   sample:
     build:
       context: .

@@ -44,6 +44,9 @@ public class Util {
         collect.put("path.replacement", "/${remaining}");
       }
     }
+    if (!collect.containsKey("path.regexp")) {
+      collect.put("path.regexp", "^" + collect.get("path") + "$");
+    }
     return collect;
   }
 

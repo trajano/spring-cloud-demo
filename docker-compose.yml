@@ -182,7 +182,7 @@ services:
     image: redocly/redoc
     environment:
       SPEC_URL: http://localhost:28080/openapi.json
-      BASE_PATH: /apidoc
+      BASE_PATH: /apidoc/
     networks:
       - edge
     deploy:
@@ -286,11 +286,6 @@ services:
       resources:
         limits:
           memory: 64m
-    labels:
-      docker.ids: whoami,xxx
-      docker.whoami.path: /whoami/**
-      docker.whoami.path.replacement: /$${remaining}
-      docker.xxx.path: /xxx/**
     networks:
       - services
   redis-commander:

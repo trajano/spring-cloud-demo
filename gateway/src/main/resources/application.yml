@@ -81,6 +81,12 @@ spring:
             - RemoveRequestHeader='X-Amzn-Trace-Id'
             - RemoveRequestHeader='X-B3-TraceId'
             - RemoveRequestHeader='X-Trace-ID'
+
+            # Redirect to add trailing slash if requesting a resource that ends with `/**` and the the request didn't end with `/`
+            - name: StarStarRedirect
+              args:
+                path: "metadata['path']"
+                active: "metadata['allow.missing.trailing.slash']"
             - name: ProtectedResource
               args:
                 serviceId: serviceId
