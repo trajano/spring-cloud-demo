@@ -116,15 +116,15 @@ spring:
                 host: host
                 useGrpc: "metadata['protocol'] == 'grpc'"
                 port: port
-      routes:
-        - id: hello
-          uri: http://example.org
-          predicates:
-            - Path=/hello
-          filters:
-            - name: Hello
-              args:
-                useHello: true
+#      routes:
+#        - id: hello
+#          uri: http://example.org
+#          predicates:
+#            - Path=/hello
+#          filters:
+#            - name: Hello
+#              args:
+#                useHello: true
 #    inetutils:
 #      ignoredInterfaces:
 #        - docker0

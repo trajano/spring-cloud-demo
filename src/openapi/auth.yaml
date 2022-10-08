@@ -33,3 +33,31 @@ paths:
                 $ref: "./components.yaml#/components/schemas/OAuthTokenResponse"
         401:
           $ref: "./components.yaml#/components/responses/invalid-token"
+  /logout:
+    post:
+      summary: Logout
+      description: |
+        Implements [rfc7009 OAuth 2.0 Token Revocation](https://datatracker.ietf.org/doc/html/rfc7009#section-2.1).
+      operationId: logout
+      responses:
+        200:
+          description: Authenticated
+          headers:
+            X-B3-Traceid:
+              $ref: "./components.yaml#/components/headers/X-B3-Traceid"
+            X-Trace-ID:
+              $ref: "./components.yaml#/components/headers/X-Trace-ID"
+            Cache-Control:
+              $ref: "./components.yaml#/components/headers/Cache-Control"
+            Content-Type:
+              $ref: "./components.yaml#/components/headers/Content-Type"
+            Content-Length:
+              $ref: "./components.yaml#/components/headers/Content-Length"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true

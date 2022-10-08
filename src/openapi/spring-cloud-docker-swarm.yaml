@@ -19,5 +19,7 @@ paths:
     $ref: "./simple-auth.yaml#/paths/~1auth"
   /refresh:
     $ref: "./auth.yaml#/paths/~1refresh"
+  /logout:
+    $ref: "./auth.yaml#/paths/~1logout"
   /whoami:
     $ref: "./whoami.yaml#/paths/~1whoami"
