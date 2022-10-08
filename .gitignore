@@ -9,3 +9,5 @@ build
 *.iws
 .env
 report.json*
+
+jmeter.log
