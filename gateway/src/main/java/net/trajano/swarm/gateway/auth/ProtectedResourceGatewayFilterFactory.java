@@ -71,13 +71,13 @@ public class ProtectedResourceGatewayFilterFactory
   }
 
   /**
+   * At this point clientId is expected to be set in the exchange
    * @param config filter factory configuration
    * @return filter
    */
   @Override
   public GatewayFilter apply(final Config config) {
 
-      // TODO provide a context that contains the client ID
     return (exchange, chain) ->
         discoveryClient
             .getInstances(config.getServiceId())
@@ -104,7 +104,7 @@ public class ProtectedResourceGatewayFilterFactory
 
                       final String bearerToken = authorization.substring("Bearer ".length());
                       return claimsService
-                          .getClaims(bearerToken)
+                          .getClaims(bearerToken, exchange.getRequiredAttribute("clientId"))
                           .flatMap(
                               jwtClaims -> {
                                 exchange.getAttributes().put(JWT_CLAIMS, jwtClaims);
