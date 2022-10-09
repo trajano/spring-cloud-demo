@@ -9,7 +9,11 @@ C=$(docker run \
   --add-host=host.docker.internal:host-gateway \
   -v ${PWD}/gateway/src/test/jmeter:/work:ro \
   -d \
-  justb4/jmeter -n -t /work/load-test.jmx -JbaseUri=http://host.docker.internal:28082 -l /results.jtl -e -o /results)
+  justb4/jmeter -n -t /work/load-test.jmx \
+  -JbaseUri=http://host.docker.internal:28082 \
+  -JmaxConcurrentUsers=500 \
+  -JloopCount=20 \
+  -l /results.jtl -e -o /results)
 docker attach $C
 mkdir -p gateway/build/jmeter/results/
 docker cp $C:/results.jtl gateway/build/jmeter/results.jtl
