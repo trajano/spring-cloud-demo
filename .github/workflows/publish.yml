@@ -104,7 +104,13 @@ jobs:
           docker stack deploy -c docker-compose-deploy-test.yml --with-registry-auth ds
 
       - name: Wait for gateway to come up
-        uses: cygnetdigital/wait_for_response@v2.0.0
+        uses: gerdemann/http-status-code@1.0.0
         with:
           url: 'http://localhost:28082/'
-          timeout: 60000
+          code: 200 # optional
+          timeout: 60 # optional
+          interval: 1
+
+      - name: Curl test
+        run: |
+          bin/curltest.sh
