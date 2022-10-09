@@ -9,7 +9,7 @@
         <collectionProp name="Arguments.arguments">
           <elementProp name="baseUri" elementType="Argument">
             <stringProp name="Argument.name">baseUri</stringProp>
-            <stringProp name="Argument.value">http://localhost:28082</stringProp>
+            <stringProp name="Argument.value">${__property(baseUri,,http://localhost:28082)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
