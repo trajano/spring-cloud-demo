@@ -1,6 +1,6 @@
 version: "3.8"
 x-spring-environment: &springEnvironment
-  SPRING_PROFILES_ACTIVE: json-logging
+  # SPRING_PROFILES_ACTIVE: json-logging
   SPRING_REDIS_CLUSTER_MAXREDIRECTS: 3
   SPRING_REDIS_CLUSTER_NODES: c1.corecache.internal:6379,c2.corecache.internal:6379,c3.corecache.internal:6379,c4.corecache.internal:6379
   SPRING_ZIPKIN_SENDER_TYPE: kafka
@@ -61,6 +61,8 @@ services:
         limits:
 #          cpus: '0.5'
           memory: 32M
+    logging:
+      driver: local
   gateway:
     build:
       context: .
@@ -103,32 +105,6 @@ services:
     ports:
       - 28082:8080
     deploy:
-      labels:
-        traefik.enable: "true"
-        traefik.docker.network: edge
-        traefik.http.routers.gateway.rule: "PathPrefix(`/`)"
-        traefik.http.routers.gateway.priority: "1"
-        traefik.http.services.gateway.loadbalancer.server.port: "8080"
-        traefik.http.services.gateway.loadbalancer.healthcheck.path: /ping
-        traefik.http.services.gateway.loadbalancer.healthcheck.port: "8080"
-        traefik.http.services.gateway.loadbalancer.healthcheck.interval: "10s"
-
-        traefik.http.routers.dashboard.rule: (PathPrefix(`/api`) || PathPrefix(`/dashboard`))
-        traefik.http.routers.dashboard.entryPoints: http
-        traefik.http.routers.dashboard.service: api@internal
-
-        traefik.http.middlewares.strip-prefix.chain.middlewares: strip-prefix-1,strip-prefix-2
-        traefik.http.middlewares.strip-prefix-1.redirectregex.regex: "^(https?://[^/]+/[a-z0-9_]+)$$"
-        traefik.http.middlewares.strip-prefix-1.redirectregex.replacement: "$$1/"
-        traefik.http.middlewares.strip-prefix-1.redirectregex.permanent: "true"
-        traefik.http.middlewares.strip-prefix-2.stripprefixregex.regex: /[a-z0-9_]+
-
-        traefik.http.routers.actuator.rule: "PathPrefix(`/actuator`)"
-        traefik.http.routers.actuator.priority: "1000"
-        traefik.http.routers.actuator.middlewares: actuator
-        traefik.http.middlewares.actuator.redirectregex.regex: ".*"
-        traefik.http.middlewares.actuator.redirectregex.replacement: "/ping"
-
       update_config:
         order: start-first
         failure_action: pause
@@ -155,6 +131,8 @@ services:
       - daemon
       - redis
       - default
+    logging:
+      driver: local
   jwks-provider:
     build:
       context: .
@@ -175,6 +153,8 @@ services:
       resources:
         limits:
           memory: 256m
+    logging:
+      driver: local
   sample:
     build:
       context: .
@@ -198,6 +178,8 @@ services:
           memory: 512m
     networks:
       - services
+    logging:
+      driver: local
   grpc-sample:
     build:
       context: .
@@ -242,6 +224,8 @@ services:
           memory: 64m
     networks:
       - services
+    logging:
+      driver: local
 #  redis-commander:
 #    image: ghcr.io/joeferner/redis-commander:latest
 #    environment:
