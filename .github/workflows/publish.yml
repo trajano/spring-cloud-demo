@@ -85,3 +85,26 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
           #,linux/arm/v7
+
+  deployment-test:
+
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Initialize swarm
+        run: |
+          docker swarm init
+
+      - name: Deploy
+        run: |
+          docker stack deploy -c docker-compose-deploy-test.yml --with-registry-auth ds
+
+      - name: Wait for gateway to come up
+        uses: cygnetdigital/wait_for_response@v2.0.0
+        with:
+          url: 'http://localhost:28082/'
+          timeout: 60000
