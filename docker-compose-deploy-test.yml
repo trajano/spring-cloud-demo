@@ -1,0 +1,167 @@
+version: "3.8"
+x-spring-environment: &springEnvironment
+  SPRING_PROFILES_ACTIVE: json-logging
+  SPRING_REDIS_HOST: redis
+  SPRING_ZIPKIN_ENABLED: "false"
+
+services:
+  daemon:
+    image: tecnativa/docker-socket-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - daemon
+    environment:
+      NETWORKS: 1
+      SERVICES: 1
+      TASKS: 1
+    labels:
+      - co.elastic.logs/enabled=false
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+#          cpus: '0.5'
+          memory: 32M
+  gateway:
+    build:
+      context: .
+      target: gateway
+    image: local/gateway
+    tty: true
+    environment:
+      <<: *springEnvironment
+      DOCKER_DISCOVERY_SWARMMODE: "true"
+      DOCKER_DISCOVERY_DAEMONFULLACCESS: "false"
+      DOCKER_HOST: tcp://daemon:2375
+    ports:
+      - 28082:8080
+    deploy:
+
+      update_config:
+        order: start-first
+        failure_action: pause
+#        parallelism: 1
+      restart_policy:
+        max_attempts: 1
+      #replicas: 3
+      resources:
+        limits:
+          memory: 512m
+          # memory: 768m
+          # memory: 256m
+    user: "5000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - services
+      - daemon
+      - redis
+      - default
+  jwks-provider:
+    build:
+      context: .
+      target: jwks-provider
+    image: local/jwks-provider
+    environment:
+      <<: *springEnvironment
+
+    networks:
+      - default
+      - redis
+    ports:
+      - 28083:8080
+    tty: true
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+  redis:
+    image: redis:6
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    networks:
+      - redis
+
+  sample:
+    build:
+      context: .
+      target: sample-service
+    image: local/sample-service
+    environment:
+      <<: *springEnvironment
+    deploy:
+      labels:
+        docker.ids: sample
+        docker.sample.path: /sample/**
+        docker.sample.path.regexp: /sample/(?<remaining>.*)
+        docker.sample.path.replacement: /$${remaining}
+        # This indicates that the backend is a GRPC service rather than HTTP service, default is `http`
+#        docker.sample.protocol: grpc
+#        docker.sample.port: 50000
+      resources:
+        limits:
+          memory: 256m
+    networks:
+      - services
+  grpc-sample:
+    build:
+      context: .
+      target: grpc-service
+    image: local/grpc-service
+    environment:
+      <<: *springEnvironment
+    deploy:
+      labels:
+        docker.ids: grpc
+        docker.grpc.path: /grpc/**
+        docker.grpc.path.regexp: /grpc/(?<remaining>.*)
+        docker.grpc.path.replacement: /$${remaining}
+        # This indicates that the backend is a GRPC service rather than HTTP service, default is `http`
+        docker.grpc.protocol: grpc
+        docker.grpc.port: 50000
+      resources:
+        limits:
+          memory: 256m
+    networks:
+      - services
+    ports:
+      - "28088:50000"
+#  tomcat:
+#    image: tomcat
+#    networks:
+#      - services
+  whoami:
+    image: containous/whoami
+    deploy:
+      labels:
+        docker.ids: whoami,xxx
+        docker.whoami.path: /whoami/**
+        docker.whoami.path.replacement: /api
+        docker.whoami.port: 80
+        docker.xxx.path: /xxx/**
+        docker.xxx.path.replacement: /$${remaining}
+        docker.xxx.port: 80
+      replicas: 5
+      endpoint_mode: dnsrr
+      resources:
+        limits:
+          memory: 64m
+    networks:
+      - services
+
+networks:
+  daemon:
+    internal: true
+    attachable: false
+  redis:
+    internal: true
+    attachable: false
+  services:
+    name: services
+    attachable: true
