@@ -8,6 +8,7 @@ import net.trajano.swarm.gateway.auth.IdentityService;
 import net.trajano.swarm.gateway.auth.IdentityServiceResponse;
 import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import net.trajano.swarm.gateway.auth.claims.ClaimsService;
+import net.trajano.swarm.gateway.auth.clientmanagement.NoCheckClientManagementService;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.jwks.JwksProvider;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
 
 @ContextConfiguration(
-    classes = {AuthProperties.class, SimpleAuthController.class, SchedulerConfiguration.class})
+    classes = {AuthProperties.class, SimpleAuthController.class, SchedulerConfiguration.class, NoCheckClientManagementService.class})
 @TestPropertySource(
     properties = {
       "simple-auth.enabled: true",
