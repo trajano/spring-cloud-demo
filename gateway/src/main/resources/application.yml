@@ -87,6 +87,7 @@ spring:
               args:
                 path: "metadata['path']"
                 active: "metadata['allow.missing.trailing.slash']"
+            - ClientValid
             - name: ProtectedResource
               args:
                 serviceId: serviceId

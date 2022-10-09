@@ -72,6 +72,7 @@ public class ProtectedResourceGatewayFilterFactory
 
   /**
    * At this point clientId is expected to be set in the exchange
+   *
    * @param config filter factory configuration
    * @return filter
    */
