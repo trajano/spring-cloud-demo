@@ -24,7 +24,12 @@ import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Mono;
 
 @ContextConfiguration(
-    classes = {AuthProperties.class, SimpleAuthController.class, SchedulerConfiguration.class, NoCheckClientManagementService.class})
+    classes = {
+      AuthProperties.class,
+      SimpleAuthController.class,
+      SchedulerConfiguration.class,
+      NoCheckClientManagementService.class
+    })
 @TestPropertySource(
     properties = {
       "simple-auth.enabled: true",
@@ -50,7 +55,7 @@ class SimpleAuthControllerTest {
 
     doReturn(Mono.just(OAuthTokenResponse.builder().build()))
         .when(claimsService)
-        .storeAndSignIdentityServiceResponse(authenticationResponse, null);
+        .storeAndSignIdentityServiceResponse(authenticationResponse, null, "unknown");
 
     webClient
         .post()

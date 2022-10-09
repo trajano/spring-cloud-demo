@@ -28,7 +28,7 @@ public class RedisJtiExtractorService {
   private final AuthProperties properties;
   private final RedisUserSessions redisUserSessions;
 
-  public Mono<String> extractJti(String refreshToken) {
+  public Mono<String> extractJti(String refreshToken, String clientId) {
     // The JWT that's reconstituted from the original token
     final var kid = refreshToken.substring(0, refreshToken.indexOf("."));
     final var jwt =
@@ -43,7 +43,7 @@ public class RedisJtiExtractorService {
     final UUID jwtId = extractJtiWithoutValidation(refreshToken);
 
     return redisUserSessions
-        .findById(jwtId)
+        .findById(jwtId, clientId)
         .map(UserSession::getVerificationJwk)
         .map(List::of)
         .map(

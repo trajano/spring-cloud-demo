@@ -17,9 +17,13 @@ public class RefreshContext {
   /** Signed access token. */
   private String accessToken;
 
+  private JwtClaims accessTokenClaims;
+
   private Instant accessTokenExpiresAt;
 
   private JsonWebKeySet accessTokenSigningKeyPair;
+
+  private String clientId;
 
   private IdentityServiceResponse identityServiceResponse;
 
@@ -27,16 +31,14 @@ public class RefreshContext {
 
   private Instant now;
 
+  /** Signed refresh token. */
+  private String refreshToken;
+
+  private JwtClaims refreshTokenClaims;
+
   private Instant refreshTokenExpiresAt;
 
   private JsonWebKeySet refreshTokenSigningKeyPair;
 
   private UserSession userSession;
-
-  /** Signed refresh token. */
-  private String refreshToken;
-
-  private JwtClaims accessTokenClaims;
-
-  private JwtClaims refreshTokenClaims;
 }

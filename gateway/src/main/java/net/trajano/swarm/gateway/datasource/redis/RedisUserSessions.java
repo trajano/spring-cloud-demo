@@ -10,12 +10,11 @@ import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
 import net.trajano.swarm.gateway.redis.UserSession;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.lang.JoseException;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
-import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -45,11 +44,23 @@ public class RedisUserSessions {
     }
   }
 
-  private JwtClaims convertToJwtClaims(String jsonClaims) {
+  /**
+   * Converts the value to JWT claims. It verifies that the client ID is in the audience.
+   *
+   * @param jsonClaims claims JSON
+   * @param clientId client ID
+   * @return JWT claims parsed.
+   */
+  private JwtClaims convertToJwtClaims(String jsonClaims, String clientId) {
 
     try {
-      return JwtClaims.parse(jsonClaims);
-    } catch (InvalidJwtException e) {
+      final var claims = JwtClaims.parse(jsonClaims);
+      if (!claims.getAudience().contains(clientId)) {
+        throw new SecurityException(
+            "Client ID %s is not in the audience %s".formatted(clientId, claims.getAudience()));
+      }
+      return claims;
+    } catch (MalformedClaimException | InvalidJwtException e) {
       throw new IllegalArgumentException(e);
     }
   }
@@ -59,21 +70,14 @@ public class RedisUserSessions {
     return redisTemplate.delete(redisKeyBlocks.forUserSession(userSession.getJwtId()));
   }
 
-  public Flux<UserSession> findAll() {
-
-    return redisTemplate
-        .scan(ScanOptions.scanOptions().match(redisKeyBlocks.forAllUserSessions()).build())
-        .flatMap(this::findByRedisKey);
-  }
-
-  public Mono<UserSession> findById(UUID jwtId) {
+  public Mono<UserSession> findById(UUID jwtId, String clientId) {
 
     final var key = redisKeyBlocks.forUserSession(jwtId);
 
-    return findByRedisKey(key);
+    return findByRedisKey(key, clientId);
   }
 
-  private Mono<UserSession> findByRedisKey(final String key) {
+  private Mono<UserSession> findByRedisKey(final String key, final String clientId) {
 
     final var ttl = redisTemplate.getExpire(key);
     final var objectValues = redisTemplate.<String, String>opsForHash().multiGet(key, HASH_KEYS);
@@ -83,7 +87,7 @@ public class RedisUserSessions {
             t ->
                 UserSession.builder()
                     .jwtId(redisKeyBlocks.forUserSessionRedisKey(key))
-                    .secretClaims(convertToJwtClaims(t.getT1().get(0)))
+                    .secretClaims(convertToJwtClaims(t.getT1().get(0), clientId))
                     .issuedOn(Instant.parse(t.getT1().get(1)))
                     .verificationJwk(convertToJsonWebKey(t.getT1().get(2)))
                     .accessToken(t.getT1().get(3))

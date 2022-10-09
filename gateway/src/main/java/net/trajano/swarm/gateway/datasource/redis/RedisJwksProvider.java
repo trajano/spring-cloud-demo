@@ -7,9 +7,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
 import net.trajano.swarm.gateway.jwks.JwksProvider;
 import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
-import net.trajano.swarm.gateway.redis.UserSession;
 import org.jose4j.jwk.EllipticCurveJsonWebKey;
-import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.jose4j.lang.JoseException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -117,21 +115,6 @@ public class RedisJwksProvider implements JwksProvider {
     } catch (JoseException e) {
       throw new IllegalStateException(e);
     }
-  }
-
-  /**
-   * Gets all the verification JWKs but generally won't be used because the JWT is part of the data
-   *
-   * @return all the verification JWKs.
-   */
-  @Override
-  public Mono<List<JsonWebKey>> getAllVerificationJwks() {
-
-    return redisUserSessions
-        .findAll()
-        .publishOn(jwksScheduler)
-        .map(UserSession::getVerificationJwk)
-        .collectList();
   }
 
   @Override

@@ -77,6 +77,7 @@ public class ProtectedResourceGatewayFilterFactory
   @Override
   public GatewayFilter apply(final Config config) {
 
+      // TODO provide a context that contains the client ID
     return (exchange, chain) ->
         discoveryClient
             .getInstances(config.getServiceId())

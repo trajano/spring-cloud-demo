@@ -12,6 +12,7 @@ import net.trajano.swarm.gateway.auth.clientmanagement.InvalidClientException;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.jwks.JwksProvider;
 import net.trajano.swarm.gateway.web.GatewayResponse;
+import net.trajano.swarm.gateway.web.InvalidClientGatewayResponse;
 import org.jose4j.jwk.JsonWebKeySet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -104,15 +105,24 @@ public abstract class AbstractAuthController<A, P> {
       @RequestBody Mono<A> authenticationRequestMono, ServerWebExchange serverWebExchange) {
 
     return validateClient(serverWebExchange)
+        .transformDeferredContextual(
+            (clientId, context) ->
+                clientId.doOnNext(
+                    next -> context.get(AuthenticationContext.class).setClientId(next)))
         .then(authenticationRequestMono)
         .flatMap(
             authenticationRequest ->
                 identityService.authenticate(
                     authenticationRequest, serverWebExchange.getRequest().getHeaders()))
         .filter(IdentityServiceResponse::isOk)
-        .flatMap(
-            identityServiceResponse ->
-                claimsService.storeAndSignIdentityServiceResponse(identityServiceResponse, null))
+        .transformDeferredContextual(
+            (identityServiceResponseMono, context) ->
+                identityServiceResponseMono.flatMap(
+                    identityServiceResponse ->
+                        claimsService.storeAndSignIdentityServiceResponse(
+                            identityServiceResponse,
+                            null,
+                            context.get(AuthenticationContext.class).getClientId())))
         .timeout(Duration.ofMillis(authProperties.getAuthenticationProcessingTimeoutInMillis()))
         .doOnNext(
             serviceResponse -> {
@@ -166,18 +176,18 @@ public abstract class AbstractAuthController<A, P> {
                     serverWebExchange, "Timed out processing authentication request"))
         .delayUntil(this::applyMinimumOperationTime)
         .contextWrite(this::writeStartTimeToContext)
+        .contextWrite(this::writeAuthenticationContext)
         .subscribeOn(authenticationScheduler);
   }
 
-  private Mono<GatewayResponse> respondWithInvalidClientCredentials(
+  private Context writeAuthenticationContext(Context context) {
+    return context.put(AuthenticationContext.class, new AuthenticationContext());
+  }
+
+  private Mono<? extends GatewayResponse> respondWithInvalidClientCredentials(
       ServerWebExchange serverWebExchange) {
 
-    return Mono.just(
-            GatewayResponse.builder()
-                .ok(false)
-                .error("invalid_credentials")
-                .errorDescription("Client credentials are not valid.")
-                .build())
+    return Mono.just(new InvalidClientGatewayResponse())
         .doOnNext(
             response -> {
               final var serverHttpResponse = serverWebExchange.getResponse();
@@ -193,9 +203,7 @@ public abstract class AbstractAuthController<A, P> {
   }
 
   private Mono<String> validateClient(ServerWebExchange serverWebExchange) {
-    return clientManagementService
-        .obtainClientIdFromServerExchange(serverWebExchange)
-        .switchIfEmpty(Mono.error(new InvalidClientException()));
+    return clientManagementService.obtainClientIdFromServerExchange(serverWebExchange);
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Bad request")
@@ -232,8 +240,11 @@ public abstract class AbstractAuthController<A, P> {
     }
 
     final var logoutFromService =
-        claimsService
-            .revoke(request.getToken(), serverWebExchange.getRequest().getHeaders())
+        validateClient(serverWebExchange)
+            .flatMap(
+                clientId ->
+                    claimsService.revoke(
+                        request.getToken(), serverWebExchange.getRequest().getHeaders(), clientId))
             .doOnNext(
                 serviceResponse -> {
                   final var serverHttpResponse = serverWebExchange.getResponse();
@@ -276,10 +287,12 @@ public abstract class AbstractAuthController<A, P> {
     }
 
     return validateClient(serverWebExchange)
-        .then(
-            claimsService.refresh(
-                oAuthRefreshRequest.getRefresh_token(),
-                serverWebExchange.getRequest().getHeaders()))
+        .flatMap(
+            clientId ->
+                claimsService.refresh(
+                    oAuthRefreshRequest.getRefresh_token(),
+                    serverWebExchange.getRequest().getHeaders(),
+                    clientId))
         .timeout(Duration.ofMillis(authProperties.getRefreshProcessingTimeoutInMillis()))
         .doOnNext(
             serviceResponse -> {

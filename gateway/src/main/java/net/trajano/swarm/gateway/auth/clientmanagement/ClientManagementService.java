@@ -7,7 +7,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-/** This manages authorization clients. */
+/**
+ * This manages authorization clients. If the data is missing or there's an error a Mono.error with
+ * InvalidClientException is returned
+ */
 public interface ClientManagementService {
 
   Pattern AUTHORIZATION_HEADER_PATTERN = Pattern.compile("^Basic ([A-Za-z0-9+/=]+)$");
@@ -17,21 +20,21 @@ public interface ClientManagementService {
   default Mono<String> obtainClientIdFromAuthorization(String authorization) {
 
     if (authorization == null) {
-      return Mono.empty();
+      return Mono.error(InvalidClientException::new);
     }
     final var m = AUTHORIZATION_HEADER_PATTERN.matcher(authorization);
     if (!m.matches()) {
-      return Mono.empty();
+      return Mono.error(InvalidClientException::new);
     }
     try {
       var decoded = new String(Base64.getDecoder().decode(m.group(1)), StandardCharsets.US_ASCII);
       final var split = decoded.split(":");
       if (split.length != 2) {
-        return Mono.empty();
+        return Mono.error(InvalidClientException::new);
       }
       return obtainClientId(split[0], split[1]);
     } catch (RuntimeException e) {
-      return Mono.error(e);
+      return Mono.error(new InvalidClientException(e));
     }
   }
 

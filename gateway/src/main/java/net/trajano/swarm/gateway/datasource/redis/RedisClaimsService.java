@@ -6,7 +6,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.trajano.swarm.gateway.auth.*;
+import net.trajano.swarm.gateway.auth.AuthServiceResponse;
+import net.trajano.swarm.gateway.auth.IdentityService;
+import net.trajano.swarm.gateway.auth.IdentityServiceResponse;
+import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import net.trajano.swarm.gateway.auth.claims.ZLibStringCompression;
 import net.trajano.swarm.gateway.common.AuthProperties;
@@ -79,6 +82,7 @@ public class RedisClaimsService implements ClaimsService {
    */
   private OAuthTokenResponse buildValidOAuthTokenResponse(
       String accessToken, String refreshToken, Instant accessTokenExpiresAt) {
+
     var oauthTokenResponse = new OAuthTokenResponse();
     oauthTokenResponse.setOk(true);
     oauthTokenResponse.setAccessToken(accessToken);
@@ -93,16 +97,19 @@ public class RedisClaimsService implements ClaimsService {
    * Extracts the JTI from the refresh token sent by the client.
    *
    * @param refreshToken refresh token sent by the client
+   * @param headers HTTP headers
+   * @param clientId client ID
    * @return a mono with the JTI or error if it is not parsed. An invalid JWT will return empty.
    */
-  private Mono<String> extractJti(String refreshToken, HttpHeaders headers) {
+  private Mono<String> extractJti(String refreshToken, HttpHeaders headers, String clientId) {
+
     if (!MediaType.APPLICATION_FORM_URLENCODED.equals(headers.getContentType())) {
       return Mono.error(IllegalArgumentException::new);
     }
     if (!refreshToken.matches("[-_A-Za-z\\d]+\\.[-_A-Za-z\\d]+\\.[-_A-Za-z\\d]+")) {
       return Mono.error(IllegalArgumentException::new);
     }
-    return redisJtiExtractorService.extractJti(refreshToken);
+    return redisJtiExtractorService.extractJti(refreshToken, clientId);
   }
 
   private Mono<JwtClaims> getClaims(String jwt, JwtConsumer jwtConsumer) {
@@ -128,7 +135,7 @@ public class RedisClaimsService implements ClaimsService {
 
   @Override
   @Transactional(readOnly = true)
-  public Mono<JwtClaims> getClaims(String accessToken) {
+  public Mono<JwtClaims> getClaims(String accessToken, String clientId) {
 
     var jwtConsumerMono =
         jwksProvider
@@ -141,6 +148,7 @@ public class RedisClaimsService implements ClaimsService {
                         .setRequireSubject()
                         .setRequireExpirationTime()
                         .setRequireJwtId()
+                        .setExpectedAudience(true, clientId)
                         .setAllowedClockSkewInSeconds(properties.getAllowedClockSkewInSeconds())
                         .setJwsAlgorithmConstraints(
                             AlgorithmConstraints.ConstraintType.PERMIT,
@@ -159,7 +167,7 @@ public class RedisClaimsService implements ClaimsService {
             c -> {
               try {
                 return redisUserSessions
-                    .findById(UUID.fromString(c.getJwtId()))
+                    .findById(UUID.fromString(c.getJwtId()), clientId)
                     .switchIfEmpty(Mono.error(SecurityException::new))
                     .map(i -> c);
               } catch (MalformedClaimException e) {
@@ -178,16 +186,17 @@ public class RedisClaimsService implements ClaimsService {
    *
    * @param refreshToken refresh token
    * @param headers HTTP headers (will contain information for client validation)
+   * @param clientId client ID
    * @return updated access token response
    */
   @Override
   @Transactional
   public Mono<AuthServiceResponse<GatewayResponse>> refresh(
-      String refreshToken, HttpHeaders headers) {
+      String refreshToken, HttpHeaders headers, String clientId) {
 
-    return extractJti(refreshToken, headers)
-        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti)))
-        .flatMap(userSession -> refreshIfNeeded(userSession, headers))
+    return extractJti(refreshToken, headers, clientId)
+        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti), clientId))
+        .flatMap(userSession -> refreshIfNeeded(userSession, headers, clientId))
         .map(
             oauthResponse -> AuthServiceResponse.builder().operationResponse(oauthResponse).build())
         .switchIfEmpty(
@@ -219,13 +228,15 @@ public class RedisClaimsService implements ClaimsService {
 
   /**
    * This will perform the refresh operation if needed. So if the age of the token is not going to
-   * expire it it will not perform the expensive call back to the identity service nor sign.
+   * expire it will not perform the expensive call back to the identity service nor sign.
    *
    * @param userSession user session
+   * @param headers headers
+   * @param clientId client ID
    * @return gateway response
    */
   private Mono<? extends GatewayResponse> refreshIfNeeded(
-      UserSession userSession, HttpHeaders headers) {
+      UserSession userSession, HttpHeaders headers, String clientId) {
 
     if (ChronoUnit.MILLIS.between(userSession.getAccessTokenIssuedOn(), Instant.now())
         < properties.getMinimumAccessTokenAgeBeforeRefreshInMillis()) {
@@ -245,7 +256,7 @@ public class RedisClaimsService implements ClaimsService {
         .flatMap(
             identityServiceResponse ->
                 storeAndSignIdentityServiceResponse(
-                    identityServiceResponse, userSession.getJwtId().toString()));
+                    identityServiceResponse, userSession.getJwtId().toString(), clientId));
   }
 
   /**
@@ -256,15 +267,16 @@ public class RedisClaimsService implements ClaimsService {
    *
    * @param refreshToken refresh token
    * @param headers ignored headers
+   * @param clientId client ID
    * @return gateway response
    */
   @Override
   @Transactional
   public Mono<AuthServiceResponse<GatewayResponse>> revoke(
-      String refreshToken, HttpHeaders headers) {
+      String refreshToken, HttpHeaders headers, String clientId) {
 
-    return extractJti(refreshToken, headers)
-        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti)))
+    return extractJti(refreshToken, headers, clientId)
+        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti), clientId))
         .flatMap(
             userSession ->
                 redisUserSessions
@@ -287,13 +299,14 @@ public class RedisClaimsService implements ClaimsService {
   @Override
   @Transactional
   public Mono<GatewayResponse> storeAndSignIdentityServiceResponse(
-      IdentityServiceResponse identityServiceResponse, String jwtId) {
+      IdentityServiceResponse identityServiceResponse, String jwtId, String clientId) {
 
     if (!identityServiceResponse.isOk()) {
       return Mono.error(IllegalStateException::new);
     }
     return redisStoreAndSignIdentityService
-        .storeAndSignIdentityServiceResponse(identityServiceResponse, jwtId, Instant.now())
+        .storeAndSignIdentityServiceResponse(
+            identityServiceResponse, jwtId, Instant.now(), clientId)
         .map(
             refreshContext ->
                 buildValidOAuthTokenResponse(
