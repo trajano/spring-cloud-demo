@@ -7,6 +7,8 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.claims.ClaimsService;
+import net.trajano.swarm.gateway.auth.clientmanagement.ClientManagementService;
+import net.trajano.swarm.gateway.auth.clientmanagement.InvalidClientException;
 import net.trajano.swarm.gateway.common.AuthProperties;
 import net.trajano.swarm.gateway.jwks.JwksProvider;
 import net.trajano.swarm.gateway.web.GatewayResponse;
@@ -45,6 +47,8 @@ public abstract class AbstractAuthController<A, P> {
   @Autowired private Scheduler authenticationScheduler;
 
   @Autowired private ClaimsService claimsService;
+
+  @Autowired private ClientManagementService clientManagementService;
 
   /** */
   @Autowired private IdentityService<A, P> identityService;
@@ -99,7 +103,8 @@ public abstract class AbstractAuthController<A, P> {
   public Mono<GatewayResponse> authenticate(
       @RequestBody Mono<A> authenticationRequestMono, ServerWebExchange serverWebExchange) {
 
-    return authenticationRequestMono
+    return validateClient(serverWebExchange)
+        .then(authenticationRequestMono)
         .flatMap(
             authenticationRequest ->
                 identityService.authenticate(
@@ -130,6 +135,9 @@ public abstract class AbstractAuthController<A, P> {
                 .delayElement(
                     Duration.ofMillis(authProperties.getPenaltyDelayInMillis()), penaltyScheduler))
         .onErrorResume(
+            InvalidClientException.class,
+            ex -> respondWithInvalidClientCredentials(serverWebExchange))
+        .onErrorResume(
             SecurityException.class,
             ex ->
                 Mono.just(GatewayResponse.builder().ok(false).error("invalid_credentials").build())
@@ -159,6 +167,35 @@ public abstract class AbstractAuthController<A, P> {
         .delayUntil(this::applyMinimumOperationTime)
         .contextWrite(this::writeStartTimeToContext)
         .subscribeOn(authenticationScheduler);
+  }
+
+  private Mono<GatewayResponse> respondWithInvalidClientCredentials(
+      ServerWebExchange serverWebExchange) {
+
+    return Mono.just(
+            GatewayResponse.builder()
+                .ok(false)
+                .error("invalid_credentials")
+                .errorDescription("Client credentials are not valid.")
+                .build())
+        .doOnNext(
+            response -> {
+              final var serverHttpResponse = serverWebExchange.getResponse();
+              serverHttpResponse.setStatusCode(HttpStatus.UNAUTHORIZED);
+              serverHttpResponse
+                  .getHeaders()
+                  .add(
+                      HttpHeaders.WWW_AUTHENTICATE,
+                      "Basic realm=\"%s\"".formatted(authProperties.getRealm()));
+            })
+        .delayElement(
+            Duration.ofMillis(authProperties.getPenaltyDelayInMillis()), penaltyScheduler);
+  }
+
+  private Mono<String> validateClient(ServerWebExchange serverWebExchange) {
+    return clientManagementService
+        .obtainClientIdFromServerExchange(serverWebExchange)
+        .switchIfEmpty(Mono.error(new InvalidClientException()));
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Bad request")
@@ -218,8 +255,13 @@ public abstract class AbstractAuthController<A, P> {
         Mono.just(GatewayResponse.builder().ok(true).build())
             .delayElement(Duration.ofMillis(authProperties.getRevokeProcessingTimeoutInMillis()));
 
-    return Mono.firstWithValue(logoutFromService, timeout)
-        .contextWrite(this::writeStartTimeToContext);
+    return validateClient(serverWebExchange)
+        .then(
+            Mono.firstWithValue(logoutFromService, timeout)
+                .onErrorResume(
+                    InvalidClientException.class,
+                    ex -> respondWithInvalidClientCredentials(serverWebExchange))
+                .contextWrite(this::writeStartTimeToContext));
   }
 
   @PostMapping(
@@ -233,9 +275,11 @@ public abstract class AbstractAuthController<A, P> {
       return Mono.error(new IllegalArgumentException());
     }
 
-    return claimsService
-        .refresh(
-            oAuthRefreshRequest.getRefresh_token(), serverWebExchange.getRequest().getHeaders())
+    return validateClient(serverWebExchange)
+        .then(
+            claimsService.refresh(
+                oAuthRefreshRequest.getRefresh_token(),
+                serverWebExchange.getRequest().getHeaders()))
         .timeout(Duration.ofMillis(authProperties.getRefreshProcessingTimeoutInMillis()))
         .doOnNext(
             serviceResponse -> {
@@ -252,6 +296,9 @@ public abstract class AbstractAuthController<A, P> {
               }
             })
         .flatMap(this::addDelaySpecifiedInServiceResponse)
+        .onErrorResume(
+            InvalidClientException.class,
+            ex -> respondWithInvalidClientCredentials(serverWebExchange))
         .onErrorResume(
             RejectedExecutionException.class,
             ex1 ->
