@@ -240,11 +240,6 @@ services:
       resources:
         limits:
           memory: 64m
-    labels:
-      docker.ids: whoami,xxx
-      docker.whoami.path: /whoami/**
-      docker.whoami.path.replacement: /$${remaining}
-      docker.xxx.path: /xxx/**
     networks:
       - services
 #  redis-commander:
