@@ -12,13 +12,12 @@ public interface ClaimsService {
   /**
    * Extract JWT claims from the bearer token. If the bearer token is invalid, then a
    * Mono.error(SecurityException) will be returned. This checks whether the claims has a valid
-   * audience.
+   * audience, namely the issuer.
    *
    * @param bearerToken bearer token
-   * @param clientId client ID which should be part of the audience
    * @return claims
    */
-  Mono<JwtClaims> getClaims(String bearerToken, String clientId);
+  Mono<JwtClaims> getClaims(String bearerToken);
 
   /**
    * Refreshes the token and returns a new authentication response. May throw a {@link

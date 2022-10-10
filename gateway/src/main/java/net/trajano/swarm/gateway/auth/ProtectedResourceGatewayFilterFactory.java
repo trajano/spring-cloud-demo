@@ -105,7 +105,7 @@ public class ProtectedResourceGatewayFilterFactory
 
                       final String bearerToken = authorization.substring("Bearer ".length());
                       return claimsService
-                          .getClaims(bearerToken, exchange.getRequiredAttribute("clientId"))
+                          .getClaims(bearerToken)
                           .flatMap(
                               jwtClaims -> {
                                 exchange.getAttributes().put(JWT_CLAIMS, jwtClaims);

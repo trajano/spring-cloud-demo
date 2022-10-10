@@ -43,7 +43,7 @@ public class RedisJtiExtractorService {
     final UUID jwtId = UUID.fromString(extractJtiWithoutValidation(refreshToken));
 
     return redisUserSessions
-        .findById(jwtId, clientId)
+        .findById(jwtId)
         .map(UserSession::getVerificationJwk)
         .map(List::of)
         .map(

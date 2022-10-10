@@ -45,7 +45,7 @@ public class RedisStoreAndSignIdentityService {
     tokenClaims.setJwtId(refreshContext.getUserSession().getJwtId().toString());
     tokenClaims.setExpirationTime(
         NumericDate.fromSeconds(refreshContext.getAccessTokenExpiresAt().getEpochSecond()));
-    tokenClaims.setAudience(refreshContext.getClientId());
+    tokenClaims.setAudience(refreshContext.getClientId(), properties.getIssuer());
     return refreshContext.withAccessTokenClaims(tokenClaims);
   }
 
@@ -99,8 +99,7 @@ public class RedisStoreAndSignIdentityService {
   private Mono<RefreshContext> obtainExistingOrBuildRefreshToken(
       final RefreshContext refreshContext) {
     return Mono.justOrEmpty(refreshContext.getJwtId())
-        .flatMap(
-            jti -> redisUserSessions.findById(UUID.fromString(jti), refreshContext.getClientId()))
+        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti)))
         .switchIfEmpty(
             Mono.fromSupplier(
                 () ->

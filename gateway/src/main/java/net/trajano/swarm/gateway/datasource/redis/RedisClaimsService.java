@@ -135,7 +135,7 @@ public class RedisClaimsService implements ClaimsService {
 
   @Override
   @Transactional(readOnly = true)
-  public Mono<JwtClaims> getClaims(String accessToken, String clientId) {
+  public Mono<JwtClaims> getClaims(String accessToken) {
 
     var jwtConsumerMono =
         jwksProvider
@@ -148,7 +148,7 @@ public class RedisClaimsService implements ClaimsService {
                         .setRequireSubject()
                         .setRequireExpirationTime()
                         .setRequireJwtId()
-                        .setExpectedAudience(true, clientId)
+                        .setExpectedAudience(true, properties.getIssuer())
                         .setAllowedClockSkewInSeconds(properties.getAllowedClockSkewInSeconds())
                         .setJwsAlgorithmConstraints(
                             AlgorithmConstraints.ConstraintType.PERMIT,
@@ -167,7 +167,7 @@ public class RedisClaimsService implements ClaimsService {
             c -> {
               try {
                 return redisUserSessions
-                    .findById(UUID.fromString(c.getJwtId()), clientId)
+                    .findById(UUID.fromString(c.getJwtId()))
                     .switchIfEmpty(Mono.error(SecurityException::new))
                     .map(i -> c);
               } catch (MalformedClaimException e) {
@@ -195,7 +195,7 @@ public class RedisClaimsService implements ClaimsService {
       String refreshToken, HttpHeaders headers, String clientId) {
 
     return extractJti(refreshToken, headers, clientId)
-        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti), clientId))
+        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti)))
         .flatMap(userSession -> refreshIfNeeded(userSession, headers, clientId))
         .map(
             oauthResponse -> AuthServiceResponse.builder().operationResponse(oauthResponse).build())
@@ -276,7 +276,7 @@ public class RedisClaimsService implements ClaimsService {
       String refreshToken, HttpHeaders headers, String clientId) {
 
     return extractJti(refreshToken, headers, clientId)
-        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti), clientId))
+        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti)))
         .flatMap(
             userSession ->
                 redisUserSessions

@@ -64,14 +64,14 @@ public class RedisUserSessions {
     return redisTemplate.delete(redisKeyBlocks.forUserSession(userSession.getJwtId()));
   }
 
-  public Mono<UserSession> findById(UUID jwtId, String clientId) {
+  public Mono<UserSession> findById(UUID jwtId) {
 
     final var key = redisKeyBlocks.forUserSession(jwtId);
 
-    return findByRedisKey(key, clientId);
+    return findByRedisKey(key);
   }
 
-  private Mono<UserSession> findByRedisKey(final String key, final String clientId) {
+  private Mono<UserSession> findByRedisKey(final String key) {
 
     final var ttl = redisTemplate.getExpire(key);
     final var objectValues = redisTemplate.<String, String>opsForHash().multiGet(key, HASH_KEYS);
