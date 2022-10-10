@@ -10,7 +10,6 @@ import net.trajano.swarm.gateway.redis.RedisKeyBlocks;
 import net.trajano.swarm.gateway.redis.UserSession;
 import org.jose4j.jwk.JsonWebKey;
 import org.jose4j.jwt.JwtClaims;
-import org.jose4j.jwt.MalformedClaimException;
 import org.jose4j.jwt.consumer.InvalidJwtException;
 import org.jose4j.lang.JoseException;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
@@ -29,7 +28,8 @@ public class RedisUserSessions {
           "accessToken",
           "refreshToken",
           "accessTokenExpiresAt",
-          "accessTokenIssuedOn");
+          "accessTokenIssuedOn",
+          "clientId");
 
   private final ReactiveStringRedisTemplate redisTemplate;
 
@@ -45,22 +45,16 @@ public class RedisUserSessions {
   }
 
   /**
-   * Converts the value to JWT claims. It verifies that the client ID is in the audience.
+   * Converts the value to JWT claims.
    *
    * @param jsonClaims claims JSON
-   * @param clientId client ID
    * @return JWT claims parsed.
    */
-  private JwtClaims convertToJwtClaims(String jsonClaims, String clientId) {
+  private JwtClaims convertToJwtClaims(String jsonClaims) {
 
     try {
-      final var claims = JwtClaims.parse(jsonClaims);
-      if (!claims.getAudience().contains(clientId)) {
-        throw new SecurityException(
-            "Client ID %s is not in the audience %s".formatted(clientId, claims.getAudience()));
-      }
-      return claims;
-    } catch (MalformedClaimException | InvalidJwtException e) {
+      return JwtClaims.parse(jsonClaims);
+    } catch (InvalidJwtException e) {
       throw new IllegalArgumentException(e);
     }
   }
@@ -87,13 +81,14 @@ public class RedisUserSessions {
             t ->
                 UserSession.builder()
                     .jwtId(redisKeyBlocks.forUserSessionRedisKey(key))
-                    .secretClaims(convertToJwtClaims(t.getT1().get(0), clientId))
+                    .secretClaims(convertToJwtClaims(t.getT1().get(0)))
                     .issuedOn(Instant.parse(t.getT1().get(1)))
                     .verificationJwk(convertToJsonWebKey(t.getT1().get(2)))
                     .accessToken(t.getT1().get(3))
                     .refreshToken(t.getT1().get(4))
                     .accessTokenExpiresAt(Instant.parse(t.getT1().get(5)))
                     .accessTokenIssuedOn(Instant.parse(t.getT1().get(6)))
+                    .clientId(t.getT1().get(7))
                     .ttl(t.getT2().toSeconds())
                     .build());
   }
@@ -119,7 +114,9 @@ public class RedisUserSessions {
                 "accessTokenExpiresAt",
                 userSession.getAccessTokenExpiresAt().toString(),
                 "accessTokenIssuedOn",
-                userSession.getAccessTokenIssuedOn().toString()))
+                userSession.getAccessTokenIssuedOn().toString(),
+                "clientId",
+                userSession.getClientId()))
         .filter(success -> success)
         .flatMap(i -> redisTemplate.expire(key, Duration.ofSeconds(userSession.getTtl())))
         .filter(success -> success)

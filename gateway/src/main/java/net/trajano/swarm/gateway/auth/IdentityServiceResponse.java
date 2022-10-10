@@ -35,7 +35,7 @@ public class IdentityServiceResponse {
   /**
    * Claims that are not passed back to the client, but are associated with the refresh token in
    * order to refresh access to the backend. The secret claims will have it's JTI modified to match
-   * the claims during processing.
+   * the claims during processing and the audience set to the client.
    *
    * <p>The claims may optionally specify the expiration which will be used to override th refresh
    * token expiration. The refresh token expiration override should be less than the auth gateway

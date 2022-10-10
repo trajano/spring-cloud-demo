@@ -103,7 +103,12 @@ public class RedisStoreAndSignIdentityService {
             jti -> redisUserSessions.findById(UUID.fromString(jti), refreshContext.getClientId()))
         .switchIfEmpty(
             Mono.fromSupplier(
-                () -> UserSession.builder().jwtId(randomUUID()).issuedOn(Instant.now()).build()))
+                () ->
+                    UserSession.builder()
+                        .jwtId(randomUUID())
+                        .issuedOn(Instant.now())
+                        .clientId(refreshContext.getClientId())
+                        .build()))
         .map(refreshContext::withUserSession);
   }
 

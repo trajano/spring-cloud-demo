@@ -42,6 +42,12 @@ public class UserSession {
 
   private JwtClaims secretClaims;
 
+  /**
+   * Client ID associated with the session. This will be used to verify that the client can access
+   * via the {@code aud} claim.
+   */
+  private String clientId;
+
   @TimeToLive private Long ttl;
 
   private JsonWebKey verificationJwk;
