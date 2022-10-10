@@ -40,7 +40,7 @@ public class RedisJtiExtractorService {
                         .getBytes(StandardCharsets.US_ASCII))
             + refreshToken.substring(refreshToken.indexOf("."));
 
-    final UUID jwtId = extractJtiWithoutValidation(refreshToken);
+    final UUID jwtId = UUID.fromString(extractJtiWithoutValidation(refreshToken));
 
     return redisUserSessions
         .findById(jwtId, clientId)
@@ -52,6 +52,7 @@ public class RedisJtiExtractorService {
                     .setVerificationKeyResolver(new JwksVerificationKeyResolver(jwks))
                     .setRequireExpirationTime()
                     .setRequireJwtId()
+                    .setExpectedAudience(true, clientId)
                     .setAllowedClockSkewInSeconds(properties.getAllowedClockSkewInSeconds())
                     .setJwsAlgorithmConstraints(
                         AlgorithmConstraints.ConstraintType.PERMIT,
@@ -63,6 +64,7 @@ public class RedisJtiExtractorService {
               try {
                 return Mono.just(consumer.processToClaims(jwt));
               } catch (InvalidJwtException e) {
+                log.warn("Invalid JWT for refresh", e);
                 return Mono.empty();
               } finally {
                 final long l = System.currentTimeMillis() - start;
@@ -92,11 +94,11 @@ public class RedisJtiExtractorService {
   }
 
   @SneakyThrows
-  public static UUID extractJtiWithoutValidation(String refreshToken) {
+  public static String extractJtiWithoutValidation(String refreshToken) {
 
     var payload =
         refreshToken.substring(refreshToken.indexOf('.') + 1, refreshToken.lastIndexOf('.'));
     var p2 = objectMapper.readValue(Base64.getUrlDecoder().decode(payload), Payload.class);
-    return UUID.fromString(p2.jti);
+    return p2.getJti();
   }
 }
