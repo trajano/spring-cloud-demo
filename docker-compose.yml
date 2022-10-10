@@ -1,4 +1,11 @@
 version: "3.8"
+x-spring-environment: &springEnvironment
+#  SPRING_PROFILES_ACTIVE: json-logging
+  SPRING_REDIS_HOST: redis
+  SPRING_ZIPKIN_ENABLED: "false"
+  LOGGING_LEVEL_NET_TRAJANO: debug
+  LOGGING_LEVEL_ROOT: error
+
 services:
   edge:
     image: traefik:latest
@@ -65,43 +72,32 @@ services:
     image: local/gateway
     tty: true
     environment:
-      - SPRING_REDIS_HOST=redis
-      - SPRING_REDIS_LETTUCE_POOL_MAXACTIVE=30
-      - SPRING_NETTY_LEAKDETECTION=paranoid
-#      - SPRING_R2DBC_USERNAME=gateway-user
-#      - SPRING_R2DBC_PASSWORD=password123
-#      - SPRING_R2DBC_URL=r2dbc:mysql://db/swarm
-#      - SPRING_R2DBC_POOL_INITIALSIZE=100
-      # - SPRING_R2DBC_POOL_MAXSIZE=50
-      - DOCKER_DISCOVERY_SWARMMODE=true
+      <<: *springEnvironment
+      DOCKER_DISCOVERY_SWARMMODE: "true"
+      DOCKER_DISCOVERY_DAEMONFULLACCESS: "false"
+      DOCKER_HOST: tcp://daemon:2375
+      AUTH_USESECURERANDOM: "false"
+      LOGGING_LEVEL_REQUEST: info
+      LOGGING_LEVEL_SECURITY: warn
+      GATEWAY_ROOTHTMLREDIRECTURI: http://localhost:28080/apidoc
+#      - SPRING_NETTY_LEAKDETECTION=paranoid
 #      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
 #      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
 #      - AWS_REGION=${AWS_REGION:-}
-      - AUTH_OIDC_ALLOWEDISSUERS=https://accounts.google.com
-      - AUTH_USESECURERANDOM=false
+#      - AUTH_OIDC_ALLOWEDISSUERS=https://accounts.google.com
 #      - OIDC_ISSUER=${GOOGLE_ISSUER:https://accounts.google.com}
 #      - OIDC_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
 #      - OIDC_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
 #      - OIDC_REDIRECT_URI=${GOOGLE_REDIRECT_URI:https://oauth.pstmn.io/v1/callback}
-      - DOCKER_DISCOVERY_DAEMONFULLACCESS=false
-      - DOCKER_HOST=tcp://daemon:2375
-#      - LOGGING_LEVEL_NET_TRAJANO=trace
-      - LOGGING_LEVEL_NET_TRAJANO=debug
-      # - LOGGING_LEVEL_REQUEST=error
-      # - LOGGING_LEVEL_REQUEST=warn
-      - LOGGING_LEVEL_REQUEST=info
 #      - LOGGING_LEVEL_ORG_XBILL=trace
-      - LOGGING_LEVEL_ROOT=error
-      - LOGGING_LEVEL_SECURITY=warn
       # - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CONTEXT_SUPPORT_APPLICATIONOBJECTSUPPORT=trace
       # - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB_REACTIVE_RESULT_METHOD=trace
 #      - LOGGING_LEVEL_IO_GRPC=trace
 #      - LOGGING_LEVEL_IO_NETTY=trace
-      - LOGGING_APPENDER=console
       # - LOGGING_LEVEL_SECURITY=info
       # - LOGGING_LEVEL_NET_TRAJANO_SWARM_GATEWAY_DISCOVERY=debug
       #- LOGGING_LEVEL_ROOT=error
-      - GATEWAY_ROOTHTMLREDIRECTURI=http://localhost:28080/apidoc
+
 #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_SLEUTH=warn
     ports:
       - 28082:8080
@@ -159,14 +155,7 @@ services:
       target: jwks-provider
     image: local/jwks-provider
     environment:
-      - SPRING_REDIS_HOST=redis
-#      - SPRING_LIQUIBASE_DROPFIRST=true
-#      - SPRING_LIQUIBASE_USER=gateway-user
-#      - SPRING_LIQUIBASE_PASSWORD=password123
-#      - SPRING_LIQUIBASE_URL=jdbc:mysql://db/swarm
-#      - SPRING_R2DBC_USERNAME=gateway-user
-#      - SPRING_R2DBC_PASSWORD=password123
-#      - SPRING_R2DBC_URL=r2dbc:mysql://db/swarm
+      <<: *springEnvironment
 
     networks:
       - default
@@ -199,19 +188,19 @@ services:
       resources:
         limits:
           memory: 128m
-  db:
-    image: mysql:8.0.30
-    environment:
-      MYSQL_ROOT_PASSWORD: somerootpassword
-      MYSQL_USER: gateway-user
-      MYSQL_PASSWORD: password123
-      MYSQL_DATABASE: swarm
-    ports:
-      - 28084:3306
-    deploy:
-      resources:
-        limits:
-          memory: 2g
+#  db:
+#    image: mysql:8.0.30
+#    environment:
+#      MYSQL_ROOT_PASSWORD: somerootpassword
+#      MYSQL_USER: gateway-user
+#      MYSQL_PASSWORD: password123
+#      MYSQL_DATABASE: swarm
+#    ports:
+#      - 28084:3306
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 2g
   redis:
     image: redis:6
     deploy:
@@ -227,7 +216,7 @@ services:
       target: sample-service
     image: local/sample-service
     environment:
-      - LOGGING_LEVEL_NET_TRAJANO=debug
+      <<: *springEnvironment
     deploy:
       labels:
         docker.ids: sample
@@ -248,7 +237,7 @@ services:
       target: grpc-service
     image: local/grpc-service
     environment:
-      - LOGGING_LEVEL_NET_TRAJANO=debug
+      <<: *springEnvironment
     tty: true
     deploy:
       labels:
