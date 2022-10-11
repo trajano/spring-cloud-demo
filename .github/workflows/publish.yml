@@ -102,13 +102,13 @@ jobs:
       - name: Deploy
         run: |
           docker stack deploy -c docker-compose-deploy-test.yml --with-registry-auth ds
-          docker service ps ds_gateway
+          docker service update ds_jwks-provider
           docker service update ds_gateway
 
       - name: Wait for gateway to come up
         uses: gerdemann/http-status-code@1.0.0
         with:
-          url: 'http://localhost:28082/'
+          url: 'http://localhost:28082/ping'
           code: 200 # optional
           timeout: 120 # optional
           interval: 5
