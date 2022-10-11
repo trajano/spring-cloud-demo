@@ -30,7 +30,7 @@ services:
     build:
       context: .
       target: gateway
-    image: local/gateway
+    image: ghcr.io/trajano/gateway:rework
     tty: true
     environment:
       <<: *springEnvironment
@@ -65,7 +65,7 @@ services:
     build:
       context: .
       target: jwks-provider
-    image: local/jwks-provider
+    image: ghcr.io/trajano/jwks-provider:rework
     environment:
       <<: *springEnvironment
 
@@ -92,7 +92,7 @@ services:
     build:
       context: .
       target: sample-service
-    image: local/sample-service
+    image: ghcr.io/trajano/sample-service:rework
     environment:
       <<: *springEnvironment
     deploy:
@@ -113,7 +113,7 @@ services:
     build:
       context: .
       target: grpc-service
-    image: local/grpc-service
+    image: ghcr.io/trajano/grpc-service:rework
     environment:
       <<: *springEnvironment
     deploy:
