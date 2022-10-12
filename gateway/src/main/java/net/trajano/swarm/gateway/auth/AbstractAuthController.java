@@ -214,6 +214,7 @@ public abstract class AbstractAuthController<A, P> {
     return Mono.just(GatewayResponse.builder().ok(false).error("client_error").build());
   }
 
+  @CrossOrigin
   @GetMapping(
       path = "${auth.controller-mappings.jwks:/jwks}",
       produces = {MediaType.APPLICATION_JSON_VALUE})
