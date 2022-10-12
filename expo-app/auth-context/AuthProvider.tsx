@@ -1,4 +1,5 @@
 import { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useRef } from "react";
+import { usePollingIf } from "../hooks/usePollingIf";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
@@ -6,6 +7,7 @@ import { AuthEvent } from "./AuthEvent";
 import { AuthState } from "./AuthState";
 import { AuthStore } from "./AuthStore";
 import { OAuthToken } from "./OAuthToken";
+import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 
 type AuthContextProviderProps = PropsWithChildren<{
     baseUrl: string,
@@ -21,6 +23,9 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     const authClientRef = useRef(new AuthClient(baseUrl, clientId, clientSecret));
     const authStateRef = useRef(AuthState.INITIAL);
     const oauthTokenRef = useRef<OAuthToken | null>(null);
+    const netInfoState = useRef<Partial<NetInfoState>>({
+        isConnected: false
+    })
 
     function getAccessToken(): string | null {
         return oauthTokenRef.current?.access_token ?? null;
@@ -133,10 +138,19 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
             })
         }
     }
+
+    usePollingIf(() => authStateRef.current == AuthState.AUTHENTICATED && !!netInfoState.current.isConnected, () => {
+        refresh()
+    }, 20000);
     useEffect(function restoreSession() {
-        refresh();
-        const t = setTimeout(refresh, 60000);
-        return () => clearTimeout(t);
+        NetInfo.configure({
+            reachabilityUrl: baseUrl + "/ping"
+        })
+        const unsubscribe = NetInfo.addEventListener(state => {
+            netInfoState.current = state
+        });
+        refresh()
+        return () => unsubscribe();
     }, [])
     return <AuthContext.Provider value={{
         getAuthState: () => authStateRef.current,

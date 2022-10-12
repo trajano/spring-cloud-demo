@@ -65,4 +65,18 @@ export class AuthClient {
     }
     await response.json();
   }
+
+  public async ping(): Promise<boolean> {
+    const response = await fetch(this.baseUrl + "/ping", {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+    if (!response.ok) {
+      return false;
+    }
+    const resp = (await response.json()) as { ok: boolean };
+    return resp.ok;
+  }
 }
