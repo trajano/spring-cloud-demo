@@ -1,15 +1,20 @@
-import { StyleSheet } from 'react-native';
+import { Button, StyleSheet } from 'react-native';
+import { useAuth } from '../auth-context';
 
-import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
 import { RootTabScreenProps } from '../types';
 
 export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
+  const auth = useAuth();
+  async function handleLogout() {
+    await auth.logout();
+  }
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
+      <Text style={styles.title}>OAuth Token</Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="/screens/TabOneScreen.tsx" />
+      <Text>{JSON.stringify(auth.getOauthToken())}</Text>
+      <Button title="Logout" onPress={handleLogout} />
     </View>
   );
 }

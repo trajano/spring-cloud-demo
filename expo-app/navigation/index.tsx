@@ -9,6 +9,8 @@ import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { ColorSchemeName, Pressable } from 'react-native';
+import { useAuth } from '../auth-context';
+import { AuthEvent } from '../auth-context/AuthEvent';
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
@@ -17,14 +19,39 @@ import NotFoundScreen from '../screens/NotFoundScreen';
 import TabOneScreen from '../screens/TabOneScreen';
 import TabTwoScreen from '../screens/TabTwoScreen';
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
+import { AuthState } from '../auth-context/AuthState';
 import LinkingConfiguration from './LinkingConfiguration';
+import { LoginNavigator } from './login/LoginNavigator';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
+  const auth = useAuth();
+  const [authState, setAuthState] = React.useState(AuthState.INITIAL);
+
+  function authEventHandler(event: AuthEvent) {
+
+    if (event.type == "Unauthenticated") {
+      setAuthState(AuthState.UNAUTHENTICATED)
+    } else if (event.type == "Authenticated") {
+      setAuthState(AuthState.AUTHENTICATED)
+    }
+
+  }
+
+  React.useEffect(() => {
+
+    setAuthState(auth.getAuthState());
+    return auth.subscribe(authEventHandler)
+
+  }, [])
+
+  console.log("Render", AuthState[authState])
   return (
     <NavigationContainer
       linking={LinkingConfiguration}
       theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <RootNavigator />
+      {(authState == AuthState.INITIAL && <RootNavigator />)}
+      {(authState == AuthState.UNAUTHENTICATED && <LoginNavigator />)}
+      {(authState == AuthState.AUTHENTICATED && <RootNavigator />)}
     </NavigationContainer>
   );
 }
