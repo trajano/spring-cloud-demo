@@ -26,7 +26,7 @@ public class GrpcMessageContext {
   /** Request JSON. */
   private String requestJson;
 
-  private MethodDescriptor methodDescriptor;
+  private MethodDescriptor<?, ?> methodDescriptor;
 
   public ServerReflectionGrpc.ServerReflectionStub getServerReflectionStub() {
     return ServerReflectionGrpc.newStub(channel);

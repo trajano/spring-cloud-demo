@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtCallCredentials extends CallCredentials {
 
   // JWT key, may pass the key to use.
-  public static Metadata.Key<String> JWT_CLAIMS_KEY =
+  public static final Metadata.Key<String> JWT_CLAIMS_KEY =
       Metadata.Key.of("jwtClaims", Metadata.ASCII_STRING_MARSHALLER);
 
   private final String jwt;

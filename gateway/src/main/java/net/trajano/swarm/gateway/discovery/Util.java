@@ -18,6 +18,12 @@ import reactor.core.scheduler.Schedulers;
 
 public class Util {
 
+  public static final String KEY_PATH = "path";
+
+  public static final String KEY_PATH_REGEXP = "path.regexp";
+
+  public static final String KEY_PATH_REPLACEMENT = "path.replacement";
+
   private Util() {}
 
   public static Network getDiscoveryNetwork(
@@ -38,15 +44,12 @@ public class Util {
             .collect(
                 Collectors.toMap(
                     e -> metaKey(e.getKey(), prefix, serviceId, multiId), Map.Entry::getValue));
-    if (collect.get("path").endsWith("/**") && !collect.containsKey("path.regexp")) {
-      collect.put("path.regexp", collect.get("path").replace("/**", "/(?<remaining>.*)"));
-      if (!collect.containsKey("path.replacement")) {
-        collect.put("path.replacement", "/${remaining}");
-      }
+    if (collect.get(KEY_PATH).endsWith("/**") && !collect.containsKey(KEY_PATH_REGEXP)) {
+      collect.put(KEY_PATH_REGEXP, collect.get(KEY_PATH).replace("/**", "/(?<remaining>.*)"));
+      collect.putIfAbsent(KEY_PATH_REPLACEMENT, "/${remaining}");
     }
-    if (!collect.containsKey("path.regexp")) {
-      collect.put("path.regexp", "^" + collect.get("path") + "$");
-    }
+    collect.putIfAbsent(KEY_PATH_REGEXP, "^" + collect.get(KEY_PATH) + "$");
+
     return collect;
   }
 
@@ -134,6 +137,7 @@ public class Util {
       return Stream.empty();
     }
   }
+
   /**
    * Convert trace ID being returned in the header to the format expected by Amazon X-Ray so we can
    * copy and paste it.
@@ -142,6 +146,7 @@ public class Util {
    * @return trace ID in AWS X-Ray format
    */
   public static String toXRay(@NotNull String traceIdString) {
+
     if (traceIdString.matches("[0-9a-f]{32}")) {
       return String.format("1-%s-%s", traceIdString.substring(0, 8), traceIdString.substring(8));
     } else {

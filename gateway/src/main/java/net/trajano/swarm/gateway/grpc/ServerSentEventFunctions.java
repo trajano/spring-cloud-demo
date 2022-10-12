@@ -7,6 +7,8 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 
 public class ServerSentEventFunctions {
+  private ServerSentEventFunctions() {}
+
   public static String getString(ServerSentEvent<String> sse) {
 
     StringBuilder sb = new StringBuilder();
