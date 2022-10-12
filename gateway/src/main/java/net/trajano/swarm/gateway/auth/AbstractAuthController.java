@@ -97,6 +97,7 @@ public abstract class AbstractAuthController<A, P> {
         .flatMap(delayTime -> Mono.just(i).delayElement(delayTime));
   }
 
+  @CrossOrigin
   @PostMapping(
       path = "${auth.controller-mappings.authentication:/auth}",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
@@ -228,6 +229,7 @@ public abstract class AbstractAuthController<A, P> {
    * @param serverWebExchange server web exchange
    * @return gateway response which should always be ok.
    */
+  @CrossOrigin
   @PostMapping(
       path = "${auth.controller-mappings.logout:/logout}",
       consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -275,6 +277,7 @@ public abstract class AbstractAuthController<A, P> {
                 .contextWrite(this::writeStartTimeToContext));
   }
 
+  @CrossOrigin
   @PostMapping(
       path = "${auth.controller-mappings.refresh:/refresh}",
       consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
