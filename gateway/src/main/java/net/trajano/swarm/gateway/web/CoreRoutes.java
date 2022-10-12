@@ -5,20 +5,36 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 
 import java.net.URI;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.gateway.filter.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.server.*;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsWebFilter;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.reactive.function.server.RequestPredicate;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.ServerResponse;
 
 @Configuration
 @SuppressWarnings("unused")
 public class CoreRoutes {
 
   @Value("${gateway.root-html-redirect-uri:#{null}}") private URI rootHtmlRedirectUri;
+
+  @Bean
+  CorsWebFilter corsFilter() {
+
+    CorsConfiguration config = new CorsConfiguration();
+    config.applyPermitDefaultValues();
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+
+    return new CorsWebFilter(source);
+  }
 
   @Bean
   RouterFunction<ServerResponse> htmlRedirect() {
