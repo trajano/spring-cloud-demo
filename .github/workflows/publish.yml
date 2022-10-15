@@ -107,6 +107,8 @@ jobs:
 
       - name: Wait for gateway to come up
         run: |
+          docker service ls
+          docker service ps ds_gateway
           curl --connect-timeout 5 \
             --max-time 10 \
             --retry 5 \
