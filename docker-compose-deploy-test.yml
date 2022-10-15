@@ -39,7 +39,7 @@ services:
       DOCKER_HOST: tcp://daemon:2375
     ports:
       - target: 8080
-        host_ip: 127.0.0.1
+#        host_ip: 127.0.0.1
         published: 28082
         protocol: tcp
         most: host
