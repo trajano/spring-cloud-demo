@@ -42,7 +42,7 @@ services:
 #        host_ip: 127.0.0.1
         published: 28082
         protocol: tcp
-        most: host
+        mode: host
     deploy:
 
       update_config:
