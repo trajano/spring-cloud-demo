@@ -38,7 +38,11 @@ services:
       DOCKER_DISCOVERY_DAEMONFULLACCESS: "false"
       DOCKER_HOST: tcp://daemon:2375
     ports:
-      - 28082:8080
+      - target: 8080
+        host_ip: 127.0.0.1
+        published: 28082
+        protocol: tcp
+        most: host
     deploy:
 
       update_config:
