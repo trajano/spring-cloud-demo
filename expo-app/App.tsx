@@ -1,4 +1,5 @@
 import './initialize'
+import { BASE_URL } from '@env';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './auth-context';
@@ -14,7 +15,7 @@ export default function App() {
     return null;
   } else {
     return (
-      <AuthProvider baseUrl='http://localhost:28082'
+      <AuthProvider baseUrl={BASE_URL}
         clientId='myClient'
         clientSecret='mySecret'>
         <SafeAreaProvider>
