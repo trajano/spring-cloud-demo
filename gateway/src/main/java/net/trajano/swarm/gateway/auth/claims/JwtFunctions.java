@@ -46,6 +46,7 @@ public final class JwtFunctions {
     var kid = getVerificationKeyIdFromJwks(jwks);
     final var jws = new JsonWebSignature();
     jws.setKeyIdHeaderValue(kid);
+    jws.setContentTypeHeaderValue("JWT");
     jws.setPayload(payload);
     jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256);
     jws.setKey(signingKey);
