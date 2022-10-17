@@ -23,7 +23,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4JCircuitBreakerFactory;
+import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
@@ -102,6 +104,10 @@ class GatewayApplicationTests {
     }
   }
 
+  @Autowired private ApplicationContext applicationContext;
+
+  @Autowired private GlobalCorsProperties globalCorsProperties;
+
   @Autowired private DockerServiceInstanceLister dockerServiceInstanceLister;
 
   @Autowired private LoadBalancerClientFactory loadBalancerClientFactory;
@@ -111,7 +117,14 @@ class GatewayApplicationTests {
 
   @Test
   void contextLoads() {
+
     assertThat(dockerServiceInstanceLister).isNotNull();
+  }
+
+  @Test
+  void cors() {
+
+    assertThat(globalCorsProperties.getCorsConfigurations()).hasFieldOrProperty("/**");
   }
 
   @Test

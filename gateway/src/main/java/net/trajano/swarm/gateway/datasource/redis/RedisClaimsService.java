@@ -3,7 +3,6 @@ package net.trajano.swarm.gateway.datasource.redis;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.AuthServiceResponse;
@@ -118,6 +117,7 @@ public class RedisClaimsService implements ClaimsService {
             () -> {
               final var start = System.currentTimeMillis();
               try {
+                log.error("jwt={}", jwt);
                 return jwtConsumer.processToClaims(jwt);
               } catch (InvalidJwtException e) {
                 throw new SecurityException(e);
@@ -167,7 +167,7 @@ public class RedisClaimsService implements ClaimsService {
             c -> {
               try {
                 return redisUserSessions
-                    .findById(UUID.fromString(c.getJwtId()))
+                    .findById(c.getJwtId())
                     .switchIfEmpty(Mono.error(SecurityException::new))
                     .map(i -> c);
               } catch (MalformedClaimException e) {
@@ -195,7 +195,7 @@ public class RedisClaimsService implements ClaimsService {
       String refreshToken, HttpHeaders headers, String clientId) {
 
     return extractJti(refreshToken, headers, clientId)
-        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti)))
+        .flatMap(jti -> redisUserSessions.findById(jti))
         .flatMap(userSession -> refreshIfNeeded(userSession, headers, clientId))
         .map(
             oauthResponse -> AuthServiceResponse.builder().operationResponse(oauthResponse).build())
@@ -276,7 +276,7 @@ public class RedisClaimsService implements ClaimsService {
       String refreshToken, HttpHeaders headers, String clientId) {
 
     return extractJti(refreshToken, headers, clientId)
-        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti)))
+        .flatMap(jti -> redisUserSessions.findById(jti))
         .flatMap(
             userSession ->
                 redisUserSessions

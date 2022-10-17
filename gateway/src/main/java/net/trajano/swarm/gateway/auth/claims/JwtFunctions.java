@@ -1,5 +1,6 @@
 package net.trajano.swarm.gateway.auth.claims;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -46,7 +47,6 @@ public final class JwtFunctions {
     var kid = getVerificationKeyIdFromJwks(jwks);
     final var jws = new JsonWebSignature();
     jws.setKeyIdHeaderValue(kid);
-    jws.setContentTypeHeaderValue("JWT");
     jws.setPayload(payload);
     jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256);
     jws.setKey(signingKey);
@@ -74,9 +74,9 @@ public final class JwtFunctions {
   }
 
   @Data
+  @JsonPropertyOrder({"kid", "alg"})
   private static class JwtHeader {
     private String kid;
-    private String cty = "JWT";
     private String alg = AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256;
   }
 
@@ -85,7 +85,7 @@ public final class JwtFunctions {
    *
    * @param jwks jwks
    * @param payload payload
-   * @return
+   * @return altered signed payload
    */
   public static String refreshSign(JsonWebKeySet jwks, String payload) {
 

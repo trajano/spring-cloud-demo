@@ -64,9 +64,9 @@ public class RedisUserSessions {
     return redisTemplate.delete(redisKeyBlocks.forUserSession(userSession.getJwtId()));
   }
 
-  public Mono<UserSession> findById(UUID jwtId) {
+  public Mono<UserSession> findById(String jwtId) {
 
-    final var key = redisKeyBlocks.forUserSession(jwtId);
+    final var key = redisKeyBlocks.forUserSession(UUID.fromString(jwtId));
 
     return findByRedisKey(key);
   }

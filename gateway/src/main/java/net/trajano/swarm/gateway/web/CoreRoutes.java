@@ -5,6 +5,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 
 import java.net.URI;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
@@ -25,10 +26,9 @@ public class CoreRoutes {
   @Value("${gateway.root-html-redirect-uri:#{null}}") private URI rootHtmlRedirectUri;
 
   @Bean
-  CorsWebFilter corsFilter() {
+  CorsWebFilter corsFilter(GlobalCorsProperties globalCorsProperties) {
 
-    CorsConfiguration config = new CorsConfiguration();
-    config.applyPermitDefaultValues();
+    CorsConfiguration config = globalCorsProperties.getCorsConfigurations().get("/**");
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", config);

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
-import java.util.UUID;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -35,12 +34,12 @@ public class RedisJtiExtractorService {
         Base64.getUrlEncoder()
                 .withoutPadding()
                 .encodeToString(
-                    ("{\"kid\":\"%s\",\"cty\":\"%s\",\"alg\":\"%s\"}"
-                            .formatted(kid, "JWT", AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256))
+                    ("{\"kid\":\"%s\",\"alg\":\"%s\"}"
+                            .formatted(kid, AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256))
                         .getBytes(StandardCharsets.US_ASCII))
             + refreshToken.substring(refreshToken.indexOf("."));
-
-    final UUID jwtId = UUID.fromString(extractJtiWithoutValidation(refreshToken));
+    log.error("jwt={}", jwt);
+    final String jwtId = extractJtiWithoutValidation(refreshToken);
 
     return redisUserSessions
         .findById(jwtId)

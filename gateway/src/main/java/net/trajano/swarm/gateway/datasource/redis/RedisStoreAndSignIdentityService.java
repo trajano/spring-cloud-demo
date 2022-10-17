@@ -99,7 +99,7 @@ public class RedisStoreAndSignIdentityService {
   private Mono<RefreshContext> obtainExistingOrBuildRefreshToken(
       final RefreshContext refreshContext) {
     return Mono.justOrEmpty(refreshContext.getJwtId())
-        .flatMap(jti -> redisUserSessions.findById(UUID.fromString(jti)))
+        .flatMap(redisUserSessions::findById)
         .switchIfEmpty(
             Mono.fromSupplier(
                 () ->
