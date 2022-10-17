@@ -286,7 +286,8 @@ public abstract class AbstractAuthController<A, P> {
       @ModelAttribute OAuthRefreshRequest oAuthRefreshRequest,
       ServerWebExchange serverWebExchange) {
 
-    if (!oAuthRefreshRequest.getGrant_type().equals("refresh_token")) {
+    if (!"refresh_token".equals(oAuthRefreshRequest.getGrant_type())) {
+        log.trace("{}", oAuthRefreshRequest);
       return Mono.error(new IllegalArgumentException());
     }
 
