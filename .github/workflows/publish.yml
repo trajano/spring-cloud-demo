@@ -25,11 +25,11 @@ jobs:
 
   app:
     runs-on: ubuntu-latest
+    env:
+      BASE_URL: https://api.trajano.net
     defaults:
       run:
         working-directory: ./expo-app
-        env:
-          BASE_URL: https://api.trajano.net
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
