@@ -35,8 +35,8 @@ public class RedisJtiExtractorService {
         Base64.getUrlEncoder()
                 .withoutPadding()
                 .encodeToString(
-                    ("{\"kid\":\"%s\",\"alg\":\"%s\"}"
-                            .formatted(kid, AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256))
+                    ("{\"kid\":\"%s\",\"cty\":\"%s\",\"alg\":\"%s\"}"
+                            .formatted(kid, "JWT", AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256))
                         .getBytes(StandardCharsets.US_ASCII))
             + refreshToken.substring(refreshToken.indexOf("."));
 

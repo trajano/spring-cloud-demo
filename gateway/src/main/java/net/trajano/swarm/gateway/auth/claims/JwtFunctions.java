@@ -76,6 +76,7 @@ public final class JwtFunctions {
   @Data
   private static class JwtHeader {
     private String kid;
+    private String cty = "JWT";
     private String alg = AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256;
   }
 
