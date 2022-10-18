@@ -1,8 +1,8 @@
-import './initialize'
 import { BASE_URL } from '@env';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './auth-context';
+import './initialize';
 
 import useCachedResources from './hooks/useCachedResources';
 import useColorScheme from './hooks/useColorScheme';

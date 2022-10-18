@@ -3,6 +3,9 @@ import base64url from "base64url";
 import { OAuthToken } from "./OAuthToken";
 
 export class AuthClient {
+  /**
+   * Header value.
+   */
   private authorization: string;
   constructor(private baseUrl: string, clientId: string, clientSecret: string) {
     this.authorization = `Basic ${base64url.toBase64(

@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { BASE_URL } from '@env';
+import { useNetInfo } from '@react-native-community/netinfo';
+import { useMemo, useState } from 'react';
 import { Button, StyleSheet } from 'react-native';
 import { useAuth } from '../../auth-context';
 
@@ -16,11 +18,15 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
       "refreshTokenExpiresInMillis": 240000
     })
   }
+  const netInfo = useNetInfo({
+    reachabilityUrl: `${BASE_URL}/ping`
+  });
+  const disabled = useMemo(() => !netInfo.isConnected || username === "", [netInfo.isConnected, username]);
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Login Screen.</Text>
       <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} />
-      <Button title={`Login as ${username}`} onPress={handleLogin} />
+      <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
     </View>
   );
 }

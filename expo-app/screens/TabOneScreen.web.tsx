@@ -4,7 +4,7 @@ import { AuthEvent, useAuth } from '../auth-context';
 import { BASE_URL } from '@env';
 import { useFocusEffect } from '@react-navigation/native';
 import base64url from 'base64url';
-import * as jose from 'node-jose';
+import * as jose from 'jose';
 import pako from 'pako';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Text, View } from '../components/Themed';
@@ -12,7 +12,7 @@ import { RootTabScreenProps } from '../types';
 export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
   const auth = useAuth();
   const [accessToken, setAccessToken] = useState<string | null>(null)
-  const [claims, setClaims] = useState<Record<string, unknown> | null>(null)
+  const [claims, setClaims] = useState<jose.JWTPayload | null>(null)
   const mountedRef = useRef(false);
 
   async function handleLogout() {
@@ -30,20 +30,18 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
     }
     const decodedCompressed = base64url.toBuffer(accessToken)
     const jwt = pako.inflate(decodedCompressed, { to: "string" });
-    const jwksFetch = await fetch(`${BASE_URL}/jwks`)
-    const jwksJson = await jwksFetch.json();
-    const jwks = await jose.JWK.asKeyStore(jwksJson);
-    const jwsResult = await jose.JWS.createVerify(jwks, { allowEmbeddedKey: false }).verify(jwt);
-    const payload = JSON.parse(jwsResult.payload.toString()) as {
-      aud: string[],
-      exp: number
-    };
-    if (payload.aud.findIndex(aud => aud === "unknown") >= 0 && payload.exp >= Date.now() / 1000) {
-      return payload;
-    }
-    else {
-      throw new Error("JWT not valid")
-    }
+    const jwks = jose.createRemoteJWKSet(new URL(`${BASE_URL}/jwks`))
+
+    console.log(jwt)
+    console.log(`${BASE_URL}/jwks`)
+    console.log(jwks)
+    const { payload, protectedHeader } = await jose.jwtVerify(jwt, jwks, {
+      issuer: 'http://localhost',
+      audience: 'unknown',
+    })
+    console.log(protectedHeader)
+    console.log(payload)
+    return payload;
   }, [accessToken])
 
   useFocusEffect(useCallback(() => {

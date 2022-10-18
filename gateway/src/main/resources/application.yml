@@ -35,27 +35,27 @@ spring:
         enabled: true
     gateway:
       # https://cloud.spring.io/spring-cloud-gateway/reference/html/appendix.html
-      globalcors:
-        add-to-simple-url-handler-mapping: true
-        cors-configurations:
-          '[/**]':
-            allowedOrigins: "*"
-            allowCredentials: false
-            allowedMethods:
-              - GET
-              - PUT
-              - POST
-              - DELETE
-              - PATCH
+#      globalcors:
+#        add-to-simple-url-handler-mapping: true
+#        cors-configurations:
+#          '[/**]':
+#            allowedOrigins: "*"
+#            allowCredentials: false
+#            allowedMethods:
+#              - GET
+#              - PUT
+#              - POST
+#              - DELETE
+#              - PATCH
       httpclient:
         connect-timeout: 10000
         response-timeout: 20s
-#      fail-on-route-definition-error: false
-#      routes:
-#        - id: after_route
-#          uri: http://whoami2
-#          predicates:
-#            - Path=/who
+      #      fail-on-route-definition-error: false
+      #      routes:
+      #        - id: after_route
+      #          uri: http://whoami2
+      #          predicates:
+      #            - Path=/who
       metrics:
         enabled: true
         tags:
@@ -64,17 +64,17 @@ spring:
       discovery:
         locator:
           enabled: true
-#          url-expression: "uri"
+          #          url-expression: "uri"
           predicates:
             - name: Path
               args:
                 patterns: "metadata['path']"
           filters:
-#            - name: RequestRateLimiter
-#              args:
-#                redis-rate-limiter.replenishRate: 10
-#                redis-rate-limiter.burstCapacity: 20
-#                redis-rate-limiter.requestedTokens: 1
+            #            - name: RequestRateLimiter
+            #              args:
+            #                redis-rate-limiter.replenishRate: 10
+            #                redis-rate-limiter.burstCapacity: 20
+            #                redis-rate-limiter.requestedTokens: 1
             - RemoveRequestHeader='Cookie'
             - RemoveRequestHeader='X-Jwt-Assertion'
             # Prevent propagation of traces
@@ -91,11 +91,11 @@ spring:
             - name: ProtectedResource
               args:
                 serviceId: serviceId
-#            - name: Retry
-#              args:
-#                retries: 3
-#              methods:
-#                - GET
+            #            - name: Retry
+            #              args:
+            #                retries: 3
+            #              methods:
+            #                - GET
             - name: RewritePath
               args:
                 regexp: "metadata['path.regexp']"
@@ -117,20 +117,20 @@ spring:
                 host: host
                 useGrpc: "metadata['protocol'] == 'grpc'"
                 port: port
-#      routes:
-#        - id: hello
-#          uri: http://example.org
-#          predicates:
-#            - Path=/hello
-#          filters:
-#            - name: Hello
-#              args:
-#                useHello: true
-#    inetutils:
-#      ignoredInterfaces:
-#        - docker0
-#        - veth.*
-#        - eth3
+    #      routes:
+    #        - id: hello
+    #          uri: http://example.org
+    #          predicates:
+    #            - Path=/hello
+    #          filters:
+    #            - name: Hello
+    #              args:
+    #                useHello: true
+    #    inetutils:
+    #      ignoredInterfaces:
+    #        - docker0
+    #        - veth.*
+    #        - eth3
     loadbalancer:
       ribbon:
         enabled: false
@@ -174,22 +174,23 @@ management:
   health:
     redis:
       enabled: true
-#  endpoint.gateway.enabled: true # default value
+  #  endpoint.gateway.enabled: true # default value
   endpoint:
     health:
       enabled: true
       show-details: ALWAYS
   endpoints:
-#    enabled-by-default: false
+    #    enabled-by-default: false
     jmx:
       exposure:
         include: health
     web:
       exposure:
-#        include: health,gateway,info,caches
+        #        include: health,gateway,info,caches
         include: "*"
-#logging:
-#  level:
+logging:
+  level:
+    org.springframework.web.cors.reactive.DefaultCorsProcessor: trace
 #    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: warn
 #    request: error
 #    root: warn

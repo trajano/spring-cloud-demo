@@ -4,6 +4,7 @@ plugins {
     id 'net.trajano.swarm.conventions'
     id "com.diffplug.spotless"
     id "com.google.protobuf" version "0.8.19"
+    id 'jacoco'
 }
 
 group = 'net.trajano.swarm'

@@ -1,4 +1,5 @@
-import { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useRef } from "react";
+import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
+import { PropsWithChildren, ReactElement, useCallback, useEffect, useRef } from "react";
 import { usePollingIf } from "../hooks/usePollingIf";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
@@ -7,7 +8,6 @@ import { AuthEvent } from "./AuthEvent";
 import { AuthState } from "./AuthState";
 import { AuthStore } from "./AuthStore";
 import { OAuthToken } from "./OAuthToken";
-import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 
 type AuthContextProviderProps = PropsWithChildren<{
     baseUrl: string,
@@ -41,7 +41,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     }, []);
 
     const notify = useCallback(function notify(event: AuthEvent) {
-        console.log(event.type)
+        console.log({ event });
         subscribersRef.current.forEach((fn) => fn(event));
     }, []);
 
@@ -94,16 +94,21 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
 
     async function refresh() {
         notify({
-            type: "Refreshing"
+            type: "CheckRefresh"
         })
         const oauthToken = await storageRef.current.getOAuthToken();
         if (oauthToken == null) {
             authStateRef.current = AuthState.UNAUTHENTICATED
             notify({
-                type: "Unauthenticated"
+                type: "Unauthenticated",
+                reason: "No token stored"
             })
         }
         else if (await storageRef.current.isExpiringInSeconds(60)) {
+            notify({
+                type: "Refreshing",
+                reason: "Token is expiring in 60 seconds or has expired."
+            })
             try {
                 const refreshedOAuthToken = await authClientRef.current.refresh(oauthToken.refresh_token);
                 const tokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
@@ -120,7 +125,8 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
                     authStateRef.current = AuthState.UNAUTHENTICATED
                     oauthTokenRef.current = null;
                     notify({
-                        type: "Unauthenticated"
+                        type: "Unauthenticated",
+                        reason: e.message
                     })
                 } else {
                     throw e;
