@@ -121,11 +121,11 @@ class GatewayApplicationTests {
     assertThat(dockerServiceInstanceLister).isNotNull();
   }
 
-  @Test
-  void cors() {
-
-    assertThat(globalCorsProperties.getCorsConfigurations()).hasFieldOrProperty("/**");
-  }
+  //  @Test
+  //  void cors() {
+  //
+  //    assertThat(globalCorsProperties.getCorsConfigurations()).hasFieldOrProperty("/**");
+  //  }
 
   @Test
   void reactiveResilience4JCircuitBreaker() {

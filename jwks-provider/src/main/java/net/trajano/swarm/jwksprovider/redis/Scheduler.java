@@ -41,6 +41,7 @@ public class Scheduler implements SchedulingConfigurer {
 
   private void populateRedis(Instant now) {
 
+    log.debug("populatingRedis {}", now);
     // build the entry if it does not exist
     jwksRedisPopulator.buildEntryIfItDoesNotExistForBlock(
         redisKeyBlocks.startingInstantForSigningKeyTimeBlock(now, 0));

@@ -61,7 +61,7 @@ public class CorsConfigurer {
       log.error(
           "uri={}, hasOrigin={} isCorsRequest={} isSameOrigin={} isPreflight={}",
           exchange.getRequest().getURI(),
-              exchange.getRequest().getHeaders().containsKey(HttpHeaders.ORIGIN),
+          exchange.getRequest().getHeaders().containsKey(HttpHeaders.ORIGIN),
           CorsUtils.isCorsRequest(exchange.getRequest()),
           CorsUtils.isSameOrigin(exchange.getRequest()),
           CorsUtils.isPreFlightRequest(exchange.getRequest()));

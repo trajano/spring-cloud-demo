@@ -11,13 +11,24 @@
       <stringProp name="TestPlan.user_define_classpath"></stringProp>
     </TestPlan>
     <hashTree>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="UAT" enabled="true">
         <collectionProp name="Arguments.arguments">
           <elementProp name="baseUri" elementType="Argument">
             <stringProp name="Argument.name">baseUri</stringProp>
             <stringProp name="Argument.value">${__property(baseUri,,http://localhost:28082)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Base URL</stringProp>
+          </elementProp>
+        </collectionProp>
+      </Arguments>
+      <hashTree/>
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="PPE" enabled="false">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="baseUri" elementType="Argument">
+            <stringProp name="Argument.name">baseUri</stringProp>
+            <stringProp name="Argument.value">http://ppe</stringProp>
+            <stringProp name="Argument.desc">Base URL</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
       </Arguments>
@@ -725,18 +736,7 @@ log.info(&quot;parsed {}&quot;, baseUri)</stringProp>
           <stringProp name="HTTPSampler.connect_timeout"></stringProp>
           <stringProp name="HTTPSampler.response_timeout"></stringProp>
         </HTTPSamplerProxy>
-        <hashTree>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
-            <collectionProp name="Asserion.test_strings">
-              <stringProp name="49590">204</stringProp>
-            </collectionProp>
-            <stringProp name="Assertion.custom_message"></stringProp>
-            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
-            <boolProp name="Assertion.assume_success">false</boolProp>
-            <intProp name="Assertion.test_type">8</intProp>
-          </ResponseAssertion>
-          <hashTree/>
-        </hashTree>
+        <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="OPTIONS /refresh" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
             <collectionProp name="Arguments.arguments"/>
@@ -797,8 +797,8 @@ log.info(&quot;parsed {}&quot;, baseUri)</stringProp>
         <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="CORS Headers" enabled="true">
           <collectionProp name="HeaderManager.headers">
             <elementProp name="" elementType="Header">
-              <stringProp name="Header.name">Origin</stringProp>
-              <stringProp name="Header.value">${httpProtocol}://${httpHost}${httpPortBlankDefault}</stringProp>
+              <stringProp name="Header.name">Originhttp</stringProp>
+              <stringProp name="Header.value">http://not.same.origin.for.test:28082/</stringProp>
             </elementProp>
             <elementProp name="" elementType="Header">
               <stringProp name="Header.name">Access-Control-Request-Method</stringProp>
