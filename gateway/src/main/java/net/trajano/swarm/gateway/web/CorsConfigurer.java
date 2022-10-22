@@ -44,12 +44,11 @@ public class CorsConfigurer {
   //        .maxAge(86400);
   //  }
 
-//  @Bean
-//  CorsProcessor corsProcessor() {
-//
-//    System.out.println("CUSTOM");
-//    return new OP();
-//  }
+  @Bean
+  CorsProcessor corsProcessor() {
+
+    return new DefaultCorsProcessor();
+  }
 
   static class OP extends DefaultCorsProcessor {
 
