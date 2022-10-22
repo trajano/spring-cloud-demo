@@ -44,12 +44,12 @@ public class CorsConfigurer {
   //        .maxAge(86400);
   //  }
 
-  @Bean
-  CorsProcessor corsProcessor() {
-
-    System.out.println("CUSTOM");
-    return new OP();
-  }
+//  @Bean
+//  CorsProcessor corsProcessor() {
+//
+//    System.out.println("CUSTOM");
+//    return new OP();
+//  }
 
   static class OP extends DefaultCorsProcessor {
 
@@ -78,7 +78,7 @@ public class CorsConfigurer {
   }
 
   @Bean
-  CorsWebFilter corsWebFilter() {
+  CorsWebFilter corsWebFilter(CorsProcessor corsProcessor) {
     var corsConfiguration = new CorsConfiguration();
     allowedOrigins.forEach(corsConfiguration::addAllowedOrigin);
     allowedHeaders.forEach(corsConfiguration::addAllowedHeader);
@@ -88,6 +88,6 @@ public class CorsConfigurer {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", corsConfiguration);
 
-    return new CorsWebFilter(source, corsProcessor());
+    return new CorsWebFilter(source, corsProcessor);
   }
 }
