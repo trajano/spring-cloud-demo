@@ -23,7 +23,7 @@ public class CorsConfigurer {
 
   @Value("${cors.allowed-headers:authorization,content-type}") private Set<String> allowedHeaders;
 
-  @Value("${cors.allowed-methods:GET,POST,DELETE,PATCH}") private Set<String> allowedMethods;
+  @Value("${cors.allowed-methods:HEAD,GET,POST,DELETE,PATCH}") private Set<String> allowedMethods;
 
   @Value("${cors.allowed-origins:*}") private Set<String> allowedOrigins;
   //    @Value("${cors.allowed-headers:authorization,content-type}") private String[]
