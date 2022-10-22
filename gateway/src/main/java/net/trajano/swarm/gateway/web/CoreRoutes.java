@@ -24,13 +24,13 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @SuppressWarnings("unused")
 public class CoreRoutes {
 
-  @Value("${gateway.root-html-redirect-uri:#{null}}") private URI rootHtmlRedirectUri;
-
   @Value("${cors.allowed-headers:authorization,content-type}") private Set<String> allowedHeaders;
 
   @Value("${cors.allowed-methods:GET,POST,DELETE,PATCH}") private Set<String> allowedMethods;
 
   @Value("${cors.allowed-origins:*}") private Set<String> allowedOrigins;
+
+  @Value("${gateway.root-html-redirect-uri:#{null}}") private URI rootHtmlRedirectUri;
 
   private static Set<String> getRequestedHeaders(ServerRequest.Headers headers) {
 
@@ -51,6 +51,11 @@ public class CoreRoutes {
     }
     final var requestedHeaders = getRequestedHeaders(headers);
     return allowedHeaders.containsAll(requestedHeaders);
+  }
+
+  private boolean allowedMethodsAgainstRequestMethodIsAllowed(ServerRequest.Headers headers) {
+    return allowedMethods.contains(
+        headers.header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD).get(0));
   }
 
   private boolean allowedOriginAgainstRequestOrigin(ServerRequest.Headers headers) {
@@ -106,11 +111,6 @@ public class CoreRoutes {
         });
   }
 
-  private boolean allowedMethodsAgainstRequestMethodIsAllowed(ServerRequest.Headers headers) {
-    return allowedMethods.contains(
-        headers.header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD).get(0));
-  }
-
   @Bean
   RouterFunction<ServerResponse> htmlRedirect() {
     return route(
@@ -144,6 +144,17 @@ public class CoreRoutes {
         request -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(body));
   }
 
+  /**
+   * Returns an OK response.
+   *
+   * <p>The CORS headers are explicitly set because the <a
+   * href="https://developer.mozilla.org/en-US/docs/Web/API/fetch">fetch API</a> requires CORS
+   * headers in the response unless {@code mode: "no-cors"} is set.
+   *
+   * @see <a
+   *     href="https://github.com/react-native-netinfo/react-native-netinfo/issues/632">react-native-netinfo#632</a>
+   * @return ping route
+   */
   @Bean
   RouterFunction<ServerResponse> ping() {
 
@@ -151,6 +162,9 @@ public class CoreRoutes {
         gethead("/ping"),
         request ->
             ServerResponse.ok()
+                .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+                .header(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET,HEAD")
+                .header(HttpHeaders.ACCESS_CONTROL_MAX_AGE, "86400")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(GatewayResponse.builder().ok(true).build()));
   }
