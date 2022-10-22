@@ -6,33 +6,17 @@
       <boolProp name="TestPlan.functional_mode">true</boolProp>
       <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
-        <collectionProp name="Arguments.arguments"/>
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="baseUri" elementType="Argument">
+            <stringProp name="Argument.name">baseUri</stringProp>
+            <stringProp name="Argument.value">http://localhost:28082</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
       </elementProp>
       <stringProp name="TestPlan.user_define_classpath"></stringProp>
     </TestPlan>
     <hashTree>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="UAT" enabled="true">
-        <collectionProp name="Arguments.arguments">
-          <elementProp name="baseUri" elementType="Argument">
-            <stringProp name="Argument.name">baseUri</stringProp>
-            <stringProp name="Argument.value">${__property(baseUri,,http://localhost:28082)}</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-            <stringProp name="Argument.desc">Base URL</stringProp>
-          </elementProp>
-        </collectionProp>
-      </Arguments>
-      <hashTree/>
-      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="PPE" enabled="false">
-        <collectionProp name="Arguments.arguments">
-          <elementProp name="baseUri" elementType="Argument">
-            <stringProp name="Argument.name">baseUri</stringProp>
-            <stringProp name="Argument.value">http://ppe</stringProp>
-            <stringProp name="Argument.desc">Base URL</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-        </collectionProp>
-      </Arguments>
-      <hashTree/>
       <BeanShellPreProcessor guiclass="TestBeanGUI" testclass="BeanShellPreProcessor" testname="Parse base URI" enabled="true">
         <boolProp name="resetInterpreter">false</boolProp>
         <stringProp name="parameters"></stringProp>
@@ -95,7 +79,7 @@ log.info(&quot;parsed {}&quot;, baseUri)</stringProp>
         </TransactionController>
         <hashTree>
           <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include Happy Path" enabled="true">
-            <stringProp name="IncludeController.includepath">C:\p\spring-docker\gateway\src\test\jmeter\happy-path.jmx</stringProp>
+            <stringProp name="IncludeController.includepath">happy-path.jmx</stringProp>
           </IncludeController>
           <hashTree/>
         </hashTree>
@@ -797,8 +781,8 @@ log.info(&quot;parsed {}&quot;, baseUri)</stringProp>
         <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="CORS Headers" enabled="true">
           <collectionProp name="HeaderManager.headers">
             <elementProp name="" elementType="Header">
-              <stringProp name="Header.name">Originhttp</stringProp>
-              <stringProp name="Header.value">http://not.same.origin.for.test:28082/</stringProp>
+              <stringProp name="Header.name">Origin</stringProp>
+              <stringProp name="Header.value">http://localhost:19006</stringProp>
             </elementProp>
             <elementProp name="" elementType="Header">
               <stringProp name="Header.name">Access-Control-Request-Method</stringProp>
@@ -810,6 +794,19 @@ log.info(&quot;parsed {}&quot;, baseUri)</stringProp>
             </elementProp>
           </collectionProp>
         </HeaderManager>
+        <hashTree/>
+        <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="CORS Headers present" enabled="true">
+          <collectionProp name="Asserion.test_strings">
+            <stringProp name="-1284251913">Access-Control-Allow-Origin:</stringProp>
+            <stringProp name="1315612165">Access-Control-Allow-Methods:</stringProp>
+            <stringProp name="643562673">Access-Control-Allow-Headers:</stringProp>
+            <stringProp name="1373106653">Access-Control-Max-Age:</stringProp>
+          </collectionProp>
+          <stringProp name="Assertion.custom_message"></stringProp>
+          <stringProp name="Assertion.test_field">Assertion.response_headers</stringProp>
+          <boolProp name="Assertion.assume_success">false</boolProp>
+          <intProp name="Assertion.test_type">2</intProp>
+        </ResponseAssertion>
         <hashTree/>
       </hashTree>
       <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">

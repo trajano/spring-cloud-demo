@@ -12,3 +12,4 @@ README.md
 *.iws
 docker-compose.yml
 gateway/src/test/artillery/*
+expo-app/
