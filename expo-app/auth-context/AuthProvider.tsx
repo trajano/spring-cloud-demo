@@ -145,7 +145,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
         }
     }
 
-    usePollingIf(() => authStateRef.current == AuthState.AUTHENTICATED && !!netInfoState.current.isConnected, () => {
+    usePollingIf(() => authStateRef.current == AuthState.AUTHENTICATED && !!netInfoState.current.isInternetReachable, () => {
         refresh()
     }, 20000);
     useEffect(function restoreSession() {
