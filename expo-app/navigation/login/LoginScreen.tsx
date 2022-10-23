@@ -21,12 +21,13 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
   const netInfo = useNetInfo({
     reachabilityUrl: `${BASE_URL}/ping`
   });
-  const disabled = useMemo(() => !netInfo.isConnected || username === "", [netInfo.isConnected, username]);
+  const disabled = useMemo(() => !netInfo.isInternetReachable || username === "", [netInfo.isConnected, username]);
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Login Screen.</Text>
+      <Text style={styles.title}>Login Screen</Text>
       <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} />
       <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
+      <Text>{BASE_URL}</Text>
     </View>
   );
 }
