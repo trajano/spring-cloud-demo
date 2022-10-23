@@ -22,7 +22,8 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
       "username": username,
       "authenticated": true,
       "accessTokenExpiresInMillis": 120000,
-      "refreshTokenExpiresInMillis": 240000
+      // two day expiration of refresh token
+      "refreshTokenExpiresInMillis": 172800000
     })
   }
   const disabled = useMemo(() => !isConnected || username === "", [isConnected, username]);
