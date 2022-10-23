@@ -46,6 +46,9 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - name: 📦 Install dependencies
         run: yarn install
+      - name: Create env
+        run: |
+          echo BASE_URL=https://api.trajano.net > .env
       - name: 🚀 Publish app
         run: expo publish --non-interactive
 
