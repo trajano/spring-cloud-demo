@@ -2163,8 +2163,8 @@
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
 "@trajano/react-hooks@https://github.com/trajano/react-hooks":
-  version "1.0.0"
-  resolved "https://github.com/trajano/react-hooks#1c1533e50c830d7ed71122ed1d82f44a9b946b09"
+  version "2.0.0"
+  resolved "https://github.com/trajano/react-hooks#39c7e0ac88a41266b621547c7ec5edae823dd9a3"
   dependencies:
     lodash.debounce "^4.0.8"
     lodash.isequal "^4.5.0"
