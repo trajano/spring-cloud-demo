@@ -1,6 +1,5 @@
 import { BASE_URL } from '@env';
-import { useNetInfo } from '@react-native-community/netinfo';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button, StyleSheet } from 'react-native';
 import { useAuth } from '../../auth-context';
 
@@ -10,6 +9,14 @@ import type { LoginStackScreenProps } from './types';
 export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login'>) {
   const [username, setUsername] = useState("")
   const auth = useAuth();
+  const [isConnected, setIsConnected] = useState(auth.isConnected());
+  useEffect(() => {
+    return auth.subscribe((authEvent) => {
+      if (authEvent.type === "Connection") {
+        setIsConnected(auth.isConnected());
+      }
+    })
+  }, [])
   async function handleLogin() {
     return auth.login({
       "username": username,
@@ -18,16 +25,14 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
       "refreshTokenExpiresInMillis": 240000
     })
   }
-  const netInfo = useNetInfo({
-    reachabilityUrl: `${BASE_URL}/ping`
-  });
-  const disabled = useMemo(() => !netInfo.isInternetReachable || username === "", [netInfo.isConnected, username]);
+  const disabled = useMemo(() => !isConnected || username === "", [isConnected, username]);
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Login Screen</Text>
       <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} />
       <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
       <Text>{BASE_URL}</Text>
+      <Text>{JSON.stringify({ isConnected })}</Text>
     </View>
   );
 }

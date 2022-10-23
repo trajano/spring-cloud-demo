@@ -1,4 +1,4 @@
-import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
+import NetInfo, { NetInfoState, NetInfoStateType } from '@react-native-community/netinfo';
 import { PropsWithChildren, ReactElement, useCallback, useEffect, useRef } from "react";
 import { usePollingIf } from "../hooks/usePollingIf";
 import { AuthClient } from "./AuthClient";
@@ -23,9 +23,12 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     const authClientRef = useRef(new AuthClient(baseUrl, clientId, clientSecret));
     const authStateRef = useRef(AuthState.INITIAL);
     const oauthTokenRef = useRef<OAuthToken | null>(null);
-    const netInfoState = useRef<Partial<NetInfoState>>({
-        isConnected: false
-    })
+    const netInfoState = useRef<NetInfoState>({
+        isConnected: false,
+        type: NetInfoStateType.unknown,
+        isInternetReachable: null,
+        details: null
+    });
 
     function getAccessToken(): string | null {
         return oauthTokenRef.current?.access_token ?? null;
@@ -150,12 +153,18 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     }, 20000);
     useEffect(function restoreSession() {
         NetInfo.configure({
-            reachabilityUrl: baseUrl + "/ping"
+            reachabilityUrl: baseUrl + "/ping",
+            reachabilityTest: response => Promise.resolve(response.status === 200),
+            useNativeReachability: true,
         })
         const unsubscribe = NetInfo.addEventListener(state => {
+            notify({
+                type: "Connection",
+                netInfoState: state,
+            })
             netInfoState.current = state
         });
-        refresh()
+        NetInfo.refresh().then(() => refresh());
         return () => unsubscribe();
     }, [])
     return <AuthContext.Provider value={{
@@ -163,6 +172,8 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
         getAuthorization,
         getAccessToken,
         getOauthToken: () => oauthTokenRef.current,
+        getNetInfoState: () => netInfoState.current,
+        isConnected: () => !!netInfoState.current.isInternetReachable,
         subscribe,
         login,
         logout

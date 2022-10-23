@@ -1,8 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { add, isAfter, parseISO, sub } from "date-fns";
 import { OAuthToken } from "./OAuthToken";
-import pako from 'pako';
-import base64 from "react-native-base64";
 export class AuthStore {
   constructor(private storagePrefix: string) {}
 
@@ -30,8 +28,6 @@ export class AuthStore {
       this.storagePrefix + ".oauthToken",
       JSON.stringify(oauthToken)
     );
-
-    // const uncompressedJwt = pako.deflate(base64.decode(oauthToken.access_token))
 
     const expiresAt = add(now ?? Date.now(), {
       seconds: oauthToken.expires_in,
