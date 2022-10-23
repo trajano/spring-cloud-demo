@@ -1,6 +1,6 @@
 import NetInfo, { NetInfoState, NetInfoStateType } from '@react-native-community/netinfo';
 import { PropsWithChildren, ReactElement, useCallback, useEffect, useRef } from "react";
-import { usePollingIf } from "../hooks/usePollingIf";
+import { usePollingIf } from "@trajano/react-hooks";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
@@ -158,11 +158,11 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
             useNativeReachability: true,
         })
         const unsubscribe = NetInfo.addEventListener(state => {
+            netInfoState.current = state
             notify({
                 type: "Connection",
                 netInfoState: state,
             })
-            netInfoState.current = state
         });
         NetInfo.refresh().then(() => refresh());
         return () => unsubscribe();

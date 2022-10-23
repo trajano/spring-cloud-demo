@@ -2164,7 +2164,7 @@
 
 "@trajano/react-hooks@https://github.com/trajano/react-hooks":
   version "2.0.0"
-  resolved "https://github.com/trajano/react-hooks#39c7e0ac88a41266b621547c7ec5edae823dd9a3"
+  resolved "https://github.com/trajano/react-hooks#31e994e1de602526f4c329dc826b526a2c2a6c09"
   dependencies:
     lodash.debounce "^4.0.8"
     lodash.isequal "^4.5.0"
