@@ -10050,6 +10050,11 @@ react-native-logs@^5.0.1:
   resolved "https://registry.yarnpkg.com/react-native-logs/-/react-native-logs-5.0.1.tgz#53665919587b499e22f514e50cb6a834cedba1ce"
   integrity sha512-30aQugeLFfcBEKd6U4I75SKc5q5fb9Qrwv0Vnsy3jwpC716xON9SxRbBEnxoPSDJjzK527r4zi+qYqzig6lPlQ==
 
+react-native-network-logger@^1.13.0:
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/react-native-network-logger/-/react-native-network-logger-1.13.0.tgz#98004628144e6e4ff3474955d8cd0bab43f0d12d"
+  integrity sha512-OZErs122HdOCuK4HcWKPcqQarTBulo7lsOrvaUGlXPlcQOc8povYSHs78xkoHAiO+eYuAQ4O/ecG0mrHAE7EGw==
+
 react-native-safe-area-context@4.3.1:
   version "4.3.1"
   resolved "https://registry.npmjs.org/react-native-safe-area-context/-/react-native-safe-area-context-4.3.1.tgz"

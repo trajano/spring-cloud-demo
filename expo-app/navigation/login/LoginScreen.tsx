@@ -6,6 +6,8 @@ import { useAuth } from '../../auth-context';
 import { Text, TextInput, View } from '../../components/Themed';
 import type { LoginStackScreenProps } from './types';
 
+import NetworkLogger from 'react-native-network-logger';
+
 export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login'>) {
   const [username, setUsername] = useState("")
   const auth = useAuth();
@@ -26,6 +28,7 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
       "refreshTokenExpiresInMillis": 172800000
     })
   }
+
   const disabled = useMemo(() => !isConnected || username === "", [isConnected, username]);
   return (
     <View style={styles.container}>
@@ -34,6 +37,9 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
       <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
       <Text>{BASE_URL}</Text>
       <Text>{JSON.stringify({ isConnected })}</Text>
+      <View style={{ flex: 1 }}>
+        <NetworkLogger />
+      </View>
     </View>
   );
 }

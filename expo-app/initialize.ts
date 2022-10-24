@@ -7,3 +7,5 @@
 //   TextEncoder: TextEncodingPolyfill.TextEncoder,
 //   TextDecoder: TextEncodingPolyfill.TextDecoder,
 // });
+import { startNetworkLogging } from 'react-native-network-logger';
+startNetworkLogging();

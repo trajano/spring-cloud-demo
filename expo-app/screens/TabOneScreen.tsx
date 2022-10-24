@@ -1,4 +1,4 @@
-import { Button, StyleSheet } from 'react-native';
+import { Button, ScrollView, StyleSheet } from 'react-native';
 import { AuthEvent, useAuth } from '../auth-context';
 
 import { BASE_URL } from '@env';
@@ -65,13 +65,13 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
 
   //const uncompressedJwt = pako.deflate(base64.decode(oauthToken.access_token))
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>OAuth Token</Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
       <Text>{JSON.stringify(auth.getOauthToken(), null, 2)}</Text>
       <Text>{JSON.stringify(claims, null, 2)}</Text>
       <Button title="Logout" onPress={handleLogout} />
-    </View>
+    </ScrollView>
   );
 }
 

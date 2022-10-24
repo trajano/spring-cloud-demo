@@ -107,10 +107,15 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
                 reason: "No token stored"
             })
         }
-        else if (await storageRef.current.isExpiringInSeconds(60)) {
+        else if (await storageRef.current.isExpiringInSeconds(60) && !netInfoState.current.isInternetReachable) {
+            notify({
+                type: "CheckRefresh",
+                reason: "Token is expiring in 60 seconds or has expired.  But endpoint is not available.  Not changing state."
+            })
+        } else if (await storageRef.current.isExpiringInSeconds(60) && netInfoState.current.isInternetReachable) {
             notify({
                 type: "Refreshing",
-                reason: "Token is expiring in 60 seconds or has expired."
+                reason: "Token is expiring in 60 seconds or has expired.  Endpoint is available."
             })
             try {
                 const refreshedOAuthToken = await authClientRef.current.refresh(oauthToken.refresh_token);
@@ -129,7 +134,8 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
                     oauthTokenRef.current = null;
                     notify({
                         type: "Unauthenticated",
-                        reason: e.message
+                        reason: e.message,
+                        responseBody: await e.response.json()
                     })
                 } else {
                     throw e;

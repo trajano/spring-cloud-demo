@@ -53,6 +53,10 @@ type UnauthenticatedEvent = {
    * Reason why it is not authenticated if any.
    */
   reason?: string;
+  /**
+   * Body of response if available
+   */
+  responseBody?: string;
 };
 export type AuthEvent =
   | AuthenticatedEvent

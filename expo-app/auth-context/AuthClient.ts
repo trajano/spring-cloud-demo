@@ -42,7 +42,7 @@ export class AuthClient {
       body: new URLSearchParams({
         refresh_token: refreshToken,
         grant_type: "refresh_token",
-      }),
+      }).toString(),
     });
     if (!response.ok) {
       throw new AuthenticationClientError(response);
@@ -61,7 +61,7 @@ export class AuthClient {
       body: new URLSearchParams({
         token: refreshToken,
         token_type_hint: "refresh_token",
-      }),
+      }).toString(),
     });
     if (!response.ok) {
       throw new AuthenticationClientError(response);
