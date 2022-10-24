@@ -13,9 +13,9 @@ repositories {
 }
 ext {
     set('springCloudVersion', "2021.0.4")
-    set('springBootVersion', "2.7.4")
-    set('testcontainersVersion', "1.17.3")
-    set('grpcVersion', "1.49.1")
+    set('springBootVersion', "2.7.5")
+    set('testcontainersVersion', "1.17.5")
+    set('grpcVersion', "1.50.2")
     set('snakeyaml.version', '1.31')
 }
 
