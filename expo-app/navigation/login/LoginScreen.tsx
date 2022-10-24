@@ -1,16 +1,33 @@
 import { BASE_URL } from '@env';
+import { format, Locale } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 import { Button, StyleSheet } from 'react-native';
 import { useAuth } from '../../auth-context';
-
+import * as Localization from 'expo-localization';
 import { Text, TextInput, View } from '../../components/Themed';
 import type { LoginStackScreenProps } from './types';
-
-import NetworkLogger from 'react-native-network-logger';
+import * as dateFnsLocales from 'date-fns/locale'
 
 export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login'>) {
+
+  // given Localization.locales
+  // translate to DateFnsLocales
+  const locale: Locale = useMemo(() => {
+
+    const dateFnsLocales2 = dateFnsLocales as Record<string, Locale>;
+    return Localization.locales.map(locale => {
+      // handle special cases
+      return locale.replaceAll("-", "")
+    })
+      .filter(localKey => !!dateFnsLocales2[localKey])
+      .map(localKey => dateFnsLocales2[localKey])[0] ?? dateFnsLocales.enUS;
+
+
+  }, [Localization.locales])
+
   const [username, setUsername] = useState("")
   const auth = useAuth();
+  const [now, setNow] = useState(format(Date.now(), "PPPPpppp", { locale }))
   const [isConnected, setIsConnected] = useState(auth.isConnected());
   useEffect(() => {
     return auth.subscribe((authEvent) => {
@@ -28,18 +45,21 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
       "refreshTokenExpiresInMillis": 172800000
     })
   }
+  useEffect(() => {
+
+    const c = setInterval(() => setNow(format(Date.now(), "PPPPpppp", { locale })), 1000);
+    return () => clearInterval(c);
+
+  }, [locale])
 
   const disabled = useMemo(() => !isConnected || username === "", [isConnected, username]);
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Login Screen</Text>
-      <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} />
+      <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} style={{ width: 300 }} />
       <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
       <Text>{BASE_URL}</Text>
-      <Text>{JSON.stringify({ isConnected })}</Text>
-      <View style={{ flex: 1 }}>
-        <NetworkLogger />
-      </View>
+      <Text>{JSON.stringify({ isConnected, now })}</Text>
     </View>
   );
 }
