@@ -58,7 +58,7 @@ export function withI18n<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>, c
 
     }
     I18nedComponent.displayName = displayName;
-    return useCallback((props) => <I18nedComponent forwardedRef={ref} {...props} />, [config]);
+    return useCallback((props: I18nedProps<P>) => <I18nedComponent forwardedRef={ref} {...props} />, [config]);
     //return forwardRef<ComponentType<P>, I18nedProps<P>>((props: I18nedProps<P>, ref) => <StyledComponent {...props} forwardedRef={ref} />) as ComponentType<I18nedProps<P>>
 }
 
@@ -83,17 +83,22 @@ export type StyleProps = {
  * For styling to occur, the props must already contain a `style` prop
  */
 export type StyledProps<P = unknown> = P & StyleProps;
-function propsToStyleSheet(props: StyleProps): StyleProp<unknown> {
-    const accumulatedStyle = {};
+function propsToStyleSheet(props: StyleProps): StyleProp<Record<string, unknown>> {
+    const accumulatedStyle: Record<string, unknown> = {};
     function add(propKey: string, styleKey: string) {
-        if (props[propKey] !== null || props[propKey] !== undefined) {
-            accumulatedStyle[styleKey] = props[propKey];
+        // 
+        if (props.hasOwnProperty(propKey) && (props as Record<string, unknown>)[propKey] !== null) {
+            accumulatedStyle[styleKey] = (props as Record<string, unknown>)[propKey];
         }
     }
     add("bg", "backgroundColor");
     return accumulatedStyle;
 }
-export function withStyled<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>) {
+/**
+ * WithStyled configuration.  This will allow specifying props that can contain style props.
+ */
+type WithStyledConfig = {}
+export function withStyled<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>, config: WithStyledConfig = {}): ComponentType<StyledProps<P>> {
     const displayName =
         WrappedComponent.displayName || WrappedComponent.name || "Component";
     function StyledComponent({ forwardedRef, extendStyle, style, ...rest }: StyledProps<P> & { forwardedRef: Ref<ComponentType<P>> }) {
@@ -112,7 +117,7 @@ export function withStyled<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>)
     //     return <WrappedComponent ref={ref} {...props} />
     // })
     // return useCallback(forwardRef(render), []);
-    return useCallback((props) => <StyledComponent forwardedRef={ref} {...props} />, []);
+    return useCallback((props: StyledProps<P>) => <StyledComponent forwardedRef={ref} {...props} />, []);
 }
 
 
@@ -163,12 +168,15 @@ export function withStyled<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>)
 //     return withI18n(withStyled((props) => <Animated.Text {...props as Animated.AnimatedProps<TextProps>} />));
 // }
 
-type AnimatedStyledFC<P> = StyledFC<Animated.AnimatedProps<P>>;
-type I18nStyledFC<P> = (props: I18nedProps<StyledProps<P>> & RefAttributes<Component>) => ReactElement<P>;
-type StyledFC<P> = (props: StyledProps<P> & RefAttributes<Component>) => ReactElement<P>;
-type ViewFC = AnimatedStyledFC<ViewProps>;
-export const View: ViewFC = forwardRef((props, ref: Ref<any>) => createElement(withStyled(Animated.View, ref), props)) as ViewFC;
-export const Text: I18nStyledFC<Animated.AnimatedProps<TextProps>> = forwardRef((props, ref: Ref<any>) => createElement<Animated.AnimatedProps<TextProps>>(withI18n(withStyled(Animated.Text, ref), ref), props)) as AnimatedStyledFC<TextProps>;
+type AnimatedStyledFC<P, R = Component> = StyledFC<Animated.AnimatedProps<P>, R>;
+type I18nStyledFC<P, R = Component> = (props: I18nedProps<StyledProps<P>> & RefAttributes<R>) => ReactElement<P>;
+type StyledFC<P, R = Component> = (props: StyledProps<P> & RefAttributes<R>) => ReactElement<P>;
+type ViewFC = AnimatedStyledFC<ViewProps, RN.View>;
+export const View: ViewFC = forwardRef((props, ref: Ref<RN.View>) => createElement(withStyled(Animated.View, ref), props)) as ViewFC;
+export const Text: I18nStyledFC<Animated.AnimatedProps<TextProps>, RN.Text> =
+    forwardRef<RN.Text, I18nedProps<StyledProps<Animated.AnimatedProps<TextProps>>>>((props, ref) =>
+        createElement(withI18n(withStyled(Animated.Text, ref), ref), props)
+    ) as I18nStyledFC<Animated.AnimatedProps<TextProps>>;
 
 
 export function TextInput(props: TextInputProps): ReactElement<TextInputProps> {
@@ -176,9 +184,9 @@ export function TextInput(props: TextInputProps): ReactElement<TextInputProps> {
 }
 
 
-export function FlatList<T>(props: StyledProps<FlashListProps<T>>) {
-    return withStyled((props) => <FlashList {...props as FlashListProps<T>} />);
-}
+// export function FlatList<T>(props: StyledProps<FlashListProps<T>>) {
+//     return withStyled((props) => <FlashList {...props as FlashListProps<T>} />);
+// }
 
 // export function withStyled<P, S extends StyleProps>(WrappedComponent: ComponentType<P>): ComponentType<P & S> {
 //     const displayName =
