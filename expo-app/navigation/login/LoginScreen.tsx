@@ -1,10 +1,11 @@
 import { BASE_URL } from '@env';
 import { format, Locale } from 'date-fns';
-import { useEffect, useMemo, useState } from 'react';
-import { Button, StyleSheet } from 'react-native';
+import { Component, createRef, useEffect, useMemo, useRef, useState } from 'react';
+import { Button, StyleSheet, View as RNView } from 'react-native';
 import { useAuth } from '../../auth-context';
 import * as Localization from 'expo-localization';
-import { Text, TextInput, View } from '../../components/Themed';
+import {  TextInput } from '../../components/Themed';
+import { Text, View } from '../../src/components'
 import type { LoginStackScreenProps } from './types';
 import * as dateFnsLocales from 'date-fns/locale'
 
@@ -51,11 +52,12 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
     return () => clearInterval(c);
 
   }, [locale])
+  const viewRef = createRef<Component>();
 
   const disabled = useMemo(() => !isConnected || username === "", [isConnected, username]);
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login Screen</Text>
+    <View style={styles.container} ref={viewRef} bg="#100000">
+      <Text style={styles.title} _t="asdf" bg="red">Login Screen</Text>
       <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} style={{ width: 300 }} />
       <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
       <Text>{BASE_URL}</Text>
