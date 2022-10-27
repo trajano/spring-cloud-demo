@@ -11,5 +11,5 @@ export type {
   ColorSchemeColors as Theme,
   ColorSchemes as Themes,
 } from "./Themes";
-export { defaultLightColorSchemeColors } from "./defaultLightColorSchemeColors";
+export { defaultColorSchemes  } from "./defaultColorSchemes";
 export { ThemeProvider, useColors, useTheming } from "./ThemeContext";

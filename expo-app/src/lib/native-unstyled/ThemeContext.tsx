@@ -4,7 +4,7 @@ import { createContext, PropsWithChildren, useContext, useMemo, useState } from 
 import { ColorSchemeName, useColorScheme } from "react-native";
 import { ColorSchemeColors, ColorSchemes } from "./Themes";
 import { defaultLightColorSchemeColors } from './defaultLightColorSchemeColors'
-import { defaultDarkColorSchemeColors } from './defaultDarkColorSchemeColors';
+import { defaultColorSchemes } from "./defaultColorSchemes";
 
 /**
  * Theme will still include non-color stuff like fonts etc.  But only the color scheme is selectable.
@@ -21,10 +21,7 @@ const ThemeContext = createContext<ITheme>({
     reactNavigationTheme: DefaultTheme,
     setColorScheme: () => { }
 })
-export function ThemeProvider({ children, defaultColorScheme = "light", colorSchemes = {
-    dark: defaultDarkColorSchemeColors,
-    light: defaultLightColorSchemeColors,
-}, getColorScheme }: PropsWithChildren<{
+export function ThemeProvider({ children, defaultColorScheme = "light", colorSchemes = defaultColorSchemes, getColorScheme }: PropsWithChildren<{
     colorSchemes?: ColorSchemes, defaultColorScheme: NonNullable<ColorSchemeName>, getColorScheme?: () => Promise<NonNullable<ColorSchemeName>>
 }>) {
     const systemColorScheme = useColorScheme();
