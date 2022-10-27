@@ -52,12 +52,12 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
     return () => clearInterval(c);
 
   }, [locale])
-  const viewRef = createRef<Component>();
+  const viewRef = createRef<RNView>();
 
   const disabled = useMemo(() => !isConnected || username === "", [isConnected, username]);
   return (
-    <View style={styles.container} ref={viewRef} bg="#100000">
-      <Text style={styles.title} _t="asdf" bg="red">Login Screen</Text>
+    <View style={styles.container} ref={viewRef}>
+      <Text style={styles.title} _t="asdf">Login Screen</Text>
       <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} style={{ width: 300 }} />
       <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
       <Text>{BASE_URL}</Text>

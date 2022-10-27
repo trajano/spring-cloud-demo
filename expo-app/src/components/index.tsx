@@ -1,7 +1,8 @@
 import { Animated, SectionListProps, TextInputProps, StyleSheet, StyleProp, TextProps, ViewProps } from "react-native";
 import { FlashList, FlashListProps } from "@shopify/flash-list";
-import { createElement, forwardRef, RefAttributes, Ref, Component, ComponentType, ReactElement, PropsWithChildren, PropsWithRef, PropsWithoutRef, useMemo, useCallback } from 'react'
+import { createElement, forwardRef, RefAttributes, Ref, Component, ComponentType, createContext, useContext, ReactElement, PropsWithChildren, PropsWithRef, PropsWithoutRef, useMemo, useCallback, useState } from 'react'
 import * as RN from "react-native";
+import { useTheme } from "../lib/native-unstyled";
 export const ScrollView = Animated.ScrollView;
 
 
@@ -15,6 +16,62 @@ export function SectionList<ItemT, SectionT>(props: Animated.AnimatedProps<Secti
 //     return <FlashList {...props} />
 // }
 
+type ITextStyleContext = Pick<
+    RN.TextStyle,
+    "fontFamily" | "fontWeight" | "fontStyle"
+> & {
+    provided: boolean,
+    updateForStyleProp(style: RN.TextStyle): void
+};
+
+const TextStyleContext = createContext<ITextStyleContext>({
+    provided: false, fontFamily: "sans-serif", fontWeight: "400", fontStyle: "normal",
+    updateForStyleProp: () => { }
+})
+
+const ForwardedRefContextedMyText = forwardRef<RN.Text, Animated.AnimatedProps<TextProps>>(({ style, ...props }, ref) => {
+    const { colors } = useTheme();
+    const [fontFamily, setFontFamily] = useState<NonNullable<RN.TextStyle['fontFamily']>>("sans-serif");
+    const [fontWeight, setFontWeight] = useState<NonNullable<RN.TextStyle['fontWeight']>>("400");
+    const [fontStyle, setFontStyle] = useState<NonNullable<RN.TextStyle['fontStyle']>>("normal");
+    function updateForStyleProp({ fontFamily: nextFontFamily, fontWeight: nextFontWeight, fontStyle: nextFontStyle }: RN.TextStyle) {
+        if (nextFontFamily) {
+            setFontFamily(nextFontFamily)
+        }
+        if (nextFontWeight) {
+            setFontWeight(nextFontWeight)
+        }
+        if (nextFontStyle) {
+            setFontStyle(nextFontStyle)
+        }
+    }
+    const flattenedStyle = useMemo(() => StyleSheet.compose({ fontFamily, fontWeight, fontStyle, color: colors.default[0] }, style), [style]);
+    return <TextStyleContext.Provider value={{ provided: true, fontFamily, fontWeight, fontStyle, updateForStyleProp }}>
+        <Animated.Text {...props} style={flattenedStyle as RN.TextStyle} ref={ref} />
+    </TextStyleContext.Provider>
+
+})
+function MyText({ style, ...props }: Animated.AnimatedProps<TextProps>, ref: Ref<RN.Text>) {
+    const { provided, updateForStyleProp } = useContext(TextStyleContext);
+    const flattenedStyle = useMemo(() => StyleSheet.flatten(style), [style]);
+    updateForStyleProp(flattenedStyle as Pick<
+        RN.TextStyle,
+        "fontFamily" | "fontWeight" | "fontStyle"
+    >);
+    return useCallback(() => {
+        if (provided) {
+            return <Animated.Text {...props} style={flattenedStyle} ref={ref} />
+        } else {
+            //({ fontFamily, fontWeight, fontStyle }) =
+            return <ForwardedRefContextedMyText {...props} ref={ref} />
+        }
+    }, []);
+}
+export function Bold({ children }: PropsWithChildren<{}>) {
+    // 
+    const textStyleContext = useContext(TextStyleContext);
+    return useCallback(() => <Animated.Text style={{ fontWeight: "700" }} />, [])
+}
 
 export type I18nProps = {
     /**
@@ -77,23 +134,33 @@ export type StyleProps = {
      * Background color
      */
     bg?: string;
+    /**
+     * Foreground color
+     */
+    fg?: string;
+    borderColor?: string;
+    borderWidth?: number;
 
 }
+
 /**
  * For styling to occur, the props must already contain a `style` prop
  */
 export type StyledProps<P = unknown> = P & StyleProps;
 function propsToStyleSheet(props: StyleProps): StyleProp<Record<string, unknown>> {
     const accumulatedStyle: Record<string, unknown> = {};
-    function add(propKey: string, styleKey: string) {
-        // 
+    function add(propKey: string, styleKey?: string) {
         if (props.hasOwnProperty(propKey) && (props as Record<string, unknown>)[propKey] !== null) {
-            accumulatedStyle[styleKey] = (props as Record<string, unknown>)[propKey];
+            accumulatedStyle[styleKey ?? propKey] = (props as Record<string, unknown>)[propKey];
         }
     }
     add("bg", "backgroundColor");
+    add("fg", "color");
+    add("borderColor");
+    add("borderWidth");
     return accumulatedStyle;
 }
+
 /**
  * WithStyled configuration.  This will allow specifying props that can contain style props.
  */
@@ -168,6 +235,7 @@ export function withStyled<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>,
 //     return withI18n(withStyled((props) => <Animated.Text {...props as Animated.AnimatedProps<TextProps>} />));
 // }
 
+
 type AnimatedStyledFC<P, R = Component> = StyledFC<Animated.AnimatedProps<P>, R>;
 type I18nStyledFC<P, R = Component> = (props: I18nedProps<StyledProps<P>> & RefAttributes<R>) => ReactElement<P>;
 type StyledFC<P, R = Component> = (props: StyledProps<P> & RefAttributes<R>) => ReactElement<P>;
@@ -176,7 +244,7 @@ export const View: ViewFC = forwardRef((props, ref: Ref<RN.View>) => createEleme
 export const Text: I18nStyledFC<Animated.AnimatedProps<TextProps>, RN.Text> =
     forwardRef<RN.Text, I18nedProps<StyledProps<Animated.AnimatedProps<TextProps>>>>((props, ref) =>
         createElement(withI18n(withStyled(Animated.Text, ref), ref), props)
-    ) as I18nStyledFC<Animated.AnimatedProps<TextProps>>;
+    ) as I18nStyledFC<Animated.AnimatedProps<TextProps>, RN.Text>;
 
 
 export function TextInput(props: TextInputProps): ReactElement<TextInputProps> {

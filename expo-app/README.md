@@ -5,19 +5,19 @@
 
 ## Note
 
-* I used Fetch API to avoid having another dependency to deal with.  In addition it supports SSE.
-* The context itself does not useState
-* The data is persisted in AsyncStorage
+- I used Fetch API to avoid having another dependency to deal with. In addition it supports SSE.
+- The context itself does not useState
+- The data is persisted in AsyncStorage
 
-# Directory 
+# Directory
 
-* src/components - Pure UI components
-* src/contexts - React Contexts
-* src/navigation/root - Root navigation
-* src/navigation/login - Login navigation
-* src/navigation/app - App navigation
-* src/init - App Initialization
-* src/lib - Internal library module.  Each of these should be stand alone
+- src/components - Pure UI components
+- src/contexts - React Contexts
+- src/navigation/root - Root navigation
+- src/navigation/login - Login navigation
+- src/navigation/app - App navigation
+- src/init - App Initialization
+- src/lib - Internal library module. Each of these should be stand alone
 
 ## Concept
 
@@ -36,15 +36,30 @@ import { ... } from '@components';
 The idea would be to limit what can be used to keep the styling more consistent.
 
 Button Roles
-* destructive
-* cancel (triggered on Esc/Back on modal)
-* default
-* primary (triggered on Enter on modal)
 
-The themes provide colors and fonts that are managed separate from the 
+- destructive
+- cancel (triggered on Esc/Back on modal)
+- default
+- primary (triggered on Enter on modal)
+
+The themes provide colors and fonts that are managed separate in a centralized location.
+The effects, padding and layout are done on the components using utility props.
 
 ## Key focus areas
 
-* i18n
-* themeing
-* utility-first styles (like NativeBase/tailwind)
+- i18n
+- themeing
+- utility-first styles (like NativeBase/tailwind)
+
+## Simple formatting and utility
+
+Since this is going to be utility, there won't be semantics like headers vs body.
+
+Only support changing to monospaced font, the rest is simple style changes.
+
+```jsx
+<Code>Monospaced</Code>
+<Underscore><Strong><Em></Em></Strong></Underscore>
+<Sub>Subscript</Sub>
+<Sup>Superscript</Sup>
+```

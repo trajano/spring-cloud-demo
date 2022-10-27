@@ -7,6 +7,7 @@ import './initialize';
 import useCachedResources from '../../hooks/useCachedResources';
 import useColorScheme from '../../hooks/useColorScheme';
 import Navigation from '../../navigation';
+import { ThemeProvider } from '../lib/native-unstyled/ThemeContext';
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
@@ -15,14 +16,16 @@ export default function App() {
     return null;
   } else {
     return (
-      <AuthProvider baseUrl={BASE_URL}
-        clientId='myClient'
-        clientSecret='mySecret'>
-        <SafeAreaProvider>
-          <Navigation colorScheme={colorScheme} />
-          <StatusBar />
-        </SafeAreaProvider>
-      </AuthProvider>
+      <ThemeProvider defaultColorScheme='light'>
+        <AuthProvider baseUrl={BASE_URL}
+          clientId='myClient'
+          clientSecret='mySecret'>
+          <SafeAreaProvider>
+            <Navigation colorScheme={colorScheme} />
+            <StatusBar />
+          </SafeAreaProvider>
+        </AuthProvider>
+      </ThemeProvider>
     );
   }
 }

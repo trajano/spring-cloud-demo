@@ -22,9 +22,11 @@ import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../typ
 import { AuthState } from '../auth-context/AuthState';
 import LinkingConfiguration from './LinkingConfiguration';
 import { LoginNavigator } from './login/LoginNavigator';
+import { useTheming } from '../src/lib/native-unstyled';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   const auth = useAuth();
+  const { reactNavigationTheme } = useTheming();
   const [authState, setAuthState] = React.useState(AuthState.INITIAL);
 
   function authEventHandler(event: AuthEvent) {
@@ -48,7 +50,7 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
   return (
     <NavigationContainer
       linking={LinkingConfiguration}
-      theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      theme={reactNavigationTheme}>
       {(authState == AuthState.INITIAL && <RootNavigator />)}
       {(authState == AuthState.UNAUTHENTICATED && <LoginNavigator />)}
       {(authState == AuthState.AUTHENTICATED && <RootNavigator />)}
