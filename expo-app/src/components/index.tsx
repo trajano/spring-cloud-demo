@@ -2,7 +2,7 @@ import { Animated, SectionListProps, TextInputProps, StyleSheet, StyleProp, Text
 import { FlashList, FlashListProps } from "@shopify/flash-list";
 import { createElement, forwardRef, RefAttributes, Ref, Component, ComponentType, createContext, useContext, ReactElement, PropsWithChildren, PropsWithRef, PropsWithoutRef, useMemo, useCallback, useState } from 'react'
 import * as RN from "react-native";
-import { useTheme } from "../lib/native-unstyled";
+import { useColors } from "../lib/native-unstyled";
 export const ScrollView = Animated.ScrollView;
 
 
@@ -29,8 +29,8 @@ const TextStyleContext = createContext<ITextStyleContext>({
     updateForStyleProp: () => { }
 })
 
-const ForwardedRefContextedMyText = forwardRef<RN.Text, Animated.AnimatedProps<TextProps>>(({ style, ...props }, ref) => {
-    const { colors } = useTheme();
+const ForwardedRefContextedMyText = forwardRef<RN.Text, Animated.AnimatedProps<TextProps>>(({ style, ...rest }, ref) => {
+    const colors = useColors();
     const [fontFamily, setFontFamily] = useState<NonNullable<RN.TextStyle['fontFamily']>>("sans-serif");
     const [fontWeight, setFontWeight] = useState<NonNullable<RN.TextStyle['fontWeight']>>("400");
     const [fontStyle, setFontStyle] = useState<NonNullable<RN.TextStyle['fontStyle']>>("normal");
@@ -47,11 +47,26 @@ const ForwardedRefContextedMyText = forwardRef<RN.Text, Animated.AnimatedProps<T
     }
     const flattenedStyle = useMemo(() => StyleSheet.compose({ fontFamily, fontWeight, fontStyle, color: colors.default[0] }, style), [style]);
     return <TextStyleContext.Provider value={{ provided: true, fontFamily, fontWeight, fontStyle, updateForStyleProp }}>
-        <Animated.Text {...props} style={flattenedStyle as RN.TextStyle} ref={ref} />
+        <Animated.Text {...rest} style={flattenedStyle as RN.TextStyle} ref={ref} />
     </TextStyleContext.Provider>
 
-})
-function MyText({ style, ...props }: Animated.AnimatedProps<TextProps>, ref: Ref<RN.Text>) {
+});
+const ForwardedRefMyText = forwardRef<RN.Text, Animated.AnimatedProps<TextProps>>(({ style, ...rest }, ref) => {
+    const { provided, updateForStyleProp } = useContext(TextStyleContext);
+    const flattenedStyle = useMemo(() => StyleSheet.flatten(style), [style]);
+    updateForStyleProp(flattenedStyle as Pick<
+        RN.TextStyle,
+        "fontFamily" | "fontWeight" | "fontStyle"
+    >);
+    return useMemo(() => {
+        if (provided) {
+            return <Animated.Text {...rest} style={style} ref={ref} />;
+        } else {
+            return <ForwardedRefContextedMyText {...rest} style={style} ref={ref} />;
+        }
+    }, []);
+});
+const ForwardedRefMyText2 = forwardRef<RN.Text, Animated.AnimatedProps<TextProps>>(({ style, ...props }, ref) => {
     const { provided, updateForStyleProp } = useContext(TextStyleContext);
     const flattenedStyle = useMemo(() => StyleSheet.flatten(style), [style]);
     updateForStyleProp(flattenedStyle as Pick<
@@ -66,7 +81,8 @@ function MyText({ style, ...props }: Animated.AnimatedProps<TextProps>, ref: Ref
             return <ForwardedRefContextedMyText {...props} ref={ref} />
         }
     }, []);
-}
+});
+
 export function Bold({ children }: PropsWithChildren<{}>) {
     // 
     const textStyleContext = useContext(TextStyleContext);
@@ -188,54 +204,6 @@ export function withStyled<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>,
 }
 
 
-// export type StyledProps<P = unknown> = PropsWithRef<P> & { style?: StyleProp<any> } & StyleProps;
-// type StyledWithRefProps<P = unknown> = PropsWithRef<P> & { style?: StyleProp<any> };
-// export function withStyled<P>(WrappedComponent: ComponentType<StyledWithRefProps<P>>): ComponentType<StyledProps<P>> {
-//     const displayName =
-//         WrappedComponent.displayName || WrappedComponent.name || "Component";
-//     function StyledComponent({ forwardedRef, extendStyle, style, ...rest }: PropsWithoutRef<StyledProps<P>> & { forwardedRef: Ref<ComponentType<P>> }): ReactElement<StyledProps<P>> {
-//         let computedStyle: StyleProp<any> = style;
-
-//         if (extendStyle) {
-//             computedStyle = StyleSheet.compose(style, style);
-//         }
-//         return <><WrappedComponent
-//             ref={forwardedRef}
-//             style={computedStyle}
-//             {...rest as unknown as PropsWithRef<P>}
-//         /></>;
-
-//     }
-//     StyledComponent.displayName = displayName;
-//     //    return (props) => <StyledComponent {...props} />
-//     return forwardRef<
-//         ComponentType<StyledWithRefProps<P,>>,
-//         StyledWithRefProps<P,>
-//     >(
-//         (props, ref) => <StyledComponent {...props} forwardedRef={ref} />
-//     );
-//     //<ComponentType<StyledWithRefProps<P extends {}>>, StyledWithRefProps<P extends {}>>/</P>
-//     // return forwardRef<ComponentType<StyledWithRefProps<P extends {}>>, StyledWithRefProps<P extends {}>>(
-//     //     (props, ref) => <StyledComponent {...props} forwardedRef={ref} />
-//     // );
-//     // return forwardRef<ComponentType<StyledWithRefProps<P extends {}>>, StyledWithRefProps<P extends {}>>(
-//     //     (props, ref) => <StyledComponent {...props} forwardedRef={ref} />
-//     // );
-//     // return forwardRef(
-//     //     function forwarded(props, ref): ReactElement<StyledProps<P>> {
-//     //         return <StyledComponent {...props} forwardedRef={ref} />;
-//     //     }
-//     // );
-//     //return forwardRef<ComponentType<PropsWithRef<P>>, StyledProps<P>>((props: PropsWithoutRef<StyledProps<P>>, ref: Ref<ComponentType<P>>) => <StyledComponent {...props} forwardedRef={ref} />) as ComponentType<StyledProps<P>>
-//     //return forwardRef<ComponentType<P>, StyledProps<P>>((props: PropsWithoutRef<StyledProps<P>>, ref: Ref<ComponentType<P>>) => <StyledComponent {...props} forwardedRef={ref} />) as ComponentType<StyledProps<P>>
-// }
-
-// export const Text = Animated.Text;
-// export function Text(props: I18nedProps<StyledProps<Animated.AnimatedProps<TextProps>>>) {
-//     return withI18n(withStyled((props) => <Animated.Text {...props as Animated.AnimatedProps<TextProps>} />));
-// }
-
-
 type AnimatedStyledFC<P, R = Component> = StyledFC<Animated.AnimatedProps<P>, R>;
 type I18nStyledFC<P, R = Component> = (props: I18nedProps<StyledProps<P>> & RefAttributes<R>) => ReactElement<P>;
 type StyledFC<P, R = Component> = (props: StyledProps<P> & RefAttributes<R>) => ReactElement<P>;
@@ -243,7 +211,7 @@ type ViewFC = AnimatedStyledFC<ViewProps, RN.View>;
 export const View: ViewFC = forwardRef((props, ref: Ref<RN.View>) => createElement(withStyled(Animated.View, ref), props)) as ViewFC;
 export const Text: I18nStyledFC<Animated.AnimatedProps<TextProps>, RN.Text> =
     forwardRef<RN.Text, I18nedProps<StyledProps<Animated.AnimatedProps<TextProps>>>>((props, ref) =>
-        createElement(withI18n(withStyled(Animated.Text, ref), ref), props)
+        createElement(withI18n(withStyled(ForwardedRefMyText, ref), ref), props)
     ) as I18nStyledFC<Animated.AnimatedProps<TextProps>, RN.Text>;
 
 
