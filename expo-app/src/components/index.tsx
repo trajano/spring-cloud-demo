@@ -2,7 +2,7 @@ import { Animated, SectionListProps, TextInputProps, StyleSheet, StyleProp, Text
 import { FlashList, FlashListProps } from "@shopify/flash-list";
 import React, { ReactNode, Children, createElement, forwardRef, RefAttributes, Ref, Component, ComponentType, createContext, useContext, ReactElement, PropsWithChildren, PropsWithRef, PropsWithoutRef, useMemo, useCallback, useState } from 'react'
 import * as RN from "react-native";
-import { useColors } from "../lib/native-unstyled";
+import { useColors, useFonts } from "../lib/native-unstyled";
 export const ScrollView = Animated.ScrollView;
 
 
@@ -68,21 +68,35 @@ const ForwardedRefMyText = forwardRef<RN.Text, Animated.AnimatedProps<TextProps>
     }, []);
 });
 
-const ForwardedRefMyText2 = forwardRef<RN.Text, Animated.AnimatedProps<TextProps>>(({ style, children, ...rest }, ref) => {
+type FontLookupKey = Pick<
+    RN.TextStyle,
+    "fontFamily" | "fontWeight" | "fontStyle"
+>;
 
-    // this chains down the font styles to the child text node.
+const ForwardedRefMyText2 = forwardRef<RN.Text, Animated.AnimatedProps<TextProps> & {
+    internalTextStyle?: FontLookupKey
+}>(({ style, internalTextStyle, children, ...rest }, ref) => {
+    const { replaceWithNativeFont } = useFonts();
 
+    const flattenedStyle = useMemo(() => StyleSheet.flatten([style, internalTextStyle]), [style, internalTextStyle]) as RN.TextStyle;
     const newChildren = Children.map<any, any>(children, (child) => {
-        if (!React.isValidElement(child) || ((child as ReactElement).type !== ForwardedRefMyText2)) {
+        if (!React.isValidElement(child) || ((child as ReactElement).type !== Text)) {
             return child;
         } else {
-            return React.cloneElement(child, {});
+            const nextInternalTextStyle: RN.TextStyle = {}
+            if (flattenedStyle.fontFamily) { nextInternalTextStyle["fontFamily"] = flattenedStyle.fontFamily; }
+            if (flattenedStyle.fontWeight) { nextInternalTextStyle["fontWeight"] = flattenedStyle.fontWeight; }
+            if (flattenedStyle.fontStyle) { nextInternalTextStyle["fontStyle"] = flattenedStyle.fontStyle; }
+
+            return React.cloneElement<any>(child, {
+                internalTextStyle: nextInternalTextStyle
+            });
         }
     });
-
-    const flattenedStyle = useMemo(() => StyleSheet.flatten(style), [style]);
+    const nextTextStyle = useMemo(() => replaceWithNativeFont(flattenedStyle), [flattenedStyle]);
+    console.log({ style, flattenedStyle, internalTextStyle, nextTextStyle, text: children })
     return useMemo(() => {
-        return <Animated.Text {...rest} style={flattenedStyle} ref={ref}>{newChildren}</Animated.Text>;
+        return <Animated.Text {...rest} style={nextTextStyle} ref={ref}>{newChildren}</Animated.Text>;
     }, []);
 });
 
