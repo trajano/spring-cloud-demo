@@ -1108,6 +1108,11 @@
   resolved "https://registry.yarnpkg.com/@expo-google-fonts/ibm-plex-sans/-/ibm-plex-sans-0.2.2.tgz#d9de355a95a74334a01fc2360b3881c128de61cb"
   integrity sha512-xdF3a5Df/9YzVC/ORdEhdigH4BQmCDBhSO+6oNgyYPeSKNm5mAMWtKL19muxU1zdHFXYzoYv8e4gmeDGhrBteA==
 
+"@expo-google-fonts/island-moments@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@expo-google-fonts/island-moments/-/island-moments-0.2.2.tgz#71a699c136b72b94cd2d2ee759947e3793665aa0"
+  integrity sha512-OEbslf4A1uFICqwn40WJl2gvPbyujf6A3/6yKHqgoNlR8jeM6h43UWwqG6xCH0n8MHW137YqL7GWUMESFEY90A==
+
 "@expo-google-fonts/lexend@^0.2.2":
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/@expo-google-fonts/lexend/-/lexend-0.2.2.tgz#ffd53c07f8add762271ba3c0247f5a4bd1c903da"

@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@expo-google-fonts/ibm-plex-sans": "^0.2.2",
+    "@expo-google-fonts/island-moments": "^0.2.2",
     "@expo-google-fonts/lexend": "^0.2.2",
     "@expo-google-fonts/noto-sans": "^0.2.2",
     "@expo-google-fonts/noto-sans-mono": "^0.2.2",

@@ -63,3 +63,32 @@ Only support changing to monospaced font, the rest is simple style changes.
 <Sub>Subscript</Sub>
 <Sup>Superscript</Sup>
 ```
+
+
+## Utility props
+
+bg = background color
+
+### Text specific
+
+fg = foreground color
+fontFamily
+fontWeight
+fontStyle
+thin = 100
+extraLight = 200
+light = light text == 300
+normal = 400
+semiBold = 600
+bold = bold text == 700
+extraBold = 800
+black = 900
+italic = italic text
+xxs 
+xs
+s
+m = medium size 16px
+l
+xl
+xxl
+

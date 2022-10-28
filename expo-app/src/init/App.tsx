@@ -13,6 +13,7 @@ import * as NotoSans from "@expo-google-fonts/noto-sans";
 import * as IBMPlexSans from "@expo-google-fonts/ibm-plex-sans";
 import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
 import * as Lexend from "@expo-google-fonts/lexend";
+import * as IslandMoments from "@expo-google-fonts/island-moments";
 
 export default function App() {
   const isLoadingComplete = useCachedResources();
@@ -21,7 +22,7 @@ export default function App() {
     return null;
   } else {
     return (
-      <ThemeProvider defaultColorScheme='light' fontModules={[NotoSans, IBMPlexSans, NotoSansMono, Lexend]}>
+      <ThemeProvider defaultColorScheme='light' fontModules={[NotoSans, IBMPlexSans, NotoSansMono, Lexend, IslandMoments]}>
         <AuthProvider baseUrl={BASE_URL}
           clientId='myClient'
           clientSecret='mySecret'>

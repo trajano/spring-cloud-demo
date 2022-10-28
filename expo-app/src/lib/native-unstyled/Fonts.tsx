@@ -1,13 +1,10 @@
-import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
+import { useAsyncSetEffect } from "@trajano/react-hooks";
 import * as Font from "expo-font";
-import { useRef } from "react";
-import { useEffect } from "react";
-import { useState } from "react";
 import {
   createContext,
   PropsWithChildren,
   ReactElement,
-  useContext,
+  useContext, useState
 } from "react";
 import { TextStyle } from "react-native";
 
@@ -62,12 +59,25 @@ export function FontsProvider({
 
   function replaceWithNativeFont({ fontFamily, fontWeight = "normal", fontStyle = "normal", ...rest }: TextStyle): TextStyle {
     const fontFamilyForKey = loadedFonts[`${fontFamily}:${fontWeight}:${fontStyle}`];
-    console.log(`${fontFamily}:${fontWeight}:${fontStyle}`)
     if (fontFamilyForKey) {
       return { fontFamily: fontFamilyForKey, ...rest };
+      // } else if (fontWeight === "bold" && fontStyle === "italic" && loadedFonts[`${fontFamily}:normal:italic`]) {
+      //   // Allow for faux-italic fonts
+      //   return { fontFamily: loadedFonts[`${fontFamily}:normal:normal`], fontWeight: "bold", fontStyle: "italic", ...rest };
+
+    } else if (fontWeight === "bold" && loadedFonts[`${fontFamily}:normal:${fontStyle}`]) {
+      // Allow for faux-bold fonts
+      return { fontFamily: loadedFonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", ...rest };
+
     } else if (fontStyle === "italic" && loadedFonts[`${fontFamily}:${fontWeight}:normal`]) {
       // Allow for faux-italic fonts
       return { fontFamily: loadedFonts[`${fontFamily}:${fontWeight}:normal`], fontStyle: "italic", ...rest };
+
+    } else if (fontWeight === "bold" && fontStyle === "italic" && loadedFonts[`${fontFamily}:normal:normal`]) {
+      // Allow for faux-bold fonts
+      return { fontFamily: loadedFonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", fontStyle: "italic", ...rest };
+
+
     } else {
       return { fontFamily, fontWeight, fontStyle, ...rest };
     }
