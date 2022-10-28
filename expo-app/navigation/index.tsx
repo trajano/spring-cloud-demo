@@ -5,13 +5,13 @@
  */
 import { FontAwesome } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme, NavigationState } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as React from 'react';
-import { ColorSchemeName, Pressable } from 'react-native';
+import { ColorSchemeName, Linking, Platform, Pressable } from 'react-native';
 import { useAuth } from '../auth-context';
 import { AuthEvent } from '../auth-context/AuthEvent';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 import ModalScreen from '../screens/ModalScreen';
@@ -23,11 +23,15 @@ import { AuthState } from '../auth-context/AuthState';
 import LinkingConfiguration from './LinkingConfiguration';
 import { LoginNavigator } from './login/LoginNavigator';
 import { useTheming } from '../src/lib/native-unstyled';
+import { useAsyncSetEffect } from '@trajano/react-hooks';
 
+const PERSISTENCE_KEY = 'NAVIGATION_STATE_V1';
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   const auth = useAuth();
   const { reactNavigationTheme } = useTheming();
   const [authState, setAuthState] = React.useState(AuthState.INITIAL);
+  const [ready, setReady] = React.useState(false);
+  const [initialState, setInitialState] = React.useState<NavigationState>();
 
   function authEventHandler(event: AuthEvent) {
 
@@ -39,6 +43,24 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
 
   }
 
+  useAsyncSetEffect(
+    async () => {
+
+      const initialUrl = await Linking.getInitialURL();
+      if (Platform.OS !== "web" && initialUrl !== null) {
+        // Only restore state if there's no deep link and we're not on web
+        return AsyncStorage.getItem(PERSISTENCE_KEY);
+      } else {
+        return null;
+      }
+    },
+    (storedState) => {
+      if (storedState !== null) {
+        setInitialState(JSON.parse(storedState));
+        setReady(true);
+      }
+    }, [ready]);
+
   React.useEffect(() => {
 
     setAuthState(auth.getAuthState());
@@ -47,15 +69,32 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
   }, [])
 
   console.log("Render", AuthState[authState])
-  return (
-    <NavigationContainer
+  if (authState == AuthState.UNAUTHENTICATED) {
+    return <NavigationContainer
       linking={LinkingConfiguration}
       theme={reactNavigationTheme}>
-      {(authState == AuthState.INITIAL && <RootNavigator />)}
-      {(authState == AuthState.UNAUTHENTICATED && <LoginNavigator />)}
-      {(authState == AuthState.AUTHENTICATED && <RootNavigator />)}
+      <LoginNavigator />
     </NavigationContainer>
-  );
+
+  } else if (authState == AuthState.AUTHENTICATED) {
+    return <NavigationContainer
+      linking={LinkingConfiguration}
+      initialState={initialState}
+      theme={reactNavigationTheme}
+      onStateChange={(state) => { AsyncStorage.setItem(PERSISTENCE_KEY, JSON.stringify(state)) }}
+    >
+      <RootNavigator />
+    </NavigationContainer>
+
+  } else {
+    // initial
+    return <NavigationContainer
+      linking={LinkingConfiguration}
+      theme={reactNavigationTheme}>
+      <RootNavigator />
+    </NavigationContainer>
+
+  }
 }
 
 /**

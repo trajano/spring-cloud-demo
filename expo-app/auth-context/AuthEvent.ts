@@ -14,7 +14,7 @@ type AuthenticatedEvent = {
 /**
  * This gets fired when the refresh process is about to start and it is being checked if needed or possible.
  */
-type CheckRefreshEvent = {
+ type CheckRefreshEvent = {
   type: "CheckRefresh";
   /**
    * Reason for refresh if any

@@ -1103,6 +1103,26 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
+"@expo-google-fonts/ibm-plex-sans@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@expo-google-fonts/ibm-plex-sans/-/ibm-plex-sans-0.2.2.tgz#d9de355a95a74334a01fc2360b3881c128de61cb"
+  integrity sha512-xdF3a5Df/9YzVC/ORdEhdigH4BQmCDBhSO+6oNgyYPeSKNm5mAMWtKL19muxU1zdHFXYzoYv8e4gmeDGhrBteA==
+
+"@expo-google-fonts/lexend@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@expo-google-fonts/lexend/-/lexend-0.2.2.tgz#ffd53c07f8add762271ba3c0247f5a4bd1c903da"
+  integrity sha512-5dERHXtPXmNBAiLEWDGVY4hjaUI6dp+DN/okaV2WXwEreKJVhHwSc/bIvx2Vbf0XihanaVqUdMLs5cRgGcSZJA==
+
+"@expo-google-fonts/noto-sans-mono@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@expo-google-fonts/noto-sans-mono/-/noto-sans-mono-0.2.2.tgz#13d75d88b9fa3adfe3a13875281252e1c88ec187"
+  integrity sha512-Mu+lPNECUsuKVq134Gmrkjxn1qY2YZgjvt/KfYiL7YL2/F+S/qQcxGD6MbW4ODOtqQU9vE3KBodGKOrR+3YEFA==
+
+"@expo-google-fonts/noto-sans@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@expo-google-fonts/noto-sans/-/noto-sans-0.2.2.tgz#47351471416eb11e6e426e21ed0a9003160156cf"
+  integrity sha512-EWm8w24DKdWgNcZ/J5i9cmkuH2wcQNljvfxce/pF+yLyMb9DtBfi4orvkuon+JKvVlO5a0jAvyl/W8q4iYBfSA==
+
 "@expo/bunyan@4.0.0", "@expo/bunyan@^4.0.0":
   version "4.0.0"
   resolved "https://registry.npmjs.org/@expo/bunyan/-/bunyan-4.0.0.tgz"
@@ -5182,7 +5202,7 @@ expo-file-system@~14.1.0:
     "@expo/config-plugins" "~5.0.0"
     uuid "^3.4.0"
 
-expo-font@~10.2.1:
+expo-font@~10.2.0, expo-font@~10.2.1:
   version "10.2.1"
   resolved "https://registry.npmjs.org/expo-font/-/expo-font-10.2.1.tgz"
   integrity sha512-sxy5GrdtY+Ka8Wo5wnrcFFeO6MbYC6Dris5wMLqshvVK6BneJNMUsFvwRfvVgg0TzsmMAc3Rlca2xyZ8ettinw==

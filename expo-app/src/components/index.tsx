@@ -1,6 +1,6 @@
 import { Animated, SectionListProps, TextInputProps, StyleSheet, StyleProp, TextProps, ViewProps } from "react-native";
 import { FlashList, FlashListProps } from "@shopify/flash-list";
-import { createElement, forwardRef, RefAttributes, Ref, Component, ComponentType, createContext, useContext, ReactElement, PropsWithChildren, PropsWithRef, PropsWithoutRef, useMemo, useCallback, useState } from 'react'
+import React, { ReactNode, Children, createElement, forwardRef, RefAttributes, Ref, Component, ComponentType, createContext, useContext, ReactElement, PropsWithChildren, PropsWithRef, PropsWithoutRef, useMemo, useCallback, useState } from 'react'
 import * as RN from "react-native";
 import { useColors } from "../lib/native-unstyled";
 export const ScrollView = Animated.ScrollView;
@@ -25,7 +25,7 @@ type ITextStyleContext = Pick<
 };
 
 const TextStyleContext = createContext<ITextStyleContext>({
-    provided: false, fontFamily: "sans-serif", fontWeight: "400", fontStyle: "normal",
+    provided: false, fontFamily: "sans-serif", fontWeight: "normal", fontStyle: "normal",
     updateForStyleProp: () => { }
 })
 
@@ -45,7 +45,8 @@ const ForwardedRefContextedMyText = forwardRef<RN.Text, Animated.AnimatedProps<T
             setFontStyle(nextFontStyle)
         }
     }
-    const flattenedStyle = useMemo(() => StyleSheet.compose({ fontFamily, fontWeight, fontStyle, color: colors.default[0] }, style), [style]);
+    // the compose will actually have to pull the data from the fonts.
+    const flattenedStyle = useMemo(() => StyleSheet.compose({ fontFamily, fontWeight, fontStyle, color: colors.default[0] }, style), [fontFamily, fontWeight, fontStyle, style]);
     return <TextStyleContext.Provider value={{ provided: true, fontFamily, fontWeight, fontStyle, updateForStyleProp }}>
         <Animated.Text {...rest} style={flattenedStyle as RN.TextStyle} ref={ref} />
     </TextStyleContext.Provider>
@@ -66,22 +67,25 @@ const ForwardedRefMyText = forwardRef<RN.Text, Animated.AnimatedProps<TextProps>
         }
     }, []);
 });
-const ForwardedRefMyText2 = forwardRef<RN.Text, Animated.AnimatedProps<TextProps>>(({ style, ...props }, ref) => {
-    const { provided, updateForStyleProp } = useContext(TextStyleContext);
-    const flattenedStyle = useMemo(() => StyleSheet.flatten(style), [style]);
-    updateForStyleProp(flattenedStyle as Pick<
-        RN.TextStyle,
-        "fontFamily" | "fontWeight" | "fontStyle"
-    >);
-    return useCallback(() => {
-        if (provided) {
-            return <Animated.Text {...props} style={flattenedStyle} ref={ref} />
+
+const ForwardedRefMyText2 = forwardRef<RN.Text, Animated.AnimatedProps<TextProps>>(({ style, children, ...rest }, ref) => {
+
+    // this chains down the font styles to the child text node.
+
+    const newChildren = Children.map<any, any>(children, (child) => {
+        if (!React.isValidElement(child) || ((child as ReactElement).type !== ForwardedRefMyText2)) {
+            return child;
         } else {
-            //({ fontFamily, fontWeight, fontStyle }) =
-            return <ForwardedRefContextedMyText {...props} ref={ref} />
+            return React.cloneElement(child, {});
         }
+    });
+
+    const flattenedStyle = useMemo(() => StyleSheet.flatten(style), [style]);
+    return useMemo(() => {
+        return <Animated.Text {...rest} style={flattenedStyle} ref={ref}>{newChildren}</Animated.Text>;
     }, []);
 });
+
 
 export function Bold({ children }: PropsWithChildren<{}>) {
     // 
@@ -211,7 +215,7 @@ type ViewFC = AnimatedStyledFC<ViewProps, RN.View>;
 export const View: ViewFC = forwardRef((props, ref: Ref<RN.View>) => createElement(withStyled(Animated.View, ref), props)) as ViewFC;
 export const Text: I18nStyledFC<Animated.AnimatedProps<TextProps>, RN.Text> =
     forwardRef<RN.Text, I18nedProps<StyledProps<Animated.AnimatedProps<TextProps>>>>((props, ref) =>
-        createElement(withI18n(withStyled(ForwardedRefMyText, ref), ref), props)
+        createElement(withI18n(withStyled(ForwardedRefMyText2, ref), ref), props)
     ) as I18nStyledFC<Animated.AnimatedProps<TextProps>, RN.Text>;
 
 
