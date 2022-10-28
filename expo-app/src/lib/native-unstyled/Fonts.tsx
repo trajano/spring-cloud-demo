@@ -65,6 +65,9 @@ export function FontsProvider({
     console.log(`${fontFamily}:${fontWeight}:${fontStyle}`)
     if (fontFamilyForKey) {
       return { fontFamily: fontFamilyForKey, ...rest };
+    } else if (fontStyle === "italic" && loadedFonts[`${fontFamily}:${fontWeight}:normal`]) {
+      // Allow for faux-italic fonts
+      return { fontFamily: loadedFonts[`${fontFamily}:${fontWeight}:normal`], fontStyle: "italic", ...rest };
     } else {
       return { fontFamily, fontWeight, fontStyle, ...rest };
     }

@@ -87,6 +87,7 @@ const ForwardedRefMyText2 = forwardRef<RN.Text, Animated.AnimatedProps<TextProps
             if (flattenedStyle.fontFamily) { nextInternalTextStyle["fontFamily"] = flattenedStyle.fontFamily; }
             if (flattenedStyle.fontWeight) { nextInternalTextStyle["fontWeight"] = flattenedStyle.fontWeight; }
             if (flattenedStyle.fontStyle) { nextInternalTextStyle["fontStyle"] = flattenedStyle.fontStyle; }
+            if (flattenedStyle.color) { nextInternalTextStyle["color"] = flattenedStyle.color; }
 
             return React.cloneElement<any>(child, {
                 internalTextStyle: nextInternalTextStyle
@@ -94,7 +95,6 @@ const ForwardedRefMyText2 = forwardRef<RN.Text, Animated.AnimatedProps<TextProps
         }
     });
     const nextTextStyle = useMemo(() => replaceWithNativeFont(flattenedStyle), [flattenedStyle]);
-    console.log({ style, flattenedStyle, internalTextStyle, nextTextStyle, text: children })
     return useMemo(() => {
         return <Animated.Text {...rest} style={nextTextStyle} ref={ref}>{newChildren}</Animated.Text>;
     }, []);

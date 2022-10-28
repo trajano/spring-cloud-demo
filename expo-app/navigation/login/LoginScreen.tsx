@@ -1,13 +1,13 @@
 import { BASE_URL } from '@env';
 import { format, Locale } from 'date-fns';
-import { Component, createRef, useEffect, useMemo, useRef, useState } from 'react';
+import * as dateFnsLocales from 'date-fns/locale';
+import * as Localization from 'expo-localization';
+import { createRef, useEffect, useMemo, useState } from 'react';
 import { Button, StyleSheet, View as RNView } from 'react-native';
 import { useAuth } from '../../auth-context';
-import * as Localization from 'expo-localization';
-import {  TextInput } from '../../components/Themed';
-import { Text, View } from '../../src/components'
+import { TextInput } from '../../components/Themed';
+import { Text, View } from '../../src/components';
 import type { LoginStackScreenProps } from './types';
-import * as dateFnsLocales from 'date-fns/locale'
 
 export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login'>) {
 
