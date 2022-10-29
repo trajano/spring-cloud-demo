@@ -1,4 +1,4 @@
-import { Button, ScrollView, StyleSheet } from 'react-native';
+import { Button, StyleSheet } from 'react-native';
 import { AuthEvent, useAuth } from '../auth-context';
 
 import { BASE_URL } from '@env';
@@ -6,16 +6,17 @@ import { useFocusEffect } from '@react-navigation/native';
 import base64url from 'base64url';
 import * as jose from 'jose';
 import pako from 'pako';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { RootTabScreenProps } from '../types';
+import { useCallback, useState } from 'react';
 import { Text, View } from '../src/components';
+import { RootTabScreenProps } from '../types';
 
 import { AnimatedFlashList, ListRenderItemInfo } from '@shopify/flash-list';
+import { useMounted } from '@trajano/react-hooks';
 export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
   const auth = useAuth();
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [claims, setClaims] = useState<jose.JWTPayload | null>(null)
-  const mountedRef = useRef(false);
+  const isMounted = useMounted();
 
   async function handleLogout() {
     await auth.logout();
@@ -55,13 +56,11 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
   useFocusEffect(useCallback(() => {
     (async function () {
       const claims = await getValidatedClaims();
-      if (mountedRef.current) {
+      if (isMounted()) {
         setClaims(claims)
       }
     })()
   }, [accessToken]));
-
-  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false } }, []);
 
   const data = [
     auth.oauthToken,

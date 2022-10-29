@@ -10,11 +10,12 @@ import pako from 'pako';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Text, View } from '../src/components';
 import { RootTabScreenProps } from '../types';
+import { useMounted } from '@trajano/react-hooks';
 export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
   const auth = useAuth();
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [claims, setClaims] = useState<Record<string, unknown> | null>(null)
-  const mountedRef = useRef(false);
+  const isMounted = useMounted();
 
   async function handleLogout() {
     await auth.logout();
@@ -56,13 +57,12 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
   useFocusEffect(useCallback(() => {
     (async function () {
       const claims = await getValidatedClaims();
-      if (mountedRef.current) {
+      if (isMounted()) {
         setClaims(claims)
       }
     })()
   }, [accessToken]));
 
-  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false } }, []);
   const [refreshing, setRefreshing] = useState(false);
 
   const data = [
@@ -77,7 +77,7 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
   async function refreshToken() {
     setRefreshing(true);
     await auth.refresh();
-    if (mountedRef.current) {
+    if (isMounted()) {
       setRefreshing(false);
     }
   }
