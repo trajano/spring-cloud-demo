@@ -7,8 +7,10 @@ import base64url from 'base64url';
 import * as jose from 'jose';
 import pako from 'pako';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Text, View } from '../components/Themed';
 import { RootTabScreenProps } from '../types';
+import { Text, View } from '../src/components';
+
+import { AnimatedFlashList, ListRenderItemInfo } from '@shopify/flash-list';
 export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
   const auth = useAuth();
   const [accessToken, setAccessToken] = useState<string | null>(null)
@@ -61,15 +63,21 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
 
   useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false } }, []);
 
+  const data = [
+    auth.oauthToken,
+    claims
+  ];
+  function renderItem({ item }: ListRenderItemInfo<any>) {
+    return <View style={{ borderTopWidth: 1, borderColor: "yellow" }}><Text>{JSON.stringify(item, null, 2)}</Text></View>
+  }
   //const uncompressedJwt = pako.deflate(base64.decode(oauthToken.access_token))
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>OAuth Token</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <Text>{JSON.stringify(auth.getOauthToken(), null, 2)}</Text>
-      <Text>{JSON.stringify(claims, null, 2)}</Text>
-      <Button title="Logout" onPress={handleLogout} />
-    </ScrollView>
+    <AnimatedFlashList
+      ListHeaderComponent={() => <Text style={styles.title}>Title</Text>}
+      ListFooterComponent={() => <View style={{ borderTopWidth: 1, borderColor: "yellow" }}><Button title="Logout" onPress={handleLogout} /></View>}
+      data={data}
+      renderItem={renderItem}
+    />
   );
 }
 

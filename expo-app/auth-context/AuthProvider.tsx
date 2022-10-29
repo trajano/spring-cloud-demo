@@ -1,6 +1,6 @@
 import NetInfo, { NetInfoState, NetInfoStateType } from '@react-native-community/netinfo';
-import { PropsWithChildren, ReactElement, useCallback, useEffect, useRef } from "react";
 import { usePollingIf } from "@trajano/react-hooks";
+import { PropsWithChildren, ReactElement, useCallback, useEffect, useRef, useState } from "react";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
@@ -22,7 +22,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     const storageRef = useRef(new AuthStore(storagePrefix));
     const authClientRef = useRef(new AuthClient(baseUrl, clientId, clientSecret));
     const authStateRef = useRef(AuthState.INITIAL);
-    const oauthTokenRef = useRef<OAuthToken | null>(null);
+    const [oauthToken, setOauthToken] = useState<OAuthToken | null>(null);
     const netInfoState = useRef<NetInfoState>({
         isConnected: false,
         type: NetInfoStateType.unknown,
@@ -31,10 +31,10 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     });
 
     function getAccessToken(): string | null {
-        return oauthTokenRef.current?.access_token ?? null;
+        return oauthToken?.access_token ?? null;
     }
     function getAuthorization() {
-        return oauthTokenRef.current ? `Bearer ${oauthTokenRef.current.accessToken}` : null
+        return oauthToken ? `Bearer ${oauthToken.accessToken}` : null
     }
 
     const subscribe = useCallback(function subscribe(fn: (event: AuthEvent) => void) {
@@ -51,13 +51,13 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     async function login(authenticationCredentials: Record<string, unknown>) {
 
         try {
-            const oauthToken = await authClientRef.current.authenticate(authenticationCredentials);
-            const tokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(oauthToken);
+            const nextOauthToken = await authClientRef.current.authenticate(authenticationCredentials);
+            const tokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(nextOauthToken);
             authStateRef.current = AuthState.AUTHENTICATED
-            oauthTokenRef.current = oauthToken;
+            setOauthToken(nextOauthToken)
             notify({
                 type: "Authenticated",
-                accessToken: oauthToken.access_token,
+                accessToken: nextOauthToken.access_token,
                 tokenExpiresAt
             })
         } catch (e: unknown) {
@@ -75,7 +75,6 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     async function logout() {
 
         try {
-            const oauthToken = await storageRef.current.getOAuthToken();
             if (oauthToken == null) {
                 return;
             }
@@ -87,7 +86,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
         } finally {
             await storageRef.current.clear();
             authStateRef.current = AuthState.UNAUTHENTICATED
-            oauthTokenRef.current = null;
+            setOauthToken(null);
             notify({
                 type: "Unauthenticated"
             })
@@ -100,8 +99,8 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
             type: "CheckRefresh",
             reason
         })
-        const oauthToken = await storageRef.current.getOAuthToken();
-        if (oauthToken == null) {
+        const storedOAuthToken = await storageRef.current.getOAuthToken();
+        if (storedOAuthToken == null) {
             authStateRef.current = AuthState.UNAUTHENTICATED
             notify({
                 type: "Unauthenticated",
@@ -119,10 +118,10 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
                 reason: "Token is expiring in 60 seconds or has expired.  Endpoint is available."
             })
             try {
-                const refreshedOAuthToken = await authClientRef.current.refresh(oauthToken.refresh_token);
+                const refreshedOAuthToken = await authClientRef.current.refresh(storedOAuthToken.refresh_token);
                 const tokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
                 authStateRef.current = AuthState.AUTHENTICATED
-                oauthTokenRef.current = refreshedOAuthToken;
+                setOauthToken(refreshedOAuthToken);
                 notify({
                     type: "Authenticated",
                     accessToken: refreshedOAuthToken.access_token,
@@ -132,7 +131,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
                 if (e instanceof AuthenticationClientError) {
                     await storageRef.current.clear();
                     authStateRef.current = AuthState.UNAUTHENTICATED
-                    oauthTokenRef.current = null;
+                    setOauthToken(null);
                     notify({
                         type: "Unauthenticated",
                         reason: e.message,
@@ -145,11 +144,10 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
         } else {
             const tokenExpiresAt = await storageRef.current.getTokenExpiresAt()
             authStateRef.current = AuthState.AUTHENTICATED
-            oauthTokenRef.current = oauthToken;
-
+            setOauthToken(storedOAuthToken);
             notify({
                 type: "Authenticated",
-                accessToken: oauthToken.access_token,
+                accessToken: storedOAuthToken.access_token,
                 tokenExpiresAt
             })
         }
@@ -181,7 +179,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
         getAuthState: () => authStateRef.current,
         getAuthorization,
         getAccessToken,
-        getOauthToken: () => oauthTokenRef.current,
+        oauthToken,
         getNetInfoState: () => netInfoState.current,
         isConnected: () => !!netInfoState.current.isInternetReachable,
         subscribe,

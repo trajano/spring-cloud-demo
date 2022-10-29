@@ -18,10 +18,9 @@ export interface IAuth {
   login(authenticationCredentials: Record<string, unknown>): Promise<void>;
   logout(): Promise<void>;
   /**
-   * The OAuth token from the store if available.  May be null.  This is
-   * not a React state and will not trigger a re-render when updated.
+   * The OAuth token from the store if available.  May be null.
    */
-  getOauthToken(): OAuthToken | null;
+  oauthToken: OAuthToken | null;
   /**
    * Convenience to get the access token directly.  This is
    * not a React state and will not trigger a re-render when updated.
