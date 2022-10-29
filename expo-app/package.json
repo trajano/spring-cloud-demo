@@ -1,5 +1,5 @@
 {
-  "name": "expo-app",
+  "name": "@trajano/spring-docker-expo-app",
   "version": "1.0.0",
   "main": "src/init/index.ts",
   "scripts": {

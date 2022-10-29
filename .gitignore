@@ -11,3 +11,5 @@ build
 report.json*
 
 jmeter.log
+node_modules
+*.log

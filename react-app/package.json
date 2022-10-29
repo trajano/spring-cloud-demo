@@ -1,6 +1,8 @@
 {
-  "name": "my-app",
+  "name": "@trajano/spring-docker-react-app",
   "version": "0.1.0",
+  "main": "dist/trajano-spring-docker-react-app.cjs.js",
+  "module": "dist/trajano-spring-docker-react-app.esm.js",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
