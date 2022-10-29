@@ -35,7 +35,7 @@ export interface IAuth {
    * Current authentication state.  This is
    * not a React state and will not trigger a re-render when updated.
    */
-  getAuthState(): AuthState;
+  authState: AuthState;
   /**
    * Current network info state.  This is
    * not a React state and will not trigger a re-render when updated.

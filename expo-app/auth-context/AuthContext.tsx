@@ -9,5 +9,7 @@ export const AuthContext = createContext<IAuth>({
     getAccessToken: () => null,
     oauthToken: null,
     getAuthorization: () => null,
-    getAuthState: () => AuthState.INITIAL,
+    authState: AuthState.INITIAL,
+    getNetInfoState: () => {},
+    isConnected: () => false
 });

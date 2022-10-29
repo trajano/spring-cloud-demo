@@ -4,26 +4,26 @@
  *
  */
 import { FontAwesome } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer, DefaultTheme, DarkTheme, NavigationState } from '@react-navigation/native';
+import { NavigationContainer, NavigationState } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useAsyncSetEffect } from '@trajano/react-hooks';
 import * as React from 'react';
 import { ColorSchemeName, Linking, Platform, Pressable } from 'react-native';
 import { useAuth } from '../auth-context';
 import { AuthEvent } from '../auth-context/AuthEvent';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthState } from '../auth-context/AuthState';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 import ModalScreen from '../screens/ModalScreen';
 import NotFoundScreen from '../screens/NotFoundScreen';
 import TabOneScreen from '../screens/TabOneScreen';
 import TabTwoScreen from '../screens/TabTwoScreen';
+import { useTheming } from '../src/lib/native-unstyled';
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
-import { AuthState } from '../auth-context/AuthState';
 import LinkingConfiguration from './LinkingConfiguration';
 import { LoginNavigator } from './login/LoginNavigator';
-import { useTheming } from '../src/lib/native-unstyled';
-import { useAsyncSetEffect } from '@trajano/react-hooks';
 
 const PERSISTENCE_KEY = 'NAVIGATION_STATE_V1';
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
@@ -63,7 +63,7 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
 
   React.useEffect(() => {
 
-    setAuthState(auth.getAuthState());
+    setAuthState(auth.authState);
     return auth.subscribe(authEventHandler)
 
   }, [])
