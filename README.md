@@ -1,4 +1,4 @@
-This complements my other project [docker-swarm-aws-terraform-module]()
+This complements my other project [docker-swarm-aws-terraform-module](https://registry.terraform.io/modules/trajano/swarm-aws/docker)
 ## Components
 
 * `gateway` the gateway
@@ -7,6 +7,9 @@ This complements my other project [docker-swarm-aws-terraform-module]()
 * `grpc-service`  this is a sample service endpoint that is GRPC directly.  This is exposed via discovery.
 * `acme` this uses acme4j to provide the LetsEncrypt certificates into Redis.  It also handles the token endpoint and gateway routes to this directly, it is not exposed via discovery. **LATER**
 * `redirect` this is a service that redirects GET requests to a different URL.  Primarily used to redirect from HTTP to HTTPS
+
+* `expo-app` is a React Native app that would be used to communicate with the gateway and perform authentication.  I would rather have `nativescript` but this was easier to deal with for now due to Expo Go.
+* `react-app` is a React app that would be used to communicate with the gateway and perform authentication.  This was chose in place of my prefered platform which is VueJS in order to handle a bit more code reuse for now.  I may add `vue-app` later.  I also chose CRA rather than next.js for the time being to allow me to work fully off the browser for now.
 
 ## Opening in IntelliJ
 
