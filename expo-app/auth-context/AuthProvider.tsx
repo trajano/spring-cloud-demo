@@ -49,6 +49,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
             notify({
                 type: "Authenticated",
                 accessToken: nextOauthToken.access_token,
+                authorization: `Bearer ${nextOauthToken.accessToken}`,
                 tokenExpiresAt
             })
         } catch (e: unknown) {
