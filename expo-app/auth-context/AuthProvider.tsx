@@ -69,7 +69,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
             if (oauthToken == null) {
                 return;
             }
-            await authClientRef.current.logout(oauthToken.refresh_token)
+            await authClientRef.current.revoke(oauthToken.refresh_token)
         } catch (e: unknown) {
             if (!(e instanceof AuthenticationClientError)) {
                 throw e;

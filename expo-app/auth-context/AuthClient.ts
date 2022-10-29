@@ -2,7 +2,13 @@ import { AuthenticationClientError } from "./AuthenticationClientError";
 import base64url from "base64url";
 import { OAuthToken } from "./OAuthToken";
 
-export class AuthClient {
+export interface IAuthClient<A = any> {
+  authenticate(authenticationRequest: A): Promise<OAuthToken>;
+  refresh(refreshToken: string): Promise<OAuthToken>;
+  revoke(refreshToken: string): Promise<void>;
+  ping(): Promise<boolean>;
+}
+export class AuthClient implements IAuthClient<Record<string, unknown>> {
   /**
    * Header value.
    */
@@ -50,7 +56,7 @@ export class AuthClient {
     return response.json();
   }
 
-  public async logout(refreshToken: string) {
+  public async revoke(refreshToken: string) {
     const response = await fetch(this.baseUrl + "/logout", {
       method: "POST",
       headers: {
