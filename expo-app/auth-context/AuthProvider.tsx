@@ -35,7 +35,6 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     }, []);
 
     const notify = useCallback(function notify(event: AuthEvent) {
-        console.log({ event });
         subscribersRef.current.forEach((fn) => fn(event));
     }, []);
 

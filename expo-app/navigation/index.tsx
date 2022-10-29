@@ -34,6 +34,7 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
   const [initialState, setInitialState] = React.useState<NavigationState>();
 
   function authEventHandler(event: AuthEvent) {
+    console.log({ event });
 
     if (event.type == "Unauthenticated") {
       setAuthState(AuthState.UNAUTHENTICATED)
