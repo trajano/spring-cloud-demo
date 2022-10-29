@@ -1,4 +1,4 @@
-import NetInfo, { NetInfoState, NetInfoStateType } from '@react-native-community/netinfo';
+import NetInfo from '@react-native-community/netinfo';
 import { usePollingIf } from "@trajano/react-hooks";
 import { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuthClient } from "./AuthClient";
@@ -85,7 +85,52 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
         }
     }
 
-    async function refresh(reason?: string) {
+    async function refresh() {
+        const storedOAuthToken = await storageRef.current.getOAuthToken();
+        if (storedOAuthToken == null) {
+            setAuthState(AuthState.UNAUTHENTICATED)
+            notify({
+                type: "Unauthenticated",
+                reason: "No token stored"
+            })
+        } else {
+            doRefresh(storedOAuthToken, "Forced refresh");
+        }
+    }
+    async function doRefresh(storedOAuthToken: OAuthToken, reason?: string) {
+        notify({
+            type: "Refreshing",
+            reason
+        })
+        try {
+            const refreshedOAuthToken = await authClientRef.current.refresh(storedOAuthToken.refresh_token);
+            const tokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
+            setAuthState(AuthState.AUTHENTICATED)
+            setOauthToken(refreshedOAuthToken);
+            notify({
+                type: "Authenticated",
+                accessToken: refreshedOAuthToken.access_token,
+                authorization: `Bearer ${refreshedOAuthToken.accessToken}`,
+                tokenExpiresAt
+            })
+        } catch (e: unknown) {
+            if (e instanceof AuthenticationClientError) {
+                await storageRef.current.clear();
+                setAuthState(AuthState.UNAUTHENTICATED)
+                setOauthToken(null);
+                notify({
+                    type: "Unauthenticated",
+                    reason: e.message,
+                    responseBody: await e.response.json()
+                })
+            } else {
+                throw e;
+            }
+        }
+
+    }
+
+    async function periodicRefresh(reason?: string) {
         notify({
             type: "CheckRefresh",
             reason
@@ -104,34 +149,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
                 reason: "Token is expiring in 60 seconds or has expired.  But endpoint is not available.  Not changing state."
             })
         } else if (await storageRef.current.isExpiringInSeconds(60) && isConnected) {
-            notify({
-                type: "Refreshing",
-                reason: "Token is expiring in 60 seconds or has expired.  Endpoint is available."
-            })
-            try {
-                const refreshedOAuthToken = await authClientRef.current.refresh(storedOAuthToken.refresh_token);
-                const tokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
-                setAuthState(AuthState.AUTHENTICATED)
-                setOauthToken(refreshedOAuthToken);
-                notify({
-                    type: "Authenticated",
-                    accessToken: refreshedOAuthToken.access_token,
-                    tokenExpiresAt
-                })
-            } catch (e: unknown) {
-                if (e instanceof AuthenticationClientError) {
-                    await storageRef.current.clear();
-                    setAuthState(AuthState.UNAUTHENTICATED)
-                    setOauthToken(null);
-                    notify({
-                        type: "Unauthenticated",
-                        reason: e.message,
-                        responseBody: await e.response.json()
-                    })
-                } else {
-                    throw e;
-                }
-            }
+            await doRefresh(storedOAuthToken, "Token is expiring in 60 seconds or has expired.  Endpoint is available.");
         } else {
             const tokenExpiresAt = await storageRef.current.getTokenExpiresAt()
             setAuthState(AuthState.AUTHENTICATED)
@@ -139,13 +157,14 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
             notify({
                 type: "Authenticated",
                 accessToken: storedOAuthToken.access_token,
+                authorization: `Bearer ${storedOAuthToken.accessToken}`,
                 tokenExpiresAt
             })
         }
     }
 
     usePollingIf(() => authState == AuthState.AUTHENTICATED && isConnected, () => {
-        refresh("Polling")
+        periodicRefresh("Polling")
     }, 20000);
     useEffect(function restoreSession() {
         NetInfo.configure({
@@ -160,12 +179,12 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
                 netInfoState: state,
             })
         });
-        NetInfo.refresh().then(() => refresh("After NetInfo.refresh"));
+        NetInfo.refresh().then(() => periodicRefresh("After NetInfo.refresh"));
         return () => unsubscribe();
     }, [authState])
     useEffect(() => {
         if (authState === AuthState.INITIAL && isConnected) {
-            refresh("State is initial and connection has become available");
+            periodicRefresh("State is initial and connection has become available");
         }
     }, [authState, isConnected])
     return <AuthContext.Provider value={{
@@ -176,6 +195,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
         isConnected,
         subscribe,
         login,
-        logout
+        logout,
+        refresh
     }}>{children}</AuthContext.Provider>
 }

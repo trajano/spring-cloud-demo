@@ -15,6 +15,10 @@ export interface IAuth {
    * @returns nothing
    */
   login(authenticationCredentials: Record<string, unknown>): Promise<void>;
+  /**
+   * Refreshes the token outside of the schedule.
+   */
+  refresh(): Promise<void>;
   logout(): Promise<void>;
   /**
    * The OAuth token from the store if available.  May be null.

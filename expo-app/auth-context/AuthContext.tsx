@@ -5,6 +5,7 @@ import { IAuth } from "./IAuth";
 export const AuthContext = createContext<IAuth>({
     login: () => Promise.resolve(),
     logout: () => Promise.resolve(),
+    refresh: () => Promise.resolve(),
     subscribe: () => { return () => { }; },
     accessToken: null,
     oauthToken: null,

@@ -63,20 +63,32 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
   }, [accessToken]));
 
   useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false } }, []);
+  const [refreshing, setRefreshing] = useState(false);
 
   const data = [
     auth.oauthToken,
-    claims
+    claims,
+    auth.oauthToken && pako.inflate(base64url.toBuffer(auth.oauthToken.access_token), { to: "string" })
   ];
   function renderItem({ item }: ListRenderItemInfo<any>) {
     return <View><Text>{JSON.stringify(item, null, 2)}</Text></View>
   }
-  //const uncompressedJwt = pako.deflate(base64.decode(oauthToken.access_token))
+
+  async function refreshToken() {
+    setRefreshing(true);
+    await auth.refresh();
+    if (mountedRef.current) {
+      setRefreshing(false);
+    }
+  }
+
   return (
     <AnimatedFlashList
       estimatedItemSize={188}
       ListHeaderComponent={() => <Text style={styles.title}>Title</Text>}
       ListFooterComponent={() => <Button title="Logout" onPress={handleLogout} />}
+      onRefresh={() => refreshToken()}
+      refreshing={refreshing}
       data={data}
       renderItem={renderItem}
     />

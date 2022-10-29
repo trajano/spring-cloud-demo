@@ -65,15 +65,16 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
 
   const data = [
     auth.oauthToken,
-    claims
+    claims,
+    auth.oauthToken && pako.inflate(base64url.toBuffer(auth.oauthToken.access_token), { to: "string" })
+
   ];
   function renderItem({ item }: ListRenderItemInfo<any>) {
     return <View style={{ borderTopWidth: 1, borderColor: "yellow" }}><Text>{JSON.stringify(item, null, 2)}</Text></View>
   }
-  //const uncompressedJwt = pako.deflate(base64.decode(oauthToken.access_token))
   return (
     <AnimatedFlashList
-    estimatedItemSize={30}
+      estimatedItemSize={30}
       ListHeaderComponent={() => <Text style={styles.title}>Title</Text>}
       ListFooterComponent={() => <View style={{ borderTopWidth: 1, borderColor: "yellow" }}><Button title="Logout" onPress={handleLogout} /></View>}
       data={data}
