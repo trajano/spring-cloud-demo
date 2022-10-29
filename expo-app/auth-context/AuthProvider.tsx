@@ -1,6 +1,6 @@
 import NetInfo, { NetInfoState, NetInfoStateType } from '@react-native-community/netinfo';
 import { usePollingIf } from "@trajano/react-hooks";
-import { PropsWithChildren, ReactElement, useCallback, useEffect, useRef, useState } from "react";
+import { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
@@ -23,19 +23,10 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     const authClientRef = useRef(new AuthClient(baseUrl, clientId, clientSecret));
     const [authState, setAuthState] = useState(AuthState.INITIAL);
     const [oauthToken, setOauthToken] = useState<OAuthToken | null>(null);
-    const [netInfoState, setNetInfoState] = useState<NetInfoState>({
-        isConnected: false,
-        type: NetInfoStateType.unknown,
-        isInternetReachable: null,
-        details: null
-    });
+    const [isConnected, setIsConnected] = useState(false);
 
-    function getAccessToken(): string | null {
-        return oauthToken?.access_token ?? null;
-    }
-    function getAuthorization() {
-        return oauthToken ? `Bearer ${oauthToken.accessToken}` : null
-    }
+    const accessToken = useMemo(() => oauthToken?.access_token ?? null, [oauthToken]);
+    const authorization = useMemo(() => oauthToken ? `Bearer ${oauthToken.accessToken}` : null, [oauthToken]);
 
     const subscribe = useCallback(function subscribe(fn: (event: AuthEvent) => void) {
         subscribersRef.current.push(fn);
@@ -107,12 +98,12 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
                 reason: "No token stored"
             })
         }
-        else if (await storageRef.current.isExpiringInSeconds(60) && !netInfoState.isInternetReachable) {
+        else if (await storageRef.current.isExpiringInSeconds(60) && !isConnected) {
             notify({
                 type: "CheckRefresh",
                 reason: "Token is expiring in 60 seconds or has expired.  But endpoint is not available.  Not changing state."
             })
-        } else if (await storageRef.current.isExpiringInSeconds(60) && netInfoState.isInternetReachable) {
+        } else if (await storageRef.current.isExpiringInSeconds(60) && isConnected) {
             notify({
                 type: "Refreshing",
                 reason: "Token is expiring in 60 seconds or has expired.  Endpoint is available."
@@ -153,7 +144,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
         }
     }
 
-    usePollingIf(() => authState == AuthState.AUTHENTICATED && !!netInfoState.isInternetReachable, () => {
+    usePollingIf(() => authState == AuthState.AUTHENTICATED && isConnected, () => {
         refresh("Polling")
     }, 20000);
     useEffect(function restoreSession() {
@@ -163,25 +154,26 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
             useNativeReachability: true,
         })
         const unsubscribe = NetInfo.addEventListener(state => {
-            setNetInfoState(state);
+            setIsConnected(!!state.isInternetReachable);
             notify({
                 type: "Connection",
                 netInfoState: state,
             })
-            if (authState === AuthState.INITIAL && netInfoState.isInternetReachable) {
-                refresh("State is initial and connection has become available");
-            }
         });
         NetInfo.refresh().then(() => refresh("After NetInfo.refresh"));
         return () => unsubscribe();
-    }, [])
+    }, [authState])
+    useEffect(() => {
+        if (authState === AuthState.INITIAL && isConnected) {
+            refresh("State is initial and connection has become available");
+        }
+    }, [authState, isConnected])
     return <AuthContext.Provider value={{
         authState,
-        getAuthorization,
-        getAccessToken,
+        authorization,
+        accessToken,
         oauthToken,
-        netInfoState,
-        isConnected: !!netInfoState.isInternetReachable,
+        isConnected,
         subscribe,
         login,
         logout

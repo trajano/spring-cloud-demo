@@ -47,7 +47,7 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
   }, [accessToken])
 
   useFocusEffect(useCallback(() => {
-    const accessTokenFromAuth = auth.getAccessToken()
+    const accessTokenFromAuth = auth.accessToken
     setAccessToken(accessTokenFromAuth)
     return auth.subscribe(updateAuthToken)
   }, []));
@@ -73,6 +73,7 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
   //const uncompressedJwt = pako.deflate(base64.decode(oauthToken.access_token))
   return (
     <AnimatedFlashList
+    estimatedItemSize={30}
       ListHeaderComponent={() => <Text style={styles.title}>Title</Text>}
       ListFooterComponent={() => <View style={{ borderTopWidth: 1, borderColor: "yellow" }}><Button title="Logout" onPress={handleLogout} /></View>}
       data={data}

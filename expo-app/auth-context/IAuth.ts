@@ -25,23 +25,19 @@ export interface IAuth {
    * Convenience to get the access token directly.  This is
    * not a React state and will not trigger a re-render when updated.
    */
-  getAccessToken(): string | null;
+  accessToken: string | null;
   /**
    * Convenience to get the Authorization header value.  This is
    * not a React state and will not trigger a re-render when updated.
    */
-  getAuthorization(): string | null;
+  authorization: string | null;
   /**
    * Current authentication state.  This is
    * not a React state and will not trigger a re-render when updated.
    */
   authState: AuthState;
   /**
-   * Current network info state.
-   */
-  netInfoState: NetInfoState;
-  /**
-   * Convenience method to determine if the backend is reachable.  
+   * Determine if the backend is reachable.
    */
   isConnected: boolean;
 }

@@ -48,7 +48,7 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
   }, [accessToken])
 
   useFocusEffect(useCallback(() => {
-    const accessTokenFromAuth = auth.getAccessToken()
+    const accessTokenFromAuth = auth.accessToken
     setAccessToken(accessTokenFromAuth)
     return auth.subscribe(updateAuthToken)
   }, []));

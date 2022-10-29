@@ -29,14 +29,6 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
   const [username, setUsername] = useState("")
   const auth = useAuth();
   const [now, setNow] = useState(format(Date.now(), "PPPPpppp", { locale }))
-  const [isConnected, setIsConnected] = useState(auth.isConnected);
-  useEffect(() => {
-    return auth.subscribe((authEvent) => {
-      if (authEvent.type === "Connection") {
-        setIsConnected(auth.isConnected);
-      }
-    })
-  }, [])
   async function handleLogin() {
     return auth.login({
       "username": username,
@@ -54,14 +46,14 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
   }, [locale])
   const viewRef = createRef<RNView>();
 
-  const disabled = useMemo(() => !isConnected || username === "", [isConnected, username]);
+  const disabled = useMemo(() => !auth.isConnected || username === "", [auth.isConnected, username]);
   return (
     <View style={styles.container} ref={viewRef}>
       <Text style={styles.title} _t="asdf">Login Screen</Text>
       <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} style={{ width: 300 }} />
       <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
       <Text>{BASE_URL}</Text>
-      <Text>{JSON.stringify({ isConnected, now })}</Text>
+      <Text>{JSON.stringify({ isConnected: auth.isConnected, now })}</Text>
     </View>
   );
 }

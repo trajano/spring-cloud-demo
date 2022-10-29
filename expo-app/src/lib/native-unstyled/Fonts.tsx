@@ -106,7 +106,7 @@ export function FontsProvider({
     }
     return fontsLoadedInEffect;
   },
-    (fontsLoadedInEffect) => { setLoadedFonts(fontsLoadedInEffect); console.dir(fontsLoadedInEffect) },
+    (fontsLoadedInEffect) => { setLoadedFonts(fontsLoadedInEffect); },
     []);
 
   return <FontsContext.Provider value={{ loadedFonts, replaceWithNativeFont: replaceWithNativeFont }}>{children}</FontsContext.Provider>

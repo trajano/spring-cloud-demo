@@ -4,7 +4,14 @@ import type { NetInfoState } from "@react-native-community/netinfo";
  */
 type AuthenticatedEvent = {
   type: "Authenticated";
+  /**
+   * The raw access token.
+   */
   accessToken: string;
+  /**
+   * A value suitable for Authorization HTTP header.
+   */
+  authorization: string;
   tokenExpiresAt: Date;
   /**
    * Reason for authentication if any
@@ -14,7 +21,7 @@ type AuthenticatedEvent = {
 /**
  * This gets fired when the refresh process is about to start and it is being checked if needed or possible.
  */
- type CheckRefreshEvent = {
+type CheckRefreshEvent = {
   type: "CheckRefresh";
   /**
    * Reason for refresh if any
