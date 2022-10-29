@@ -23,7 +23,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     const authClientRef = useRef(new AuthClient(baseUrl, clientId, clientSecret));
     const [authState, setAuthState] = useState(AuthState.INITIAL);
     const [oauthToken, setOauthToken] = useState<OAuthToken | null>(null);
-    const netInfoState = useRef<NetInfoState>({
+    const [netInfoState, setNetInfoState] = useState<NetInfoState>({
         isConnected: false,
         type: NetInfoStateType.unknown,
         isInternetReachable: null,
@@ -107,12 +107,12 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
                 reason: "No token stored"
             })
         }
-        else if (await storageRef.current.isExpiringInSeconds(60) && !netInfoState.current.isInternetReachable) {
+        else if (await storageRef.current.isExpiringInSeconds(60) && !netInfoState.isInternetReachable) {
             notify({
                 type: "CheckRefresh",
                 reason: "Token is expiring in 60 seconds or has expired.  But endpoint is not available.  Not changing state."
             })
-        } else if (await storageRef.current.isExpiringInSeconds(60) && netInfoState.current.isInternetReachable) {
+        } else if (await storageRef.current.isExpiringInSeconds(60) && netInfoState.isInternetReachable) {
             notify({
                 type: "Refreshing",
                 reason: "Token is expiring in 60 seconds or has expired.  Endpoint is available."
@@ -153,7 +153,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
         }
     }
 
-    usePollingIf(() => authState == AuthState.AUTHENTICATED && !!netInfoState.current.isInternetReachable, () => {
+    usePollingIf(() => authState == AuthState.AUTHENTICATED && !!netInfoState.isInternetReachable, () => {
         refresh("Polling")
     }, 20000);
     useEffect(function restoreSession() {
@@ -163,12 +163,12 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
             useNativeReachability: true,
         })
         const unsubscribe = NetInfo.addEventListener(state => {
-            netInfoState.current = state
+            setNetInfoState(state);
             notify({
                 type: "Connection",
                 netInfoState: state,
             })
-            if (authState === AuthState.INITIAL && netInfoState.current.isInternetReachable) {
+            if (authState === AuthState.INITIAL && netInfoState.isInternetReachable) {
                 refresh("State is initial and connection has become available");
             }
         });
@@ -180,8 +180,8 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
         getAuthorization,
         getAccessToken,
         oauthToken,
-        getNetInfoState: () => netInfoState.current,
-        isConnected: () => !!netInfoState.current.isInternetReachable,
+        netInfoState,
+        isConnected: !!netInfoState.isInternetReachable,
         subscribe,
         login,
         logout

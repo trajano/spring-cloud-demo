@@ -29,11 +29,11 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
   const [username, setUsername] = useState("")
   const auth = useAuth();
   const [now, setNow] = useState(format(Date.now(), "PPPPpppp", { locale }))
-  const [isConnected, setIsConnected] = useState(auth.isConnected());
+  const [isConnected, setIsConnected] = useState(auth.isConnected);
   useEffect(() => {
     return auth.subscribe((authEvent) => {
       if (authEvent.type === "Connection") {
-        setIsConnected(auth.isConnected());
+        setIsConnected(auth.isConnected);
       }
     })
   }, [])

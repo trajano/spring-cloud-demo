@@ -37,13 +37,11 @@ export interface IAuth {
    */
   authState: AuthState;
   /**
-   * Current network info state.  This is
-   * not a React state and will not trigger a re-render when updated.
+   * Current network info state.
    */
-  getNetInfoState(): NetInfoState;
+  netInfoState: NetInfoState;
   /**
-   * Convenience method to determine if the backend is reachable.  This is
-   * not a React state and will not trigger a re-render when updated.
+   * Convenience method to determine if the backend is reachable.  
    */
-   isConnected(): boolean;
+  isConnected: boolean;
 }
