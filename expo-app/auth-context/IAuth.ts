@@ -1,4 +1,3 @@
-import { NetInfoState } from "@react-native-community/netinfo";
 import { AuthEvent } from "./AuthEvent";
 import { AuthState } from "./AuthState";
 import { OAuthToken } from "./OAuthToken";
@@ -19,16 +18,30 @@ export interface IAuth {
   logout(): Promise<void>;
   /**
    * The OAuth token from the store if available.  May be null.
+   *
+   * Note this should only be used for setting the initial state
+   * and not be used for any other purpose.  The value obtained from
+   * a subscription should be used as it gets updated as soon
+   * as a new token is obtained.
    */
   oauthToken: OAuthToken | null;
   /**
-   * Convenience to get the access token directly.  This is
-   * not a React state and will not trigger a re-render when updated.
+   * The access token.  May be null.
+   *
+   * Note this should only be used for setting the initial state
+   * and not be used for any other purpose.  The value obtained from
+   * a subscription should be used as it gets updated as soon
+   * as a new token is obtained.
    */
   accessToken: string | null;
   /**
-   * Convenience to get the Authorization header value.  This is
-   * not a React state and will not trigger a re-render when updated.
+   * Convenience to get the Authorization header value.  
+   * 
+   * Note this should only be used for setting the initial state 
+   * and not be used for any other purpose.  The value obtained from
+   * a subscription should be used as it gets updated as soon
+   * as a new token is obtained.
+
    */
   authorization: string | null;
   /**
