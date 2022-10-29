@@ -5,68 +5,9 @@ import * as RN from "react-native";
 import { useColors, useFonts } from "../lib/native-unstyled";
 export const ScrollView = Animated.ScrollView;
 
-
-
 export function SectionList<ItemT, SectionT>(props: Animated.AnimatedProps<SectionListProps<ItemT, SectionT>>) {
     return <Animated.SectionList {...props} />
 }
-
-
-// export function FlatList<T>(props: FlashListProps<T>): ReactElement<FlashListProps<T>> {
-//     return <FlashList {...props} />
-// }
-
-type ITextStyleContext = Pick<
-    RN.TextStyle,
-    "fontFamily" | "fontWeight" | "fontStyle"
-> & {
-    provided: boolean,
-    updateForStyleProp(style: RN.TextStyle): void
-};
-
-const TextStyleContext = createContext<ITextStyleContext>({
-    provided: false, fontFamily: "sans-serif", fontWeight: "normal", fontStyle: "normal",
-    updateForStyleProp: () => { }
-})
-
-const ForwardedRefContextedMyText = forwardRef<RN.Text, Animated.AnimatedProps<TextProps>>(({ style, ...rest }, ref) => {
-    const colors = useColors();
-    const [fontFamily, setFontFamily] = useState<NonNullable<RN.TextStyle['fontFamily']>>("sans-serif");
-    const [fontWeight, setFontWeight] = useState<NonNullable<RN.TextStyle['fontWeight']>>("400");
-    const [fontStyle, setFontStyle] = useState<NonNullable<RN.TextStyle['fontStyle']>>("normal");
-    function updateForStyleProp({ fontFamily: nextFontFamily, fontWeight: nextFontWeight, fontStyle: nextFontStyle }: RN.TextStyle) {
-        if (nextFontFamily) {
-            setFontFamily(nextFontFamily)
-        }
-        if (nextFontWeight) {
-            setFontWeight(nextFontWeight)
-        }
-        if (nextFontStyle) {
-            setFontStyle(nextFontStyle)
-        }
-    }
-    // the compose will actually have to pull the data from the fonts.
-    const flattenedStyle = useMemo(() => StyleSheet.compose({ fontFamily, fontWeight, fontStyle, color: colors.default[0] }, style), [fontFamily, fontWeight, fontStyle, style]);
-    return <TextStyleContext.Provider value={{ provided: true, fontFamily, fontWeight, fontStyle, updateForStyleProp }}>
-        <Animated.Text {...rest} style={flattenedStyle as RN.TextStyle} ref={ref} />
-    </TextStyleContext.Provider>
-
-});
-const ForwardedRefMyText = forwardRef<RN.Text, Animated.AnimatedProps<TextProps>>(({ style, ...rest }, ref) => {
-    const { provided, updateForStyleProp } = useContext(TextStyleContext);
-    const flattenedStyle = useMemo(() => StyleSheet.flatten(style), [style]);
-    updateForStyleProp(flattenedStyle as Pick<
-        RN.TextStyle,
-        "fontFamily" | "fontWeight" | "fontStyle"
-    >);
-    return useMemo(() => {
-        if (provided) {
-            return <Animated.Text {...rest} style={style} ref={ref} />;
-        } else {
-            return <ForwardedRefContextedMyText {...rest} style={style} ref={ref} />;
-        }
-    }, []);
-});
 
 type FontLookupKey = Pick<
     RN.TextStyle,
@@ -100,12 +41,6 @@ const ForwardedRefMyText2 = forwardRef<RN.Text, Animated.AnimatedProps<TextProps
     }, []);
 });
 
-
-export function Bold({ children }: PropsWithChildren<{}>) {
-    // 
-    const textStyleContext = useContext(TextStyleContext);
-    return useCallback(() => <Animated.Text style={{ fontWeight: "700" }} />, [])
-}
 
 export type I18nProps = {
     /**
@@ -210,15 +145,6 @@ export function withStyled<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>,
         return <WrappedComponent ref={forwardedRef} style={computedStyle} {...rest as P & JSX.IntrinsicAttributes} />;
     }
     StyledComponent.displayName = displayName;
-    // const render = (props, ref) => <StyledComponent forwardedRef={ref} {...props} />
-    //return useCallback((props) => <StyledComponent {...props} />, []));
-    //return useCallback((props) => createElement(StyledComponent, props), []);
-    // return forwardRef<ComponentType<P>, P>(useCallback((props, ref) => <StyledComponent forwardedRef={ref} {...props} />, []));
-    // return forwardRef<ComponentType<P>, P>((props, ref) => {
-    //     console.log("render", ref)
-    //     return <WrappedComponent ref={ref} {...props} />
-    // })
-    // return useCallback(forwardRef(render), []);
     return useCallback((props: StyledProps<P>) => <StyledComponent forwardedRef={ref} {...props} />, []);
 }
 
@@ -237,23 +163,3 @@ export const Text: I18nStyledFC<Animated.AnimatedProps<TextProps>, RN.Text> =
 export function TextInput(props: TextInputProps): ReactElement<TextInputProps> {
     return <RN.TextInput {...props} />
 }
-
-
-// export function FlatList<T>(props: StyledProps<FlashListProps<T>>) {
-//     return withStyled((props) => <FlashList {...props as FlashListProps<T>} />);
-// }
-
-// export function withStyled<P, S extends StyleProps>(WrappedComponent: ComponentType<P>): ComponentType<P & S> {
-//     const displayName =
-//         WrappedComponent.displayName || WrappedComponent.name || "Component";
-//     function StyledComponent(props: P & S) {
-
-//         //return forwardRef(StyledComponent;
-
-//         return forwardRef((props: ComponentType<P>, ref) => <><WrappedComponent ref={ref} {...props} /></>)
-
-//     }
-//     StyledComponent.displayName = displayName;
-//     return forwardRef((props: , ref) => <StyledComponent {...props} forwardedRef={ref} />)
-// }
-
