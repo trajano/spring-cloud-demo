@@ -23,7 +23,7 @@ jar {
     // disable plain jar creation
     enabled = false
 }
-spotless {y
+spotless {
     format "misc", {
         target '*.gradle', '*.md', '.gitignore'
         trimTrailingWhitespace()
