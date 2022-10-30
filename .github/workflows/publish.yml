@@ -27,9 +27,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BASE_URL: https://api.trajano.net
-    defaults:
-      run:
-        working-directory: ./expo-app
+#    defaults:
+#      run:
+#        working-directory: ./expo-app
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -45,12 +45,14 @@ jobs:
           expo-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
       - name: 📦 Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
       - name: Create env
         run: |
           echo BASE_URL=https://api.trajano.net > .env
+        working-directory: ./expo-app
       - name: 🚀 Publish app
         run: expo publish --non-interactive
+        working-directory: ./expo-app
 
   build:
 
