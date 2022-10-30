@@ -4,18 +4,11 @@
   "private": true,
   "workspaces": [
     "expo-app",
-    "react-app",
     "packages/*"
   ],
   "resolutions": {
     "shell-quote": ">= 1.7.3"
   },
   "scripts": {},
-  "dependencies": {},
-  "preconstruct": {
-    "packages": [
-      "react-app",
-      "packages/*"
-    ]
-  }
+  "dependencies": {}
 }
