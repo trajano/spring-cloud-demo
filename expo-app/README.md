@@ -67,7 +67,7 @@ Only support changing to monospaced font, the rest is simple style changes.
 
 ## Utility props
 
-bg = background color
+`bg` = background color
 
 ### Text specific
 

@@ -1,9 +1,10 @@
 const { getDefaultConfig } = require("expo/metro-config");
+const findWorkspaceRoot = require('find-yarn-workspace-root');
 const path = require("path");
 
 const projectRoot = __dirname;
 // This can be replaced with `find-yarn-workspace-root`
-const workspaceRoot = path.resolve(projectRoot, "..");
+const workspaceRoot = findWorkspaceRoot(__dirname);
 
 const config = getDefaultConfig(projectRoot);
 

@@ -7,6 +7,9 @@
     "react-app",
     "packages/*"
   ],
+  "resolutions": {
+    "shell-quote": ">= 1.7.3"
+  },
   "scripts": {},
   "dependencies": {},
   "preconstruct": {
