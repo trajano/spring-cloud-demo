@@ -1,6 +1,6 @@
 import NetInfo from '@react-native-community/netinfo';
 import { usePollingIf } from "@trajano/react-hooks";
-import { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
