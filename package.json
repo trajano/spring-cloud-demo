@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "expo-app"
+    "expo-app",
+    "packages/*"
   ],
   "resolutions": {
     "shell-quote": ">= 1.7.3"

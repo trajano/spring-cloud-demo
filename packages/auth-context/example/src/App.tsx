@@ -1,10 +1,31 @@
-import React from 'react'
+import * as React from 'react';
 
-import { ExampleComponent } from 'auth-context'
-import 'auth-context/dist/index.css'
+import { StyleSheet, View, Text } from 'react-native';
+import { multiply } from '@trajano/spring-docker-auth-context';
 
-const App = () => {
-  return <ExampleComponent text="Create React Library Example 😄" />
+export default function App() {
+  const [result, setResult] = React.useState<number | undefined>();
+
+  React.useEffect(() => {
+    multiply(3, 7).then(setResult);
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <Text>Result: {result}</Text>
+    </View>
+  );
 }
 
-export default App
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  box: {
+    width: 60,
+    height: 60,
+    marginVertical: 20,
+  },
+});

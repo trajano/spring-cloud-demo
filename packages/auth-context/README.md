@@ -1,30 +1,29 @@
-# auth-context
+# @trajano/spring-docker-auth-context
+Auth Context
+## Installation
 
-> Made with create-react-library
-
-[![NPM](https://img.shields.io/npm/v/auth-context.svg)](https://www.npmjs.com/package/auth-context) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
-
-## Install
-
-```bash
-npm install --save auth-context
+```sh
+npm install @trajano/spring-docker-auth-context
 ```
 
 ## Usage
 
-```tsx
-import React, { Component } from 'react'
+```js
+import { multiply } from "@trajano/spring-docker-auth-context";
 
-import MyComponent from 'auth-context'
-import 'auth-context/dist/index.css'
+// ...
 
-class Example extends Component {
-  render() {
-    return <MyComponent />
-  }
-}
+const result = await multiply(3, 7);
 ```
+
+## Contributing
+
+See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
 
 ## License
 
-MIT © [](https://github.com/)
+MIT
+
+---
+
+Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)

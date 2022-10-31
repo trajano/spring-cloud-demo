@@ -1,24 +1,28 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": false,
-    "skipLibCheck": true,
-    "declarationMap": true,
+    "baseUrl": "./",
+    "paths": {
+      "@trajano/spring-docker-auth-context": ["./src/index"]
+    },
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "declaration": true,
-    "outDir": "./dist",
+    "importsNotUsedAsValues": "error",
     "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
+    "jsx": "react",
+    "lib": ["esnext"],
     "module": "esnext",
     "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noImplicitUseStrict": false,
+    "noStrictGenericChecks": false,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react",
-    "noEmit": true
-  },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist", "example"]
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "esnext"
+  }
 }
