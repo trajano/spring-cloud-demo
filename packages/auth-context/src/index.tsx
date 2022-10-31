@@ -1,3 +1,3 @@
-export function multiply(a: number, b: number): Promise<number> {
-  return Promise.resolve(a * b);
-}
+export { AuthProvider } from './AuthProvider'
+export { useAuth } from './useAuth'
+export type {AuthEvent} from './AuthEvent'
