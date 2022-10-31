@@ -49,3 +49,8 @@ artillery run gateway/src/test/artillery/functional-test.yml
 artillery run -q --output report.json --environment api-heavy-load gateway/src/test/artillery/functional-test.yml && artillery report report.json && start report.json.html
 artillery run --environment localhost-traefik-ludicrous-load gateway/src/test/artillery/functional-test.yml
 ```
+
+```
+echo BASE_URL=https://api.trajano.net > .env 
+rm -rf node_modules/ */node_modules/ yarn.lock */yarn.lock
+```
