@@ -1,6 +1,6 @@
-import { AuthEvent } from "./AuthEvent";
-import { AuthState } from "./AuthState";
-import { OAuthToken } from "./OAuthToken";
+import type { AuthEvent } from "./AuthEvent";
+import type { AuthState } from "./AuthState";
+import type { OAuthToken } from "./OAuthToken";
 
 export interface IAuth {
   /**
@@ -39,9 +39,9 @@ export interface IAuth {
    */
   accessToken: string | null;
   /**
-   * Convenience to get the Authorization header value.  
-   * 
-   * Note this should only be used for setting the initial state 
+   * Convenience to get the Authorization header value.
+   *
+   * Note this should only be used for setting the initial state
    * and not be used for any other purpose.  The value obtained from
    * a subscription should be used as it gets updated as soon
    * as a new token is obtained.

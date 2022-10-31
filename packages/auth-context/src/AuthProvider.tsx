@@ -1,14 +1,13 @@
 import NetInfo from '@react-native-community/netinfo';
 import { usePollingIf } from "@trajano/react-hooks";
-import React from 'react';
 import { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
-import { AuthEvent } from "./AuthEvent";
+import type { AuthEvent } from "./AuthEvent";
 import { AuthState } from "./AuthState";
 import { AuthStore } from "./AuthStore";
-import { OAuthToken } from "./OAuthToken";
+import type { OAuthToken } from "./OAuthToken";
 
 type AuthContextProviderProps = PropsWithChildren<{
   baseUrl: string,

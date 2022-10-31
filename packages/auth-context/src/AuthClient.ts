@@ -1,6 +1,6 @@
 import { AuthenticationClientError } from "./AuthenticationClientError";
 import base64url from "base64url";
-import { OAuthToken } from "./OAuthToken";
+import type { OAuthToken } from "./OAuthToken";
 
 export interface IAuthClient<A = any> {
   authenticate(authenticationRequest: A): Promise<OAuthToken>;
