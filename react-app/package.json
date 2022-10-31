@@ -12,6 +12,7 @@
     "@types/node": "^16.18.2",
     "@types/react": "^18.0.24",
     "@types/react-dom": "^18.0.8",
+    "google-protobuf": "^3.21.2",
     "grpc-web": "^1.4.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
