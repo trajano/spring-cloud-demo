@@ -3,6 +3,7 @@ package net.trajano.swarm.sampleservice;
 import brave.Tracing;
 import brave.grpc.GrpcTracing;
 import io.grpc.*;
+import io.grpc.protobuf.services.HealthStatusManager;
 import io.grpc.protobuf.services.ProtoReflectionService;
 import java.io.IOException;
 import java.util.Set;
@@ -31,6 +32,8 @@ public class GrpcServer implements DisposableBean {
   private final ExecutorService executor =
       Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
+  private final HealthStatusManager healthStatusManager;
+
   public GrpcServer(
       final Set<BindableService> grpcServices,
       final Tracing tracing,
@@ -39,8 +42,11 @@ public class GrpcServer implements DisposableBean {
     var b = ServerBuilder.forPort(port).executor(executor);
     grpcServices.forEach(b::addService);
     log.info("{} listening on {}", "server", port);
+
+    this.healthStatusManager = new HealthStatusManager();
     this.server =
         b.addService(ProtoReflectionService.newInstance())
+            .addService(healthStatusManager.getHealthService())
             .intercept(interceptor)
             .intercept(new JwtClaimsInterceptor())
             .build();
@@ -48,6 +54,7 @@ public class GrpcServer implements DisposableBean {
 
   @Override
   public void destroy() throws Exception {
+    healthStatusManager.enterTerminalState();
     executor.shutdown();
     server.shutdown().awaitTermination();
   }
@@ -61,8 +68,8 @@ public class GrpcServer implements DisposableBean {
   private static class JwtClaimsInterceptor implements ServerInterceptor {
 
     @Override
-    public <Req, Resp> ServerCall.Listener<Req> interceptCall(
-        ServerCall<Req, Resp> call, Metadata headers, ServerCallHandler<Req, Resp> next) {
+    public <R, Q> ServerCall.Listener<R> interceptCall(
+            ServerCall<R, Q> call, Metadata headers, ServerCallHandler<R, Q> next) {
       final var context =
           Context.current().withValue(JWT_CLAIMS_CONTEXT_KEY, headers.get(JWT_CLAIMS_KEY));
       return Contexts.interceptCall(context, call, headers, next);
