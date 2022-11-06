@@ -69,7 +69,7 @@ public class GrpcServer implements DisposableBean {
 
     @Override
     public <R, Q> ServerCall.Listener<R> interceptCall(
-            ServerCall<R, Q> call, Metadata headers, ServerCallHandler<R, Q> next) {
+        ServerCall<R, Q> call, Metadata headers, ServerCallHandler<R, Q> next) {
       final var context =
           Context.current().withValue(JWT_CLAIMS_CONTEXT_KEY, headers.get(JWT_CLAIMS_KEY));
       return Contexts.interceptCall(context, call, headers, next);
