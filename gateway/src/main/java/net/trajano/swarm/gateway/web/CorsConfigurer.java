@@ -55,8 +55,6 @@ public class CorsConfigurer {
     @Override
     public boolean process(@Nullable CorsConfiguration config, ServerWebExchange exchange) {
 
-      System.out.println(config.getAllowedOrigins());
-      System.out.println(exchange.getRequest());
       log.error(
           "uri={}, hasOrigin={} isCorsRequest={} isSameOrigin={} isPreflight={}",
           exchange.getRequest().getURI(),
