@@ -12,6 +12,5 @@ README.md
 *.iws
 docker-compose.yml
 gateway/src/test/artillery/*
-expo-app/
 **/node_modules/
-packages/
+
