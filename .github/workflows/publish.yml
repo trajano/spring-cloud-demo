@@ -37,7 +37,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           cache-dependency-path: 'expo-app/yarn.lock'
-          node-version: 16.17.1
+          node-version: 16.18.1
           cache: yarn
       - name: 🏗 Setup Expo
         uses: expo/expo-github-action@v7

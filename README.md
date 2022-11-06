@@ -51,6 +51,6 @@ artillery run --environment localhost-traefik-ludicrous-load gateway/src/test/ar
 ```
 
 ```
-echo BASE_URL=https://api.trajano.net > .env 
+echo BASE_URL=https://api.trajano.net > .env
 rm -rf node_modules/ */node_modules/ yarn.lock */yarn.lock
 ```
