@@ -15,9 +15,9 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v3
         with:
-#          cache-dependency-path: './yarn.lock'
+          cache-dependency-path: './yarn.lock'
           node-version: lts/gallium
-#          cache: yarn
+          cache: yarn
       - name: 🏗 Setup Expo
         uses: expo/expo-github-action@v7
         with:
