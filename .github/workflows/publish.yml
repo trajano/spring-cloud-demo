@@ -36,7 +36,7 @@ jobs:
       - name: 🏗 Setup Node
         uses: actions/setup-node@v2
         with:
-          cache-dependency-path: 'expo-app/yarn.lock'
+          cache-dependency-path: './yarn.lock'
           node-version: 16.18.1
           cache: yarn
       - name: 🏗 Setup Expo
