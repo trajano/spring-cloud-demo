@@ -1,5 +1,5 @@
 import { Button, StyleSheet } from 'react-native';
-import { AuthEvent, useAuth } from '../auth-context';
+import { AuthEvent, useAuth } from '@trajano/spring-docker-auth-context';
 
 import { BASE_URL } from '@env';
 import { useFocusEffect } from '@react-navigation/native';

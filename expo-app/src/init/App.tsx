@@ -1,7 +1,7 @@
 import { BASE_URL } from '@env';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider } from '../../auth-context';
+import { AuthProvider } from '@trajano/spring-docker-auth-context';
 import './initialize';
 
 import useCachedResources from '../../hooks/useCachedResources';

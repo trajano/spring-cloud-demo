@@ -16,6 +16,7 @@
     "shell-quote": ">= 1.7.3"
   },
   "dependencies": {
+"@trajano/spring-docker-auth-context": "0.1.0",
     "@expo-google-fonts/ibm-plex-sans": "^0.2.2",
     "@expo-google-fonts/island-moments": "^0.2.2",
     "@expo-google-fonts/lexend": "^0.2.2",

@@ -4,7 +4,7 @@ import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
 import { createRef, useEffect, useMemo, useState } from 'react';
 import { Button, StyleSheet, View as RNView } from 'react-native';
-import { useAuth } from '../../auth-context';
+import { useAuth } from '@trajano/spring-docker-auth-context';
 import { TextInput } from '../../components/Themed';
 import { Text, View } from '../../src/components';
 import type { LoginStackScreenProps } from './types';

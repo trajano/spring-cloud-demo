@@ -10,5 +10,7 @@
     "shell-quote": ">= 1.7.3"
   },
   "scripts": {},
-  "dependencies": {}
+  "devDependencies": {
+    "lerna": "^6.0.1"
+  }
 }
