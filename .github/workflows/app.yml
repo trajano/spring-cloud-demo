@@ -2,11 +2,6 @@ on:
   push:
     branches:
       - rework
-env:
-  # Use docker.io for Docker Hub if empty
-  REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
 
@@ -18,10 +13,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           cache-dependency-path: './yarn.lock'
-          node-version: 16.18.1
+          node-version: lts/gallium
           cache: yarn
       - name: 🏗 Setup Expo
         uses: expo/expo-github-action@v7
