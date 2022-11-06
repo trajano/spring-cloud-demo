@@ -11,7 +11,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAsyncSetEffect } from '@trajano/react-hooks';
 import * as React from 'react';
 import { ColorSchemeName, Linking, Platform, Pressable } from 'react-native';
-import { useAuth,AuthEvent,AuthState } from '@trajano/spring-docker-auth-context';
+import { useAuth, AuthEvent, AuthState } from '@trajano/spring-docker-auth-context';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 import ModalScreen from '../screens/ModalScreen';
