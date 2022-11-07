@@ -1,6 +1,6 @@
-import type { AuthEvent } from "./AuthEvent";
-import type { AuthState } from "./AuthState";
-import type { OAuthToken } from "./OAuthToken";
+import type { AuthEvent } from './AuthEvent';
+import type { AuthState } from './AuthState';
+import type { OAuthToken } from './OAuthToken';
 
 export interface IAuth {
   /**
@@ -57,4 +57,8 @@ export interface IAuth {
    * Determine if the backend is reachable.
    */
   isConnected: boolean;
+  /**
+   * Last unauthenticated events.  The most recent one will be the first element.
+   */
+  lastUnauthenticatedEvents: AuthEvent[];
 }

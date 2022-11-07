@@ -1,6 +1,6 @@
 import NetInfo from '@react-native-community/netinfo';
 import { usePollingIf } from "@trajano/react-hooks";
-import React, { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
@@ -24,6 +24,9 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
   const [authState, setAuthState] = useState(AuthState.INITIAL);
   const [oauthToken, setOauthToken] = useState<OAuthToken | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [lastUnauthenticatedEvents, pushUnauthenticatedEvent] = useReducer((current: AuthEvent[], unauthenticatedAuthEvent: AuthEvent) => {
+    return [unauthenticatedAuthEvent, ...current];
+  }, []);
 
   const accessToken = useMemo(() => oauthToken?.access_token ?? null, [oauthToken]);
   const authorization = useMemo(() => oauthToken ? `Bearer ${oauthToken.accessToken}` : null, [oauthToken]);
@@ -34,7 +37,13 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
       (subscription) => !Object.is(subscription, fn));
   }, []);
 
+  /**
+   * Notifies subscribers.  There's a specific handler if it is "Unauthenticated" that the provider handles.
+   */
   const notify = useCallback(function notify(event: AuthEvent) {
+    if (event.type === "Unauthenticated") {
+      pushUnauthenticatedEvent(event);
+    }
     subscribersRef.current.forEach((fn) => fn(event));
   }, []);
 
@@ -79,7 +88,8 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
       setAuthState(AuthState.UNAUTHENTICATED)
       setOauthToken(null);
       notify({
-        type: "Unauthenticated"
+        type: "Unauthenticated",
+        reason: "Logged out"
       })
 
     }
@@ -193,6 +203,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     accessToken,
     oauthToken,
     isConnected,
+    lastUnauthenticatedEvents,
     subscribe,
     login,
     logout,

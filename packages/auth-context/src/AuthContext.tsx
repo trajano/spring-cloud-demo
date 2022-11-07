@@ -11,5 +11,6 @@ export const AuthContext = createContext<IAuth>({
     oauthToken: null,
     authorization: null,
     authState: AuthState.INITIAL,
-    isConnected: false
+    isConnected: false,
+    lastUnauthenticatedEvents: []
 });

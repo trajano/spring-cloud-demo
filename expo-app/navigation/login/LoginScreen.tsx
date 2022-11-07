@@ -54,6 +54,7 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
       <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
       <Text>{BASE_URL}</Text>
       <Text>{JSON.stringify({ isConnected: auth.isConnected, now })}</Text>
+      <Text>{JSON.stringify(auth.lastUnauthenticatedEvents, null, 2)}</Text>
     </View>
   );
 }
