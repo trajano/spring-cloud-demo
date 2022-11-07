@@ -2,11 +2,11 @@ import { BASE_URL } from '@env';
 import { format, Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
-import { createRef, useEffect, useMemo, useState } from 'react';
+import { createRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, StyleSheet, View as RNView } from 'react-native';
 import { useAuth } from '@trajano/spring-docker-auth-context';
 import { TextInput } from '../../components/Themed';
-import { Text, View } from '../../src/components';
+import { ScrollView, Text, View } from '../../src/components';
 import type { LoginStackScreenProps } from './types';
 
 export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login'>) {
@@ -47,14 +47,20 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
   const viewRef = createRef<RNView>();
 
   const disabled = useMemo(() => !auth.isConnected || username === "", [auth.isConnected, username]);
+  const LoginForm = useCallback(({ username, disabled }: any) => (<View ref={viewRef}>
+    <Text style={styles.title} _t="asdf">Login Screen</Text>
+    <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} style={{ width: 300 }} />
+    <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
+  </View>
+  ), []);
   return (
-    <View style={styles.container} ref={viewRef}>
-      <Text style={styles.title} _t="asdf">Login Screen</Text>
-      <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} style={{ width: 300 }} />
-      <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
-      <Text>{BASE_URL}</Text>
-      <Text>{JSON.stringify({ isConnected: auth.isConnected, now })}</Text>
-      <Text>{JSON.stringify(auth.lastUnauthenticatedEvents, null, 2)}</Text>
+    <View style={{ flex: 1 }}>
+      <LoginForm username={username} disabled={disabled} />
+      <ScrollView>
+        <Text>{BASE_URL}</Text>
+        <Text>{JSON.stringify({ isConnected: auth.isConnected, now })}</Text>
+        <Text>{JSON.stringify(auth.lastUnauthenticatedEvents, null, 2)}</Text>
+      </ScrollView>
     </View>
   );
 }
