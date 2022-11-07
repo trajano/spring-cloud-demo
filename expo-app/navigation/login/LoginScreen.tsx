@@ -1,13 +1,35 @@
 import { BASE_URL } from '@env';
+import { useAuth } from '@trajano/spring-docker-auth-context';
 import { format, Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
-import { createRef, useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, StyleSheet, View as RNView } from 'react-native';
-import { useAuth } from '@trajano/spring-docker-auth-context';
+import { useEffect, useMemo, useState } from 'react';
+import { Button, StyleSheet } from 'react-native';
 import { TextInput } from '../../components/Themed';
 import { ScrollView, Text, View } from '../../src/components';
 import type { LoginStackScreenProps } from './types';
+
+export function LoginForm() {
+  const auth = useAuth();
+  const [username, setUsername] = useState("");
+  const disabled = useMemo(() => !auth.isConnected || username === "", [auth.isConnected, username]);
+  async function handleLogin() {
+    return auth.login({
+      "username": username,
+      "authenticated": true,
+      "accessTokenExpiresInMillis": 120000,
+      // two day expiration of refresh token
+      "refreshTokenExpiresInMillis": 172800000
+    })
+  }
+
+  return (<View>
+    <Text style={styles.title} _t="asdf">Login Screen</Text>
+    <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} style={{ width: 300 }} />
+    <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
+  </View>
+  )
+}
 
 export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login'>) {
 
@@ -26,36 +48,17 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
 
   }, [Localization.locales])
 
-  const [username, setUsername] = useState("")
   const auth = useAuth();
   const [now, setNow] = useState(format(Date.now(), "PPPPpppp", { locale }))
-  async function handleLogin() {
-    return auth.login({
-      "username": username,
-      "authenticated": true,
-      "accessTokenExpiresInMillis": 120000,
-      // two day expiration of refresh token
-      "refreshTokenExpiresInMillis": 172800000
-    })
-  }
   useEffect(() => {
 
     const c = setInterval(() => setNow(format(Date.now(), "PPPPpppp", { locale })), 1000);
     return () => clearInterval(c);
 
   }, [locale])
-  const viewRef = createRef<RNView>();
-
-  const disabled = useMemo(() => !auth.isConnected || username === "", [auth.isConnected, username]);
-  const LoginForm = useCallback(({ username, disabled }: any) => (<View ref={viewRef}>
-    <Text style={styles.title} _t="asdf">Login Screen</Text>
-    <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} style={{ width: 300 }} />
-    <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
-  </View>
-  ), []);
   return (
     <View style={{ flex: 1 }}>
-      <LoginForm username={username} disabled={disabled} />
+      <LoginForm />
       <ScrollView>
         <Text>{BASE_URL}</Text>
         <Text>{JSON.stringify({ isConnected: auth.isConnected, now })}</Text>
