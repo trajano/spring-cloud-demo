@@ -24,7 +24,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @SuppressWarnings("unused")
 public class CoreRoutes {
 
-  @Value("${cors.allowed-headers:authorization,content-type}") private Set<String> allowedHeaders;
+  @Value("${cors.allowed-headers:authorization,content-type,cache-control,x-requested-with}") private Set<String> allowedHeaders;
 
   @Value("${cors.allowed-methods:GET,POST,DELETE,PATCH}") private Set<String> allowedMethods;
 

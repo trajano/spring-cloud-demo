@@ -15,14 +15,19 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children
     const eventStream = useRef<EventSource<string>>();
 
     const [internalState, updateInternalStateFromServerSentEvent] = useReducer((state: string[], nextEvent: string) => { return [...state, nextEvent].slice(-5) }, [])
-    useAsyncSetEffect(async () =>
-        jwtVerify(accessToken, new URL(`${baseUrl}/jwks`), clientId),
+    useAsyncSetEffect(async function verifyToken() {
+        try {
+            return jwtVerify(accessToken, new URL(`${baseUrl}/jwks`), clientId);
+        } catch (e) {
+            return Promise.resolve(undefined);
+        }
+    },
         (nextClaims) => {
             setClaims(nextClaims);
         }, []);
     useEffect(() => {
 
-        if (verified) {
+        if (verified && username) {
             eventStream.current = new EventSource<string>(`${baseUrl}/grpc/Echo/echoStream`, {
                 headers: {
                     authorization: `Bearer ${accessToken}`,
@@ -30,7 +35,7 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children
                     accept: "text/event-stream"
                 },
                 method: "POST",
-                body: JSON.stringify({ message: `I am ${claims}` })
+                body: JSON.stringify({ message: `I am ${username}` })
             });
             eventStream.current.addEventListener("message", (event) => {
                 if (event.type === "message" && event.data && isMounted()) {
@@ -40,7 +45,7 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children
             return () => eventStream.current?.close();
         }
 
-    }, [verified, claims])
+    }, [verified, username])
 
     return (<AuthenticatedContext.Provider value={{
         internalState,

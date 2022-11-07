@@ -80,7 +80,7 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
   } else if (authState == AuthState.AUTHENTICATED) {
     return <AuthenticatedProvider baseUrl={BASE_URL}
       accessToken={auth.accessToken!}
-      clientId='myClient'>
+      clientId='unknown'>
       <NavigationContainer
         linking={LinkingConfiguration}
         initialState={initialState}

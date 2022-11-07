@@ -1,16 +1,16 @@
-import { Button, StyleSheet } from 'react-native';
 import { AuthEvent, useAuth } from '@trajano/spring-docker-auth-context';
+import { Button, StyleSheet } from 'react-native';
 
 import { BASE_URL } from '@env';
 import { useFocusEffect } from '@react-navigation/native';
 import { AnimatedFlashList, ListRenderItemInfo } from '@shopify/flash-list';
+import { useMounted } from '@trajano/react-hooks';
 import base64url from 'base64url';
 import * as jose from 'node-jose';
 import pako from 'pako';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Text, View } from '../src/components';
 import { RootTabScreenProps } from '../types';
-import { useMounted } from '@trajano/react-hooks';
 export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
   const auth = useAuth();
   const [accessToken, setAccessToken] = useState<string | null>(null)

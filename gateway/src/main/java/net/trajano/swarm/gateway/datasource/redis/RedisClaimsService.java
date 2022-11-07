@@ -117,7 +117,7 @@ public class RedisClaimsService implements ClaimsService {
             () -> {
               final var start = System.currentTimeMillis();
               try {
-                log.error("jwt={}", jwt);
+                log.trace("jwt={}", jwt);
                 return jwtConsumer.processToClaims(jwt);
               } catch (InvalidJwtException e) {
                 throw new SecurityException(e);

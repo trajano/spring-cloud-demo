@@ -1,7 +1,6 @@
-import { Animated, SectionListProps, TextInputProps, StyleSheet, StyleProp, TextProps, ViewProps } from "react-native";
-import { FlashList, FlashListProps } from "@shopify/flash-list";
-import React, { ReactNode, Children, createElement, forwardRef, RefAttributes, Ref, Component, ComponentType, createContext, useContext, ReactElement, PropsWithChildren, PropsWithRef, PropsWithoutRef, useMemo, useCallback, useState } from 'react'
+import React, { Children, Component, ComponentType, createElement, forwardRef, PropsWithChildren, ReactElement, Ref, RefAttributes, useCallback, useMemo } from 'react';
 import * as RN from "react-native";
+import { Animated, SectionListProps, StyleProp, StyleSheet, TextInputProps, TextProps, ViewProps } from "react-native";
 import { useColors, useFonts } from "../lib/native-unstyled";
 export const ScrollView = Animated.ScrollView;
 
