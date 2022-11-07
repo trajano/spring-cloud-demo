@@ -3,6 +3,7 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
+import { BASE_URL } from '@env';
 import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -22,6 +23,7 @@ import { useTheming } from '../src/lib/native-unstyled';
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 import { LoginNavigator } from './login/LoginNavigator';
+import { AuthenticatedProvider } from '../authenticated-context';
 
 const PERSISTENCE_KEY = 'NAVIGATION_STATE_V1';
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
@@ -76,14 +78,18 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
     </NavigationContainer>
 
   } else if (authState == AuthState.AUTHENTICATED) {
-    return <NavigationContainer
-      linking={LinkingConfiguration}
-      initialState={initialState}
-      theme={reactNavigationTheme}
-      onStateChange={(state) => { AsyncStorage.setItem(PERSISTENCE_KEY, JSON.stringify(state)) }}
-    >
-      <RootNavigator />
-    </NavigationContainer>
+    return <AuthenticatedProvider baseUrl={BASE_URL}
+      accessToken={auth.accessToken!}
+      clientId='myClient'>
+      <NavigationContainer
+        linking={LinkingConfiguration}
+        initialState={initialState}
+        theme={reactNavigationTheme}
+        onStateChange={(state) => { AsyncStorage.setItem(PERSISTENCE_KEY, JSON.stringify(state)) }}
+      >
+        <RootNavigator />
+      </NavigationContainer>
+    </AuthenticatedProvider>
 
   } else {
     // initial

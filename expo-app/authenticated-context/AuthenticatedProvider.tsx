@@ -5,7 +5,7 @@ import { JwtClaims } from "./JwtClaims";
 import { jwtVerify } from "./jwtVerify";
 import EventSource from "react-native-sse";
 
-export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children }: PropsWithChildren<{ baseUrl: string, clientId: string }>) {
+export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children }: PropsWithChildren<{ baseUrl: string, accessToken: string, clientId: string }>) {
 
     const [claims, setClaims] = useState<JwtClaims>();
     const isMounted = useMounted();
