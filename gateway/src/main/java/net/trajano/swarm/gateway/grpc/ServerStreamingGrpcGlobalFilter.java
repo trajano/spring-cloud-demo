@@ -198,9 +198,7 @@ public class ServerStreamingGrpcGlobalFilter implements GlobalFilter, Ordered {
                               return Mono.error(e);
                             }
                           })
-                      .map(json -> ServerSentEvent.builder(json)
-                              .event("message")
-                              .build())
+                      .map(json -> ServerSentEvent.builder(json).event("message").build())
                       .map(ServerSentEventFunctions::getString)
                       .map(s -> s.getBytes(StandardCharsets.UTF_8))
                       .map(bytes -> exchange.getResponse().bufferFactory().wrap(bytes))

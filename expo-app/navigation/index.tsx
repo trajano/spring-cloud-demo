@@ -25,6 +25,7 @@ import LinkingConfiguration from './LinkingConfiguration';
 import { LoginNavigator } from './login/LoginNavigator';
 import { AuthenticatedProvider } from '../authenticated-context';
 
+
 const PERSISTENCE_KEY = 'NAVIGATION_STATE_V1';
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   const auth = useAuth();
@@ -78,6 +79,7 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
     </NavigationContainer>
 
   } else if (authState == AuthState.AUTHENTICATED) {
+    console.error({ "a": auth.accessToken })
     return <AuthenticatedProvider baseUrl={BASE_URL}
       accessToken={auth.accessToken!}
       clientId='unknown'>

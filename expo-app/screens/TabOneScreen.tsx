@@ -15,6 +15,7 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
   const auth = useAuth();
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [claims, setClaims] = useState<Record<string, unknown> | null>(null)
+  const [whoami, setWhoami] = useState<string | null>("whoami");
   const isMounted = useMounted();
 
   async function handleLogout() {
@@ -63,12 +64,26 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
     })()
   }, [accessToken]));
 
+  useFocusEffect(useCallback(() => {
+    (async function () {
+      const z = await fetch(`https://api.trajano.net/whoami`, {
+        "method": "GET",
+        "headers": { "Authorization": `Bearer ${accessToken}` }
+      });
+      const x = await (z).text();
+      if (isMounted()) {
+        setWhoami(x);
+      }
+    })()
+  }, [accessToken]));
+
   const [refreshing, setRefreshing] = useState(false);
 
   const data = [
     auth.oauthToken,
     claims,
-    auth.oauthToken && pako.inflate(base64url.toBuffer(auth.oauthToken.access_token), { to: "string" })
+    auth.oauthToken && pako.inflate(base64url.toBuffer(auth.oauthToken.access_token), { to: "string" }),
+    whoami
   ];
   function renderItem({ item }: ListRenderItemInfo<any>) {
     return <View><Text>{JSON.stringify(item, null, 2)}</Text></View>

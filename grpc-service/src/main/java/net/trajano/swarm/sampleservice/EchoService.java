@@ -71,14 +71,25 @@ public class EchoService extends EchoGrpc.EchoImplBase implements InitializingBe
   public void echoStream(
       EchoOuterClass.EchoRequest request,
       StreamObserver<EchoOuterClass.EchoResponse> responseObserver) {
-
-    identifiers
-        .map(id -> request.getMessage() + " " + id)
+    Flux.range(0, 100)
+        .delayElements(Duration.ofSeconds(2))
         .doOnNext(
-            responseMessage ->
+            id ->
                 responseObserver.onNext(
-                    EchoOuterClass.EchoResponse.newBuilder().setMessage(responseMessage).build()))
+                    EchoOuterClass.EchoResponse.newBuilder()
+                        .setMessage(request.getMessage() + " " + id)
+                        .build()))
         .doOnComplete(responseObserver::onCompleted)
         .subscribe();
+    //    identifiers
+    //        .map(id -> request.getMessage() + " " + id)bu
+    //        .log()
+    //        .doOnNext(
+    //            responseMessage ->
+    //                responseObserver.onNext(
+    //
+    // EchoOuterClass.EchoResponse.newBuilder().setMessage(responseMessage).build()))
+    //        .doOnComplete(responseObserver::onCompleted)
+    //        .subscribe();
   }
 }

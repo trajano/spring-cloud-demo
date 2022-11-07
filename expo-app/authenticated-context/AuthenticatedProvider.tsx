@@ -4,7 +4,7 @@ import { AuthenticatedContext } from "./IAuthenticatedContext";
 import { JwtClaims } from "./JwtClaims";
 import { jwtVerify } from "./jwtVerify";
 import EventSource from "react-native-sse";
-
+import { logger } from "react-native-logs";
 export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children }: PropsWithChildren<{ baseUrl: string, accessToken: string, clientId: string }>) {
 
     const [claims, setClaims] = useState<JwtClaims>();
@@ -25,9 +25,22 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children
         (nextClaims) => {
             setClaims(nextClaims);
         }, []);
-    useEffect(() => {
 
+    const log = logger.createLogger()
+    log.debug({ verified, username, accessToken });
+
+    useEffect(() => {
+        log.warn({ verified, username })
         if (verified && username) {
+
+            fetch(`${baseUrl}/whoami`, {
+                headers: {
+                    authorization: `Bearer ${accessToken}`,
+                    "content-type": "application/json",
+                    accept: "application/json",
+                },
+                method: "GET",
+            }).then(w => console.log(w.body)).catch((e) => console.log(e));
             eventStream.current = new EventSource<string>(`${baseUrl}/grpc/Echo/echoStream`, {
                 headers: {
                     authorization: `Bearer ${accessToken}`,

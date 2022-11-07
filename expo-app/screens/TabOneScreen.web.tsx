@@ -12,6 +12,7 @@ import { RootTabScreenProps } from '../types';
 
 import { AnimatedFlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import { useMounted } from '@trajano/react-hooks';
+import { useAuthenticated } from '../authenticated-context';
 export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
   const auth = useAuth();
   const [accessToken, setAccessToken] = useState<string | null>(null)
@@ -26,6 +27,7 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
       setAccessToken(event.accessToken);
     }
   }
+  const [whoami, setWhoami] = useState<string | null>("whoami");
 
   const getValidatedClaims = useCallback(async () => {
     if (accessToken == null) {
@@ -62,10 +64,25 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
     })()
   }, [accessToken]));
 
+  useFocusEffect(useCallback(() => {
+    (async function () {
+      const z = await fetch(`https://api.trajano.net/whoami`, {
+        "method": "GET",
+        "headers": { "Authorization": `Bearer ${auth.accessToken}` }
+      });
+      const x = await (z).text();
+      if (isMounted()) {
+        setWhoami(x);
+      }
+    })()
+  }, [auth.accessToken]));
+
+
   const data = [
     auth.oauthToken,
     claims,
-    auth.oauthToken && pako.inflate(base64url.toBuffer(auth.oauthToken.access_token), { to: "string" })
+    auth.oauthToken && pako.inflate(base64url.toBuffer(auth.oauthToken.access_token), { to: "string" }),
+    whoami
 
   ];
   function renderItem({ item }: ListRenderItemInfo<any>) {
