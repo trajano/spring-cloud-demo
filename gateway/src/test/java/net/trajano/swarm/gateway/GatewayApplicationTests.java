@@ -14,6 +14,8 @@ import com.github.dockerjava.api.command.ListServicesCmd;
 import com.github.dockerjava.api.model.*;
 import java.util.List;
 import java.util.Map;
+
+import net.trajano.swarm.gateway.datasource.redis.IncrRedisReactiveHealthIndicator;
 import net.trajano.swarm.gateway.datasource.redis.RedisJwksProvider;
 import net.trajano.swarm.gateway.discovery.DockerEventWatcher;
 import net.trajano.swarm.gateway.discovery.DockerServiceInstanceLister;
@@ -36,6 +38,7 @@ import reactor.core.publisher.Mono;
     classes = {
       DockerEventWatcher.class,
       RedisJwksProvider.class,
+            IncrRedisReactiveHealthIndicator.class,
     })
 class GatewayApplicationTests {
 
