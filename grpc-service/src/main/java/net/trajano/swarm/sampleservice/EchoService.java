@@ -33,14 +33,13 @@ public class EchoService extends EchoGrpc.EchoImplBase implements InitializingBe
   @Override
   public void afterPropertiesSet() {
 
-    final AtomicLong atomicLong = new AtomicLong(0);
     identifiers =
         Flux.<Long>create(
                 sink ->
                     clockExecutor.scheduleAtFixedRate(
                         () -> sink.next(System.currentTimeMillis()), 2, 5, TimeUnit.SECONDS),
                 FluxSink.OverflowStrategy.DROP)
-            .map(id -> "%s %d".formatted(Instant.now(), atomicLong.getAndIncrement()))
+            .map(String::valueOf)
             .publish();
     identifiers.connect();
   }

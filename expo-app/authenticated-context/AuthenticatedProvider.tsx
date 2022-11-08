@@ -5,6 +5,9 @@ import { JwtClaims } from "./JwtClaims";
 import { jwtVerify } from "./jwtVerify";
 import EventSource from "react-native-sse";
 import { logger } from "react-native-logs";
+
+// At present this has a problem on restore in that the access token is not valid yet.
+
 export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children }: PropsWithChildren<{ baseUrl: string, accessToken: string, clientId: string }>) {
 
     const [claims, setClaims] = useState<JwtClaims>();
@@ -24,7 +27,7 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children
     },
         (nextClaims) => {
             setClaims(nextClaims);
-        }, []);
+        }, [accessToken]);
 
     const log = logger.createLogger()
     // log.debug({ verified, username, accessToken });

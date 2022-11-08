@@ -12,7 +12,7 @@ import { RootTabScreenProps } from '../types';
 export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
   const { logout, refresh, accessToken, oauthToken } = useAuth();
   const { claims, internalState } = useAuthenticated();
-  const [whoami, setWhoami] = useState<string | null>("whoami");
+  const [whoami, setWhoami] = useState<object | null>();
   const isMounted = useMounted();
 
   async function handleLogout() {
@@ -22,14 +22,14 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
 
   useFocusEffect(useCallback(() => {
     (async function () {
-      const z = await fetch(`${BASE_URL}/whoami`, {
+      const z = await fetch(`${BASE_URL}/whoami/`, {
         "method": "GET",
         "headers": {
           accept: "application/json",
           authorization: `Bearer ${accessToken}`
         }
       });
-      const x = await (z).text();
+      const x = await (z).json();
       if (isMounted()) {
         setWhoami(x);
       }
@@ -41,7 +41,7 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
   const data = [
     oauthToken,
     claims,
-    accessToken,
+    accessToken?.slice(-5),
     whoami,
     ...internalState
   ];

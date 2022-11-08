@@ -116,9 +116,10 @@ class ContainerTests {
 
     redis.start();
     whoami.start();
-    grpcService.start();
-//    jwksProvider.start();
-//    gateway.start();
+
+        grpcService.start();
+    jwksProvider.start();
+    gateway.start();
 
     gatewayUrl =
         UriComponentsBuilder.newInstance()
