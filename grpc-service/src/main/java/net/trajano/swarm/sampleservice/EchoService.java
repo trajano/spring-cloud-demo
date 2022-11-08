@@ -4,18 +4,18 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Struct;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.stub.StreamObserver;
-import java.time.Instant;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
+
+import java.time.Instant;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @Slf4j
@@ -31,22 +31,15 @@ public class EchoService extends EchoGrpc.EchoImplBase implements InitializingBe
   private ConnectableFlux<String> identifiers;
 
   @Override
-  public void afterPropertiesSet() throws Exception {
+  public void afterPropertiesSet() {
 
     final AtomicLong atomicLong = new AtomicLong(0);
     identifiers =
         Flux.<Long>create(
-                (sink) -> {
-                  clockExecutor.scheduleAtFixedRate(
-                      () -> {
-                        sink.next(System.currentTimeMillis());
-                      },
-                      2,
-                      5,
-                      TimeUnit.SECONDS);
-                },
+                sink ->
+                    clockExecutor.scheduleAtFixedRate(
+                        () -> sink.next(System.currentTimeMillis()), 2, 5, TimeUnit.SECONDS),
                 FluxSink.OverflowStrategy.DROP)
-            .log("f", Level.SEVERE)
             .map(id -> "%s %d".formatted(Instant.now(), atomicLong.getAndIncrement()))
             .publish();
     identifiers.connect();
@@ -85,7 +78,6 @@ public class EchoService extends EchoGrpc.EchoImplBase implements InitializingBe
 
     identifiers
         .map(id -> request.getMessage() + " " + id)
-        .log("pp", Level.SEVERE)
         .doOnNext(
             responseMessage ->
                 responseObserver.onNext(
