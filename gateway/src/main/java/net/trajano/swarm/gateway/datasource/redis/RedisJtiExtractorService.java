@@ -38,7 +38,7 @@ public class RedisJtiExtractorService {
                             .formatted(kid, AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256))
                         .getBytes(StandardCharsets.US_ASCII))
             + refreshToken.substring(refreshToken.indexOf("."));
-    log.error("jwt={}", jwt);
+    log.trace("jwt={}", jwt);
     final String jwtId = extractJtiWithoutValidation(refreshToken);
 
     return redisUserSessions
