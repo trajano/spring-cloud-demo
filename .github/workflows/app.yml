@@ -24,7 +24,7 @@ jobs:
           expo-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
       - name: 📦 Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --network-concurrency 2
       - name: Create env
         run: |
           echo BASE_URL=https://api.trajano.net > .env
