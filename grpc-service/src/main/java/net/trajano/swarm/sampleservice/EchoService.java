@@ -4,17 +4,18 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Struct;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.stub.StreamObserver;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 
 @Service
 @Slf4j
@@ -23,22 +24,32 @@ public class EchoService extends EchoGrpc.EchoImplBase implements InitializingBe
   private final ScheduledExecutorService executorService =
       Executors.newSingleThreadScheduledExecutor();
 
+  private final ScheduledExecutorService clockExecutor =
+      Executors.newSingleThreadScheduledExecutor();
+
   /** An infinite flux of identifying messages. */
   private ConnectableFlux<String> identifiers;
 
   @Override
   public void afterPropertiesSet() throws Exception {
+
     final AtomicLong atomicLong = new AtomicLong(0);
     identifiers =
-        Flux.generate(
-                () -> 0,
-                (state, sink) -> {
-                  sink.next(state);
-                  return state + 1;
-                })
+        Flux.<Long>create(
+                (sink) -> {
+                  clockExecutor.scheduleAtFixedRate(
+                      () -> {
+                        sink.next(System.currentTimeMillis());
+                      },
+                      2,
+                      5,
+                      TimeUnit.SECONDS);
+                },
+                FluxSink.OverflowStrategy.DROP)
+            .log("f", Level.SEVERE)
             .map(id -> "%s %d".formatted(Instant.now(), atomicLong.getAndIncrement()))
-            .delayElements(Duration.ofSeconds(2))
             .publish();
+    identifiers.connect();
   }
 
   @Override
@@ -71,25 +82,15 @@ public class EchoService extends EchoGrpc.EchoImplBase implements InitializingBe
   public void echoStream(
       EchoOuterClass.EchoRequest request,
       StreamObserver<EchoOuterClass.EchoResponse> responseObserver) {
-    Flux.range(0, 100)
-        .delayElements(Duration.ofSeconds(2))
+
+    identifiers
+        .map(id -> request.getMessage() + " " + id)
+        .log("pp", Level.SEVERE)
         .doOnNext(
-            id ->
+            responseMessage ->
                 responseObserver.onNext(
-                    EchoOuterClass.EchoResponse.newBuilder()
-                        .setMessage(request.getMessage() + " " + id)
-                        .build()))
+                    EchoOuterClass.EchoResponse.newBuilder().setMessage(responseMessage).build()))
         .doOnComplete(responseObserver::onCompleted)
         .subscribe();
-    //    identifiers
-    //        .map(id -> request.getMessage() + " " + id)bu
-    //        .log()
-    //        .doOnNext(
-    //            responseMessage ->
-    //                responseObserver.onNext(
-    //
-    // EchoOuterClass.EchoResponse.newBuilder().setMessage(responseMessage).build()))
-    //        .doOnComplete(responseObserver::onCompleted)
-    //        .subscribe();
   }
 }

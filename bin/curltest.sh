@@ -36,3 +36,11 @@ curl -s --location --request POST "${BASE_URI}/refresh" \
 --header 'Content-Type: application/x-www-form-urlencoded' \
 --data-raw "grant_type=refresh_token&refresh_token=${refresh_token}"
 
+#curl -s --location --request POST "${BASE_URI}/grpc/Echo/echoStream" \
+#--header 'Accept: text/event-stream' \
+#--header "Authorization: Bearer $access_token" \
+#--header 'Content-Type: application/json' \
+#-N \
+#--data-raw '{
+#    "message": "FFbarsdfasf"
+#}'
