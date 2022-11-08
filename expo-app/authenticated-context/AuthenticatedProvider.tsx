@@ -58,7 +58,7 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children
             return () => eventStream.current?.close();
         }
 
-    }, [verified, username])
+    }, [verified, username, accessToken])
 
     return (<AuthenticatedContext.Provider value={{
         internalState,

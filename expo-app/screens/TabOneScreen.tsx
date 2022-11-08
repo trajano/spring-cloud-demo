@@ -5,15 +5,13 @@ import { BASE_URL } from '@env';
 import { useFocusEffect } from '@react-navigation/native';
 import { AnimatedFlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import { useMounted } from '@trajano/react-hooks';
-import base64url from 'base64url';
-import pako from 'pako';
 import { useCallback, useState } from 'react';
 import { useAuthenticated } from '../authenticated-context';
 import { Text, View } from '../src/components';
 import { RootTabScreenProps } from '../types';
 export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
   const { logout, refresh, accessToken, oauthToken } = useAuth();
-  const { claims } = useAuthenticated();
+  const { claims, internalState } = useAuthenticated();
   const [whoami, setWhoami] = useState<string | null>("whoami");
   const isMounted = useMounted();
 
@@ -26,7 +24,10 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
     (async function () {
       const z = await fetch(`${BASE_URL}/whoami`, {
         "method": "GET",
-        "headers": { authorization: `Bearer ${accessToken}` }
+        "headers": {
+          accept: "application/json",
+          authorization: `Bearer ${accessToken}`
+        }
       });
       const x = await (z).text();
       if (isMounted()) {
@@ -41,7 +42,8 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
     oauthToken,
     claims,
     accessToken,
-    whoami
+    whoami,
+    ...internalState
   ];
   function renderItem({ item }: ListRenderItemInfo<any>) {
     return <View><Text>{JSON.stringify(item, null, 2)}</Text></View>

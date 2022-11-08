@@ -10,6 +10,8 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import java.io.File;
+import java.time.Duration;
+
 import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import net.trajano.swarm.gateway.auth.simple.SimpleAuthenticationRequest;
 import net.trajano.swarm.gateway.grpc.GrpcServerReflection;
@@ -78,7 +80,7 @@ class ContainerTests {
             .waitingFor(Wait.forLogMessage(".*Starting up on port 80.*", 1));
 
     redis =
-        new GenericContainer<>("redis:6")
+        new GenericContainer<>("redis:7")
             .withNetwork(network)
             .withNetworkAliases("redis")
             .waitingFor(Wait.forLogMessage(".*Ready to accept connections.*", 1));
@@ -88,7 +90,7 @@ class ContainerTests {
             .dependsOn(redis)
             .withEnv("SPRING_REDIS_HOST", "redis")
             .withNetwork(network)
-            .waitingFor(Wait.forHealthcheck());
+                .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(3)));
 
     grpcService =
         new GenericContainer<>("local/grpc-service")
@@ -98,7 +100,7 @@ class ContainerTests {
             .withLabel("docker.grpc.port", "50000")
             .withNetwork(network)
             .withExposedPorts(50000)
-            .waitingFor(Wait.forHealthcheck());
+            .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(3)));
 
     gateway =
         new GenericContainer<>("local/gateway")
@@ -110,13 +112,13 @@ class ContainerTests {
             .withFileSystemBind("/var/run/docker.sock", "/var/run/docker.sock")
             .withNetwork(network)
             .withExposedPorts(8080)
-            .waitingFor(Wait.forHealthcheck());
+                .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(3)));
 
-    whoami.start();
     redis.start();
-    jwksProvider.start();
-    gateway.start();
+    whoami.start();
     grpcService.start();
+//    jwksProvider.start();
+//    gateway.start();
 
     gatewayUrl =
         UriComponentsBuilder.newInstance()
