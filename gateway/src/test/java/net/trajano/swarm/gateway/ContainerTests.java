@@ -11,7 +11,6 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.reflection.v1alpha.ServerReflectionGrpc;
 import java.io.File;
 import java.time.Duration;
-
 import net.trajano.swarm.gateway.auth.OAuthTokenResponse;
 import net.trajano.swarm.gateway.auth.simple.SimpleAuthenticationRequest;
 import net.trajano.swarm.gateway.grpc.GrpcServerReflection;
@@ -90,7 +89,7 @@ class ContainerTests {
             .dependsOn(redis)
             .withEnv("SPRING_REDIS_HOST", "redis")
             .withNetwork(network)
-                .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(3)));
+            .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(3)));
 
     grpcService =
         new GenericContainer<>("local/grpc-service")
@@ -112,12 +111,12 @@ class ContainerTests {
             .withFileSystemBind("/var/run/docker.sock", "/var/run/docker.sock")
             .withNetwork(network)
             .withExposedPorts(8080)
-                .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(3)));
+            .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(3)));
 
     redis.start();
     whoami.start();
 
-        grpcService.start();
+    grpcService.start();
     jwksProvider.start();
     gateway.start();
 
