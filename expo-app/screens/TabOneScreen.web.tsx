@@ -37,15 +37,10 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
     const jwt = pako.inflate(decodedCompressed, { to: "string" });
     const jwks = jose.createRemoteJWKSet(new URL(`${BASE_URL}/jwks`))
 
-    console.log(jwt)
-    console.log(`${BASE_URL}/jwks`)
-    console.log(jwks)
     const { payload, protectedHeader } = await jose.jwtVerify(jwt, jwks, {
       issuer: 'http://localhost',
       audience: 'unknown',
     })
-    console.log(protectedHeader)
-    console.log(payload)
     return payload;
   }, [accessToken])
 
@@ -68,7 +63,7 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
     (async function () {
       const z = await fetch(`https://api.trajano.net/whoami`, {
         "method": "GET",
-        "headers": { "Authorization": `Bearer ${auth.accessToken}` }
+        "headers": { "authorization": `Bearer ${auth.accessToken}` }
       });
       const x = await (z).text();
       if (isMounted()) {

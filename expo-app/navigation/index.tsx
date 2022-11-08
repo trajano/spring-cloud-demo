@@ -24,6 +24,7 @@ import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../typ
 import LinkingConfiguration from './LinkingConfiguration';
 import { LoginNavigator } from './login/LoginNavigator';
 import { AuthenticatedProvider } from '../authenticated-context';
+import NetworkLoggerScreen from '../screens/NetworkLoggerScreen';
 
 
 const PERSISTENCE_KEY = 'NAVIGATION_STATE_V1';
@@ -79,7 +80,6 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
     </NavigationContainer>
 
   } else if (authState == AuthState.AUTHENTICATED) {
-    console.error({ "a": auth.accessToken })
     return <AuthenticatedProvider baseUrl={BASE_URL}
       accessToken={auth.accessToken!}
       clientId='unknown'>
@@ -164,6 +164,14 @@ function BottomTabNavigator() {
         component={TabTwoScreen}
         options={{
           title: 'Tab Two',
+          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+        }}
+      />
+      <BottomTab.Screen
+        name="NetworkLogger"
+        component={NetworkLoggerScreen}
+        options={{
+          title: 'Network Log',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
         }}
       />

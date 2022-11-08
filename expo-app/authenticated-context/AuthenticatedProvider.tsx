@@ -27,10 +27,10 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children
         }, []);
 
     const log = logger.createLogger()
-    log.debug({ verified, username, accessToken });
+    // log.debug({ verified, username, accessToken });
 
     useEffect(() => {
-        log.warn({ verified, username })
+        // log.warn({ verified, username })
         if (verified && username) {
 
             fetch(`${baseUrl}/whoami`, {

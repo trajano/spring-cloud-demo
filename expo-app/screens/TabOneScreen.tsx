@@ -1,4 +1,4 @@
-import { AuthEvent, useAuth } from '@trajano/spring-docker-auth-context';
+import { useAuth } from '@trajano/spring-docker-auth-context';
 import { Button, StyleSheet } from 'react-native';
 
 import { BASE_URL } from '@env';
@@ -6,69 +6,27 @@ import { useFocusEffect } from '@react-navigation/native';
 import { AnimatedFlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import { useMounted } from '@trajano/react-hooks';
 import base64url from 'base64url';
-import * as jose from 'node-jose';
 import pako from 'pako';
 import { useCallback, useState } from 'react';
+import { useAuthenticated } from '../authenticated-context';
 import { Text, View } from '../src/components';
 import { RootTabScreenProps } from '../types';
 export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
-  const auth = useAuth();
-  const [accessToken, setAccessToken] = useState<string | null>(null)
-  const [claims, setClaims] = useState<Record<string, unknown> | null>(null)
+  const { logout, refresh, accessToken, oauthToken } = useAuth();
+  const { claims } = useAuthenticated();
   const [whoami, setWhoami] = useState<string | null>("whoami");
   const isMounted = useMounted();
 
   async function handleLogout() {
-    await auth.logout();
-  }
-  function updateAuthToken(event: AuthEvent) {
-    if (event.type == "Authenticated") {
-      setAccessToken(event.accessToken);
-    }
+    await logout();
   }
 
-  const getValidatedClaims = useCallback(async () => {
-    if (accessToken == null) {
-      return null;
-    }
-    const decodedCompressed = base64url.toBuffer(accessToken)
-    const jwt = pako.inflate(decodedCompressed, { to: "string" });
-    const jwksFetch = await fetch(`${BASE_URL}/jwks`)
-    const jwksJson = await jwksFetch.json();
-    const jwks = await jose.JWK.asKeyStore(jwksJson);
-    const jwsResult = await jose.JWS.createVerify(jwks, { allowEmbeddedKey: false }).verify(jwt);
-    const payload = JSON.parse(jwsResult.payload.toString()) as {
-      aud: string[],
-      exp: number
-    };
-    if (payload.aud.findIndex(aud => aud === "unknown") >= 0 && payload.exp >= Date.now() / 1000) {
-      return payload;
-    }
-    else {
-      throw new Error("JWT not valid")
-    }
-  }, [accessToken])
-
-  useFocusEffect(useCallback(() => {
-    const accessTokenFromAuth = auth.accessToken
-    setAccessToken(accessTokenFromAuth)
-    return auth.subscribe(updateAuthToken)
-  }, []));
 
   useFocusEffect(useCallback(() => {
     (async function () {
-      const claims = await getValidatedClaims();
-      if (isMounted()) {
-        setClaims(claims)
-      }
-    })()
-  }, [accessToken]));
-
-  useFocusEffect(useCallback(() => {
-    (async function () {
-      const z = await fetch(`https://api.trajano.net/whoami`, {
+      const z = await fetch(`${BASE_URL}/whoami`, {
         "method": "GET",
-        "headers": { "Authorization": `Bearer ${accessToken}` }
+        "headers": { authorization: `Bearer ${accessToken}` }
       });
       const x = await (z).text();
       if (isMounted()) {
@@ -80,9 +38,9 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
   const [refreshing, setRefreshing] = useState(false);
 
   const data = [
-    auth.oauthToken,
+    oauthToken,
     claims,
-    auth.oauthToken && pako.inflate(base64url.toBuffer(auth.oauthToken.access_token), { to: "string" }),
+    accessToken,
     whoami
   ];
   function renderItem({ item }: ListRenderItemInfo<any>) {
@@ -91,7 +49,7 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
 
   async function refreshToken() {
     setRefreshing(true);
-    await auth.refresh();
+    await refresh();
     if (isMounted()) {
       setRefreshing(false);
     }
