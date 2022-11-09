@@ -6,7 +6,7 @@
 import { BASE_URL } from '@env';
 import { FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import { NavigationContainer, NavigationState } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAsyncSetEffect } from '@trajano/react-hooks';
@@ -24,7 +24,9 @@ import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../typ
 import LinkingConfiguration from './LinkingConfiguration';
 import { LoginNavigator } from './login/LoginNavigator';
 import { AuthenticatedProvider } from '../authenticated-context';
-import NetworkLoggerScreen from '../screens/NetworkLoggerScreen';
+import { NetworkLoggerTab } from '../screens/NetworkLoggerTab';
+import { TextTab } from '../screens/TextTab';
+import { TabOne } from '../screens/TabOne';
 
 
 const PERSISTENCE_KEY = 'NAVIGATION_STATE_V1';
@@ -126,7 +128,7 @@ function RootNavigator() {
  * A bottom tab navigator displays tab buttons on the bottom of the display to switch screens.
  * https://reactnavigation.org/docs/bottom-tab-navigator
  */
-const BottomTab = createBottomTabNavigator<RootTabParamList>();
+const BottomTab = createMaterialBottomTabNavigator<RootTabParamList>();
 
 function BottomTabNavigator() {
   const colorScheme = useColorScheme();
@@ -134,42 +136,28 @@ function BottomTabNavigator() {
   return (
     <BottomTab.Navigator
       initialRouteName="TabOne"
+      shifting={true}
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
       }}>
       <BottomTab.Screen
         name="TabOne"
-        component={TabOneScreen}
+        component={TabOne}
         options={({ navigation }: RootTabScreenProps<'TabOne'>) => ({
           title: 'Tab One',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Pressable
-              onPress={() => navigation.navigate('Modal')}
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.5 : 1,
-              })}>
-              <FontAwesome
-                name="info-circle"
-                size={25}
-                color={Colors[colorScheme].text}
-                style={{ marginRight: 15 }}
-              />
-            </Pressable>
-          ),
         })}
       />
       <BottomTab.Screen
         name="TabTwo"
-        component={TabTwoScreen}
+        component={TextTab}
         options={{
-          title: 'Tab Two',
+          title: 'Text',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
         }}
       />
       <BottomTab.Screen
         name="NetworkLogger"
-        component={NetworkLoggerScreen}
+        component={NetworkLoggerTab}
         options={{
           title: 'Network Log',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,

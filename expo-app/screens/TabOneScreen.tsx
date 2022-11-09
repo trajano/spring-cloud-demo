@@ -1,11 +1,11 @@
-import { useAuth } from '@trajano/spring-docker-auth-context';
-import { Button, StyleSheet } from 'react-native';
-
 import { BASE_URL } from '@env';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { useFocusEffect } from '@react-navigation/native';
 import { AnimatedFlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import { useMounted } from '@trajano/react-hooks';
+import { useAuth } from '@trajano/spring-docker-auth-context';
 import { useCallback, useState } from 'react';
+import { Button, StyleSheet } from 'react-native';
 import { useAuthenticated } from '../authenticated-context';
 import { Text, View } from '../src/components';
 import { RootTabScreenProps } from '../types';
@@ -14,6 +14,7 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
   const { claims, internalState } = useAuthenticated();
   const [whoami, setWhoami] = useState<object | null>();
   const isMounted = useMounted();
+  const headerHeight = useHeaderHeight();
 
   async function handleLogout() {
     await logout();
@@ -59,6 +60,8 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
 
   return (
     <AnimatedFlashList
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={{ paddingTop: headerHeight }}
       estimatedItemSize={188}
       ListHeaderComponent={() => <Text style={styles.title}>Title</Text>}
       ListFooterComponent={() => <Button title="Logout" onPress={handleLogout} />}

@@ -1,0 +1,7 @@
+{
+    "settle": 1000,
+    "ignore_dirs": [
+        ".git",
+        "build"
+    ]
+}

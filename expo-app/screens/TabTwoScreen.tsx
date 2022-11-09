@@ -5,9 +5,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { ScrollView, Text, TextInput, View } from '../src/components';
 import { useTheming } from '../src/lib/native-unstyled';
+import { useHeaderHeight } from '@react-navigation/elements';
 
 export default function TabTwoScreen() {
   const { colorScheme } = useTheming()
+  const headerHeight = useHeaderHeight();
   const locale: Locale = useMemo(() => {
 
     const dateFnsLocales2 = dateFnsLocales as Record<string, Locale>;
@@ -30,7 +32,7 @@ export default function TabTwoScreen() {
 
   }, [locale])
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container]} contentInsetAdjustmentBehavior="automatic">
       <Text style={styles.title}>{now}</Text>
       <View style={styles.separator} />
       <Text>Hello {username} <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text></Text>
@@ -44,7 +46,6 @@ export default function TabTwoScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
