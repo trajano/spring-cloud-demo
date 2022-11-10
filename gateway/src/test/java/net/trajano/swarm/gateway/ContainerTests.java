@@ -38,6 +38,7 @@ class ContainerTests {
   @Container private static GenericContainer<?> whoami;
 
   @Container private static GenericContainer<?> redis;
+  @Container private static GenericContainer<?> zipkin;
 
   @Container private static GenericContainer<?> gateway;
 
@@ -84,10 +85,17 @@ class ContainerTests {
             .withNetworkAliases("redis")
             .waitingFor(Wait.forLogMessage(".*Ready to accept connections.*", 1));
 
+    zipkin =
+            new GenericContainer<>("openzipkin/zipkin-slim")
+                    .withNetwork(network)
+                    .withNetworkAliases("zipkin")
+                    .waitingFor(Wait.forHealthcheck());
+
     jwksProvider =
         new GenericContainer<>("local/jwks-provider")
-            .dependsOn(redis)
+            .dependsOn(redis, zipkin)
             .withEnv("SPRING_REDIS_HOST", "redis")
+                .withEnv("SPRING_ZIPKING_BASEURL", "http://zipkin:9411")
             .withNetwork(network)
             .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(3)));
 
@@ -103,11 +111,12 @@ class ContainerTests {
 
     gateway =
         new GenericContainer<>("local/gateway")
-            .dependsOn(redis, whoami, grpcService, jwksProvider)
+            .dependsOn(redis, whoami, grpcService, jwksProvider, zipkin)
             .withEnv("DOCKER_DISCOVERY_SWARMMODE", "false")
             .withEnv("DOCKER_DISCOVERY_NETWORK", networkName)
             .withEnv("SPRING_REDIS_HOST", "redis")
             .withEnv("SPRING_PROFILES_ACTIVE", "test")
+                .withEnv("SPRING_ZIPKING_BASEURL", "http://zipkin:9411")
             .withFileSystemBind("/var/run/docker.sock", "/var/run/docker.sock")
             .withNetwork(network)
             .withExposedPorts(8080)
@@ -145,6 +154,21 @@ class ContainerTests {
     jwksProvider.close();
     network.close();
     grpcService.close();
+  }
+
+  /**
+   * This main method is used to trigger a test of the GRPC functions with a local server
+   *
+   * @param args args
+   */
+  public static void main(String[] args) {
+    grpcServiceChannel =
+        ManagedChannelBuilder.forAddress("localhost", 28088)
+            .directExecutor()
+            .usePlaintext()
+            .build();
+    new ContainerTests().grpcFunctions();
+    grpcServiceChannel.shutdown();
   }
 
   @Test
@@ -254,6 +278,24 @@ class ContainerTests {
   }
 
   @Test
+  void grpcFunctions() {
+
+    final var grpcServerReflection = new GrpcServerReflection(grpcServiceChannel);
+    final var block =
+        grpcServerReflection
+            .servicesFromReflection()
+            .filter(s -> !ServerReflectionGrpc.SERVICE_NAME.equals(s))
+            .flatMap(grpcServerReflection::fileDescriptorForService)
+            .flatMap(grpcServerReflection::buildServiceFromProto)
+            .flatMapIterable(Descriptors.FileDescriptor::getServices)
+            .flatMapIterable(Descriptors.ServiceDescriptor::getMethods)
+            .map(Descriptors.MethodDescriptor::toProto)
+            .log()
+            .blockLast();
+    assertThat(block).isNotNull();
+  }
+
+  @Test
   void noToken() {
 
     final var responseBody =
@@ -314,38 +356,5 @@ class ContainerTests {
             .returnResult()
             .getResponseBody();
     assertThat(responseBody).contains("GET / HTTP/1.1");
-  }
-
-  @Test
-  void grpcFunctions() {
-
-    final var grpcServerReflection = new GrpcServerReflection(grpcServiceChannel);
-    final var block =
-        grpcServerReflection
-            .servicesFromReflection()
-            .filter(s -> !ServerReflectionGrpc.SERVICE_NAME.equals(s))
-            .flatMap(grpcServerReflection::fileDescriptorForService)
-            .flatMap(grpcServerReflection::buildServiceFromProto)
-            .flatMapIterable(Descriptors.FileDescriptor::getServices)
-            .flatMapIterable(Descriptors.ServiceDescriptor::getMethods)
-            .map(Descriptors.MethodDescriptor::toProto)
-            .log()
-            .blockLast();
-    assertThat(block).isNotNull();
-  }
-
-  /**
-   * This main method is used to trigger a test of the GRPC functions with a local server
-   *
-   * @param args args
-   */
-  public static void main(String[] args) {
-    grpcServiceChannel =
-        ManagedChannelBuilder.forAddress("localhost", 28088)
-            .directExecutor()
-            .usePlaintext()
-            .build();
-    new ContainerTests().grpcFunctions();
-    grpcServiceChannel.shutdown();
   }
 }
