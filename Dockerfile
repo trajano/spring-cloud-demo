@@ -39,7 +39,8 @@ HEALTHCHECK --interval=5s --start-period=60s \
 USER 5000
 EXPOSE 8080
 
-FROM openjdk:17-jdk as grpc-service
+#FROM openjdk:17-jdk as grpc-service
+FROM gcr.io/distroless/java17-debian11 as grpc-service
 WORKDIR /w
 COPY --from=extractor /w/grpc-service/* /w/
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=80", "org.springframework.boot.loader.JarLauncher"]
