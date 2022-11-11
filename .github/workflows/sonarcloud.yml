@@ -14,7 +14,11 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - run: yarn install --frozen-lockfile
+        with:
+          projectBaseDir: expo-app
       - run: yarn test --coverage
+        with:
+          projectBaseDir: expo-app
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
@@ -37,7 +41,11 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - run: yarn install --frozen-lockfile
+        with:
+          projectBaseDir: packages/${{ matrix.target }}
       - run: yarn test --coverage
+        with:
+          projectBaseDir: packages/${{ matrix.target }}
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
