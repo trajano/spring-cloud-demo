@@ -40,7 +40,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          projectBaseDir: ${{ matrix.target }}
+          projectBaseDir: packages/${{ matrix.target }}
           args: >
             -Dsonar.organization=trajano
             -Dsonar.projectKey=spring-docker-swarm-${{ matrix.target }}
