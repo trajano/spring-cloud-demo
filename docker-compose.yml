@@ -69,7 +69,7 @@ services:
     build:
       context: .
       target: gateway
-    image: local/gateway
+    image: docker.local/gateway
     tty: true
     environment:
       <<: *springEnvironment
@@ -154,7 +154,7 @@ services:
     build:
       context: .
       target: jwks-provider
-    image: local/jwks-provider
+    image: docker.local/jwks-provider
     environment:
       <<: *springEnvironment
 
@@ -203,7 +203,7 @@ services:
 #        limits:
 #          memory: 2g
   redis:
-    image: redis:6
+    image: redis:7-alpine
     deploy:
       resources:
         limits:
@@ -215,7 +215,7 @@ services:
     build:
       context: .
       target: sample-service
-    image: local/sample-service
+    image: docker.local/sample-service
     environment:
       <<: *springEnvironment
     deploy:
@@ -236,7 +236,7 @@ services:
     build:
       context: .
       target: grpc-service
-    image: local/grpc-service
+    image: docker.local/grpc-service
     environment:
       <<: *springEnvironment
     tty: true

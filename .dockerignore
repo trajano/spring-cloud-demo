@@ -13,4 +13,4 @@ README.md
 docker-compose.yml
 gateway/src/test/artillery/*
 **/node_modules/
-
+gateway/src/test/java/net/trajano/swarm/gateway/ContainerTests.java

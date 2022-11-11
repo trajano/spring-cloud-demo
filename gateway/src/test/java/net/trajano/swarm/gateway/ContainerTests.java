@@ -56,7 +56,7 @@ class ContainerTests {
         new ProcessBuilder()
             .inheritIO()
             .redirectErrorStream(true)
-            .command("docker", "compose", "build", "-q")
+            .command("docker", "compose", "build")
             .directory(new File(".."))
             .start();
 
@@ -80,27 +80,30 @@ class ContainerTests {
             .waitingFor(Wait.forLogMessage(".*Starting up on port 80.*", 1));
 
     redis =
-        new GenericContainer<>("redis:7")
+        new GenericContainer<>("library/redis:6-alpine")
             .withNetwork(network)
             .withNetworkAliases("redis")
             .waitingFor(Wait.forLogMessage(".*Ready to accept connections.*", 1));
 
     zipkin =
-            new GenericContainer<>("openzipkin/zipkin-slim")
-                    .withNetwork(network)
-                    .withNetworkAliases("zipkin")
-                    .waitingFor(Wait.forHealthcheck());
+        new GenericContainer<>("openzipkin/zipkin-slim")
+            .withNetwork(network)
+            .withNetworkAliases("zipkin")
+            .waitingFor(
+                Wait.forLogMessage(".*Serving HTTP.*", 1)
+                    .withStartupTimeout(Duration.ofMinutes(2)));
 
     jwksProvider =
-        new GenericContainer<>("local/jwks-provider")
+        new GenericContainer<>("docker.local/jwks-provider")
             .dependsOn(redis, zipkin)
             .withEnv("SPRING_REDIS_HOST", "redis")
-                .withEnv("SPRING_ZIPKING_BASEURL", "http://zipkin:9411")
+            .withEnv("SPRING_ZIPKIN_BASEURL", "http://zipkin:9411")
+            .withLogConsumer(System.err::print)
             .withNetwork(network)
             .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(3)));
 
     grpcService =
-        new GenericContainer<>("local/grpc-service")
+        new GenericContainer<>("docker.local/grpc-service")
             .withLabel("docker.ids", "grpc")
             .withLabel("docker.grpc.path", "/grpc/**")
             .withLabel("docker.grpc.protocol", "grpc")
@@ -110,23 +113,26 @@ class ContainerTests {
             .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(3)));
 
     gateway =
-        new GenericContainer<>("local/gateway")
+        new GenericContainer<>("docker.local/gateway")
             .dependsOn(redis, whoami, grpcService, jwksProvider, zipkin)
             .withEnv("DOCKER_DISCOVERY_SWARMMODE", "false")
             .withEnv("DOCKER_DISCOVERY_NETWORK", networkName)
             .withEnv("SPRING_REDIS_HOST", "redis")
             .withEnv("SPRING_PROFILES_ACTIVE", "test")
-                .withEnv("SPRING_ZIPKING_BASEURL", "http://zipkin:9411")
+            .withEnv("SPRING_ZIPKIN_BASEURL", "http://zipkin:9411")
             .withFileSystemBind("/var/run/docker.sock", "/var/run/docker.sock")
             .withNetwork(network)
             .withExposedPorts(8080)
             .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(3)));
 
+    zipkin.start();
     redis.start();
     whoami.start();
 
-    grpcService.start();
     jwksProvider.start();
+
+    grpcService.start();
+
     gateway.start();
 
     gatewayUrl =
@@ -146,7 +152,9 @@ class ContainerTests {
   @AfterAll
   static void closeResources() {
 
-    grpcServiceChannel.shutdown();
+    if (grpcServiceChannel != null) {
+      grpcServiceChannel.shutdown();
+    }
 
     gateway.close();
     redis.close();
