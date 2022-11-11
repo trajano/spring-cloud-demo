@@ -21,7 +21,7 @@ jobs:
         with:
           projectBaseDir: expo-app
           args: >
-            -Dsonar.organization=Trajano
+            -Dsonar.organization=trajano
             -Dsonar.projectKey=spring-docker-swarm-expo-app
   packages:
     name: SonarCloud
@@ -42,5 +42,5 @@ jobs:
         with:
           projectBaseDir: ${{ matrix.target }}
           args: >
-            -Dsonar.organization=Trajano
+            -Dsonar.organization=trajano
             -Dsonar.projectKey=spring-docker-swarm-${{ matrix.target }}
