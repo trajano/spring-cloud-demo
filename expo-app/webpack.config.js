@@ -4,6 +4,7 @@ module.exports = async function (env, argv) {
   const config = await createExpoWebpackConfigAsync(
     {
       ...env,
+      projectRoot: __dirname,
       babel: {
         dangerouslyAddModulePathsToTranspile: ["@trajano"],
       },
@@ -11,5 +12,6 @@ module.exports = async function (env, argv) {
     argv
   );
   // Customize the config before returning it.
+  console.log(config)
   return config;
 };

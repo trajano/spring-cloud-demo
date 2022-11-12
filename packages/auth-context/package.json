@@ -56,6 +56,7 @@
     "@react-native-community/eslint-config": "^3.0.2",
     "@react-native-community/netinfo": "9.3.0",
     "@release-it/conventional-changelog": "^5.0.0",
+    "@trajano/react-hooks": "https://github.com/trajano/react-hooks.git#master",
     "@types/jest": "^28.1.2",
     "@types/react": "~17.0.21",
     "@types/react-native": "0.68.0",
@@ -77,6 +78,7 @@
     "@types/react": "17.0.21"
   },
   "peerDependencies": {
+    "@trajano/react-hooks": "*",
     "react": "*",
     "react-native": "*"
   },
@@ -154,7 +156,6 @@
     ]
   },
   "dependencies": {
-    "@trajano/react-hooks": "2.0.0",
     "base64url": "^3.0.1"
   }
 }
