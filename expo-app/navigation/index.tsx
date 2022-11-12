@@ -31,7 +31,7 @@ import { DrawerNavigator } from '../screens/MainDrawer';
 
 
 const PERSISTENCE_KEY = 'NAVIGATION_STATE_V1';
-export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
+export default function Navigation() {
   const auth = useAuth();
   const { reactNavigationTheme } = useTheming();
   const [authState, setAuthState] = React.useState(AuthState.INITIAL);

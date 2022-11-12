@@ -12,5 +12,6 @@ export type {
   ColorSchemes as Themes,
 } from "./Themes";
 export { defaultColorSchemes } from "./defaultColorSchemes";
+export type { LoadingComponentProps } from "./LoadingComponentProps";
 export { ThemeProvider, useColors, useTheming } from "./ThemeContext";
 export { useFonts } from "./Fonts";

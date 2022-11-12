@@ -1,31 +1,35 @@
-import { TextStyle } from "react-native";
+import { ColorValue, TextStyle } from "react-native";
 
 /**
  * Use https://json-color-palette-generator.vercel.app/ to generate the swatches for you.
  */
 export type ColorSwatch = {
-  "50": string;
-  "100": string;
-  "200": string;
-  "300": string;
-  "400": string;
-  "500": string;
-  "600": string;
-  "700": string;
-  "800": string;
-  "900": string;
+  "50": ColorValue;
+  "100": ColorValue;
+  "200": ColorValue;
+  "300": ColorValue;
+  "400": ColorValue;
+  "500": ColorValue;
+  "600": ColorValue;
+  "700": ColorValue;
+  "800": ColorValue;
+  "900": ColorValue;
 };
 /**
  * Defines a color.  If it is a {@link ColorSwatch} then context-sensitive effects can
- * be applied based on the swatch.  If it is a string, then it will use that color in all contexts.
+ * be applied based on the swatch.  If it is a {@link ColorValue}, then it will use that color in all contexts.
  */
-export type Color = ColorSwatch | string;
+export type Color = ColorSwatch | ColorValue;
 /**
  * Foreground (first element) and background (second element) colors or swatches.
  */
 export type ColorLayers = UnswatchedColorLayers | [Color, Color];
 /**
- * Foreground (first element) and background (second element) colors.  These are not swatched as they should have no context.
+ * Foreground (first element) and background (second element) colors.
+ * These are not swatched as they should have no context.  Also it
+ * must be string color values and not an OpaqueColorValue as
+ * [there is no function to convert OpaqueColorValue to a string](https://stackoverflow.com/questions/74414382/how-do-you-convert-opaquecolorvalue-of-colorvalue-to-a-string)
+ * and React Navigation requires `string` in their theme.
  */
 export type UnswatchedColorLayers = [string, string];
 /**

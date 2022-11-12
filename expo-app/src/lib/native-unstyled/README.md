@@ -48,3 +48,12 @@ Key functions:
 -
 - What it provides are wrappers to the React Native core components
 - that give extra props for i18n, themeing and utility.
+
+## Loading sequence
+
+The loading sequence comes in three phases...
+
+1. Splash Screen (this is the system splash that gets shown) during this stage, initial assets are loaded.  An example of this  this would be a simple Lottie animation.
+2. Loading Screen Stage 1 shows a component that can only contain the assets used in phase 1.  Splash Screen his hidden by now  During this time the fonts and remaining assets are loaded.  The component is expected to be a View that will be rendered inside another view that provides props containing the root background color of the screen and the asset loading progress (loaded / total) and color scheme as props.
+3. Shows the children of the provider.
+

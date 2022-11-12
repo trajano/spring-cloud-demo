@@ -1,25 +1,34 @@
-import { useAsyncSetEffect } from "@trajano/react-hooks";
+import { useMounted } from "@trajano/react-hooks";
 import * as Font from "expo-font";
 import {
   createContext,
   PropsWithChildren,
   ReactElement,
-  useContext, useState
+  useContext, useEffect, useMemo, useState
 } from "react";
 import { TextStyle } from "react-native";
 
-type FontKey = Pick<TextStyle, "fontFamily" | "fontWeight" | "fontStyle">;
 type IFonts = {
   /**
    * These are fonts that are loaded.  They are keyed using a colon separated composite key containing the family, weight and style of the font.
    */
   loadedFonts: Record<string, string>;
+  /**
+   * Number of fonts that are loaded.
+   */
+  loaded: number;
+  /**
+   * Total number of fonts to load.
+   */
+  total: number;
   replaceWithNativeFont(
     key: TextStyle
   ): TextStyle;
 };
 const FontsContext = createContext<IFonts>({
   loadedFonts: {},
+  loaded: 0,
+  total: 0,
   replaceWithNativeFont: () => ({}),
 });
 type FontsProviderProps = PropsWithChildren<{
@@ -50,12 +59,37 @@ function splitName(
   ];
 }
 
+async function loadFontModuleAsync(fontModule: any): Promise<Record<string, string>> {
+  const fontsLoaded: Record<string, string> = {}
+  for (const fontName in fontModule) {
+    if (
+      typeof fontModule[fontName] === "function" ||
+      typeof fontModule[fontName] === "object"
+    ) {
+      continue;
+    }
+    const [fontFamily, fontWeight, fontStyle] = splitName(fontName);
+    await Font.loadAsync({ [fontName]: fontModule[fontName] });
+    fontsLoaded[`${fontFamily}:${fontWeight}:${fontStyle}`] = fontName
+    if (fontWeight === "400") {
+      fontsLoaded[`${fontFamily}:normal:${fontStyle}`] = fontName
+    } else if (fontWeight === "700") {
+      fontsLoaded[`${fontFamily}:bold:${fontStyle}`] = fontName
+    }
+  }
+  return fontsLoaded;
+
+}
+
 export function FontsProvider({
   fontModules,
   children
 }: FontsProviderProps): ReactElement {
 
   const [loadedFonts, setLoadedFonts] = useState<Record<string, string>>({});
+  const [loaded, setLoaded] = useState(0);
+  const total = useMemo(() => fontModules.length, [fontModules]);
+  const isMounted = useMounted();
 
   function replaceWithNativeFont({ fontFamily, fontWeight = "normal", fontStyle = "normal", ...rest }: TextStyle): TextStyle {
     const fontFamilyForKey = loadedFonts[`${fontFamily}:${fontWeight}:${fontStyle}`];
@@ -82,34 +116,34 @@ export function FontsProvider({
       return { fontFamily, fontWeight, fontStyle, ...rest };
     }
   }
-  useAsyncSetEffect(async function () {
-    const fontsLoadedInEffect: Record<string, string> = {}
-    for (const fontModule of fontModules) {
 
+  useEffect(() => {
+    async function loadFontsAsync() {
+      let fontsLoadedInEffect: Record<string, string> = {}
+      let fontsLoaded = 0;
+      for (const fontModule of fontModules) {
 
-      for (const fontName in fontModule) {
-        if (
-          typeof fontModule[fontName] === "function" ||
-          typeof fontModule[fontName] === "object"
-        ) {
-          continue;
-        }
-        const [fontFamily, fontWeight, fontStyle] = splitName(fontName);
-        await Font.loadAsync({ [fontName]: fontModule[fontName] });
-        fontsLoadedInEffect[`${fontFamily}:${fontWeight}:${fontStyle}`] = fontName
-        if (fontWeight === "400") {
-          fontsLoadedInEffect[`${fontFamily}:normal:${fontStyle}`] = fontName
-        } else if (fontWeight === "700") {
-          fontsLoadedInEffect[`${fontFamily}:bold:${fontStyle}`] = fontName
+        fontsLoadedInEffect = {
+          ...fontsLoadedInEffect,
+          ...(await loadFontModuleAsync(fontModule))
+        };
+        ++fontsLoaded;
+        if (isMounted()) {
+          setLoaded(fontsLoaded);
+        } else {
+          break;
         }
       }
+      if (isMounted()) {
+        setLoadedFonts(fontsLoadedInEffect);
+      }
     }
-    return fontsLoadedInEffect;
-  },
-    (fontsLoadedInEffect) => { setLoadedFonts(fontsLoadedInEffect); },
-    []);
+    loadFontsAsync();
 
-  return <FontsContext.Provider value={{ loadedFonts, replaceWithNativeFont: replaceWithNativeFont }}>{children}</FontsContext.Provider>
+  }, [])
+
+
+  return <FontsContext.Provider value={{ loadedFonts, loaded, total, replaceWithNativeFont: replaceWithNativeFont }}>{children}</FontsContext.Provider>
 }
 export function useFonts() {
   return useContext(FontsContext);
