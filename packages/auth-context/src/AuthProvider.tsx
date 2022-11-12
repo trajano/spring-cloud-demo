@@ -1,6 +1,7 @@
 import NetInfo from '@react-native-community/netinfo';
 import { usePollingIf } from "@trajano/react-hooks";
 import React, { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { AppState, AppStateStatus } from 'react-native';
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
@@ -197,6 +198,17 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
       periodicRefresh("State is initial and connection has become available");
     }
   }, [authState, isConnected])
+
+  function refreshOnActivate(state: AppStateStatus): void {
+    if (state === "active" && isConnected) {
+      periodicRefresh("App Activated")
+    }
+  }
+  useEffect(() => {
+    // attach application state listener
+    const subscription = AppState.addEventListener("change", refreshOnActivate);
+    return () => subscription.remove();
+  }, []);
   return <AuthContext.Provider value={{
     authState,
     authorization,

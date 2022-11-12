@@ -1,9 +1,9 @@
-import type { NetInfoState } from "@react-native-community/netinfo";
+import type { NetInfoState } from '@react-native-community/netinfo';
 /**
  * This gets fired when a valid authentication token was obtained after authentication or refresh.
  */
 type AuthenticatedEvent = {
-  type: "Authenticated";
+  type: 'Authenticated';
   /**
    * The raw access token.
    */
@@ -22,7 +22,7 @@ type AuthenticatedEvent = {
  * This gets fired when the refresh process is about to start and it is being checked if needed or possible.
  */
 type CheckRefreshEvent = {
-  type: "CheckRefresh";
+  type: 'CheckRefresh';
   /**
    * Reason for refresh if any
    */
@@ -33,14 +33,14 @@ type CheckRefreshEvent = {
  * This gets fired when the refresh process is started
  */
 type RefreshingEvent = {
-  type: "Refreshing";
+  type: 'Refreshing';
   /**
    * Reason for refresh if any
    */
   reason?: string;
 };
 type ConnectionChangeEvent = {
-  type: "Connection";
+  type: 'Connection';
   /**
    * Current net info state.
    */
@@ -55,7 +55,7 @@ type ConnectionChangeEvent = {
  * state had determined that the user is not authenticated/
  */
 type UnauthenticatedEvent = {
-  type: "Unauthenticated";
+  type: 'Unauthenticated';
   /**
    * Reason why it is not authenticated if any.
    */

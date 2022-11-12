@@ -27,6 +27,7 @@ import { AuthenticatedProvider } from '../authenticated-context';
 import { NetworkLoggerTab } from '../screens/NetworkLoggerTab';
 import { TextTab } from '../screens/TextTab';
 import { TabOne } from '../screens/TabOne';
+import { DrawerNavigator } from '../screens/MainDrawer';
 
 
 const PERSISTENCE_KEY = 'NAVIGATION_STATE_V1';
@@ -140,8 +141,8 @@ function BottomTabNavigator() {
       screenOptions={{
       }}>
       <BottomTab.Screen
-        name="TabOne"
-        component={TabOne}
+        name="MainDrawer"
+        component={DrawerNavigator}
         options={({ navigation }: RootTabScreenProps<'TabOne'>) => ({
           title: 'Tab One',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,

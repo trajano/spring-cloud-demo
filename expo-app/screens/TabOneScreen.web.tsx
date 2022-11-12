@@ -1,5 +1,5 @@
-import { Button, StyleSheet } from 'react-native';
 import { AuthEvent, useAuth } from '@trajano/spring-docker-auth-context';
+import { Button, StyleSheet } from 'react-native';
 
 import { BASE_URL } from '@env';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,7 +12,6 @@ import { RootTabScreenProps } from '../types';
 
 import { AnimatedFlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import { useMounted } from '@trajano/react-hooks';
-import { useAuthenticated } from '../authenticated-context';
 export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
   const auth = useAuth();
   const [accessToken, setAccessToken] = useState<string | null>(null)

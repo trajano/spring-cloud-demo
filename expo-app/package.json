@@ -29,7 +29,7 @@
     "@react-navigation/native": "^6.0.2",
     "@react-navigation/native-stack": "^6.1.0",
     "@shopify/flash-list": "1.1.0",
-    "@trajano/react-hooks": "https://github.com/trajano/react-hooks",
+    "@trajano/react-hooks": "2.0.0",
     "@trajano/spring-docker-auth-context": "0.1.0",
     "@types/node-jose": "^1.1.10",
     "base64url": "^3.0.1",

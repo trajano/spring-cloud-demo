@@ -1,11 +1,11 @@
 import { BASE_URL } from '@env';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useFocusEffect } from '@react-navigation/native';
-import { AnimatedFlashList, ListRenderItemInfo } from '@shopify/flash-list';
+import { AnimatedFlashList, FlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import { useMounted } from '@trajano/react-hooks';
 import { useAuth } from '@trajano/spring-docker-auth-context';
 import { useCallback, useState } from 'react';
-import { Button, StyleSheet } from 'react-native';
+import { Button, FlatList, StyleSheet } from 'react-native';
 import { useAuthenticated } from '../authenticated-context';
 import { Text, View } from '../src/components';
 import { RootTabScreenProps } from '../types';
@@ -59,11 +59,10 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
   }
 
   return (
-    <AnimatedFlashList
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ paddingTop: headerHeight }}
+    <FlashList
+      contentInsetAdjustmentBehavior={"automatic"}
       estimatedItemSize={188}
-      ListHeaderComponent={() => <Text style={styles.title}>Title</Text>}
+      ListHeaderComponent={() => <View style={{ borderWidth: 1 }}><Text style={styles.title}>Title</Text></View>}
       ListFooterComponent={() => <Button title="Logout" onPress={handleLogout} />}
       onRefresh={() => refreshToken()}
       refreshing={refreshing}
@@ -83,9 +82,5 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
+
 });

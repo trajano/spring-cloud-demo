@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 // global.Buffer = require("buffer").Buffer;
 // import { polyfillWebCrypto } from "expo-standard-web-crypto";
 // polyfillWebCrypto();

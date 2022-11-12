@@ -7,9 +7,6 @@
     "packages/*"
   ],
   "resolutions": {
-    "shell-quote": ">= 1.7.3",
-    "loader-utils": ">=2.0.3",
-    "immer": ">=9.0.6"
   },
   "scripts": {},
   "devDependencies": {

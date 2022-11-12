@@ -154,7 +154,7 @@
     ]
   },
   "dependencies": {
-    "@trajano/react-hooks": "https://github.com/trajano/react-hooks",
+    "@trajano/react-hooks": "2.0.0",
     "base64url": "^3.0.1"
   }
 }

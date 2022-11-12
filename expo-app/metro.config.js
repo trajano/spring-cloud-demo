@@ -1,5 +1,5 @@
 const { getDefaultConfig } = require("expo/metro-config");
-const findWorkspaceRoot = require('find-yarn-workspace-root');
+const findWorkspaceRoot = require("find-yarn-workspace-root");
 const path = require("path");
 
 const projectRoot = __dirname;
@@ -18,4 +18,10 @@ config.resolver.nodeModulesPaths = [
 // 3. Force Metro to resolve (sub)dependencies only from the `nodeModulesPaths`
 config.resolver.disableHierarchicalLookup = true;
 
+let currentBlockList = config.resolver.blockList;
+if (!Array.isArray(currentBlockList)) {
+  currentBlockList = [currentBlockList];
+}
+//config.resolver.blockList = [...currentBlockList, ".git"];
 module.exports = config;
+//console.log(JSON.stringify(config, null, 2));
