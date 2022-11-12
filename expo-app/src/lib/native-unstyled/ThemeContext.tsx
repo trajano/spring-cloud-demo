@@ -1,3 +1,5 @@
+import { FontAwesome } from '@expo/vector-icons';
+import * as Font from 'expo-font';
 import { DefaultTheme, Theme as ReactNavigationTheme } from "@react-navigation/native";
 import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
 import { Asset } from "expo-asset";
@@ -58,13 +60,19 @@ export type ThemeProviderProps = {
      */
     getColorScheme?: () => Promise<NonNullable<ColorSchemeName>>;
     children: ReactElement<any, any>;
+    /**
+     * Minimum amount of time to show the loading screen, used to simulate a long
+     * asset load time.
+     */
+    minimumShowLoadingTime: number;
 };
 
-function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additionalAssets, LoadingComponent }: {
+function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additionalAssets, minimumShowLoadingTime, LoadingComponent }: {
     colorScheme: NonNullable<ColorSchemeName>,
     LoadingComponent?: ComponentType<LoadingComponentProps>,
     initialAssetsLoaded: boolean,
     additionalAssets: (string | number)[],
+    minimumShowLoadingTime: number,
     children: ReactElement<any, any>
 }): ReactElement<any, any> | null {
     const { loaded: loadedFonts, total: totalFonts } = useFonts();
@@ -72,11 +80,12 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additio
     const [additionalAssetsLoaded, setAdditionalAssetsLoaded] = useState(0);
     const loadedAssets = useMemo(() => loadedFonts + additionalAssets.length, [loadedFonts, additionalAssetsLoaded]);
     const totalAssets = useMemo(() => totalFonts + additionalAssets.length, [totalFonts, additionalAssets.length]);
+    const [minimumTimeSpent, setMinimumTimeSpent] = useState(minimumShowLoadingTime === 0);
 
     useEffect(() => {
         async function loadAdditionalAssetsAsync() {
             let assetsLoaded = 0;
-            for (const moduleId in additionalAssets) {
+            for (const moduleId of additionalAssets) {
                 await Asset.loadAsync(moduleId);
                 ++assetsLoaded;
                 if (isMounted()) {
@@ -88,16 +97,21 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additio
         }
         loadAdditionalAssetsAsync();
     }, [additionalAssets])
+    useEffect(() => {
+        const t = setTimeout(() => { if (isMounted()) { setMinimumTimeSpent(true) } }, minimumShowLoadingTime);
+        return () => clearTimeout(t);
+    }, [minimumShowLoadingTime])
 
     if (!initialAssetsLoaded) {
         return null;
     }
+    const loadingComponentMustBeShown = loadedAssets !== totalAssets || !minimumTimeSpent;
     // Loading component is not defined
-    if (!LoadingComponent && loadedAssets !== totalAssets) {
+    if (!LoadingComponent && loadingComponentMustBeShown) {
         return null;
     }
     // assets are still being loaded
-    if (LoadingComponent && loadedAssets !== totalAssets) {
+    if (LoadingComponent && loadingComponentMustBeShown) {
         return <LoadingComponent colorScheme={colorScheme} loadedAssets={loadedAssets} totalAssets={totalAssets} />;
     } else {
         return children;
@@ -109,6 +123,7 @@ export function ThemeProvider({ children,
     fontModules = [],
     initialAssets = [],
     additionalAssets = [],
+    minimumShowLoadingTime = 0,
     LoadingComponent,
     colorSchemes = defaultColorSchemes, getColorScheme }: ThemeProviderProps) {
     const systemColorScheme = useColorScheme();
@@ -119,7 +134,13 @@ export function ThemeProvider({ children,
             let nextColorScheme = colorScheme;
             try {
                 SplashScreen.preventAutoHideAsync();
-                await Asset.loadAsync(initialAssets);
+                const assetModuleIds: number[] = Array.isArray(initialAssets) ? initialAssets : [initialAssets];
+                await Font.loadAsync({
+                    ...FontAwesome.font,
+                });
+                for (const moduleId of assetModuleIds) {
+                    await Asset.loadAsync(moduleId);
+                }
                 if (getColorScheme) {
                     nextColorScheme = await getColorScheme();
                 }
@@ -134,6 +155,7 @@ export function ThemeProvider({ children,
         ({ nextInitialAssetsLoaded, nextColorScheme }) => {
             setInitialAssetsLoaded(nextInitialAssetsLoaded);
             setColorScheme(nextColorScheme);
+            console.log({ nextInitialAssetsLoaded, nextColorScheme })
         },
         []);
     const colors = useMemo(() => colorSchemes[colorScheme], [colorSchemes, colorScheme])
@@ -160,6 +182,7 @@ export function ThemeProvider({ children,
                 LoadingComponent={LoadingComponent}
                 initialAssetsLoaded={initialAssetsLoaded}
                 additionalAssets={additionalAssets}
+                minimumShowLoadingTime={minimumShowLoadingTime}
             >
                 {children}
             </LoadingOrChildren>

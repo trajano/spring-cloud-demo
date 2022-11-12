@@ -10,14 +10,18 @@ import * as IslandMoments from "@expo-google-fonts/island-moments";
 import * as Lexend from "@expo-google-fonts/lexend";
 import * as NotoSans from "@expo-google-fonts/noto-sans";
 import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
-import { View } from '../components';
+import { LoadingScreen } from '../../screens/LoadingScreen';
 
 export default function App() {
   return (
     <ThemeProvider
       defaultColorScheme='light'
       fontModules={[NotoSans, IBMPlexSans, NotoSansMono, Lexend, IslandMoments]}
-      LoadingComponent={View}
+      initialAssets={[
+        require("../../assets/lottie/28839-ikura-sushi.json"),
+        require("../../assets/images/icon.png")]}
+      LoadingComponent={LoadingScreen}
+      minimumShowLoadingTime={4000}
     >
       <AuthProvider baseUrl={BASE_URL}
         clientId='myClient'
