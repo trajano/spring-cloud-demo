@@ -47,6 +47,8 @@ export type ThemeProviderProps = {
     /**
      * Assets to initially load.  These have to load before the splash screen is hidden.
      * These are expected to be local resources as such only `number` is allowed.
+     * Note that by default Expo treats `json` as code so do not load them as assets
+     * even Lottie animation.
      */
     initialAssets?: number | number[]
     /**
@@ -134,7 +136,8 @@ export function ThemeProvider({ children,
             let nextColorScheme = colorScheme;
             try {
                 SplashScreen.preventAutoHideAsync();
-                const assetModuleIds: number[] = Array.isArray(initialAssets) ? initialAssets : [initialAssets];
+                const assetModules: any[] = Array.isArray(initialAssets) ? initialAssets : [initialAssets];
+                const assetModuleIds: number[] = assetModules.filter((assetModule) => typeof assetModule === "number");
                 await Font.loadAsync({
                     ...FontAwesome.font,
                 });

@@ -14,23 +14,23 @@ import { LoadingScreen } from '../../screens/LoadingScreen';
 
 export default function App() {
   return (
-    <ThemeProvider
-      defaultColorScheme='light'
-      fontModules={[NotoSans, IBMPlexSans, NotoSansMono, Lexend, IslandMoments]}
-      initialAssets={[
-        require("../../assets/lottie/28839-ikura-sushi.json"),
-        require("../../assets/images/icon.png")]}
-      LoadingComponent={LoadingScreen}
-      minimumShowLoadingTime={4000}
-    >
-      <AuthProvider baseUrl={BASE_URL}
-        clientId='myClient'
-        clientSecret='mySecret'>
+    <AuthProvider baseUrl={BASE_URL}
+      clientId='myClient'
+      clientSecret='mySecret'>
+      <ThemeProvider
+        defaultColorScheme='light'
+        fontModules={[NotoSans, IBMPlexSans, NotoSansMono, Lexend, IslandMoments]}
+        initialAssets={[
+          require("../../assets/lottie/28839-ikura-sushi.json"),
+          require("../../assets/images/icon.png")]}
+        LoadingComponent={LoadingScreen}
+        minimumShowLoadingTime={6000}
+      >
         <SafeAreaProvider>
           <Navigation />
           <StatusBar />
         </SafeAreaProvider>
-      </AuthProvider>
-    </ThemeProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

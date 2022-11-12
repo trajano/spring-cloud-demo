@@ -1,12 +1,22 @@
-import { StyleSheet } from 'react-native';
+import AnimatedLottieView from 'lottie-react-native';
+import { StyleSheet, useWindowDimensions } from 'react-native';
 
 import { Text, View } from '../src/components';
 
 export function LoadingScreen() {
 
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>This screen doesn't exist.</Text>
+    <View style={{ width: windowWidth, height: windowHeight, backgroundColor: "pink", alignItems: "center", justifyContent: "flex-start" }}>
+      <AnimatedLottieView
+        autoPlay
+        loop={false}
+        style={{
+          width: windowWidth > windowHeight ? windowHeight : windowWidth,
+          height: windowWidth > windowHeight ? windowHeight : windowWidth,
+        }}
+        source={{ uri: "https://assets5.lottiefiles.com/private_files/lf30_e3tmoL.json" }}
+      />
     </View>
   );
 }
