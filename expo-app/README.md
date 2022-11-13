@@ -64,7 +64,6 @@ Only support changing to monospaced font, the rest is simple style changes.
 <Sup>Superscript</Sup>
 ```
 
-
 ## Utility props
 
 `bg` = background color
@@ -84,7 +83,7 @@ bold = bold text == 700
 extraBold = 800
 black = 900
 italic = italic text
-xxs 
+xxs
 xs
 s
 m = medium size 16px
@@ -92,3 +91,30 @@ l
 xl
 xxl
 
+## Handling push notification updates
+
+```ts
+import * as TaskManager from "expo-task-manager";
+import * as Notifications from "expo-notifications";
+import { AuthStore } from "@trajano/spring-docker-auth-context";
+
+const BACKGROUND_NOTIFICATION_TASK = "BACKGROUND-NOTIFICATION-TASK";
+
+TaskManager.defineTask(
+  BACKGROUND_NOTIFICATION_TASK,
+  async ({ data, error, executionInfo }) => {
+    console.log("Received a notification in the background!");
+    const authStore = new AuthStore("storage-prefix");
+    const accessToken = await authStore.getAccessToken();
+    if (accessToken) {
+      // do some fetch operation here with the notification data
+    }
+  }
+);
+
+// this is actually done in authenticated context
+Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+
+// This should be done on logout.
+Notifications.unregisterTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+```

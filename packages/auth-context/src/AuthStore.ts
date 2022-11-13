@@ -1,12 +1,24 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { add, isAfter, parseISO, sub } from "date-fns";
-import type { OAuthToken } from "./OAuthToken";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { add, isAfter, parseISO, sub } from 'date-fns';
+import type { OAuthToken } from './OAuthToken';
 export class AuthStore {
   constructor(private storagePrefix: string) {}
 
+  /**
+   * Obtains the access token provide it is available and not expired.
+   */
+  async getAccessToken(): Promise<string | null> {
+    const oauthToken = await this.getOAuthToken();
+    const expiresAt = await this.getTokenExpiresAt();
+    if (oauthToken === null || isAfter(Date.now(), expiresAt)) {
+      return null;
+    } else {
+      return oauthToken.access_token;
+    }
+  }
   async getOAuthToken(): Promise<OAuthToken | null> {
     const oauthTokenJson = await AsyncStorage.getItem(
-      this.storagePrefix + ".oauthToken"
+      this.storagePrefix + '.oauthToken'
     );
     if (oauthTokenJson == null) {
       return null;
@@ -25,7 +37,7 @@ export class AuthStore {
     now?: Date
   ): Promise<Date> {
     await AsyncStorage.setItem(
-      this.storagePrefix + ".oauthToken",
+      this.storagePrefix + '.oauthToken',
       JSON.stringify(oauthToken)
     );
 
@@ -33,7 +45,7 @@ export class AuthStore {
       seconds: oauthToken.expires_in,
     });
     await AsyncStorage.setItem(
-      this.storagePrefix + ".tokenExpiresAt",
+      this.storagePrefix + '.tokenExpiresAt',
       expiresAt.toISOString()
     );
     return expiresAt;
@@ -44,7 +56,7 @@ export class AuthStore {
    */
   async getTokenExpiresAt(): Promise<Date> {
     const tokenExpiresAtString = await AsyncStorage.getItem(
-      this.storagePrefix + ".tokenExpiresAt"
+      this.storagePrefix + '.tokenExpiresAt'
     );
     if (tokenExpiresAtString == null) {
       return new Date();
@@ -69,8 +81,8 @@ export class AuthStore {
 
   async clear(): Promise<void> {
     await AsyncStorage.multiRemove([
-      this.storagePrefix + ".oauthToken",
-      this.storagePrefix + ".tokenExpiresAt",
+      this.storagePrefix + '.oauthToken',
+      this.storagePrefix + '.tokenExpiresAt',
     ]);
   }
 }

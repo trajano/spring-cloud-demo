@@ -25,6 +25,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
   const [authState, setAuthState] = useState(AuthState.INITIAL);
   const [oauthToken, setOauthToken] = useState<OAuthToken | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const expirationTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const [lastUnauthenticatedEvents, pushUnauthenticatedEvent] = useReducer((current: AuthEvent[], unauthenticatedAuthEvent: AuthEvent) => {
     return [unauthenticatedAuthEvent, ...current];
   }, []);
@@ -48,6 +49,13 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     subscribersRef.current.forEach((fn) => fn(event));
   }, []);
 
+  function expireToken() {
+    setAuthState(AuthState.NEEDS_REFRESH);
+    notify({
+      type: "TokenExpiration",
+      reason: "Timeout was reached"
+    })
+  }
   async function login(authenticationCredentials: Record<string, unknown>) {
 
     try {
@@ -55,6 +63,13 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
       const tokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(nextOauthToken);
       setAuthState(AuthState.AUTHENTICATED)
       setOauthToken(nextOauthToken)
+      expirationTimeoutRef.current = setTimeout(expireToken, Date.now() - tokenExpiresAt.getTime());
+      notify({
+        type: "LoggedIn",
+        accessToken: nextOauthToken.access_token,
+        authorization: `Bearer ${nextOauthToken.accessToken}`,
+        tokenExpiresAt
+      })
       notify({
         type: "Authenticated",
         accessToken: nextOauthToken.access_token,
@@ -88,6 +103,10 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
       await storageRef.current.clear();
       setAuthState(AuthState.UNAUTHENTICATED)
       setOauthToken(null);
+      clearTimeout(expirationTimeoutRef.current);
+      notify({
+        type: "LoggedOut"
+      })
       notify({
         type: "Unauthenticated",
         reason: "Logged out"
@@ -118,6 +137,8 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
       const tokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
       setAuthState(AuthState.AUTHENTICATED)
       setOauthToken(refreshedOAuthToken);
+      clearTimeout(expirationTimeoutRef.current);
+      expirationTimeoutRef.current = setTimeout(expireToken, Date.now() - tokenExpiresAt.getTime());
       notify({
         type: "Authenticated",
         accessToken: refreshedOAuthToken.access_token,
