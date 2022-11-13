@@ -76,7 +76,11 @@ type TokenExpirationEvent = {
    * Reason for token expiration if any
    */
   reason?: string;
-};
+  /**
+   * Body of response if available
+   */
+   responseBody?: string;
+  };
 /**
  * This gets fired when there is a transition from authenticated to unauthenticated.  Or when the initial
  * state had determined that the user is not authenticated/

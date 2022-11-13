@@ -55,7 +55,6 @@ export interface IAuth {
    * and not be used for any other purpose.  The value obtained from
    * a subscription should be used as it gets updated as soon
    * as a new token is obtained.
-
    */
   authorization: string | null;
   /**
@@ -68,9 +67,9 @@ export interface IAuth {
    */
   isConnected: boolean;
   /**
-   * Last unauthenticated events.  The most recent one will be the first element.
+   * Last auth events.  The most recent one will be the first element.
    * This is primarily used to diagnose issues where the token becomes invalidated
    * and the user was forcefully logged out.
    */
-  lastUnauthenticatedEvents: AuthEvent[];
+  lastAuthEvents: AuthEvent[];
 }

@@ -15,11 +15,28 @@ type AuthContextProviderProps = PropsWithChildren<{
   baseUrl: string,
   clientId: string,
   clientSecret: string,
+  /**
+   * AsyncStorage prefix used to store the authentication data.
+   */
   storagePrefix?: string,
+  /**
+   * Predicate to determine whether to log the event.  Defaults to accept all
+   */
+  logAuthEventFilterPredicate?: (event: AuthEvent) => boolean;
+  /**
+   * Size of the auth event log.  Defaults to 50
+   */
+  logAuthEventSize?: number;
 }>;
 
-export function AuthProvider({ baseUrl, clientId, clientSecret, children,
-  storagePrefix = "auth." }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
+export function AuthProvider({ baseUrl,
+  clientId,
+  clientSecret,
+  children,
+  logAuthEventFilterPredicate = () => true,
+  logAuthEventSize = 50,
+  storagePrefix = "auth."
+}: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
   const storageRef = useRef(new AuthStore(storagePrefix));
   const authClientRef = useRef(new AuthClient(baseUrl, clientId, clientSecret));
@@ -28,8 +45,12 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
   const [tokenExpiresAt, setTokenExpiresAt] = useState(new Date());
   const [isConnected, setIsConnected] = useState(false);
   const expirationTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-  const [lastUnauthenticatedEvents, pushUnauthenticatedEvent] = useReducer((current: AuthEvent[], unauthenticatedAuthEvent: AuthEvent) => {
-    return [unauthenticatedAuthEvent, ...current];
+  const [lastAuthEvents, pushAuthEvent] = useReducer((current: AuthEvent[], nextAuthEvent: AuthEvent) => {
+    if (logAuthEventFilterPredicate(nextAuthEvent)) {
+      return [nextAuthEvent, ...current].slice(0, logAuthEventSize);
+    } else {
+      return current;
+    }
   }, []);
 
   const accessToken = useMemo(() => oauthToken?.access_token ?? null, [oauthToken]);
@@ -52,9 +73,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
    * Notifies subscribers.  There's a specific handler if it is "Unauthenticated" that the provider handles.
    */
   const notify = useCallback(function notify(event: AuthEvent) {
-    if (event.type === "Unauthenticated") {
-      pushUnauthenticatedEvent(event);
-    }
+    pushAuthEvent(event);
     subscribersRef.current.forEach((fn) => fn(event));
   }, []);
 
@@ -160,12 +179,20 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
         tokenExpiresAt: nextTokenExpiresAt
       })
     } catch (e: unknown) {
-      if (e instanceof AuthenticationClientError) {
+      if (e instanceof AuthenticationClientError && e.isUnauthorized()) {
         await storageRef.current.clear();
         setAuthState(AuthState.UNAUTHENTICATED)
         setOauthToken(null);
         notify({
           type: "Unauthenticated",
+          reason: e.message,
+          responseBody: await e.response.json()
+        })
+      } else if (e instanceof AuthenticationClientError && !e.isUnauthorized()) {
+        // at this point there is an error but it's not something caused by the user so don't clear off the token
+        setAuthState(AuthState.NEEDS_REFRESH)
+        notify({
+          type: "TokenExpiration",
           reason: e.message,
           responseBody: await e.response.json()
         })
@@ -251,7 +278,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     accessTokenExpired,
     oauthToken,
     isConnected,
-    lastUnauthenticatedEvents,
+    lastAuthEvents,
     subscribe,
     login,
     logout,
