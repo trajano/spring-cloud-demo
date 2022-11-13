@@ -81,4 +81,5 @@ paths:
               }
         401:
           $ref: "./components.yaml#/components/responses/invalid-token"
-
+        401.1:
+          $ref: "./components.yaml#/components/responses/missing-token"

@@ -204,6 +204,35 @@ components:
         type: number
         example: 42
   responses:
+    missing-token:
+      description: |
+        The request is missing the token.  It expects a token to be present in the `Authorization` header
+        with the prefix of `Bearer`.
+      headers:
+        X-B3-Traceid:
+          $ref: "#/components/headers/X-B3-Traceid"
+        X-Trace-ID:
+          $ref: "#/components/headers/X-Trace-ID"
+        Cache-Control:
+          $ref: "#/components/headers/Cache-Control"
+        Content-Type:
+          $ref: "#/components/headers/Content-Type"
+        Content-Length:
+          $ref: "#/components/headers/Content-Length"
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+                example: false
+              error:
+                type: string
+                description: error code
+            example:
+              ok: false
+              error: missing_token
     invalid-token:
       description: |
         The request had an invalid token.  By design, there's no other information to indicate why it is invalid but

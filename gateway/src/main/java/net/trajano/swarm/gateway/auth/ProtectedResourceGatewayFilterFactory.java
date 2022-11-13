@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.auth.claims.ClaimsService;
 import net.trajano.swarm.gateway.common.AuthProperties;
+import net.trajano.swarm.gateway.web.GatewayResponse;
 import net.trajano.swarm.gateway.web.UnauthorizedGatewayResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.client.ServiceInstance;
@@ -172,7 +173,7 @@ public class ProtectedResourceGatewayFilterFactory
           return response.writeWith(
               new Jackson2JsonEncoder()
                   .encode(
-                      Mono.fromSupplier(() -> new UnauthorizedGatewayResponse(errorDescription)),
+                      Mono.fromSupplier(() -> new GatewayResponse(false, error, errorDescription)),
                       response.bufferFactory(),
                       ResolvableType.forClass(UnauthorizedGatewayResponse.class),
                       MediaType.APPLICATION_JSON,
