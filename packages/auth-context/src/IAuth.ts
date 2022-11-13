@@ -68,6 +68,10 @@ export interface IAuth {
    */
   authState: AuthState;
   /**
+   * Base URL as a URL.
+   */
+  baseUrl: URL;
+  /**
    * Determine if the backend is reachable.
    */
   isConnected: boolean;

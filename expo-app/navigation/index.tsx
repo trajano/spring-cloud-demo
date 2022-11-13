@@ -76,9 +76,7 @@ export default function Navigation() {
     </NavigationContainer>
 
   } else if (authState == AuthState.AUTHENTICATED) {
-    return <AuthenticatedProvider baseUrl={BASE_URL}
-      accessToken={auth.accessToken!}
-      accessTokenExpired={auth.accessTokenExpired}
+    return <AuthenticatedProvider
       issuer='http://localhost'
       clientId='unknown'>
       <NavigationContainer

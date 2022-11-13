@@ -1,6 +1,6 @@
-import { AuthenticationClientError } from "./AuthenticationClientError";
-import base64url from "base64url";
-import type { OAuthToken } from "./OAuthToken";
+import { AuthenticationClientError } from './AuthenticationClientError';
+import base64url from 'base64url';
+import type { OAuthToken } from './OAuthToken';
 
 export interface IAuthClient<A = any> {
   authenticate(authenticationRequest: A): Promise<OAuthToken>;
@@ -13,21 +13,21 @@ export class AuthClient implements IAuthClient<Record<string, unknown>> {
    * Header value.
    */
   private authorization: string;
-  constructor(private baseUrl: string, clientId: string, clientSecret: string) {
+  constructor(private baseUrl: URL, clientId: string, clientSecret: string) {
     this.authorization = `Basic ${base64url.toBase64(
-      clientId + ":" + clientSecret
+      clientId + ':' + clientSecret
     )}`;
   }
 
   public async authenticate(
     authenticationRequest: Record<string, unknown>
   ): Promise<OAuthToken> {
-    const response = await fetch(this.baseUrl + "/auth", {
-      method: "POST",
+    const response = await fetch(new URL('/auth', this.baseUrl.href).href, {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        Authorization: this.authorization,
-        Accept: "application/json",
+        'Content-Type': 'application/json',
+        'Authorization': this.authorization,
+        'Accept': 'application/json',
       },
       body: JSON.stringify(authenticationRequest),
     });
@@ -38,16 +38,16 @@ export class AuthClient implements IAuthClient<Record<string, unknown>> {
   }
 
   public async refresh(refreshToken: string): Promise<OAuthToken> {
-    const response = await fetch(this.baseUrl + "/refresh", {
-      method: "POST",
+    const response = await fetch(new URL('/refresh', this.baseUrl.href).href, {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: this.authorization,
-        Accept: "application/json",
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': this.authorization,
+        'Accept': 'application/json',
       },
       body: new URLSearchParams({
         refresh_token: refreshToken,
-        grant_type: "refresh_token",
+        grant_type: 'refresh_token',
       }).toString(),
     });
     if (!response.ok) {
@@ -57,16 +57,16 @@ export class AuthClient implements IAuthClient<Record<string, unknown>> {
   }
 
   public async revoke(refreshToken: string) {
-    const response = await fetch(this.baseUrl + "/logout", {
-      method: "POST",
+    const response = await fetch(new URL('/logout', this.baseUrl.href).href, {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: this.authorization,
-        Accept: "application/json",
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': this.authorization,
+        'Accept': 'application/json',
       },
       body: new URLSearchParams({
         token: refreshToken,
-        token_type_hint: "refresh_token",
+        token_type_hint: 'refresh_token',
       }).toString(),
     });
     if (!response.ok) {
@@ -76,10 +76,10 @@ export class AuthClient implements IAuthClient<Record<string, unknown>> {
   }
 
   public async ping(): Promise<boolean> {
-    const response = await fetch(this.baseUrl + "/ping", {
-      method: "GET",
+    const response = await fetch(new URL('/ping', this.baseUrl.href).href, {
+      method: 'GET',
       headers: {
-        Accept: "application/json",
+        Accept: 'application/json',
       },
     });
     if (!response.ok) {

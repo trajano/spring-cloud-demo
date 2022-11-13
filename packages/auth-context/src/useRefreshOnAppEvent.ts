@@ -1,6 +1,6 @@
 import NetInfo, {
   NetInfoState,
-  NetInfoStateType
+  NetInfoStateType,
 } from '@react-native-community/netinfo';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
@@ -24,7 +24,7 @@ type RefreshOnAppEventState = {
  * @param authState current authentication state
  */
 export function useRefreshOnAppEvent(
-  baseUrl: string,
+  baseUrl: URL,
   notify: (event: AuthEvent) => void,
   refresh: () => Promise<void>,
   needRefresh: () => void,
@@ -50,12 +50,16 @@ export function useRefreshOnAppEvent(
     isInternetReachable: null,
     details: null,
   });
-  const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
-  const tokenRefreshable = useMemo<boolean>(() => (
-    appState === 'active' &&
-    !!netInfoState.isConnected &&
-    !!netInfoState.isInternetReachable
-  ), [appState, netInfoState.isConnected, !!netInfoState.isInternetReachable]);
+  const [appState, setAppState] = useState<AppStateStatus>(
+    AppState.currentState
+  );
+  const tokenRefreshable = useMemo<boolean>(
+    () =>
+      appState === 'active' &&
+      !!netInfoState.isConnected &&
+      !!netInfoState.isInternetReachable,
+    [appState, netInfoState.isConnected, !!netInfoState.isInternetReachable]
+  );
 
   useEffect(() => {
     // simply notify when there's a connection change.
@@ -106,14 +110,13 @@ export function useRefreshOnAppEvent(
 
   useEffect(function restoreSubscriptionsAndTimeout() {
     NetInfo.configure({
-      reachabilityUrl: baseUrl + '/ping',
+      reachabilityUrl: new URL('/ping', baseUrl.href).href,
       reachabilityTest: (response) => Promise.resolve(response.status === 200),
       useNativeReachability: true,
     });
     const appStateSubscription = AppState.addEventListener(
       'change',
       (nextAppState) => {
-        console.log({ nextAppState });
         if (nextAppState === 'active') {
           // if the app switches to active, force a NetInfo refresh
           NetInfo.refresh();
@@ -125,11 +128,8 @@ export function useRefreshOnAppEvent(
       setNetInfoState(nextNetInfoState);
     });
     NetInfo.refresh().then(() => {
-      console.log({ netInfoState });
-
       refresh();
     });
-    console.log('useRefresh');
     return () => {
       appStateSubscription.remove();
       unsubscribeNetInfo();

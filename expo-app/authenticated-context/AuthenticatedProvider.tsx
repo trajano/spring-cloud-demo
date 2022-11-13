@@ -5,17 +5,16 @@ import { JwtClaims } from "./JwtClaims";
 import { jwtVerify } from "./jwtVerify";
 import EventSource from "react-native-sse";
 import { logger } from "react-native-logs";
+import { useAuth } from "@trajano/spring-docker-auth-context";
 
 // At present this has a problem on restore in that the access token is not valid yet.
 type AuthenticatedProviderProps = PropsWithChildren<{
-    baseUrl: string,
-    accessToken: string,
-    accessTokenExpired: boolean,
     clientId: string,
     issuer: string
 }>;
-export function AuthenticatedProvider({ baseUrl, accessToken, clientId, issuer, children }: AuthenticatedProviderProps) {
+export function AuthenticatedProvider({ clientId, issuer, children }: AuthenticatedProviderProps) {
 
+    const { baseUrl, accessToken } = useAuth();
     const [claims, setClaims] = useState<JwtClaims>();
     const isMounted = useMounted();
     const username = useMemo(() => claims?.sub ?? "", [claims]);
@@ -29,7 +28,7 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, issuer, 
         // when the internet is broken then the verification will fail 
         // maybe use a reducer here?
         try {
-            return jwtVerify(accessToken, new URL(`${baseUrl}/jwks`), issuer, clientId);
+            return jwtVerify(accessToken, new URL("/jwks", baseUrl.href), issuer, clientId);
         } catch (e) {
             return Promise.resolve(undefined);
         }
@@ -46,7 +45,7 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, issuer, 
         // log.warn({ verified, username })
         if (verified && username) {
 
-            eventStream.current = new EventSource<string>(`${baseUrl}/grpc/Echo/echoStream`, {
+            eventStream.current = new EventSource<string>(new URL("/grpc/Echo/echoStream", baseUrl.href), {
                 headers: {
                     authorization: `Bearer ${accessToken}`,
                     "content-type": "application/json",
@@ -67,7 +66,7 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, issuer, 
 
     async function whoami() {
         console.log({ whoami: accessToken })
-        const r = await fetch(`${baseUrl}/whoami/`, {
+        const r = await fetch(new URL("/whoami/", baseUrl.href), {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
                 "content-type": "application/json",
