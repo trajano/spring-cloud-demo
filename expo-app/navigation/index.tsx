@@ -39,8 +39,6 @@ export default function Navigation() {
       setAuthState(AuthState.UNAUTHENTICATED)
     } else if (event.type === "Authenticated") {
       setAuthState(AuthState.AUTHENTICATED)
-    } else if (event.type === "TokenExpiration") {
-      setAuthState(AuthState.NEEDS_REFRESH)
     }
 
   }

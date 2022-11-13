@@ -10,6 +10,9 @@ export function DrawerNavigator() {
     return (<Drawer.Navigator screenOptions={{ headerShown: false }}>
         <Drawer.Screen name="TabOne" component={TabOne as ComponentType} options={{ headerShown: false }} />
         <Drawer.Screen name="JustScrollView" component={JustScrollView} options={{ headerShown: false }} />
-        <Drawer.Screen name="StackNavigatorScrollView" component={StackNavigatorScrollView} options={{ headerShown: false }} />
+        <Drawer.Screen name="StackNavigatorScrollView" component={StackNavigatorScrollView} options={{
+            title: "Auth Event Log",
+            headerShown: false
+        }} />
     </Drawer.Navigator>)
 }

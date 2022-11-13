@@ -20,7 +20,7 @@ type AuthContextProviderProps = PropsWithChildren<{
    */
   storagePrefix?: string,
   /**
-   * Predicate to determine whether to log the event.  Defaults to accept all
+   * Predicate to determine whether to log the event.  Defaults to accept all except `Connection` and `CheckRefresh` which are polling events.
    */
   logAuthEventFilterPredicate?: (event: AuthEvent) => boolean;
   /**
@@ -33,7 +33,7 @@ export function AuthProvider({ baseUrl,
   clientId,
   clientSecret,
   children,
-  logAuthEventFilterPredicate = () => true,
+  logAuthEventFilterPredicate = (event: AuthEvent) => event.type !== "Connection" && event.type !== "CheckRefresh",
   logAuthEventSize = 50,
   storagePrefix = "auth."
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
@@ -174,6 +174,7 @@ export function AuthProvider({ baseUrl,
       expirationTimeoutRef.current = setTimeout(expireToken, Date.now() - nextTokenExpiresAt.getTime());
       notify({
         type: "Authenticated",
+        reason: "Refreshed",
         accessToken: refreshedOAuthToken.access_token,
         authorization: `Bearer ${refreshedOAuthToken.accessToken}`,
         tokenExpiresAt: nextTokenExpiresAt
@@ -229,6 +230,7 @@ export function AuthProvider({ baseUrl,
       setOauthToken(storedOAuthToken);
       notify({
         type: "Authenticated",
+        reason: reason,
         accessToken: storedOAuthToken.access_token,
         authorization: `Bearer ${storedOAuthToken.accessToken}`,
         tokenExpiresAt

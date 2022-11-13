@@ -87,8 +87,18 @@ export function withI18n<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>, c
     //return forwardRef<ComponentType<P>, I18nedProps<P>>((props: I18nedProps<P>, ref) => <StyledComponent {...props} forwardedRef={ref} />) as ComponentType<I18nedProps<P>>
 }
 
+export type TextStyleProps = {
+    /**
+     * Foreground color
+     */
+    fg?: string;
+    /**
+     * Font weight
+     */
+    fontWeight?: RN.TextStyle['fontWeight'];
 
-export type StyleProps = {
+}
+export type StyleProps = TextStyleProps & {
     /**
      * If true, the existing `style` attribute will be extended.  If false then the stylings will not modify the existing style attribute.  Defaults to true.
      */
@@ -102,10 +112,6 @@ export type StyleProps = {
      * Background color
      */
     bg?: string;
-    /**
-     * Foreground color
-     */
-    fg?: string;
     borderColor?: string;
     borderWidth?: number;
     paddingBottom?: number;
@@ -124,6 +130,7 @@ function propsToStyleSheet(props: StyleProps): StyleProp<Record<string, unknown>
     }
     add("bg", "backgroundColor");
     add("fg", "color");
+    add("fontWeight");
     add("borderColor");
     add("borderWidth");
     add("paddingBottom");
