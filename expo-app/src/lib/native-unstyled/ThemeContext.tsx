@@ -158,7 +158,6 @@ export function ThemeProvider({ children,
         ({ nextInitialAssetsLoaded, nextColorScheme }) => {
             setInitialAssetsLoaded(nextInitialAssetsLoaded);
             setColorScheme(nextColorScheme);
-            console.log({ nextInitialAssetsLoaded, nextColorScheme })
         },
         []);
     const colors = useMemo(() => colorSchemes[colorScheme], [colorSchemes, colorScheme])
