@@ -10,41 +10,37 @@ import { createMaterialBottomTabNavigator } from '@react-navigation/material-bot
 import { NavigationContainer, NavigationState } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAsyncSetEffect } from '@trajano/react-hooks';
+import { AuthEvent, AuthState, useAuth } from '@trajano/spring-docker-auth-context';
 import * as React from 'react';
-import { ColorSchemeName, Linking, Platform, Pressable } from 'react-native';
-import { useAuth, AuthEvent, AuthState } from '@trajano/spring-docker-auth-context';
-import Colors from '../constants/Colors';
-import useColorScheme from '../hooks/useColorScheme';
+import { Linking, Platform } from 'react-native';
+import { AuthenticatedProvider } from '../authenticated-context';
+import { DrawerNavigator } from '../screens/MainDrawer';
 import ModalScreen from '../screens/ModalScreen';
+import { NetworkLoggerTab } from '../screens/NetworkLoggerTab';
 import NotFoundScreen from '../screens/NotFoundScreen';
-import TabOneScreen from '../screens/TabOneScreen';
-import TabTwoScreen from '../screens/TabTwoScreen';
+import { TextTab } from '../screens/TextTab';
 import { useTheming } from '../src/lib/native-unstyled';
-import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
+import { RootStackParamList, RootTabParamList } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 import { LoginNavigator } from './login/LoginNavigator';
-import { AuthenticatedProvider } from '../authenticated-context';
-import { NetworkLoggerTab } from '../screens/NetworkLoggerTab';
-import { TextTab } from '../screens/TextTab';
-import { TabOne } from '../screens/TabOne';
-import { DrawerNavigator } from '../screens/MainDrawer';
-
 
 const PERSISTENCE_KEY = 'NAVIGATION_STATE_V1';
 export default function Navigation() {
   const auth = useAuth();
   const { reactNavigationTheme } = useTheming();
-  const [authState, setAuthState] = React.useState(AuthState.INITIAL);
+  const [authState, setAuthState] = React.useState(auth.authState);
   const [ready, setReady] = React.useState(false);
   const [initialState, setInitialState] = React.useState<NavigationState>();
 
   function authEventHandler(event: AuthEvent) {
     console.log({ event });
 
-    if (event.type == "Unauthenticated") {
+    if (event.type === "Unauthenticated") {
       setAuthState(AuthState.UNAUTHENTICATED)
-    } else if (event.type == "Authenticated") {
+    } else if (event.type === "Authenticated") {
       setAuthState(AuthState.AUTHENTICATED)
+    } else if (event.type === "TokenExpiration") {
+      setAuthState(AuthState.NEEDS_REFRESH)
     }
 
   }
@@ -69,7 +65,6 @@ export default function Navigation() {
 
   React.useEffect(() => {
 
-    setAuthState(auth.authState);
     return auth.subscribe(authEventHandler)
 
   }, [])
@@ -85,6 +80,7 @@ export default function Navigation() {
   } else if (authState == AuthState.AUTHENTICATED) {
     return <AuthenticatedProvider baseUrl={BASE_URL}
       accessToken={auth.accessToken!}
+      accessTokenExpired={auth.accessTokenExpired}
       issuer='http://localhost'
       clientId='unknown'>
       <NavigationContainer
@@ -133,18 +129,17 @@ function RootNavigator() {
 const BottomTab = createMaterialBottomTabNavigator<RootTabParamList>();
 
 function BottomTabNavigator() {
-  const colorScheme = useColorScheme();
 
   return (
     <BottomTab.Navigator
-      initialRouteName="TabOne"
+      initialRouteName="MainDrawer"
       shifting={true}
       screenOptions={{
       }}>
       <BottomTab.Screen
         name="MainDrawer"
         component={DrawerNavigator}
-        options={({ navigation }: RootTabScreenProps<'TabOne'>) => ({
+        options={() => ({
           title: 'Tab One',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
         })}

@@ -1,6 +1,7 @@
 import NetInfo from '@react-native-community/netinfo';
 import { usePollingIf } from "@trajano/react-hooks";
 import React, { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { isAfter } from "date-fns";
 import { AppState, AppStateStatus } from 'react-native';
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
@@ -24,6 +25,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
   const authClientRef = useRef(new AuthClient(baseUrl, clientId, clientSecret));
   const [authState, setAuthState] = useState(AuthState.INITIAL);
   const [oauthToken, setOauthToken] = useState<OAuthToken | null>(null);
+  const [tokenExpiresAt, setTokenExpiresAt] = useState(new Date());
   const [isConnected, setIsConnected] = useState(false);
   const expirationTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const [lastUnauthenticatedEvents, pushUnauthenticatedEvent] = useReducer((current: AuthEvent[], unauthenticatedAuthEvent: AuthEvent) => {
@@ -32,6 +34,13 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
 
   const accessToken = useMemo(() => oauthToken?.access_token ?? null, [oauthToken]);
   const authorization = useMemo(() => oauthToken ? `Bearer ${oauthToken.accessToken}` : null, [oauthToken]);
+  const accessTokenExpired = useMemo(() => {
+    if (!oauthToken) {
+      return true;
+    } else {
+      return isAfter(Date.now(), tokenExpiresAt);
+    }
+  }, [oauthToken, tokenExpiresAt]);
 
   const subscribe = useCallback(function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
@@ -49,6 +58,10 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     subscribersRef.current.forEach((fn) => fn(event));
   }, []);
 
+  /**
+   * This will set the auth state to needs refresh.  At this point the token has exceeded it's time limit.
+   * There is no grace period check either.
+   */
   function expireToken() {
     setAuthState(AuthState.NEEDS_REFRESH);
     notify({
@@ -134,16 +147,17 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     })
     try {
       const refreshedOAuthToken = await authClientRef.current.refresh(storedOAuthToken.refresh_token);
-      const tokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
+      const nextTokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
       setAuthState(AuthState.AUTHENTICATED)
       setOauthToken(refreshedOAuthToken);
+      setTokenExpiresAt(nextTokenExpiresAt);
       clearTimeout(expirationTimeoutRef.current);
-      expirationTimeoutRef.current = setTimeout(expireToken, Date.now() - tokenExpiresAt.getTime());
+      expirationTimeoutRef.current = setTimeout(expireToken, Date.now() - nextTokenExpiresAt.getTime());
       notify({
         type: "Authenticated",
         accessToken: refreshedOAuthToken.access_token,
         authorization: `Bearer ${refreshedOAuthToken.accessToken}`,
-        tokenExpiresAt
+        tokenExpiresAt: nextTokenExpiresAt
       })
     } catch (e: unknown) {
       if (e instanceof AuthenticationClientError) {
@@ -234,6 +248,7 @@ export function AuthProvider({ baseUrl, clientId, clientSecret, children,
     authState,
     authorization,
     accessToken,
+    accessTokenExpired,
     oauthToken,
     isConnected,
     lastUnauthenticatedEvents,

@@ -36,8 +36,18 @@ export interface IAuth {
    * and not be used for any other purpose.  The value obtained from
    * a subscription should be used as it gets updated as soon
    * as a new token is obtained.
+   *
+   * The token will be provided as long as it is present.  It
+   * does not check whether it is expired or not.
    */
   accessToken: string | null;
+  /**
+   * This indicates that the access token is expired and should not
+   * be verifiable.
+   *
+   * This returns true if the access token is not available.
+   */
+  accessTokenExpired: boolean;
   /**
    * Convenience to get the Authorization header value.
    *
@@ -59,6 +69,8 @@ export interface IAuth {
   isConnected: boolean;
   /**
    * Last unauthenticated events.  The most recent one will be the first element.
+   * This is primarily used to diagnose issues where the token becomes invalidated
+   * and the user was forcefully logged out.
    */
   lastUnauthenticatedEvents: AuthEvent[];
 }

@@ -16,6 +16,7 @@
     "shell-quote": ">= 1.7.3",
     "@expo/dev-server": "> 0.1.123 || <= 0.1.120",
     "react-native-dotenv": "< 3.4",
+    "@types/react": "~18.0.24",
     "webpack": "< 5",
     "webpack-dev-server": "< 4"
   },

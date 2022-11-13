@@ -1,15 +1,15 @@
 import { BASE_URL } from '@env';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useFocusEffect } from '@react-navigation/native';
-import { AnimatedFlashList, FlashList, ListRenderItemInfo } from '@shopify/flash-list';
+import { FlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import { useMounted } from '@trajano/react-hooks';
 import { useAuth } from '@trajano/spring-docker-auth-context';
 import { useCallback, useState } from 'react';
-import { Button, FlatList, StyleSheet } from 'react-native';
+import { Button, StyleSheet } from 'react-native';
 import { useAuthenticated } from '../authenticated-context';
 import { Text, View } from '../src/components';
-import { RootTabScreenProps } from '../types';
-export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
+import { MainDrawerScreenProps } from '../types';
+export default function TabOneScreen() {
   const { logout, refresh, accessToken, oauthToken } = useAuth();
   const { claims, internalState } = useAuthenticated();
   const [whoami, setWhoami] = useState<object | null>();

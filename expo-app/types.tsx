@@ -4,12 +4,13 @@
  */
 
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { DrawerScreenProps } from '@react-navigation/drawer';
 import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 declare global {
   namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
+    interface RootParamList extends RootStackParamList { }
   }
 }
 
@@ -24,11 +25,33 @@ export type RootStackScreenProps<Screen extends keyof RootStackParamList> = Nati
   Screen
 >;
 
+export type MainDrawerScreenProps<Screen extends keyof MainDrawerParamList> =
+  DrawerScreenProps<MainDrawerParamList, Screen>;
 export type RootTabParamList = {
-  TabOne: undefined;
+  MainDrawer: NavigatorScreenParams<MainDrawerParamList>;
   TabTwo: undefined;
   NetworkLogger: undefined;
 };
+
+/**
+ * Composites are needed to access the modal dialogs which are at the root.
+ */
+export type MainDrawerTabOneScreenProps<Screen extends keyof MainDrawerTabOneParamList> =
+  CompositeScreenProps<
+    NativeStackScreenProps<
+      MainDrawerTabOneParamList,
+      Screen
+    >,
+    NativeStackScreenProps<RootStackParamList>>
+
+export type MainDrawerTabOneParamList = {
+  TabOneScreen: undefined;
+}
+export type MainDrawerParamList = {
+  TabOne: NavigatorScreenParams<MainDrawerTabOneParamList>;
+  JustScrollView: undefined;
+  StackNavigatorScrollView: undefined;
+}
 
 export type RootTabScreenProps<Screen extends keyof RootTabParamList> = CompositeScreenProps<
   BottomTabScreenProps<RootTabParamList, Screen>,

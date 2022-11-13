@@ -1,9 +1,10 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Pressable } from 'react-native';
-import TabOneScreen from './TabOneScreen';
-const Stack = createNativeStackNavigator();
-export function TabOne({ navigation, colorScheme }: any) {
+import { MainDrawerTabOneParamList } from '../../types';
+import TabOneScreen from '../TabOneScreen';
+const Stack = createNativeStackNavigator<MainDrawerTabOneParamList>();
+export function TabOne({ navigation }: any) {
     return (<Stack.Navigator
         defaultScreenOptions={{
             headerLargeTitle: true,

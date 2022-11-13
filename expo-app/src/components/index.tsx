@@ -4,9 +4,9 @@ import { Animated, SectionListProps, StyleProp, StyleSheet, TextInputProps, Text
 import { useColors, useFonts } from "../lib/native-unstyled";
 export const ScrollView = Animated.ScrollView;
 
-export function SectionList<ItemT, SectionT>(props: Animated.AnimatedProps<SectionListProps<ItemT, SectionT>>) {
-    return <Animated.SectionList {...props} />
-}
+// export function SectionList<ItemT, SectionT>(props: Animated.AnimatedProps<SectionListProps<ItemT, SectionT>>) {
+//     return <Animated.SectionList {...props} />
+// }
 
 type FontLookupKey = Pick<
     RN.TextStyle,
@@ -160,7 +160,7 @@ export const Text: I18nStyledFC<Animated.AnimatedProps<TextProps>, RN.Text> =
         createElement(withI18n(withStyled(ForwardedRefMyText2, ref), ref), props)
     ) as I18nStyledFC<Animated.AnimatedProps<TextProps>, RN.Text>;
 
-
+// export const TextInput = RN.TextInput;
 export function TextInput(props: TextInputProps): ReactElement<TextInputProps> {
     return <RN.TextInput {...props} />
 }

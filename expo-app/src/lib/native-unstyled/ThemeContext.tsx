@@ -4,7 +4,7 @@ import { DefaultTheme, Theme as ReactNavigationTheme } from "@react-navigation/n
 import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
 import { Asset } from "expo-asset";
 import * as SplashScreen from 'expo-splash-screen';
-import { ComponentType, createContext, ReactElement, useContext, useEffect, useMemo, useState } from "react";
+import { ComponentType, createContext, ReactElement, ReactFragment, useContext, useEffect, useMemo, useState, ReactNode } from "react";
 import { ColorSchemeName, useColorScheme } from "react-native";
 import { defaultColorSchemes } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from './defaultLightColorSchemeColors';
@@ -61,7 +61,7 @@ export type ThemeProviderProps = {
      * for the app to override the system provided one.
      */
     getColorScheme?: () => Promise<NonNullable<ColorSchemeName>>;
-    children: ReactElement<any, any>;
+    children: ReactNode;
     /**
      * Minimum amount of time to show the loading screen, used to simulate a long
      * asset load time.
@@ -75,8 +75,8 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additio
     initialAssetsLoaded: boolean,
     additionalAssets: (string | number)[],
     minimumShowLoadingTime: number,
-    children: ReactElement<any, any>
-}): ReactElement<any, any> | null {
+    children: ReactNode
+}): JSX.Element | null {
     const { loaded: loadedFonts, total: totalFonts } = useFonts();
     const isMounted = useMounted();
     const [additionalAssetsLoaded, setAdditionalAssetsLoaded] = useState(0);
@@ -116,7 +116,7 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additio
     if (LoadingComponent && loadingComponentMustBeShown) {
         return <LoadingComponent colorScheme={colorScheme} loadedAssets={loadedAssets} totalAssets={totalAssets} />;
     } else {
-        return children;
+        return children as JSX.Element;
     }
 }
 

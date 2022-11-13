@@ -8,6 +8,7 @@ export const AuthContext = createContext<IAuth>({
     refresh: () => Promise.resolve(),
     subscribe: () => { return () => { }; },
     accessToken: null,
+    accessTokenExpired: true,
     oauthToken: null,
     authorization: null,
     authState: AuthState.INITIAL,

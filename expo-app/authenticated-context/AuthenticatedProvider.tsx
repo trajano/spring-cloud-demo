@@ -7,8 +7,14 @@ import EventSource from "react-native-sse";
 import { logger } from "react-native-logs";
 
 // At present this has a problem on restore in that the access token is not valid yet.
-
-export function AuthenticatedProvider({ baseUrl, accessToken, clientId, issuer, children }: PropsWithChildren<{ baseUrl: string, accessToken: string, clientId: string, issuer: string }>) {
+type AuthenticatedProviderProps = PropsWithChildren<{
+    baseUrl: string,
+    accessToken: string,
+    accessTokenExpired: boolean,
+    clientId: string,
+    issuer: string
+}>;
+export function AuthenticatedProvider({ baseUrl, accessToken, clientId, issuer, children }: AuthenticatedProviderProps) {
 
     const [claims, setClaims] = useState<JwtClaims>();
     const isMounted = useMounted();
