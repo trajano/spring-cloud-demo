@@ -228,7 +228,7 @@ export function AuthProvider({ baseUrl,
       })
     } else if (await storageRef.current.isExpiringInSeconds(60) && isConnected) {
       await doRefresh(storedOAuthToken, "Token is expiring in 60 seconds or has expired.  Endpoint is available.");
-    } else {
+    } else if (authState !== AuthState.AUTHENTICATED) {
       const tokenExpiresAt = await storageRef.current.getTokenExpiresAt()
       setAuthState(AuthState.AUTHENTICATED)
       setOauthToken(storedOAuthToken);
@@ -245,12 +245,20 @@ export function AuthProvider({ baseUrl,
   usePollingIf(() => authState == AuthState.AUTHENTICATED && isConnected, () => {
     periodicRefresh("Polling")
   }, 20000);
+
+  function refreshOnActivate(state: AppStateStatus): void {
+    if (state === "active" && isConnected) {
+      periodicRefresh("App Activated")
+    }
+  }
+
   useEffect(function restoreSession() {
     NetInfo.configure({
       reachabilityUrl: baseUrl + "/ping",
       reachabilityTest: response => Promise.resolve(response.status === 200),
       useNativeReachability: true,
     })
+    const subscription = AppState.addEventListener("change", refreshOnActivate);
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsConnected(!!state.isInternetReachable);
       notify({
@@ -259,24 +267,21 @@ export function AuthProvider({ baseUrl,
       })
     });
     NetInfo.refresh().then(() => periodicRefresh("After NetInfo.refresh"));
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      subscription.remove();
+      clearTimeout(expirationTimeoutRef.current);
+    }
   }, [])
   useEffect(() => {
     if (authState === AuthState.INITIAL && isConnected) {
       periodicRefresh("State is initial and connection has become available");
     }
+    if (authState === AuthState.NEEDS_REFRESH && isConnected) {
+      periodicRefresh("State is needs refresh and connection has become available");
+    }
   }, [authState, isConnected])
 
-  function refreshOnActivate(state: AppStateStatus): void {
-    if (state === "active" && isConnected) {
-      periodicRefresh("App Activated")
-    }
-  }
-  useEffect(() => {
-    // attach application state listener
-    const subscription = AppState.addEventListener("change", refreshOnActivate);
-    return () => subscription.remove();
-  }, []);
   return <AuthContext.Provider value={{
     authState,
     authorization,

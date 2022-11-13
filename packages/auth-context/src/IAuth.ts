@@ -71,5 +71,5 @@ export interface IAuth {
    * This is primarily used to diagnose issues where the token becomes invalidated
    * and the user was forcefully logged out.
    */
-  lastAuthEvents: AuthEvent[];
+  lastAuthEvents: LoggedAuthEvent[];
 }
