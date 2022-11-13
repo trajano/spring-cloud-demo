@@ -17,20 +17,21 @@ export default function App() {
     <AuthProvider baseUrl={BASE_URL}
       clientId='myClient'
       clientSecret='mySecret'>
-      <ThemeProvider
-        defaultColorScheme='light'
-        fontModules={[NotoSans, IBMPlexSans, NotoSansMono, Lexend, IslandMoments]}
-        initialAssets={[
-          require("../../assets/lottie/28839-ikura-sushi.json"),
-          require("../../assets/images/icon.png")]}
-        LoadingComponent={LoadingScreen}
-        minimumShowLoadingTime={6000}
-      >
-        <SafeAreaProvider>
-          <Navigation />
-          <StatusBar />
-        </SafeAreaProvider>
-      </ThemeProvider>
+      <SafeAreaProvider>
+        <ThemeProvider
+          defaultColorScheme='light'
+          fontModules={[NotoSans, IBMPlexSans, NotoSansMono, Lexend, IslandMoments]}
+          initialAssets={[
+            require("../../assets/lottie/28839-ikura-sushi.json"),
+            require("../../assets/images/icon.png")]}
+          LoadingComponent={LoadingScreen}
+          minimumShowLoadingTime={6000}
+        ><>
+            <Navigation />
+            <StatusBar />
+          </>
+        </ThemeProvider>
+      </SafeAreaProvider>
     </AuthProvider>
   );
 }

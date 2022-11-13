@@ -85,6 +85,7 @@ export default function Navigation() {
   } else if (authState == AuthState.AUTHENTICATED) {
     return <AuthenticatedProvider baseUrl={BASE_URL}
       accessToken={auth.accessToken!}
+      issuer='http://localhost'
       clientId='unknown'>
       <NavigationContainer
         linking={LinkingConfiguration}

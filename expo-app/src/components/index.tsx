@@ -108,7 +108,7 @@ export type StyleProps = {
     fg?: string;
     borderColor?: string;
     borderWidth?: number;
-
+    paddingBottom?: number;
 }
 
 /**
@@ -126,6 +126,7 @@ function propsToStyleSheet(props: StyleProps): StyleProp<Record<string, unknown>
     add("fg", "color");
     add("borderColor");
     add("borderWidth");
+    add("paddingBottom");
     return accumulatedStyle;
 }
 
@@ -139,7 +140,7 @@ export function withStyled<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>,
     function StyledComponent({ forwardedRef, extendStyle, style, ...rest }: StyledProps<P> & { forwardedRef: Ref<ComponentType<P>> }) {
         const { default: defaultColors } = useColors();
         const computedStyle = useMemo(() => {
-           return extendStyle === false ? [{ color: defaultColors[0], backgroundColor: defaultColors[1] }, propsToStyleSheet(rest)] : StyleSheet.compose([{ color: defaultColors[0], backgroundColor: defaultColors[1] }, style], propsToStyleSheet(rest));
+            return extendStyle === false ? [{ color: defaultColors[0], backgroundColor: defaultColors[1] }, propsToStyleSheet(rest)] : StyleSheet.compose([{ color: defaultColors[0], backgroundColor: defaultColors[1] }, style], propsToStyleSheet(rest));
             // return extendStyle === false ? [propsToStyleSheet(rest)] : StyleSheet.compose(style, propsToStyleSheet(rest));
         }, [style, extendStyle, rest]);
         return <WrappedComponent ref={forwardedRef} style={computedStyle} {...rest as P & JSX.IntrinsicAttributes} />;

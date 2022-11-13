@@ -11,7 +11,8 @@ module.exports = async function (env, argv) {
     },
     argv
   );
+  config.resolve.alias["lottie-react-native"] = "react-native-web-lottie";
   // Customize the config before returning it.
-  console.log(config)
+  console.log(config);
   return config;
 };

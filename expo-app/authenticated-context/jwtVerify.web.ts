@@ -1,5 +1,5 @@
 import base64url from "base64url";
-import * as jose from "node-jose";
+import * as jose from "jose";
 import * as pako from "pako";
 import { JwtClaims } from "./JwtClaims";
 
@@ -20,21 +20,10 @@ export async function jwtVerify<P extends JwtClaims>(
   const jwt = pako.inflate(decodedCompressed, { to: "string" });
   const jwksFetch = await fetch(jwksUrl);
   const jwksJson = await jwksFetch.json();
-  const jwks = await jose.JWK.asKeyStore(jwksJson);
-  const jwsResult = await jose.JWS.createVerify(jwks, {
-    allowEmbeddedKey: false,
-  }).verify(jwt);
-  const payload = JSON.parse(jwsResult.payload.toString()) as P;
-  if (
-    payload.aud &&
-    payload.exp &&
-    payload.sub &&
-    payload.iss === issuer &&
-    payload.aud.findIndex((aud) => aud === clientId) >= 0 &&
-    payload.exp >= Date.now() / 1000
-  ) {
-    return payload;
-  } else {
-    throw new Error("JWT not valid");
-  }
+  const jwks = jose.createRemoteJWKSet(jwksUrl);
+  const { payload } = await jose.jwtVerify(jwt, jwks, {
+    audience: clientId,
+    issuer: issuer,
+  });
+  return payload as P;
 }

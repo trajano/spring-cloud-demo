@@ -8,7 +8,7 @@ import { logger } from "react-native-logs";
 
 // At present this has a problem on restore in that the access token is not valid yet.
 
-export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children }: PropsWithChildren<{ baseUrl: string, accessToken: string, clientId: string }>) {
+export function AuthenticatedProvider({ baseUrl, accessToken, clientId, issuer, children }: PropsWithChildren<{ baseUrl: string, accessToken: string, clientId: string, issuer: string }>) {
 
     const [claims, setClaims] = useState<JwtClaims>();
     const isMounted = useMounted();
@@ -19,8 +19,11 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children
 
     const [internalState, updateInternalStateFromServerSentEvent] = useReducer((state: string[], nextEvent: string) => { return [...state, nextEvent].slice(-5) }, [])
     useAsyncSetEffect(async function verifyToken() {
+        // when access token changes the value could fail.
+        // when the internet is broken then the verification will fail 
+        // maybe use a reducer here?
         try {
-            return jwtVerify(accessToken, new URL(`${baseUrl}/jwks`), clientId);
+            return jwtVerify(accessToken, new URL(`${baseUrl}/jwks`), issuer, clientId);
         } catch (e) {
             return Promise.resolve(undefined);
         }
@@ -33,9 +36,11 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, children
     // log.debug({ verified, username, accessToken });
 
     useEffect(() => {
+        // this should be refactored to it's own file to provide the data stream
         // log.warn({ verified, username })
         if (verified && username) {
 
+            // this can fail if there's no connection.
             fetch(`${baseUrl}/whoami`, {
                 headers: {
                     authorization: `Bearer ${accessToken}`,

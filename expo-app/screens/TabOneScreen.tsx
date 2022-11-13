@@ -23,6 +23,7 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
 
   useFocusEffect(useCallback(() => {
     (async function () {
+      // this can fail if the token is no longer valid or the connection is missing.
       const z = await fetch(`${BASE_URL}/whoami/`, {
         "method": "GET",
         "headers": {

@@ -1,5 +1,5 @@
 import base64url from "base64url";
-import * as jose from "node-jose";
+import * as jose from "jose";
 import * as pako from "pako";
 
 /**
