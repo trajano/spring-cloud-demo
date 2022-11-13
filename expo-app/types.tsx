@@ -47,10 +47,13 @@ export type MainDrawerTabOneScreenProps<Screen extends keyof MainDrawerTabOnePar
 export type MainDrawerTabOneParamList = {
   TabOneScreen: undefined;
 }
+export type MainDrawerStackNavigatorScrollViewParamList = {
+  StackNavigatorScrollViewScreen: undefined;
+}
 export type MainDrawerParamList = {
   TabOne: NavigatorScreenParams<MainDrawerTabOneParamList>;
   JustScrollView: undefined;
-  StackNavigatorScrollView: undefined;
+  StackNavigatorScrollView: NavigatorScreenParams<MainDrawerStackNavigatorScrollViewParamList>;
 }
 
 export type RootTabScreenProps<Screen extends keyof RootTabParamList> = CompositeScreenProps<

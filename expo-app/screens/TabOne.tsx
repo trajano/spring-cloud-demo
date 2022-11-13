@@ -6,7 +6,6 @@ import TabOneScreen from './TabOneScreen';
 const Stack = createNativeStackNavigator<MainDrawerTabOneParamList>();
 //as ComponentType<{ navigation: any, route: RouteProp<MainDrawerTabOneParamList, any> }>
 export function TabOne({ navigation, route }: MainDrawerTabOneScreenProps<"TabOneScreen">): JSX.Element {
-    console.log(route);
     return (<Stack.Navigator
         defaultScreenOptions={{
             headerLargeTitle: true,

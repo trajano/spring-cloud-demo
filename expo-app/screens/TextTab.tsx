@@ -1,5 +1,4 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { NetworkLoggerScreen } from './NetworkLoggerScreen';
 import TabTwoScreen from './TabTwoScreen';
 const Stack = createNativeStackNavigator();
 export function TextTab() {
