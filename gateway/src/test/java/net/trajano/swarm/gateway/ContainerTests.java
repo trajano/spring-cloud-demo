@@ -320,7 +320,7 @@ class ContainerTests {
             .expectBody(String.class)
             .returnResult()
             .getResponseBody();
-    assertThat(responseBody).isEqualTo("{\"ok\":false,\"error\":\"invalid_token\"}");
+    assertThat(responseBody).isEqualTo("{\"ok\":false,\"error\":\"missing_token\"}");
   }
 
   @Test
