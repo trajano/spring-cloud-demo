@@ -6,7 +6,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
-import type { AuthEvent } from "./AuthEvent";
+import type { AuthEvent, LoggedAuthEvent } from "./AuthEvent";
 import { AuthState } from "./AuthState";
 import { AuthStore } from "./AuthStore";
 import type { OAuthToken } from "./OAuthToken";
@@ -45,9 +45,13 @@ export function AuthProvider({ baseUrl,
   const [tokenExpiresAt, setTokenExpiresAt] = useState(new Date());
   const [isConnected, setIsConnected] = useState(false);
   const expirationTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-  const [lastAuthEvents, pushAuthEvent] = useReducer((current: AuthEvent[], nextAuthEvent: AuthEvent) => {
+  const [lastAuthEvents, pushAuthEvent] = useReducer((current: LoggedAuthEvent[], nextAuthEvent: AuthEvent) => {
     if (logAuthEventFilterPredicate(nextAuthEvent)) {
-      return [nextAuthEvent, ...current].slice(0, logAuthEventSize);
+      return [{
+        ...nextAuthEvent,
+        key: nextAuthEvent.type + Date.now(),
+        on: new Date()
+      }, ...current].slice(0, logAuthEventSize);
     } else {
       return current;
     }
@@ -256,7 +260,7 @@ export function AuthProvider({ baseUrl,
     });
     NetInfo.refresh().then(() => periodicRefresh("After NetInfo.refresh"));
     return () => unsubscribe();
-  }, [authState])
+  }, [])
   useEffect(() => {
     if (authState === AuthState.INITIAL && isConnected) {
       periodicRefresh("State is initial and connection has become available");
