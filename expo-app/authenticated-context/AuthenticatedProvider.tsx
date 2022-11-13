@@ -67,13 +67,14 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, issuer, 
 
     async function whoami() {
         console.log({ whoami: accessToken })
-        const r = await fetch(`${baseUrl}/whoami`, {
+        const r = await fetch(`${baseUrl}/whoami/`, {
             headers: {
-                authorization: `Bearer ${accessToken}`,
+                Authorization: `Bearer ${accessToken}`,
                 "content-type": "application/json",
                 accept: "application/json",
             },
             method: "GET",
+            credentials: "include"
         });
         return r.json();
 
