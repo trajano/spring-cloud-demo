@@ -93,6 +93,14 @@ export type TextStyleProps = {
      */
     fg?: string;
     /**
+     * Font.  This allows setting from an alias, it also falls back as `fontFamily` as well.
+     */
+    font?: string;
+    /**
+     * Font family.  This will override the {@link TextStyleProps.font} value.
+     */
+    fontFamily?: RN.TextStyle['fontFamily'];
+    /**
      * Font weight
      */
     fontWeight?: RN.TextStyle['fontWeight'];
@@ -108,6 +116,13 @@ export type StyleProps = TextStyleProps & {
      */
     style?: StyleProp<unknown>;
 
+    /**
+     * Flex Direction
+     */
+    flex?: RN.FlexStyle['flex'];
+    alignSelf?: RN.FlexStyle['alignSelf'];
+    alignItems?: RN.FlexStyle['alignItems'];
+    flexDirection?: RN.FlexStyle['flexDirection'];
     /**
      * Background color
      */
@@ -129,11 +144,19 @@ function propsToStyleSheet(props: StyleProps): StyleProp<Record<string, unknown>
         }
     }
     add("bg", "backgroundColor");
-    add("fg", "color");
-    add("fontWeight");
+    add("alignItems");
+    add("alignSelf");
+    add("flex");
+    add("flexDirection");
+
     add("borderColor");
     add("borderWidth");
     add("paddingBottom");
+
+
+    add("fg", "color");
+    add("fontFamily");
+    add("fontWeight");
     return accumulatedStyle;
 }
 

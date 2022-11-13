@@ -1,15 +1,14 @@
-import NetInfo from '@react-native-community/netinfo';
-import { usePollingIf } from "@trajano/react-hooks";
-import React, { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { isAfter } from "date-fns";
-import { AppState, AppStateStatus } from 'react-native';
+import React, { PropsWithChildren, ReactElement, useCallback, useMemo, useRef, useState } from "react";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
-import type { AuthEvent, LoggedAuthEvent } from "./AuthEvent";
+import type { AuthEvent } from "./AuthEvent";
 import { AuthState } from "./AuthState";
 import { AuthStore } from "./AuthStore";
 import type { OAuthToken } from "./OAuthToken";
+import { useLastAuthEvents } from './useLastAuthEvents';
+import { useRefreshOnAppEvent } from './useRefreshOnAppEvent';
 
 type AuthContextProviderProps = PropsWithChildren<{
   baseUrl: string,
@@ -19,6 +18,10 @@ type AuthContextProviderProps = PropsWithChildren<{
    * AsyncStorage prefix used to store the authentication data.
    */
   storagePrefix?: string,
+  /**
+   * Time in seconds to consider refreshing the access token.  Defaults to 10.
+   */
+  timeBeforeExpirationRefresh?: number
   /**
    * Predicate to determine whether to log the event.  Defaults to accept all except `Connection` and `CheckRefresh` which are polling events.
    */
@@ -35,6 +38,7 @@ export function AuthProvider({ baseUrl,
   children,
   logAuthEventFilterPredicate = (event: AuthEvent) => event.type !== "Connection" && event.type !== "CheckRefresh",
   logAuthEventSize = 50,
+  timeBeforeExpirationRefresh = 10,
   storagePrefix = "auth."
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
@@ -43,22 +47,21 @@ export function AuthProvider({ baseUrl,
   const [authState, setAuthState] = useState(AuthState.INITIAL);
   const [oauthToken, setOauthToken] = useState<OAuthToken | null>(null);
   const [tokenExpiresAt, setTokenExpiresAt] = useState(new Date());
-  const [isConnected, setIsConnected] = useState(false);
-  const expirationTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-  const [lastAuthEvents, pushAuthEvent] = useReducer((current: LoggedAuthEvent[], nextAuthEvent: AuthEvent) => {
-    if (logAuthEventFilterPredicate(nextAuthEvent)) {
-      return [{
-        ...nextAuthEvent,
-        key: nextAuthEvent.type + Date.now(),
-        on: new Date()
-      }, ...current].slice(0, logAuthEventSize);
-    } else {
-      return current;
-    }
-  }, []);
+  // const [isConnected, setIsConnected] = useState(false);
+
+
+  /**
+   * Expiration timeout ID ref.  This is a timeout that executes when the OAuth timeout is less than X (default to 10) seconds away from expiration.
+   * When it reaches the expiration it will set the state to NEEDS_REFRESH.
+   * The timeout is cleared on unmount, logout or refresh.
+   */
+  // const expirationTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(logAuthEventFilterPredicate, logAuthEventSize);
 
   const accessToken = useMemo(() => oauthToken?.access_token ?? null, [oauthToken]);
   const authorization = useMemo(() => oauthToken ? `Bearer ${oauthToken.accessToken}` : null, [oauthToken]);
+  // This next one is wrong, it needs to be updated when the timeout occurs
   const accessTokenExpired = useMemo(() => {
     if (!oauthToken) {
       return true;
@@ -81,36 +84,50 @@ export function AuthProvider({ baseUrl,
     subscribersRef.current.forEach((fn) => fn(event));
   }, []);
 
-  /**
-   * This will set the auth state to needs refresh.  At this point the token has exceeded it's time limit.
-   * There is no grace period check either.
-   */
-  function expireToken() {
-    setAuthState(AuthState.NEEDS_REFRESH);
-    notify({
-      type: "TokenExpiration",
-      reason: "Timeout was reached"
-    })
-  }
-  async function login(authenticationCredentials: Record<string, unknown>) {
+  // /**
+  //  * This will set the auth state to needs refresh.  At this point the token has exceeded it's time limit.
+  //  * There is no grace period check either.
+  //  */
+  // function expireToken() {
+  //   setAuthState(AuthState.NEEDS_REFRESH);
+  //   notify({
+  //     type: "TokenExpiration",
+  //     reason: "Timeout was reached"
+  //   })
+  // }
+
+  // /**
+  //  * This will set the auth state to needs refresh.  At this point the token has exceeded it's time limit.
+  //  * There is no grace period check either.
+  //  */
+  // function expireTokenFn(s: string): () => void {
+  //   return () => {
+  //     setAuthState(AuthState.NEEDS_REFRESH);
+  //     notify({
+  //       type: "TokenExpiration",
+  //       reason: "Timeout was reached " + s
+  //     })
+  //   }
+  // }
+  async function login(authenticationCredentials: Record<string, unknown>): Promise<void> {
 
     try {
       const nextOauthToken = await authClientRef.current.authenticate(authenticationCredentials);
-      const tokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(nextOauthToken);
-      setAuthState(AuthState.AUTHENTICATED)
+      const nextTokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(nextOauthToken);
       setOauthToken(nextOauthToken)
-      expirationTimeoutRef.current = setTimeout(expireToken, Date.now() - tokenExpiresAt.getTime());
+      setTokenExpiresAt(nextTokenExpiresAt)
+      setAuthState(AuthState.AUTHENTICATED)
       notify({
         type: "LoggedIn",
         accessToken: nextOauthToken.access_token,
         authorization: `Bearer ${nextOauthToken.accessToken}`,
-        tokenExpiresAt
+        tokenExpiresAt: nextTokenExpiresAt
       })
       notify({
         type: "Authenticated",
         accessToken: nextOauthToken.access_token,
         authorization: `Bearer ${nextOauthToken.accessToken}`,
-        tokenExpiresAt
+        tokenExpiresAt: nextTokenExpiresAt
       })
     } catch (e: unknown) {
       if (e instanceof AuthenticationClientError) {
@@ -139,7 +156,6 @@ export function AuthProvider({ baseUrl,
       await storageRef.current.clear();
       setAuthState(AuthState.UNAUTHENTICATED)
       setOauthToken(null);
-      clearTimeout(expirationTimeoutRef.current);
       notify({
         type: "LoggedOut"
       })
@@ -160,7 +176,7 @@ export function AuthProvider({ baseUrl,
         reason: "No token stored"
       })
     } else {
-      doRefresh(storedOAuthToken, "Forced refresh");
+      await doRefresh(storedOAuthToken, "from refresh()");
     }
   }
   async function doRefresh(storedOAuthToken: OAuthToken, reason?: string) {
@@ -174,8 +190,6 @@ export function AuthProvider({ baseUrl,
       setAuthState(AuthState.AUTHENTICATED)
       setOauthToken(refreshedOAuthToken);
       setTokenExpiresAt(nextTokenExpiresAt);
-      clearTimeout(expirationTimeoutRef.current);
-      expirationTimeoutRef.current = setTimeout(expireToken, Date.now() - nextTokenExpiresAt.getTime());
       notify({
         type: "Authenticated",
         reason: "Refreshed",
@@ -195,7 +209,7 @@ export function AuthProvider({ baseUrl,
         })
       } else if (e instanceof AuthenticationClientError && !e.isUnauthorized()) {
         // at this point there is an error but it's not something caused by the user so don't clear off the token
-        setAuthState(AuthState.NEEDS_REFRESH)
+        setAuthState(AuthState.BACKEND_FAILURE)
         notify({
           type: "TokenExpiration",
           reason: e.message,
@@ -208,85 +222,90 @@ export function AuthProvider({ baseUrl,
 
   }
 
-  async function periodicRefresh(reason?: string) {
-    notify({
-      type: "CheckRefresh",
-      reason
-    })
-    const storedOAuthToken = await storageRef.current.getOAuthToken();
-    if (storedOAuthToken == null) {
-      setAuthState(AuthState.UNAUTHENTICATED)
-      notify({
-        type: "Unauthenticated",
-        reason: "No token stored"
-      })
-    }
-    else if (await storageRef.current.isExpiringInSeconds(60) && !isConnected) {
-      notify({
-        type: "CheckRefresh",
-        reason: "Token is expiring in 60 seconds or has expired.  But endpoint is not available.  Not changing state."
-      })
-    } else if (await storageRef.current.isExpiringInSeconds(60) && isConnected) {
-      await doRefresh(storedOAuthToken, "Token is expiring in 60 seconds or has expired.  Endpoint is available.");
-    } else if (authState !== AuthState.AUTHENTICATED) {
-      const tokenExpiresAt = await storageRef.current.getTokenExpiresAt()
-      setAuthState(AuthState.AUTHENTICATED)
-      setOauthToken(storedOAuthToken);
-      notify({
-        type: "Authenticated",
-        reason: reason,
-        accessToken: storedOAuthToken.access_token,
-        authorization: `Bearer ${storedOAuthToken.accessToken}`,
-        tokenExpiresAt
-      })
-    }
-  }
+  // /**
+  //  * Periodically run the refresh logic.
+  //  * @param reason reason
+  //  */
+  // async function periodicRefresh(reason?: string) {
+  //   notify({
+  //     type: "CheckRefresh",
+  //     reason
+  //   })
+  //   const storedOAuthToken = await storageRef.current.getOAuthToken();
+  //   if (storedOAuthToken == null) {
+  //     setAuthState(AuthState.UNAUTHENTICATED)
+  //     notify({
+  //       type: "Unauthenticated",
+  //       reason: "No token stored"
+  //     })
+  //   }
+  //   else if (await storageRef.current.isExpiringInSeconds(timeBeforeExpirationRefresh) && !isConnected) {
+  //     notify({
+  //       type: "CheckRefresh",
+  //       reason: `Token is expiring in ${timeBeforeExpirationRefresh} seconds or has expired.  But endpoint is not available.  Not changing state.`
+  //     })
+  //   } else if (await storageRef.current.isExpiringInSeconds(timeBeforeExpirationRefresh) && isConnected) {
+  //     await doRefresh(storedOAuthToken, `Token is expiring in ${timeBeforeExpirationRefresh} seconds or has expired.  Endpoint is available.`);
+  //   }
+  // }
 
-  usePollingIf(() => authState == AuthState.AUTHENTICATED && isConnected, () => {
-    periodicRefresh("Polling")
-  }, 20000);
+  // usePollingIf(() => (authState === AuthState.AUTHENTICATED || authState === AuthState.NEEDS_REFRESH) && isConnected, () => {
+  //   periodicRefresh("Polling")
+  // }, 20000);
 
-  function refreshOnActivate(state: AppStateStatus): void {
-    if (state === "active" && isConnected) {
-      periodicRefresh("App Activated")
-    }
-  }
+  // function refreshOnActivate(state: AppStateStatus): void {
+  //   if (state === "active" && isConnected) {
+  //     periodicRefresh("App Activated")
+  //   }
+  // }
 
-  useEffect(function restoreSession() {
-    NetInfo.configure({
-      reachabilityUrl: baseUrl + "/ping",
-      reachabilityTest: response => Promise.resolve(response.status === 200),
-      useNativeReachability: true,
-    })
-    const subscription = AppState.addEventListener("change", refreshOnActivate);
-    const unsubscribe = NetInfo.addEventListener(state => {
-      setIsConnected(!!state.isInternetReachable);
-      notify({
-        type: "Connection",
-        netInfoState: state,
-      })
-    });
-    NetInfo.refresh().then(() => periodicRefresh("After NetInfo.refresh"));
-    return () => {
-      unsubscribe();
-      subscription.remove();
-      clearTimeout(expirationTimeoutRef.current);
-    }
-  }, [])
-  useEffect(() => {
-    if (authState === AuthState.INITIAL && isConnected) {
-      periodicRefresh("State is initial and connection has become available");
-    }
-    if (authState === AuthState.NEEDS_REFRESH && isConnected) {
-      periodicRefresh("State is needs refresh and connection has become available");
-    }
-  }, [authState, isConnected])
+  // useEffect(function restoreSession() {
+  //   NetInfo.configure({
+  //     reachabilityUrl: baseUrl + "/ping",
+  //     reachabilityTest: response => Promise.resolve(response.status === 200),
+  //     useNativeReachability: true,
+  //   })
+  //   const subscription = AppState.addEventListener("change", refreshOnActivate);
+  //   const unsubscribe = NetInfo.addEventListener(state => {
+  //     setIsConnected(!!state.isInternetReachable);
+  //     notify({
+  //       type: "Connection",
+  //       netInfoState: state,
+  //     })
+  //   });
+  //   NetInfo.refresh().then(() => periodicRefresh("After NetInfo.refresh"));
+  //   return () => {
+  //     unsubscribe();
+  //     subscription.remove();
+  //     clearTimeout(expirationTimeoutRef.current);
+  //   }
+  // }, [])
+  // useEffect(() => {
+  //   console.log({ authState: AuthState[authState], isConnected })
+  //   if (authState === AuthState.INITIAL && isConnected) {
+  //     periodicRefresh("State is initial and connection has become available");
+  //   }
+  //   if (authState === AuthState.NEEDS_REFRESH && isConnected) {
+  //     periodicRefresh("State is needs refresh and connection has become available");
+  //   }
+  // }, [authState, isConnected])
+
+  const { tokenRefreshable: isConnected } = useRefreshOnAppEvent(
+    baseUrl,
+    notify,
+    refresh,
+    () => { setAuthState(AuthState.NEEDS_REFRESH); },
+    timeBeforeExpirationRefresh,
+    10,
+    storageRef.current,
+    authState);
 
   return <AuthContext.Provider value={{
     authState,
     authorization,
     accessToken,
     accessTokenExpired,
+    accessTokenExpiresOn: tokenExpiresAt,
     oauthToken,
     isConnected,
     lastAuthEvents,

@@ -20,15 +20,17 @@ export function LoadingScreen({ loadedAssets, totalAssets }: LoadingComponentPro
   return (
     <>
       <View style={{ width: windowWidth, height: windowHeight, backgroundColor: colors.default[1], alignItems: "center", justifyContent: "space-between" }}>
-        <AnimatedLottieView
-          autoPlay
-          loop={false}
-          style={{
-            width: windowWidth > windowHeight ? windowHeight : windowWidth,
-            height: windowWidth > windowHeight ? windowHeight : windowWidth,
-          }}
-          source={require("../assets/lottie/28839-ikura-sushi.json")}
-        />
+        <View flexDirection='row' alignSelf="flex-end">
+          <AnimatedLottieView
+            autoPlay
+            loop={false}
+            style={{
+              width: windowWidth > windowHeight ? windowHeight : windowWidth,
+              height: windowWidth > windowHeight ? windowHeight : windowWidth,
+            }}
+            source={require("../assets/lottie/28839-ikura-sushi.json")}
+          />
+        </View>
         {portrait && (<AssetsLoaded loadedAssets={loadedAssets} totalAssets={totalAssets} />)}
       </View>
       <StatusBar hidden={true} />

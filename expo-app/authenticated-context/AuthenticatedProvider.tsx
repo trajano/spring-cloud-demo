@@ -46,15 +46,6 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, issuer, 
         // log.warn({ verified, username })
         if (verified && username) {
 
-            // this can fail if there's no connection.
-            fetch(`${baseUrl}/whoami`, {
-                headers: {
-                    authorization: `Bearer ${accessToken}`,
-                    "content-type": "application/json",
-                    accept: "application/json",
-                },
-                method: "GET",
-            }).then(w => console.log(w.body)).catch((e) => console.log(e));
             eventStream.current = new EventSource<string>(`${baseUrl}/grpc/Echo/echoStream`, {
                 headers: {
                     authorization: `Bearer ${accessToken}`,
@@ -74,10 +65,25 @@ export function AuthenticatedProvider({ baseUrl, accessToken, clientId, issuer, 
 
     }, [verified, username, accessToken])
 
+    async function whoami() {
+        console.log({ whoami: accessToken })
+        const r = await fetch(`${baseUrl}/whoami`, {
+            headers: {
+                authorization: `Bearer ${accessToken}`,
+                "content-type": "application/json",
+                accept: "application/json",
+            },
+            method: "GET",
+        });
+        return r.json();
+
+    }
+
     return (<AuthenticatedContext.Provider value={{
         internalState,
         username,
         verified,
+        whoami,
         claims
     }}>
         {children}

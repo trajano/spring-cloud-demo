@@ -9,4 +9,8 @@ export interface IAuthenticated {
   username: string;
   verified: boolean;
   claims?: JwtClaims;
+  /**
+   * This invokes the whoami endpoint
+   */
+  whoami(): Promise<Record<string, unknown>>;
 }

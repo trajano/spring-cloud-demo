@@ -62,7 +62,7 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
       <ScrollView>
         <Text>{BASE_URL}</Text>
         <Text>{JSON.stringify({ isConnected: auth.isConnected, now })}</Text>
-        <Text>{JSON.stringify(auth.lastUnauthenticatedEvents, null, 2)}</Text>
+        <Text>{JSON.stringify(auth.lastAuthEvents, null, 2)}</Text>
       </ScrollView>
     </View>
   );

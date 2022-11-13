@@ -2,6 +2,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import * as Font from 'expo-font';
 import { DefaultTheme, Theme as ReactNavigationTheme } from "@react-navigation/native";
 import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
+import { TextStyle } from 'react-native';
 import { Asset } from "expo-asset";
 import * as SplashScreen from 'expo-splash-screen';
 import { ComponentType, createContext, ReactElement, ReactFragment, useContext, useEffect, useMemo, useState, ReactNode } from "react";
@@ -27,6 +28,12 @@ const ThemeContext = createContext<ITheme>({
     reactNavigationTheme: DefaultTheme,
     setColorScheme: () => { }
 })
+export type FontAlias = {
+    fontFamily?: TextStyle['fontFamily'],
+    fontWeight?: TextStyle['fontWeight'],
+    fontSize?: TextStyle['fontSize'];
+    fontStyle?: TextStyle['fontStyle']
+}
 export type ThemeProviderProps = {
     colorSchemes?: ColorSchemes,
     defaultColorScheme: NonNullable<ColorSchemeName>,
@@ -34,6 +41,10 @@ export type ThemeProviderProps = {
      * expo-font module assets to load up.
      */
     fontModules?: any[],
+    /**
+     * A list of aliases for the fonts to provide repetitive text styles.
+     */
+    fontAliases?: Record<string, FontAlias>,
     /**
      * Component to show while the theme and all its resources are being loaded.
      * If not specified, then it shows the children immediately.

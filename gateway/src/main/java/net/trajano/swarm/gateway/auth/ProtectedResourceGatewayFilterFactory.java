@@ -100,7 +100,7 @@ public class ProtectedResourceGatewayFilterFactory
 
                       ServerWebExchangeUtils.setResponseStatus(exchange, HttpStatus.UNAUTHORIZED);
                       ServerWebExchangeUtils.setAlreadyRouted(exchange);
-                      return respondWithUnauthorized(config, exchange, null);
+                      return respondWithUnauthorized(config, exchange, "missing_token", null);
                     } else {
 
                       final String bearerToken = authorization.substring("Bearer ".length());
@@ -120,7 +120,8 @@ public class ProtectedResourceGatewayFilterFactory
                                 ServerWebExchangeUtils.setAlreadyRouted(exchange);
                                 log.debug(
                                     "SecurityException obtaining claims: {}", ex.getMessage(), ex);
-                                return respondWithUnauthorized(config, exchange, "invalid_token")
+                                return respondWithUnauthorized(
+                                        config, exchange, "invalid_token", ex.getMessage())
                                     .delayElement(
                                         Duration.ofMillis(authProperties.getPenaltyDelayInMillis()),
                                         penaltyScheduler);
@@ -136,7 +137,8 @@ public class ProtectedResourceGatewayFilterFactory
                                     ex.getClass(),
                                     ex.getMessage(),
                                     ex);
-                                return respondWithUnauthorized(config, exchange, "invalid_token");
+                                return respondWithUnauthorized(
+                                    config, exchange, "invalid_token", ex.getMessage());
                               });
                     }
                   }
@@ -145,7 +147,7 @@ public class ProtectedResourceGatewayFilterFactory
   }
 
   private Mono<Void> respondWithUnauthorized(
-      Config config, ServerWebExchange exchange, String error) {
+      Config config, ServerWebExchange exchange, String error, String errorDescription) {
 
     return Mono.defer(
         () -> {
@@ -170,7 +172,7 @@ public class ProtectedResourceGatewayFilterFactory
           return response.writeWith(
               new Jackson2JsonEncoder()
                   .encode(
-                      Mono.fromSupplier(UnauthorizedGatewayResponse::new),
+                      Mono.fromSupplier(() -> new UnauthorizedGatewayResponse(errorDescription)),
                       response.bufferFactory(),
                       ResolvableType.forClass(UnauthorizedGatewayResponse.class),
                       MediaType.APPLICATION_JSON,

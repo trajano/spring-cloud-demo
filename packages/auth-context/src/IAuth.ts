@@ -1,4 +1,4 @@
-import type { AuthEvent } from './AuthEvent';
+import type { AuthEvent, LoggedAuthEvent } from './AuthEvent';
 import type { AuthState } from './AuthState';
 import type { OAuthToken } from './OAuthToken';
 
@@ -48,6 +48,11 @@ export interface IAuth {
    * This returns true if the access token is not available.
    */
   accessTokenExpired: boolean;
+  /**
+   * This specifies when the access token will expire.  This may
+   * return null if the access token is not available.
+   */
+   accessTokenExpiresOn: Date | null;
   /**
    * Convenience to get the Authorization header value.
    *

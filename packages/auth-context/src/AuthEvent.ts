@@ -50,7 +50,7 @@ type CheckRefreshEvent = {
 };
 
 /**
- * This gets fired when the refresh process is started
+ * This gets fired when the refresh process is started.  This occurs before the app client refresh is called.
  */
 type RefreshingEvent = {
   type: 'Refreshing';
@@ -59,7 +59,10 @@ type RefreshingEvent = {
    */
   reason?: string;
 };
-type ConnectionChangeEvent = {
+/**
+ * Connection change event.  This is explicity exported to allow better type safety.
+ */
+export type ConnectionChangeEvent = {
   type: 'Connection';
   /**
    * Current net info state.
