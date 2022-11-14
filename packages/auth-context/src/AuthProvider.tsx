@@ -1,5 +1,6 @@
+import { useDeepState } from "@trajano/react-hooks";
 import { isAfter } from "date-fns";
-import React, { PropsWithChildren, ReactElement, useCallback, useMemo, useRef, useState } from "react";
+import React, { PropsWithChildren, ReactElement, useCallback, useMemo, useRef } from "react";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
@@ -32,6 +33,11 @@ type AuthContextProviderProps = PropsWithChildren<{
   logAuthEventSize?: number;
 }>;
 
+type TokenState = {
+  authState: AuthState,
+  oauthToken: OAuthToken | null,
+  tokenExpiresAt: Date
+}
 export function AuthProvider({ baseUrl: baseUrlString,
   clientId,
   clientSecret,
@@ -45,9 +51,12 @@ export function AuthProvider({ baseUrl: baseUrlString,
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
   const storageRef = useRef(new AuthStore(storagePrefix));
   const authClientRef = useRef(new AuthClient(baseUrl, clientId, clientSecret));
-  const [authState, setAuthState] = useState(AuthState.INITIAL);
-  const [oauthToken, setOauthToken] = useState<OAuthToken | null>(null);
-  const [tokenExpiresAt, setTokenExpiresAt] = useState(new Date());
+
+  const [tokenState, setTokenState] = useDeepState<TokenState>({
+    authState: AuthState.INITIAL,
+    oauthToken: null,
+    tokenExpiresAt: new Date(0)
+  });
 
   /**
    * Expiration timeout ID ref.  This is a timeout that executes when the OAuth timeout is less than X (default to 10) seconds away from expiration.
@@ -58,16 +67,16 @@ export function AuthProvider({ baseUrl: baseUrlString,
 
   const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(logAuthEventFilterPredicate, logAuthEventSize);
 
-  const accessToken = useMemo(() => oauthToken?.access_token ?? null, [oauthToken]);
-  const authorization = useMemo(() => oauthToken ? `Bearer ${oauthToken.accessToken}` : null, [oauthToken]);
+  const accessToken = useMemo(() => tokenState.oauthToken?.access_token ?? null, [tokenState.oauthToken]);
+  const authorization = useMemo(() => tokenState.oauthToken ? `Bearer ${tokenState.oauthToken.accessToken}` : null, [tokenState.oauthToken]);
   // This next one is wrong, it needs to be updated when the timeout occurs
   const accessTokenExpired = useMemo(() => {
-    if (!oauthToken) {
+    if (!tokenState.oauthToken) {
       return true;
     } else {
-      return isAfter(Date.now(), tokenExpiresAt);
+      return isAfter(Date.now(), tokenState.tokenExpiresAt);
     }
-  }, [oauthToken, tokenExpiresAt]);
+  }, [tokenState.oauthToken, tokenState.tokenExpiresAt]);
 
   const subscribe = useCallback(function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
@@ -88,9 +97,11 @@ export function AuthProvider({ baseUrl: baseUrlString,
     try {
       const nextOauthToken = await authClientRef.current.authenticate(authenticationCredentials);
       const nextTokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(nextOauthToken);
-      setOauthToken(nextOauthToken)
-      setTokenExpiresAt(nextTokenExpiresAt)
-      setAuthState(AuthState.AUTHENTICATED)
+      setTokenState({
+        authState: AuthState.AUTHENTICATED,
+        oauthToken: nextOauthToken,
+        tokenExpiresAt: nextTokenExpiresAt
+      })
       notify({
         type: "LoggedIn",
         accessToken: nextOauthToken.access_token,
@@ -118,18 +129,21 @@ export function AuthProvider({ baseUrl: baseUrlString,
   async function logout() {
 
     try {
-      if (oauthToken == null) {
+      if (tokenState.oauthToken == null) {
         return;
       }
-      await authClientRef.current.revoke(oauthToken.refresh_token)
+      await authClientRef.current.revoke(tokenState.oauthToken.refresh_token)
     } catch (e: unknown) {
       if (!(e instanceof AuthenticationClientError)) {
         throw e;
       }
     } finally {
       await storageRef.current.clear();
-      setAuthState(AuthState.UNAUTHENTICATED)
-      setOauthToken(null);
+      setTokenState({
+        authState: AuthState.UNAUTHENTICATED,
+        oauthToken: null,
+        tokenExpiresAt: new Date(0)
+      });
       notify({
         type: "LoggedOut"
       })
@@ -144,7 +158,11 @@ export function AuthProvider({ baseUrl: baseUrlString,
   async function refresh() {
     const storedOAuthToken = await storageRef.current.getOAuthToken();
     if (storedOAuthToken == null) {
-      setAuthState(AuthState.UNAUTHENTICATED)
+      setTokenState({
+        authState: AuthState.UNAUTHENTICATED,
+        oauthToken: null,
+        tokenExpiresAt: new Date(0)
+      });
       notify({
         type: "Unauthenticated",
         reason: "No token stored"
@@ -161,9 +179,11 @@ export function AuthProvider({ baseUrl: baseUrlString,
     try {
       const refreshedOAuthToken = await authClientRef.current.refresh(storedOAuthToken.refresh_token);
       const nextTokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
-      setAuthState(AuthState.AUTHENTICATED)
-      setOauthToken(refreshedOAuthToken);
-      setTokenExpiresAt(nextTokenExpiresAt);
+      setTokenState({
+        authState: AuthState.AUTHENTICATED,
+        oauthToken: refreshedOAuthToken,
+        tokenExpiresAt: nextTokenExpiresAt
+      })
       notify({
         type: "Authenticated",
         reason: "Refreshed",
@@ -174,8 +194,11 @@ export function AuthProvider({ baseUrl: baseUrlString,
     } catch (e: unknown) {
       if (e instanceof AuthenticationClientError && e.isUnauthorized()) {
         await storageRef.current.clear();
-        setAuthState(AuthState.UNAUTHENTICATED)
-        setOauthToken(null);
+        setTokenState({
+          authState: AuthState.UNAUTHENTICATED,
+          oauthToken: null,
+          tokenExpiresAt: new Date(0)
+        });
         notify({
           type: "Unauthenticated",
           reason: e.message,
@@ -183,7 +206,11 @@ export function AuthProvider({ baseUrl: baseUrlString,
         })
       } else if (e instanceof AuthenticationClientError && !e.isUnauthorized()) {
         // at this point there is an error but it's not something caused by the user so don't clear off the token
-        setAuthState(AuthState.BACKEND_FAILURE)
+        setTokenState({
+          authState: AuthState.BACKEND_FAILURE,
+          oauthToken: tokenState.oauthToken,
+          tokenExpiresAt: tokenState.tokenExpiresAt
+        });
         notify({
           type: "TokenExpiration",
           reason: e.message,
@@ -200,20 +227,26 @@ export function AuthProvider({ baseUrl: baseUrlString,
     baseUrl,
     notify,
     refresh,
-    () => { setAuthState(AuthState.NEEDS_REFRESH); },
+    () => {
+      setTokenState({
+        authState: AuthState.NEEDS_REFRESH,
+        oauthToken: tokenState.oauthToken,
+        tokenExpiresAt: tokenState.tokenExpiresAt
+      });
+    },
     timeBeforeExpirationRefresh,
     10,
     storageRef.current,
-    authState);
+    tokenState.authState);
 
   return <AuthContext.Provider value={{
-    authState,
+    authState: tokenState.authState,
     authorization,
     accessToken,
     accessTokenExpired,
-    accessTokenExpiresOn: tokenExpiresAt,
+    accessTokenExpiresOn: tokenState.tokenExpiresAt,
     baseUrl,
-    oauthToken,
+    oauthToken: tokenState.oauthToken,
     isConnected,
     lastAuthEvents,
     subscribe,

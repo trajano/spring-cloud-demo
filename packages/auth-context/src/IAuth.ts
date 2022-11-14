@@ -50,9 +50,9 @@ export interface IAuth {
   accessTokenExpired: boolean;
   /**
    * This specifies when the access token will expire.  This may
-   * return null if the access token is not available.
+   * return `Date(0)` if the access token is not available.
    */
-   accessTokenExpiresOn: Date | null;
+   accessTokenExpiresOn: Date;
   /**
    * Convenience to get the Authorization header value.
    *

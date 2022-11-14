@@ -11,7 +11,7 @@ import { Text } from '../src/components';
 export function JustScrollView() {
     const safeAreaInsets = useSafeAreaInsets();
     const { accessToken, accessTokenExpiresOn, authState, refresh } = useAuth();
-    const [timeRemaining, setTimeRemaining] = useState(millisecondsToSeconds(accessTokenExpiresOn - Date.now()))
+    const [timeRemaining, setTimeRemaining] = useState<number>(millisecondsToSeconds(accessTokenExpiresOn.getTime() - Date.now()))
     const timerRef = useRef<ReturnType<typeof setTimeout>>();
     const [refreshing, setRefreshing] = useState(false);
     const { whoami } = useAuthenticated();
@@ -19,7 +19,7 @@ export function JustScrollView() {
 
     const updateClock = useCallback(() => {
         timerRef.current = setTimeout(() => {
-            setTimeRemaining(millisecondsToSeconds(accessTokenExpiresOn - Date.now()));
+            setTimeRemaining(millisecondsToSeconds(accessTokenExpiresOn.getTime() - Date.now());
             updateClock();
         }, getTime(startOfSecond(addSeconds(Date.now(), 1))) - Date.now())
         return () => clearTimeout(timerRef.current);
@@ -31,6 +31,7 @@ export function JustScrollView() {
                 refreshing={refreshing}
                 onRefresh={async () => {
                     setRefreshing(true);
+                    setWhoamiJson("");
                     await refresh();
                     setRefreshing(false);
                 }}
@@ -38,7 +39,7 @@ export function JustScrollView() {
         }
     >
         <Text>Access token <Text fontFamily="NotoSansMono">{accessToken?.slice(-5)}</Text> expires on <Text fontWeight="bold">{formatISO(accessTokenExpiresOn)}</Text>        </Text>
-        <Text>Time remaining <Text fontWeight="bold">{timeRemaining} seconds</Text>        </Text>
+        <Text>Time remaining <Text fontWeight="bold">{timeRemaining} seconds</Text></Text>
         <Text>AuthState <Text fontWeight="bold">{AuthState[authState]}</Text>        </Text>
         <Button onPress={async () => {
             setWhoamiJson(JSON.stringify(await whoami(), null, 2));

@@ -9,7 +9,7 @@ export const AuthContext = createContext<IAuth>({
   subscribe: () => { return () => { }; },
   accessToken: null,
   accessTokenExpired: true,
-  accessTokenExpiresOn: null,
+  accessTokenExpiresOn: new Date(0),
   oauthToken: null,
   authorization: null,
   authState: AuthState.INITIAL,
