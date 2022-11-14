@@ -1,12 +1,11 @@
 import { FontAwesome } from '@expo/vector-icons';
-import * as Font from 'expo-font';
 import { DefaultTheme, Theme as ReactNavigationTheme } from "@react-navigation/native";
 import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
-import { TextStyle } from 'react-native';
 import { Asset } from "expo-asset";
+import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { ComponentType, createContext, ReactElement, ReactFragment, useContext, useEffect, useMemo, useState, ReactNode } from "react";
-import { ColorSchemeName, useColorScheme } from "react-native";
+import { ComponentType, createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { ColorSchemeName, TextStyle, useColorScheme } from 'react-native';
 import { defaultColorSchemes } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from './defaultLightColorSchemeColors';
 import { FontsProvider, useFonts } from "./Fonts";
@@ -34,6 +33,7 @@ export type FontAlias = {
     fontSize?: TextStyle['fontSize'];
     fontStyle?: TextStyle['fontStyle']
 }
+type Loader = () => Promise<void>
 export type ThemeProviderProps = {
     colorSchemes?: ColorSchemes,
     defaultColorScheme: NonNullable<ColorSchemeName>,
@@ -64,9 +64,11 @@ export type ThemeProviderProps = {
     initialAssets?: number | number[]
     /**
      * Additional assets to load after the splash screen his hidden and LoadingComponent is 
-     * being shown.  The fonts are appended to this list.
+     * being shown.  The fonts are appended to the number.  Each of this is a callback
+     * function to load an asset or some other object.  This can be used to poll for a stable
+     * state.
      */
-    additionalAssets?: (number | string)[];
+    additionalAssets?: Loader[];
     /**
      * Provides an alternate method to get the color scheme.  This allows stored preference
      * for the app to override the system provided one.
@@ -84,22 +86,25 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additio
     colorScheme: NonNullable<ColorSchemeName>,
     LoadingComponent?: ComponentType<LoadingComponentProps>,
     initialAssetsLoaded: boolean,
-    additionalAssets: (string | number)[],
+    additionalAssets: Loader[],
     minimumShowLoadingTime: number,
     children: ReactNode
 }): JSX.Element | null {
     const { loaded: loadedFonts, total: totalFonts } = useFonts();
     const isMounted = useMounted();
     const [additionalAssetsLoaded, setAdditionalAssetsLoaded] = useState(0);
+
+    const totalAssets = useMemo(() => additionalAssets.length + totalFonts, [totalFonts, additionalAssets.length]);
+
     const loadedAssets = useMemo(() => loadedFonts + additionalAssets.length, [loadedFonts, additionalAssetsLoaded]);
-    const totalAssets = useMemo(() => totalFonts + additionalAssets.length, [totalFonts, additionalAssets.length]);
+
     const [minimumTimeSpent, setMinimumTimeSpent] = useState(minimumShowLoadingTime === 0);
 
     useEffect(() => {
         async function loadAdditionalAssetsAsync() {
             let assetsLoaded = 0;
-            for (const moduleId of additionalAssets) {
-                await Asset.loadAsync(moduleId);
+            for (const loadedAssets of additionalAssets) {
+                await loadedAssets();
                 ++assetsLoaded;
                 if (isMounted()) {
                     setAdditionalAssetsLoaded(assetsLoaded);
