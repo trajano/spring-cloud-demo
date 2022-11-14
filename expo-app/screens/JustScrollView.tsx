@@ -38,12 +38,12 @@ export function JustScrollView() {
             />
         }
     >
-        <Text>Access token <Text fontFamily="NotoSansMono">{accessToken?.slice(-5)}</Text> expires on <Text fontWeight="bold">{formatISO(accessTokenExpiresOn)}</Text>        </Text>
+        <Text>Access token <Text font="mono">{accessToken?.slice(-5)}</Text> expires on <Text fontWeight="bold">{formatISO(accessTokenExpiresOn)}</Text>        </Text>
         <Text>Time remaining <Text fontWeight="bold">{timeRemaining} seconds</Text></Text>
         <Text>AuthState <Text fontWeight="bold">{AuthState[authState]}</Text>        </Text>
         <Button onPress={async () => {
             setWhoamiJson(JSON.stringify(await whoami(), null, 2));
         }}>Who Am I?</Button>
-        <Text fontFamily="NotoSansMono">{whoamiJson}</Text>
+        <Text font="mono">{whoamiJson}</Text>
     </Animated.ScrollView>
 }

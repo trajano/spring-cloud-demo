@@ -1,7 +1,7 @@
 import React, { Children, Component, ComponentType, createElement, forwardRef, PropsWithChildren, ReactElement, Ref, RefAttributes, useCallback, useMemo } from 'react';
 import * as RN from "react-native";
 import { Animated, SectionListProps, StyleProp, StyleSheet, TextInputProps, TextProps, ViewProps } from "react-native";
-import { useColors, useFonts } from "../lib/native-unstyled";
+import { useColors, useFonts, useTheming } from "../lib/native-unstyled";
 export const ScrollView = Animated.ScrollView;
 
 // export function SectionList<ItemT, SectionT>(props: Animated.AnimatedProps<SectionListProps<ItemT, SectionT>>) {
@@ -167,11 +167,15 @@ type WithStyledConfig = {}
 export function withStyled<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>, config: WithStyledConfig = {}): ComponentType<StyledProps<P>> {
     const displayName =
         WrappedComponent.displayName || WrappedComponent.name || "Component";
-    function StyledComponent({ forwardedRef, extendStyle, style, ...rest }: StyledProps<P> & { forwardedRef: Ref<ComponentType<P>> }) {
+    function StyledComponent({ forwardedRef, extendStyle, style, font, ...rest }: StyledProps<P> & { forwardedRef: Ref<ComponentType<P>> }) {
         const { default: defaultColors } = useColors();
+        const { fontStyle } = useTheming();
         const computedStyle = useMemo(() => {
-            return extendStyle === false ? [{ color: defaultColors[0], backgroundColor: defaultColors[1] }, propsToStyleSheet(rest)] : StyleSheet.compose([{ color: defaultColors[0], backgroundColor: defaultColors[1] }, style], propsToStyleSheet(rest));
-            // return extendStyle === false ? [propsToStyleSheet(rest)] : StyleSheet.compose(style, propsToStyleSheet(rest));
+            if (extendStyle === false) {
+                return [{ color: defaultColors[0], backgroundColor: defaultColors[1] }, fontStyle(font), propsToStyleSheet(rest)];
+            } else {
+                return StyleSheet.compose([{ color: defaultColors[0], backgroundColor: defaultColors[1] }, style], fontStyle(font), propsToStyleSheet(rest));
+            }
         }, [style, extendStyle, rest]);
         return <WrappedComponent ref={forwardedRef} style={computedStyle} {...rest as P & JSX.IntrinsicAttributes} />;
     }

@@ -21,6 +21,10 @@ export default function App() {
         <ThemeProvider
           defaultColorScheme='light'
           fontModules={[NotoSans, IBMPlexSans, NotoSansMono, Lexend, IslandMoments]}
+          fontAliases={{
+            mono: { fontFamily: "NotoSansMono" },
+            "sans-serif": { fontFamily: "Lexend" }
+          }}
           initialAssets={[
             require("../../assets/lottie/28839-ikura-sushi.json"),
             require("../../assets/images/icon.png")]}

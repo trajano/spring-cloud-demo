@@ -23,7 +23,7 @@ export function LoadingScreen({ loadedAssets, totalAssets, additionalResourceUpd
   const [fromTimeout, setFromTimeout] = useState(0);
   const [fromAnimationFinish, setAnimationFinish] = useState(0);
   useEffect(() => {
-    // Add a 1 second delayed resource.
+    // Add a 2 second delayed resource.
     const timeout = setTimeout(() => setFromTimeout(1), 2000);
     if (authState === AuthState.UNAUTHENTICATED || authState === AuthState.AUTHENTICATED) {
       additionalResourceUpdate(1 + fromTimeout + fromAnimationFinish, 3);

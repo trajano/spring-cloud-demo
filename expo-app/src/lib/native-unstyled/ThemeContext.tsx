@@ -4,28 +4,21 @@ import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
 import { Asset } from "expo-asset";
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { ComponentType, createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { ComponentType, createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { ColorSchemeName, TextStyle, useColorScheme } from 'react-native';
 import { defaultColorSchemes } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from './defaultLightColorSchemeColors';
 import { FontsProvider, useFonts } from "./Fonts";
+import { ITheme } from './ITheme';
 import { LoadingComponentProps } from "./LoadingComponentProps";
 import { ColorSchemeColors, ColorSchemes } from "./Themes";
 
-/**
- * Theme will still include non-color stuff like fonts etc.  But only the color scheme is selectable.
- */
-interface ITheme {
-    colorScheme: NonNullable<ColorSchemeName>
-    colors: ColorSchemeColors
-    reactNavigationTheme: ReactNavigationTheme,
-    setColorScheme: (colorScheme: NonNullable<ColorSchemeName>) => void,
-}
 const ThemeContext = createContext<ITheme>({
     colorScheme: "light",
     colors: defaultLightColorSchemeColors,
     reactNavigationTheme: DefaultTheme,
-    setColorScheme: () => { }
+    setColorScheme: () => { },
+    fontStyle: () => ({})
 })
 export type FontAlias = {
     fontFamily?: TextStyle['fontFamily'],
@@ -154,6 +147,7 @@ export function ThemeProvider({ children,
     fontModules = [],
     initialAssets = [],
     additionalAssets = [],
+    fontAliases = {},
     minimumShowLoadingTime = 0,
     LoadingComponent,
     colorSchemes = defaultColorSchemes, getColorScheme }: ThemeProviderProps) {
@@ -201,11 +195,22 @@ export function ThemeProvider({ children,
             background: colors.default[1]
         }
     }), [colors, colorScheme]);
+    const fontStyle = useCallback((font?: string) => {
+        if (!font) {
+            return {}
+        }
+        else if (fontAliases[font]) {
+            return fontAliases[font];
+        } else {
+            return { fontFamily: font };
+        }
+    }, [fontAliases, fontModules])
     return <ThemeContext.Provider value={{
         colorScheme,
         colors: colors,
         reactNavigationTheme,
-        setColorScheme
+        setColorScheme,
+        fontStyle
     }}>
         <FontsProvider fontModules={fontModules}>
             <LoadingOrChildren
