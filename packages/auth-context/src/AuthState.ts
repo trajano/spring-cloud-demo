@@ -6,6 +6,10 @@ export enum AuthState {
   AUTHENTICATED,
   UNAUTHENTICATED,
   /**
+   * In this state, the refresh is running at the moment.
+   */
+  REFRESHING,
+  /**
    * In this state, the token was authenticated at one point but now needs to be refreshed.
    * The access token is still available, but it is not guaranteed to be verified successfully.
    */

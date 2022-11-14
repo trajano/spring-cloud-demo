@@ -156,6 +156,11 @@ export function AuthProvider({ baseUrl: baseUrlString,
   }
 
   async function refresh() {
+    setTokenState({
+      authState: AuthState.REFRESHING,
+      oauthToken: tokenState.oauthToken,
+      tokenExpiresAt: tokenState.tokenExpiresAt
+    });
     const storedOAuthToken = await storageRef.current.getOAuthToken();
     if (storedOAuthToken == null) {
       setTokenState({
@@ -168,59 +173,54 @@ export function AuthProvider({ baseUrl: baseUrlString,
         reason: "No token stored"
       })
     } else {
-      await doRefresh(storedOAuthToken, "from refresh()");
-    }
-  }
-  async function doRefresh(storedOAuthToken: OAuthToken, reason?: string) {
-    notify({
-      type: "Refreshing",
-      reason
-    })
-    try {
-      const refreshedOAuthToken = await authClientRef.current.refresh(storedOAuthToken.refresh_token);
-      const nextTokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
-      setTokenState({
-        authState: AuthState.AUTHENTICATED,
-        oauthToken: refreshedOAuthToken,
-        tokenExpiresAt: nextTokenExpiresAt
-      })
       notify({
-        type: "Authenticated",
-        reason: "Refreshed",
-        accessToken: refreshedOAuthToken.access_token,
-        authorization: `Bearer ${refreshedOAuthToken.accessToken}`,
-        tokenExpiresAt: nextTokenExpiresAt
+        type: "Refreshing",
       })
-    } catch (e: unknown) {
-      if (e instanceof AuthenticationClientError && e.isUnauthorized()) {
-        await storageRef.current.clear();
+      try {
+        const refreshedOAuthToken = await authClientRef.current.refresh(storedOAuthToken.refresh_token);
+        const nextTokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
         setTokenState({
-          authState: AuthState.UNAUTHENTICATED,
-          oauthToken: null,
-          tokenExpiresAt: new Date(0)
-        });
-        notify({
-          type: "Unauthenticated",
-          reason: e.message,
-          responseBody: await e.response.json()
+          authState: AuthState.AUTHENTICATED,
+          oauthToken: refreshedOAuthToken,
+          tokenExpiresAt: nextTokenExpiresAt
         })
-      } else if (e instanceof AuthenticationClientError && !e.isUnauthorized()) {
-        // at this point there is an error but it's not something caused by the user so don't clear off the token
-        setTokenState({
-          authState: AuthState.BACKEND_FAILURE,
-          oauthToken: tokenState.oauthToken,
-          tokenExpiresAt: tokenState.tokenExpiresAt
-        });
         notify({
-          type: "TokenExpiration",
-          reason: e.message,
-          responseBody: await e.response.json()
+          type: "Authenticated",
+          reason: "Refreshed",
+          accessToken: refreshedOAuthToken.access_token,
+          authorization: `Bearer ${refreshedOAuthToken.accessToken}`,
+          tokenExpiresAt: nextTokenExpiresAt
         })
-      } else {
-        throw e;
+      } catch (e: unknown) {
+        if (e instanceof AuthenticationClientError && e.isUnauthorized()) {
+          await storageRef.current.clear();
+          setTokenState({
+            authState: AuthState.UNAUTHENTICATED,
+            oauthToken: null,
+            tokenExpiresAt: new Date(0)
+          });
+          notify({
+            type: "Unauthenticated",
+            reason: e.message,
+            responseBody: await e.response.json()
+          })
+        } else if (e instanceof AuthenticationClientError && !e.isUnauthorized()) {
+          // at this point there is an error but it's not something caused by the user so don't clear off the token
+          setTokenState({
+            authState: AuthState.BACKEND_FAILURE,
+            oauthToken: tokenState.oauthToken,
+            tokenExpiresAt: tokenState.tokenExpiresAt
+          });
+          notify({
+            type: "TokenExpiration",
+            reason: e.message,
+            responseBody: await e.response.json()
+          })
+        } else {
+          throw e;
+        }
       }
     }
-
   }
 
   const { tokenRefreshable: isConnected } = useRefreshOnAppEvent(
