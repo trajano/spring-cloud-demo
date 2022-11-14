@@ -98,12 +98,14 @@ class ContainerTests {
             .dependsOn(redis, zipkin)
             .withEnv("SPRING_REDIS_HOST", "redis")
             .withEnv("SPRING_ZIPKIN_BASEURL", "http://zipkin:9411")
+                .withEnv("SPRING_ZIPKIN_ENABLED", "false")
             .withLogConsumer(System.err::print)
             .withNetwork(network)
             .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(3)));
 
     grpcService =
         new GenericContainer<>("docker.local/grpc-service")
+                .withEnv("SPRING_ZIPKIN_ENABLED", "false")
             .withLabel("docker.ids", "grpc")
             .withLabel("docker.grpc.path", "/grpc/**")
             .withLabel("docker.grpc.protocol", "grpc")
@@ -120,6 +122,7 @@ class ContainerTests {
             .withEnv("SPRING_REDIS_HOST", "redis")
             .withEnv("SPRING_PROFILES_ACTIVE", "test")
             .withEnv("SPRING_ZIPKIN_BASEURL", "http://zipkin:9411")
+                .withEnv("SPRING_ZIPKIN_ENABLED", "false")
             .withFileSystemBind("/var/run/docker.sock", "/var/run/docker.sock")
             .withNetwork(network)
             .withExposedPorts(8080)
