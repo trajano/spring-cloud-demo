@@ -12,31 +12,11 @@ import { MainDrawerScreenProps } from '../types';
 export default function TabOneScreen() {
   const { logout, refresh, accessToken, oauthToken } = useAuth();
   const { claims, internalState } = useAuthenticated();
-  const [whoami, setWhoami] = useState<object | null>();
   const isMounted = useMounted();
-  const headerHeight = useHeaderHeight();
 
   async function handleLogout() {
     await logout();
   }
-
-
-  useFocusEffect(useCallback(() => {
-    (async function () {
-      // this can fail if the token is no longer valid or the connection is missing.
-      const z = await fetch(`${BASE_URL}/whoami/`, {
-        "method": "GET",
-        "headers": {
-          accept: "application/json",
-          authorization: `Bearer ${accessToken}`
-        }
-      });
-      const x = await (z).json();
-      if (isMounted()) {
-        setWhoami(x);
-      }
-    })()
-  }, [accessToken]));
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -44,7 +24,6 @@ export default function TabOneScreen() {
     oauthToken,
     claims,
     accessToken?.slice(-5),
-    whoami,
     ...internalState
   ];
   function renderItem({ item }: ListRenderItemInfo<any>) {

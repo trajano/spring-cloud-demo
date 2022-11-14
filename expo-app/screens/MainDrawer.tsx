@@ -13,7 +13,7 @@ export function DrawerNavigator() {
     // hack TabOne as ComponentType for now.
     return (<Drawer.Navigator screenOptions={{ headerShown: false, drawerType }} defaultStatus={defaultStatus}     >
         <Drawer.Screen name="TabOne" component={TabOne as ComponentType} options={{ headerShown: false }} />
-        <Drawer.Screen name="JustScrollView" component={JustScrollView} options={{ headerShown: false }} />
+        <Drawer.Screen name="JustScrollView" component={JustScrollView} options={{ headerShown: false, title: "Access token" }} />
         <Drawer.Screen name="StackNavigatorScrollView" component={StackNavigatorScrollView} options={{
             title: "Auth Event Log",
             headerShown: false
