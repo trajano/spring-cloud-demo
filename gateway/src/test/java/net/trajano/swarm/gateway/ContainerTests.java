@@ -319,7 +319,7 @@ class ContainerTests {
             .expectStatus()
             .isEqualTo(HttpStatus.UNAUTHORIZED)
             .expectHeader()
-            .valueEquals(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"JWT\"")
+            .valueEquals(HttpHeaders.WWW_AUTHENTICATE, "Bearer realm=\"JWT\", error=\"missing_token\"")
             .expectBody(String.class)
             .returnResult()
             .getResponseBody();
