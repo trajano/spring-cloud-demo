@@ -78,7 +78,7 @@ export function useRefreshOnAppEvent(
           authState === AuthState.INITIAL)
       ) {
         notify({
-          type: 'Refreshing',
+          type: 'TokenExpiration',
           reason: `Token is refreshable and auth state=${AuthState[authState]}`,
         });
         clearExpirationTimeout();
