@@ -79,9 +79,13 @@ export type ThemeProviderProps = {
      * Minimum amount of time to show the loading screen, used to simulate a long
      * asset load time.
      */
-    minimumShowLoadingTime: number;
+    minimumShowLoadingTime?: number;
 };
 
+type LoadedTotal = {
+    loaded: number,
+    total: number
+}
 function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additionalAssets, minimumShowLoadingTime, LoadingComponent }: {
     colorScheme: NonNullable<ColorSchemeName>,
     LoadingComponent?: ComponentType<LoadingComponentProps>,
@@ -93,10 +97,11 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additio
     const { loaded: loadedFonts, total: totalFonts } = useFonts();
     const isMounted = useMounted();
     const [additionalAssetsLoaded, setAdditionalAssetsLoaded] = useState(0);
+    const [fromComponent, setFromComponent] = useState<LoadedTotal>({ loaded: 0, total: 0 });
 
-    const totalAssets = useMemo(() => additionalAssets.length + totalFonts, [totalFonts, additionalAssets.length]);
+    const totalAssets = useMemo(() => additionalAssets.length + totalFonts + fromComponent.total, [totalFonts, additionalAssets.length, fromComponent.total]);
 
-    const loadedAssets = useMemo(() => loadedFonts + additionalAssets.length, [loadedFonts, additionalAssetsLoaded]);
+    const loadedAssets = useMemo(() => loadedFonts + additionalAssets.length + fromComponent.loaded, [loadedFonts, additionalAssetsLoaded, fromComponent.loaded]);
 
     const [minimumTimeSpent, setMinimumTimeSpent] = useState(minimumShowLoadingTime === 0);
 
@@ -128,9 +133,17 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additio
     if (!LoadingComponent && loadingComponentMustBeShown) {
         return null;
     }
+
+    function additionalResourceUpdate(loaded: number, total: number) {
+        setFromComponent({
+            loaded,
+            total
+        })
+    }
+
     // assets are still being loaded
     if (LoadingComponent && loadingComponentMustBeShown) {
-        return <LoadingComponent colorScheme={colorScheme} loadedAssets={loadedAssets} totalAssets={totalAssets} />;
+        return <LoadingComponent colorScheme={colorScheme} loadedAssets={loadedAssets} totalAssets={totalAssets} additionalResourceUpdate={additionalResourceUpdate} />;
     } else {
         return children as JSX.Element;
     }

@@ -1,7 +1,9 @@
+import { AuthState, useAuth } from '@trajano/spring-docker-auth-context';
 import { StatusBar } from 'expo-status-bar';
 import AnimatedLottieView from 'lottie-react-native';
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaFrame, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useEffect, useState } from 'react';
 
 
 import { Text, View } from '../src/components';
@@ -12,11 +14,27 @@ function AssetsLoaded({ loadedAssets, totalAssets }: Pick<LoadingComponentProps,
   return <View paddingBottom={safeAreaInsetBottom}><Text>{`Assets loaded ${loadedAssets}/${totalAssets}`}</Text></View>
 }
 
-export function LoadingScreen({ loadedAssets, totalAssets }: LoadingComponentProps) {
+export function LoadingScreen({ loadedAssets, totalAssets, additionalResourceUpdate }: LoadingComponentProps) {
 
   const { colors } = useTheming();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const portrait = windowHeight > windowWidth;
+  const { authState, isConnected } = useAuth();
+  const [fromTimeout, setFromTimeout] = useState(0);
+  const [fromAnimationFinish, setAnimationFinish] = useState(0);
+  useEffect(() => {
+    // Add a 1 second delayed resource.
+    const timeout = setTimeout(() => setFromTimeout(1), 2000);
+    if (authState === AuthState.UNAUTHENTICATED || authState === AuthState.AUTHENTICATED) {
+      additionalResourceUpdate(1 + fromTimeout + fromAnimationFinish, 3);
+    } else if (!isConnected) {
+      additionalResourceUpdate(1 + fromTimeout + fromAnimationFinish, 3);
+    } else {
+      additionalResourceUpdate(fromTimeout + fromAnimationFinish, 3);
+    }
+    return () => clearTimeout(timeout);
+  }, [authState, isConnected, fromTimeout, fromAnimationFinish]);
+
   return (
     <>
       <View style={{ width: windowWidth, height: windowHeight, backgroundColor: colors.default[1], alignItems: "center", justifyContent: "space-between" }}>
@@ -24,6 +42,7 @@ export function LoadingScreen({ loadedAssets, totalAssets }: LoadingComponentPro
           <AnimatedLottieView
             autoPlay
             loop={false}
+            onAnimationFinish={() => { setAnimationFinish(1); }}
             style={{
               width: windowWidth > windowHeight ? windowHeight : windowWidth,
               height: windowWidth > windowHeight ? windowHeight : windowWidth,

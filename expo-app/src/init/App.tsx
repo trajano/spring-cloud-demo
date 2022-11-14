@@ -25,7 +25,6 @@ export default function App() {
             require("../../assets/lottie/28839-ikura-sushi.json"),
             require("../../assets/images/icon.png")]}
           LoadingComponent={LoadingScreen}
-          minimumShowLoadingTime={6000}
         ><>
             <Navigation />
             <StatusBar />
