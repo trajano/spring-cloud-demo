@@ -19,7 +19,7 @@ export function JustScrollView() {
 
     const updateClock = useCallback(() => {
         timerRef.current = setTimeout(() => {
-            setTimeRemaining(millisecondsToSeconds(accessTokenExpiresOn.getTime() - Date.now());
+            setTimeRemaining(millisecondsToSeconds(accessTokenExpiresOn.getTime() - Date.now()));
             updateClock();
         }, getTime(startOfSecond(addSeconds(Date.now(), 1))) - Date.now())
         return () => clearTimeout(timerRef.current);
