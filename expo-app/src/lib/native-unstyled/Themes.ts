@@ -2,18 +2,19 @@ import { ColorValue, TextStyle } from "react-native";
 
 /**
  * Use https://json-color-palette-generator.vercel.app/ to generate the swatches for you.
+ * Color swatches must be strings as there's no capability of swapping OpaqueColors to strings.
  */
 export type ColorSwatch = {
-  "50": ColorValue;
-  "100": ColorValue;
-  "200": ColorValue;
-  "300": ColorValue;
-  "400": ColorValue;
-  "500": ColorValue;
-  "600": ColorValue;
-  "700": ColorValue;
-  "800": ColorValue;
-  "900": ColorValue;
+  "50": string;
+  "100": string;
+  "200": string;
+  "300": string;
+  "400": string;
+  "500": string;
+  "600": string;
+  "700": string;
+  "800": string;
+  "900": string;
 };
 /**
  * Defines a color.  If it is a {@link ColorSwatch} then context-sensitive effects can
@@ -67,17 +68,14 @@ export type ColorSchemeColors = {
     border: string;
     notification: string;
   };
-  primary: ColorLayers;
-  secondary: ColorLayers;
-  tertiary: ColorLayers;
   /**
-   * Danger.  Usually red.
+   * Other color layers.  This may be `primary`, `secondary`, `disabled`, `danger` to represent different button states.
    */
-  danger: ColorLayers;
+  layers: Record<string, ColorLayers>;
   /**
-   * Warning.  Usually yellow.
+   * Aliased colors.
    */
-  warning: ColorLayers;
+  aliases: Record<string, Color>;
 };
 /**
  *

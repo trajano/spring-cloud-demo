@@ -34,7 +34,7 @@ export default function TabTwoScreen() {
   }, [locale])
   return (
     <ScrollView contentContainerStyle={[styles.container]} contentInsetAdjustmentBehavior="automatic">
-      <Text style={styles.title}>{now}</Text>
+      <Text bg="primary:f" fg="primary:b" style={styles.title}>{now}</Text>
       <View style={styles.separator} />
       <Text>Hello {username} <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text></Text>
       <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} style={{ width: 300 }} />

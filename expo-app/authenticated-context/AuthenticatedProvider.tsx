@@ -1,11 +1,10 @@
 import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
-import { PropsWithChildren, useRef, useEffect, useMemo, useReducer, useState } from "react";
+import { useAuth } from "@trajano/spring-docker-auth-context";
+import { PropsWithChildren, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import EventSource from "react-native-sse";
 import { AuthenticatedContext } from "./IAuthenticatedContext";
 import { JwtClaims } from "./JwtClaims";
 import { jwtVerify } from "./jwtVerify";
-import EventSource from "react-native-sse";
-import { logger } from "react-native-logs";
-import { useAuth } from "@trajano/spring-docker-auth-context";
 
 // At present this has a problem on restore in that the access token is not valid yet.
 type AuthenticatedProviderProps = PropsWithChildren<{
@@ -36,9 +35,6 @@ export function AuthenticatedProvider({ clientId, issuer, children }: Authentica
         (nextClaims) => {
             setClaims(nextClaims);
         }, [accessToken]);
-
-    const log = logger.createLogger()
-    // log.debug({ verified, username, accessToken });
 
     useEffect(() => {
         // this should be refactored to it's own file to provide the data stream

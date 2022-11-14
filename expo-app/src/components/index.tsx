@@ -1,7 +1,9 @@
 import React, { Children, Component, ComponentType, createElement, forwardRef, PropsWithChildren, ReactElement, Ref, RefAttributes, useCallback, useMemo } from 'react';
 import * as RN from "react-native";
-import { Animated, SectionListProps, StyleProp, StyleSheet, TextInputProps, TextProps, ViewProps } from "react-native";
+import { Animated, StyleProp, StyleSheet, TextInputProps, TextProps, ViewProps } from "react-native";
 import { useColors, useFonts, useTheming } from "../lib/native-unstyled";
+import { ColorSchemeColors } from '../lib/native-unstyled/Themes';
+import { lookupColor } from './lookupColor';
 export const ScrollView = Animated.ScrollView;
 
 // export function SectionList<ItemT, SectionT>(props: Animated.AnimatedProps<SectionListProps<ItemT, SectionT>>) {
@@ -136,25 +138,41 @@ export type StyleProps = TextStyleProps & {
  * For styling to occur, the props must already contain a `style` prop
  */
 export type StyledProps<P = unknown> = P & StyleProps;
-function propsToStyleSheet(props: StyleProps): StyleProp<Record<string, unknown>> {
+function propsToStyleSheet(props: StyleProps, colorSchemeColors: ColorSchemeColors): StyleProp<Record<string, unknown>> {
     const accumulatedStyle: Record<string, unknown> = {};
+    /**
+     * Look up the prop value if present compute it as the style key
+     * @param propKey prop key
+     * @param styleKey style key
+     */
     function add(propKey: string, styleKey?: string) {
         if (props.hasOwnProperty(propKey) && (props as Record<string, unknown>)[propKey] !== null) {
             accumulatedStyle[styleKey ?? propKey] = (props as Record<string, unknown>)[propKey];
         }
     }
-    add("bg", "backgroundColor");
+    /**
+     * Look up the prop value if present compute the color as the style key
+     * @param propKey prop key
+     * @param styleKey style key
+     */
+    function addColor(propKey: string, styleKey?: string) {
+        if (props.hasOwnProperty(propKey) && (props as Record<string, unknown>)[propKey] !== null) {
+            const evaluatedColor = lookupColor((props as Record<string, unknown>)[propKey] as RN.ColorValue, colorSchemeColors);
+            accumulatedStyle[styleKey ?? propKey] = evaluatedColor;
+        }
+    }
+    addColor("bg", "backgroundColor");
     add("alignItems");
     add("alignSelf");
     add("flex");
     add("flexDirection");
 
-    add("borderColor");
+    addColor("borderColor");
     add("borderWidth");
     add("paddingBottom");
 
 
-    add("fg", "color");
+    addColor("fg", "color");
     add("fontFamily");
     add("fontWeight");
     return accumulatedStyle;
@@ -169,12 +187,12 @@ export function withStyled<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>,
         WrappedComponent.displayName || WrappedComponent.name || "Component";
     function StyledComponent({ forwardedRef, extendStyle, style, font, ...rest }: StyledProps<P> & { forwardedRef: Ref<ComponentType<P>> }) {
         const { default: defaultColors } = useColors();
-        const { fontStyle } = useTheming();
+        const { fontStyle, colors } = useTheming();
         const computedStyle = useMemo(() => {
             if (extendStyle === false) {
-                return [{ color: defaultColors[0], backgroundColor: defaultColors[1] }, fontStyle(font), propsToStyleSheet(rest)];
+                return [{ color: defaultColors[0], backgroundColor: defaultColors[1] }, fontStyle(font), propsToStyleSheet(rest, colors)];
             } else {
-                return StyleSheet.compose([{ color: defaultColors[0], backgroundColor: defaultColors[1] }, style], fontStyle(font), propsToStyleSheet(rest));
+                return StyleSheet.compose([{ color: defaultColors[0], backgroundColor: defaultColors[1] }, style], [fontStyle(font), propsToStyleSheet(rest, colors)]);
             }
         }, [style, extendStyle, rest]);
         return <WrappedComponent ref={forwardedRef} style={computedStyle} {...rest as P & JSX.IntrinsicAttributes} />;
