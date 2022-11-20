@@ -12,6 +12,7 @@ import { persistStore, persistReducer } from 'redux-persist'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PersistGate } from 'redux-persist/integration/react';
 import { AUTHENTICATED, SSE_EVENT } from './actions';
+import Constants from 'expo-constants';
 
 // At present this has a problem on restore in that the access token is not valid yet.
 type AuthenticatedProviderProps = PropsWithChildren<{
@@ -35,7 +36,10 @@ export function AuthenticatedProvider({ clientId, issuer, children }: Authentica
 
     const [internalState, setInternalState] = useState([]);
 
-    const persistConfig = useMemo(() => ({ key: verified ? username : "unknown", storage: AsyncStorage }), [username]);
+    const persistConfig = useMemo(() => {
+        const prefix = (Constants.manifest2?.id ?? Constants.manifest?.originalFullName);
+        return ({ key: verified ? `${prefix}:${username}` : `${prefix}:unknown`, storage: AsyncStorage });
+    }, [username]);
     const persistedReducer = useMemo(() => persistReducer(persistConfig, combineReducers(reducers)), [persistConfig, reducers]);
     const store = useMemo(() => configureStore({
         reducer: persistedReducer,

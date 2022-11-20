@@ -7,6 +7,8 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,14 +23,11 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 @Configuration
+@RequiredArgsConstructor
 @SuppressWarnings("unused")
 public class CoreRoutes {
 
-  @Value("${cors.allowed-headers:authorization,content-type,cache-control,x-requested-with}") private Set<String> allowedHeaders;
-
-  @Value("${cors.allowed-methods:GET,POST,DELETE,PATCH}") private Set<String> allowedMethods;
-
-  @Value("${cors.allowed-origins:*}") private Set<String> allowedOrigins;
+    private final CorsConfigurer corsConfigurer;
 
   @Value("${gateway.root-html-redirect-uri:#{null}}") private URI rootHtmlRedirectUri;
 
@@ -46,21 +45,21 @@ public class CoreRoutes {
   }
 
   private boolean allowedHeadersAgainstRequestHeadersIsAllowed(ServerRequest.Headers headers) {
-    if (allowedHeaders.contains("*")) {
+    if (corsConfigurer.getAllowedHeaders().contains("*")) {
       return true;
     }
     final var requestedHeaders = getRequestedHeaders(headers);
-    return allowedHeaders.containsAll(requestedHeaders);
+    return corsConfigurer.getAllowedHeaders().containsAll(requestedHeaders);
   }
 
   private boolean allowedMethodsAgainstRequestMethodIsAllowed(ServerRequest.Headers headers) {
-    return allowedMethods.contains(
+    return corsConfigurer.getAllowedMethods().contains(
         headers.header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD).get(0));
   }
 
   private boolean allowedOriginAgainstRequestOrigin(ServerRequest.Headers headers) {
-    return allowedOrigins.contains(headers.header(HttpHeaders.ORIGIN).get(0))
-        || allowedOrigins.contains("*");
+    return corsConfigurer.getAllowedOrigins().contains(headers.header(HttpHeaders.ORIGIN).get(0))
+        || corsConfigurer.getAllowedOrigins().contains("*");
   }
 
   @Bean
@@ -90,20 +89,20 @@ public class CoreRoutes {
           }
 
           final String allowOrigin;
-          if (allowedOrigins.contains("*")) {
+          if (corsConfigurer.getAllowedOrigins().contains("*")) {
             allowOrigin = "*";
           } else {
             allowOrigin = headers.header(HttpHeaders.ORIGIN).get(0);
           }
           final Set<String> allowHeaders;
-          if (allowedHeaders.contains("*")) {
+          if (corsConfigurer.getAllowedHeaders().contains("*")) {
             allowHeaders = Set.of("*");
           } else {
             allowHeaders = getRequestedHeaders(headers);
           }
           return ServerResponse.noContent()
               .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, allowOrigin)
-              .header(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, String.join(",", allowedMethods))
+              .header(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, String.join(",", corsConfigurer.getAllowedMethods()))
               .header(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, String.join(",", allowHeaders))
               .header(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "false")
               .header(HttpHeaders.ACCESS_CONTROL_MAX_AGE, "86400")

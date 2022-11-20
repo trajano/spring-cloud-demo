@@ -2,6 +2,8 @@ package net.trajano.swarm.gateway.web;
 
 import java.time.Duration;
 import java.util.Set;
+
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,10 +23,13 @@ import org.springframework.web.server.ServerWebExchange;
 // public class CorsConfigurer implements WebFluxConfigurer {
 public class CorsConfigurer {
 
-  @Value("${cors.allowed-headers:authorization,content-type}") private Set<String> allowedHeaders;
+  @Getter
+  @Value("${cors.allowed-headers:authorization,content-type,cache-control,x-requested-with}") private Set<String> allowedHeaders;
 
+  @Getter
   @Value("${cors.allowed-methods:HEAD,GET,POST,DELETE,PATCH}") private Set<String> allowedMethods;
 
+  @Getter
   @Value("${cors.allowed-origins:*}") private Set<String> allowedOrigins;
   //    @Value("${cors.allowed-headers:authorization,content-type}") private String[]
   // allowedHeaders;
