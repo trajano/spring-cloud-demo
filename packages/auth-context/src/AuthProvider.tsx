@@ -172,6 +172,17 @@ export function AuthProvider({ baseUrl: baseUrlString,
         type: "Unauthenticated",
         reason: "No token stored"
       })
+    } else if (!isConnected) {
+      // refresh was attempted when the backend is not available
+      setTokenState({
+        authState: AuthState.BACKEND_FAILURE,
+        oauthToken: tokenState.oauthToken,
+        tokenExpiresAt: tokenState.tokenExpiresAt
+      });
+      notify({
+        type: "TokenExpiration",
+        reason: "Backend is not available and token refresh was requested"
+      })
     } else {
       notify({
         type: "Refreshing",

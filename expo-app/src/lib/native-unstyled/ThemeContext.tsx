@@ -5,39 +5,39 @@ import { Asset } from "expo-asset";
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { ComponentType, createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { ColorSchemeName, TextStyle, useColorScheme } from 'react-native';
+import { ColorSchemeName, useColorScheme, StyleSheet, TextStyle } from 'react-native';
 import { defaultColorSchemes } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from './defaultLightColorSchemeColors';
 import { FontsProvider, useFonts } from "./Fonts";
 import { ITheme } from './ITheme';
 import { LoadingComponentProps } from "./LoadingComponentProps";
 import { ColorSchemeColors, ColorSchemes } from "./Themes";
+import { Typography } from './Typography';
 
 const ThemeContext = createContext<ITheme>({
     colorScheme: "light",
     colors: defaultLightColorSchemeColors,
+    defaultTypography: {},
     reactNavigationTheme: DefaultTheme,
     setColorScheme: () => { },
-    fontStyle: () => ({})
+    typography: () => ({})
 })
-export type FontAlias = {
-    fontFamily?: TextStyle['fontFamily'],
-    fontWeight?: TextStyle['fontWeight'],
-    fontSize?: TextStyle['fontSize'];
-    fontStyle?: TextStyle['fontStyle']
-}
 type Loader = () => Promise<void>
 export type ThemeProviderProps = {
     colorSchemes?: ColorSchemes,
     defaultColorScheme: NonNullable<ColorSchemeName>,
     /**
+     * Default typography to apply in text elements.
+     */
+    defaultTypography?: Typography;
+    /**
      * expo-font module assets to load up.
      */
     fontModules?: any[],
     /**
-     * A list of aliases for the fonts to provide repetitive text styles.
+     * A list of roles for the text to provide repetitive text styles.
      */
-    fontAliases?: Record<string, FontAlias>,
+    textRoles?: Record<string, Typography>,
     /**
      * Component to show while the theme and all its resources are being loaded.
      * If not specified, then it shows the children immediately.
@@ -79,7 +79,7 @@ type LoadedTotal = {
     loaded: number,
     total: number
 }
-function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additionalAssets, minimumShowLoadingTime, LoadingComponent }: {
+function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additionalAssets, minimumShowLoadingTime, loadingCompletedCallback, LoadingComponent }: {
     colorScheme: NonNullable<ColorSchemeName>,
     LoadingComponent?: ComponentType<LoadingComponentProps>,
     initialAssetsLoaded: boolean,
@@ -144,16 +144,19 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additio
 
 export function ThemeProvider({ children,
     defaultColorScheme = "light",
+    defaultTypography: providedDefaultTypography = {},
     fontModules = [],
     initialAssets = [],
     additionalAssets = [],
-    fontAliases = {},
+    textRoles: textRoles = {},
     minimumShowLoadingTime = 0,
     LoadingComponent,
     colorSchemes = defaultColorSchemes, getColorScheme }: ThemeProviderProps) {
     const systemColorScheme = useColorScheme();
     const [colorScheme, setColorScheme] = useState(systemColorScheme ?? defaultColorScheme);
     const [initialAssetsLoaded, setInitialAssetsLoaded] = useState(false);
+    const [fontsLoaded, setFontsLoaded] = useState(false);
+
     useAsyncSetEffect(
         async function loadInitialAssets() {
             let nextColorScheme = colorScheme;
@@ -195,24 +198,34 @@ export function ThemeProvider({ children,
             background: colors.default[1]
         }
     }), [colors, colorScheme]);
-    const fontStyle = useCallback((font?: string) => {
-        if (!font) {
+    const typography = useCallback((role?: string, size?: string) => {
+        if (!role) {
             return {}
         }
-        else if (fontAliases[font]) {
-            return fontAliases[font];
+        else if (textRoles[`${role}.${size}`]) {
+            return textRoles[`${role}.${size}`];
+        } else if (textRoles[role]) {
+            return textRoles[role];
         } else {
-            return { fontFamily: font };
+            return {};
         }
-    }, [fontAliases, fontModules])
+    }, [textRoles, fontModules])
+    const defaultTypography = useMemo(
+        () => (
+            fontsLoaded
+                ? { color: colors.default[0], backgroundColor: colors.default[1] }
+                : { color: colors.default[0], backgroundColor: colors.default[1] }
+        ),
+        [fontsLoaded, colors.default, providedDefaultTypography]);
     return <ThemeContext.Provider value={{
         colorScheme,
-        colors: colors,
+        colors,
         reactNavigationTheme,
         setColorScheme,
-        fontStyle
+        defaultTypography,
+        typography
     }}>
-        <FontsProvider fontModules={fontModules}>
+        <FontsProvider fontModules={fontModules} onLoaded={() => { setFontsLoaded(true); }}>
             <LoadingOrChildren
                 colorScheme={colorScheme}
                 LoadingComponent={LoadingComponent}

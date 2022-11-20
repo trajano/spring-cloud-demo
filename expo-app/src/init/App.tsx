@@ -20,8 +20,12 @@ export default function App() {
       <SafeAreaProvider>
         <ThemeProvider
           defaultColorScheme='light'
+          defaultTypography={{
+            fontFamily: "NotoSansMono",
+            fontSize: 16
+          }}
           fontModules={[NotoSans, IBMPlexSans, NotoSansMono, Lexend, IslandMoments]}
-          fontAliases={{
+          textRoles={{
             mono: { fontFamily: "NotoSansMono" },
             "sans-serif": { fontFamily: "Lexend" }
           }}

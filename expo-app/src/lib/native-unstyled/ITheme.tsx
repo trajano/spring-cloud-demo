@@ -11,8 +11,14 @@ export interface ITheme {
     reactNavigationTheme: ReactNavigationTheme;
     setColorScheme(colorScheme: NonNullable<ColorSchemeName>): void;
     /**
-     * This obtains the font style for a given font.
-     * @param font font name or alias
+     * Default typography.  This is only set to the value specified in the provider once the loading 
+     * has been completed to prevent missing font messages.
      */
-    fontStyle(font?: string): TextStyle;
+    defaultTypography: TextStyle;
+    /**
+     * This obtains the typography for a given text role and an optional size.
+     * @param role text role.
+     * @param size text role size.
+     */
+    typography(role: string, size?: string): TextStyle;
 }

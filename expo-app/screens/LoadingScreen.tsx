@@ -1,12 +1,11 @@
 import { AuthState, useAuth } from '@trajano/spring-docker-auth-context';
 import { StatusBar } from 'expo-status-bar';
 import AnimatedLottieView from 'lottie-react-native';
-import { StyleSheet, useWindowDimensions } from 'react-native';
-import { useSafeAreaFrame, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
+import { StyleSheet, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-
-import { Text, View } from '../src/components';
+import { Text, View } from 'react-native';
 import { LoadingComponentProps, useTheming } from '../src/lib/native-unstyled';
 
 function AssetsLoaded({ loadedAssets, totalAssets }: Pick<LoadingComponentProps, "loadedAssets" | "totalAssets">) {

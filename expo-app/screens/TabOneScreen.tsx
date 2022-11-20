@@ -42,7 +42,7 @@ export default function TabOneScreen() {
     <FlashList
       contentInsetAdjustmentBehavior={"automatic"}
       estimatedItemSize={188}
-      ListHeaderComponent={() => <View style={{ borderWidth: 1 }}><Text style={styles.title}>Title</Text></View>}
+      ListHeaderComponent={() => <View style={{ borderWidth: 1 }}><Text style={styles.title}>I should be Some Default Font</Text></View>}
       ListFooterComponent={() => <Button title="Logout" onPress={handleLogout} />}
       onRefresh={() => refreshToken()}
       refreshing={refreshing}
@@ -59,6 +59,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
+    fontFamily: "NotoSansMono",
     fontSize: 20,
     fontWeight: 'bold',
   },

@@ -4,7 +4,9 @@ import {
   createContext,
   PropsWithChildren,
   ReactElement,
-  useContext, useEffect, useMemo, useState
+  useCallback,
+  useContext,
+  useEffect, useMemo, useState
 } from "react";
 import { TextStyle } from "react-native";
 
@@ -22,7 +24,7 @@ type IFonts = {
    */
   total: number;
   replaceWithNativeFont(
-    key: TextStyle
+    flattenedStyle: TextStyle
   ): TextStyle;
 };
 const FontsContext = createContext<IFonts>({
@@ -33,6 +35,7 @@ const FontsContext = createContext<IFonts>({
 });
 type FontsProviderProps = PropsWithChildren<{
   fontModules: any[];
+  onLoaded: () => void;
 }>;
 const moduleFontWeightToStyleFontWeight: Record<
   string,
@@ -83,39 +86,49 @@ async function loadFontModuleAsync(fontModule: any): Promise<Record<string, stri
 
 export function FontsProvider({
   fontModules,
+  onLoaded,
   children
 }: FontsProviderProps): ReactElement {
 
-  const [loadedFonts, setLoadedFonts] = useState<Record<string, string>>({});
+  const [loadedFonts, setLoadedFonts] = useState<{ loaded: boolean, fonts: Record<string, string> }>({ loaded: false, fonts: {} });
   const [loaded, setLoaded] = useState(0);
   const total = useMemo(() => fontModules.length, [fontModules]);
+  const fontFamilyNames = useMemo(
+    () => new Set(fontModules.flatMap(fontModule => Object.entries(fontModule))
+      .filter(en => typeof en[1] === "number")
+      .map(en => en[0])
+      .map(fontName => splitName(fontName))
+      .map(split => split[0])
+      .filter(n => !!n)
+      .reduce<string[]>((s, fontFamily) => [...s, fontFamily!], [])),
+    [fontModules]);
   const isMounted = useMounted();
 
-  function replaceWithNativeFont({ fontFamily, fontWeight = "normal", fontStyle = "normal", ...rest }: TextStyle): TextStyle {
-    const fontFamilyForKey = loadedFonts[`${fontFamily}:${fontWeight}:${fontStyle}`];
+  const replaceWithNativeFont = useCallback(({ fontFamily, fontWeight = "normal", fontStyle = "normal", ...rest }: TextStyle): TextStyle => {
+    const fontFamilyForKey = loadedFonts.fonts[`${fontFamily}:${fontWeight}:${fontStyle}`];
     if (fontFamilyForKey) {
       return { fontFamily: fontFamilyForKey, ...rest };
       // } else if (fontWeight === "bold" && fontStyle === "italic" && loadedFonts[`${fontFamily}:normal:italic`]) {
       //   // Allow for faux-italic fonts
       //   return { fontFamily: loadedFonts[`${fontFamily}:normal:normal`], fontWeight: "bold", fontStyle: "italic", ...rest };
 
-    } else if (fontWeight === "bold" && loadedFonts[`${fontFamily}:normal:${fontStyle}`]) {
+    } else if (fontWeight === "bold" && loadedFonts.fonts[`${fontFamily}:normal:${fontStyle}`]) {
       // Allow for faux-bold fonts
-      return { fontFamily: loadedFonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", ...rest };
+      return { fontFamily: loadedFonts.fonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", ...rest };
 
-    } else if (fontStyle === "italic" && loadedFonts[`${fontFamily}:${fontWeight}:normal`]) {
+    } else if (fontStyle === "italic" && loadedFonts.fonts[`${fontFamily}:${fontWeight}:normal`]) {
       // Allow for faux-italic fonts
-      return { fontFamily: loadedFonts[`${fontFamily}:${fontWeight}:normal`], fontStyle: "italic", ...rest };
+      return { fontFamily: loadedFonts.fonts[`${fontFamily}:${fontWeight}:normal`], fontStyle: "italic", ...rest };
 
-    } else if (fontWeight === "bold" && fontStyle === "italic" && loadedFonts[`${fontFamily}:normal:normal`]) {
+    } else if (fontWeight === "bold" && fontStyle === "italic" && loadedFonts.fonts[`${fontFamily}:normal:normal`]) {
       // Allow for faux-bold fonts
-      return { fontFamily: loadedFonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", fontStyle: "italic", ...rest };
-
-
+      return { fontFamily: loadedFonts.fonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", fontStyle: "italic", ...rest };
+    } else if (fontFamily && !Font.isLoaded(fontFamily)) {
+      return { fontWeight, fontStyle, ...rest };
     } else {
       return { fontFamily, fontWeight, fontStyle, ...rest };
     }
-  }
+  }, [fontFamilyNames, loadedFonts]);
 
   useEffect(() => {
     async function loadFontsAsync() {
@@ -135,7 +148,8 @@ export function FontsProvider({
         }
       }
       if (isMounted()) {
-        setLoadedFonts(fontsLoadedInEffect);
+        setLoadedFonts({ loaded: true, fonts: fontsLoadedInEffect });
+        onLoaded();
       }
     }
     loadFontsAsync();
@@ -143,7 +157,7 @@ export function FontsProvider({
   }, [])
 
 
-  return <FontsContext.Provider value={{ loadedFonts, loaded, total, replaceWithNativeFont: replaceWithNativeFont }}>{children}</FontsContext.Provider>
+  return <FontsContext.Provider value={{ loadedFonts: loadedFonts.fonts, loaded, total, replaceWithNativeFont }}>{children}</FontsContext.Provider>
 }
 export function useFonts() {
   return useContext(FontsContext);
