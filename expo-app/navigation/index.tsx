@@ -10,7 +10,7 @@ import { NavigationContainer, NavigationState } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAsyncSetEffect } from '@trajano/react-hooks';
 import { AuthEvent, AuthState, useAuth } from '@trajano/spring-docker-auth-context';
-import * as React from 'react';
+import { ComponentProps, useEffect, useState } from 'react';
 import { Linking, Platform } from 'react-native';
 import { AuthenticatedProvider } from '../authenticated-context';
 import { DrawerNavigator } from '../screens/MainDrawer';
@@ -27,9 +27,9 @@ const PERSISTENCE_KEY = 'NAVIGATION_STATE_V1';
 export default function Navigation() {
   const auth = useAuth();
   const { reactNavigationTheme } = useTheming();
-  const [authState, setAuthState] = React.useState(auth.authState);
-  const [ready, setReady] = React.useState(false);
-  const [initialState, setInitialState] = React.useState<NavigationState>();
+  const [authState, setAuthState] = useState(auth.authState);
+  const [ready, setReady] = useState(false);
+  const [initialState, setInitialState] = useState<NavigationState>();
 
   function authEventHandler(event: AuthEvent) {
     console.log({ event });
@@ -60,7 +60,7 @@ export default function Navigation() {
       }
     }, [ready]);
 
-  React.useEffect(() => {
+  useEffect(() => {
 
     return auth.subscribe(authEventHandler)
 
@@ -163,7 +163,7 @@ function BottomTabNavigator() {
  * You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
  */
 function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
+  name: ComponentProps<typeof FontAwesome>['name'];
   color: string;
 }) {
   return <FontAwesome size={30} style={{ marginBottom: -3 }} {...props} />;

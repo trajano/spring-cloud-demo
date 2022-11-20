@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Text, View } from 'react-native';
+import { Text, View } from '../src/components';
 import { LoadingComponentProps, useTheming } from '../src/lib/native-unstyled';
 
 function AssetsLoaded({ loadedAssets, totalAssets }: Pick<LoadingComponentProps, "loadedAssets" | "totalAssets">) {

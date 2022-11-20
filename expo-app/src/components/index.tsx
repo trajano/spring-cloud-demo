@@ -106,9 +106,10 @@ export function withStyled<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>,
         const computedStyle = useMemo(() => {
             const propStyles = [role ? typography(role, size) : {}, propsToStyleSheet(rest, colors)];
             if (extendStyle === false) {
-                return [defaultTypography, propStyles];
+                // use Compose to reduce the amount of array objects that are created.
+                return StyleSheet.compose(defaultTypography, propStyles);
             } else {
-                return StyleSheet.compose([defaultTypography, style], propStyles);
+                return StyleSheet.compose(defaultTypography, StyleSheet.compose(style, propStyles));
             }
         }, [style, extendStyle, rest]);
         return <WrappedComponent ref={forwardedRef} style={computedStyle} {...rest as P & JSX.IntrinsicAttributes} />;

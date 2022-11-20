@@ -80,7 +80,7 @@ type LoadedTotal = {
     loaded: number,
     total: number
 }
-function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additionalAssets, minimumShowLoadingTime, loadingCompletedCallback, LoadingComponent }: {
+function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additionalAssets, minimumShowLoadingTime, LoadingComponent }: {
     colorScheme: NonNullable<ColorSchemeName>,
     LoadingComponent?: ComponentType<LoadingComponentProps>,
     initialAssetsLoaded: boolean,
@@ -145,7 +145,7 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additio
 
 export function ThemeProvider({ children,
     defaultColorScheme = "light",
-    defaultTypography: providedDefaultTypography = {},
+    defaultTypography: providedDefaultTypography = { fontFamily: "System" },
     fontModules = [],
     initialAssets = [],
     additionalAssets = [],
