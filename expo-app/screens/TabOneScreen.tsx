@@ -59,9 +59,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontFamily: "NotoSansMono",
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 36,
   },
 
 });

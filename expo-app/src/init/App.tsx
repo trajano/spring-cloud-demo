@@ -21,7 +21,8 @@ export default function App() {
         <ThemeProvider
           defaultColorScheme='light'
           defaultTypography={{
-            fontFamily: "NotoSansMono",
+            fontFamily: "System",
+            fontWeight: "normal",
             fontSize: 16
           }}
           fontModules={[NotoSans, IBMPlexSans, NotoSansMono, Lexend, IslandMoments]}

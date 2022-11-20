@@ -12,7 +12,7 @@ export interface ITheme {
     setColorScheme(colorScheme: NonNullable<ColorSchemeName>): void;
     /**
      * Default typography.  This is only set to the value specified in the provider once the loading 
-     * has been completed to prevent missing font messages.
+     * has been completed to prevent missing font messages.  This also specifies the colors.
      */
     defaultTypography: TextStyle;
     /**

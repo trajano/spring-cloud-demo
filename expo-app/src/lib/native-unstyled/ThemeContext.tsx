@@ -27,9 +27,10 @@ export type ThemeProviderProps = {
     colorSchemes?: ColorSchemes,
     defaultColorScheme: NonNullable<ColorSchemeName>,
     /**
-     * Default typography to apply in text elements.
+     * Default typography to apply in text elements.  Note only the `System` font family is supported as `Text` elements may
+     * render before the fonts are loaded.
      */
-    defaultTypography?: Typography;
+    defaultTypography?: Typography & { fontFamily: "System" };
     /**
      * expo-font module assets to load up.
      */
@@ -211,12 +212,8 @@ export function ThemeProvider({ children,
         }
     }, [textRoles, fontModules])
     const defaultTypography = useMemo(
-        () => (
-            fontsLoaded
-                ? { color: colors.default[0], backgroundColor: colors.default[1] }
-                : { color: colors.default[0], backgroundColor: colors.default[1] }
-        ),
-        [fontsLoaded, colors.default, providedDefaultTypography]);
+        () => ({ ...providedDefaultTypography, color: colors.default[0], backgroundColor: colors.default[1] }),
+        [colors.default, providedDefaultTypography]);
     return <ThemeContext.Provider value={{
         colorScheme,
         colors,
