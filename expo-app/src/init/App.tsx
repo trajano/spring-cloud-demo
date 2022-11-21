@@ -13,7 +13,6 @@ import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
 import { LoadingScreen } from '../../screens/LoadingScreen';
 
 export default function App() {
-  //console.log(JSON.stringify(Constants, null, 2));
   return (
     <AuthProvider baseUrl={BASE_URL}
       clientId='myClient'
@@ -35,10 +34,9 @@ export default function App() {
             require("../../assets/lottie/28839-ikura-sushi.json"),
             require("../../assets/images/icon.png")]}
           LoadingComponent={LoadingScreen}
-        ><>
-            <Navigation />
-            <StatusBar />
-          </>
+        >
+          <Navigation />
+          <StatusBar />
         </ThemeProvider>
       </SafeAreaProvider>
     </AuthProvider>

@@ -92,8 +92,6 @@
     "@types/react": "~18.0.24",
     "@types/react-native": "~0.70.6",
     "@types/react-native-base64": "^0.2.0",
-    "@types/react-redux": "^7.1.24",
-    "@types/redux": "^3.6.0",
     "@types/webpack-env": "^1.18.0",
     "babel-plugin-module-resolver": "^4.1.0",
     "find-yarn-workspace-root": "^2.0.0",
