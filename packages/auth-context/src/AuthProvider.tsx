@@ -11,6 +11,16 @@ import type { OAuthToken } from "./OAuthToken";
 import { useLastAuthEvents } from './useLastAuthEvents';
 import { useRefreshOnAppEvent } from './useRefreshOnAppEvent';
 
+// import { configureStore } from "@reduxjs/toolkit";
+// // import { configureStore } from "@reduxjs/toolkit/dist/redux-toolkit.cjs.production.min.js"
+// // import { configureStore } from "@reduxjs/toolkit/dist/redux-toolkit.cjs.development.js"
+
+// // // import * as redux from "redux";
+// // // console.log(redux);
+// export const store = configureStore({
+//   reducer: {},
+// });
+
 type AuthContextProviderProps = PropsWithChildren<{
   baseUrl: string,
   clientId: string,

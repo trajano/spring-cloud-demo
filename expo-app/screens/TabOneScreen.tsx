@@ -21,6 +21,7 @@ export default function TabOneScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const data = [
+    process.env,
     oauthToken,
     claims,
     accessToken?.slice(-5),
