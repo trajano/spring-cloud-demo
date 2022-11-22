@@ -1,10 +1,24 @@
 import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
 import { useAuth } from "@trajano/spring-docker-auth-context";
 import { PropsWithChildren, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { Alert } from "react-native";
 import EventSource from "react-native-sse";
 import { AuthenticatedContext } from "./IAuthenticatedContext";
 import { JwtClaims } from "./JwtClaims";
 import { jwtVerify } from "./jwtVerify";
+// import { legacy_createStore as createStore } from "redux";
+// export const store = createStore((state = 0, action) => state);
+
+// let store;
+// try {
+//     const { configureStore } = require("@reduxjs/toolkit");
+//     store = configureStore({
+//         reducer: {},
+//     });
+// } catch (error) {
+//     alert(`Caught error: ${error}`);
+// }
+// console.log(store);
 
 // At present this has a problem on restore in that the access token is not valid yet.
 type AuthenticatedProviderProps = PropsWithChildren<{
