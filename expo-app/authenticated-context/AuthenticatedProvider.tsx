@@ -6,6 +6,7 @@ import EventSource from "react-native-sse";
 import { AuthenticatedContext } from "./IAuthenticatedContext";
 import { JwtClaims } from "./JwtClaims";
 import { jwtVerify } from "./jwtVerify";
+import '@reduxjs/toolkit';
 // import { legacy_createStore as createStore } from "redux";
 // export const store = createStore((state = 0, action) => state);
 
@@ -78,7 +79,7 @@ export function AuthenticatedProvider({ clientId, issuer, children }: Authentica
         console.log({ whoami: accessToken })
         const r = await fetch(new URL("/whoami/", baseUrl.href), {
             headers: {
-                Authorization: `Bearer ${accessToken}`,
+                authorization: `Bearer ${accessToken}`,
                 "content-type": "application/json",
                 accept: "application/json",
             },

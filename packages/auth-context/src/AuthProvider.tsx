@@ -11,16 +11,6 @@ import type { OAuthToken } from "./OAuthToken";
 import { useLastAuthEvents } from './useLastAuthEvents';
 import { useRefreshOnAppEvent } from './useRefreshOnAppEvent';
 
-// import { configureStore } from "@reduxjs/toolkit";
-// // import { configureStore } from "@reduxjs/toolkit/dist/redux-toolkit.cjs.production.min.js"
-// // import { configureStore } from "@reduxjs/toolkit/dist/redux-toolkit.cjs.development.js"
-
-// // // import * as redux from "redux";
-// // // console.log(redux);
-// export const store = configureStore({
-//   reducer: {},
-// });
-
 type AuthContextProviderProps = PropsWithChildren<{
   baseUrl: string,
   clientId: string,
@@ -115,13 +105,13 @@ export function AuthProvider({ baseUrl: baseUrlString,
       notify({
         type: "LoggedIn",
         accessToken: nextOauthToken.access_token,
-        authorization: `Bearer ${nextOauthToken.accessToken}`,
+        authorization: `Bearer ${nextOauthToken.access_token}`,
         tokenExpiresAt: nextTokenExpiresAt
       })
       notify({
         type: "Authenticated",
         accessToken: nextOauthToken.access_token,
-        authorization: `Bearer ${nextOauthToken.accessToken}`,
+        authorization: `Bearer ${nextOauthToken.access_token}`,
         tokenExpiresAt: nextTokenExpiresAt
       })
     } catch (e: unknown) {
@@ -209,7 +199,7 @@ export function AuthProvider({ baseUrl: baseUrlString,
           type: "Authenticated",
           reason: "Refreshed",
           accessToken: refreshedOAuthToken.access_token,
-          authorization: `Bearer ${refreshedOAuthToken.accessToken}`,
+          authorization: `Bearer ${refreshedOAuthToken.access_token}`,
           tokenExpiresAt: nextTokenExpiresAt
         })
       } catch (e: unknown) {
