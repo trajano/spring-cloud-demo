@@ -37,7 +37,7 @@ export default function TabTwoScreen() {
       <Text bg="primary:f" fg="primary:b" style={styles.title}>{now}</Text>
       <View style={styles.separator} />
       <Text>Hello {username} <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text></Text>
-      <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} style={{ width: 300 }} />
+      <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} width={300} backgroundColor="#DDDDFF"/>
       <Text fg="blue">{AuthState[authState]}</Text>
       <Text style={{ fontFamily: "IBMPlexSans", fontSize: 30 }}>IBMPlexSans <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text> {colorScheme}</Text>
       <Text style={{ fontFamily: "Lexend", fontSize: 20 }}>Lexend has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text> </Text></Text>

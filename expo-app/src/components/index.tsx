@@ -43,6 +43,34 @@ const ForwardedRefMyText2 = forwardRef<RN.Text, Animated.AnimatedProps<TextProps
 });
 
 
+const ForwardedRefMyTextInput = forwardRef<RN.TextInput, Animated.AnimatedProps<TextInputProps> & {
+    internalTextStyle?: FontLookupKey
+}>(({ style, internalTextStyle, children, ...rest }, ref) => {
+    const { replaceWithNativeFont } = useFonts();
+
+    const flattenedStyle = useMemo(() => StyleSheet.flatten([style, internalTextStyle]), [style, internalTextStyle]) as RN.TextStyle;
+    const newChildren = Children.map<any, any>(children, (child) => {
+        if (!React.isValidElement(child) || ((child as ReactElement).type !== Text)) {
+            return child;
+        } else {
+            const nextInternalTextStyle: RN.TextStyle = {}
+            if (flattenedStyle.fontFamily) { nextInternalTextStyle["fontFamily"] = flattenedStyle.fontFamily; }
+            if (flattenedStyle.fontWeight) { nextInternalTextStyle["fontWeight"] = flattenedStyle.fontWeight; }
+            if (flattenedStyle.fontStyle) { nextInternalTextStyle["fontStyle"] = flattenedStyle.fontStyle; }
+            if (flattenedStyle.color) { nextInternalTextStyle["color"] = flattenedStyle.color; }
+
+            return React.cloneElement<any>(child, {
+                internalTextStyle: nextInternalTextStyle
+            });
+        }
+    });
+    const nextTextStyle = useMemo(() => replaceWithNativeFont(flattenedStyle), [flattenedStyle]);
+    return useMemo(() => {
+        return <Animated.Text {...rest} style={nextTextStyle} ref={ref}>{newChildren}</Animated.Text>;
+    }, []);
+});
+
+
 export type I18nProps = {
     /**
      * Content I18n key.  Replaces the main text content.
@@ -130,6 +158,32 @@ export const Text: I18nStyledFC<Animated.AnimatedProps<TextProps>, RN.Text> =
     ) as I18nStyledFC<Animated.AnimatedProps<TextProps>, RN.Text>;
 
 // export const TextInput = RN.TextInput;
-export function TextInput(props: TextInputProps): ReactElement<TextInputProps> {
-    return <RN.TextInput {...props} />
+// export function TextInput(props: TextInputProps): ReactElement<TextInputProps> {
+//     return <RN.TextInput {...props} />
+// }
+
+// export const TextInput: I18nStyledFC<TextInputProps, RN.TextInput> =
+//     forwardRef<RN.TextInput, I18nedProps<StyledProps<TextInputProps>>>((props, ref) =>
+//         createElement(withI18n(withStyled(RN.TextInput, ref), ref), props)
+//     ) as I18nStyledFC<TextInputProps, RN.TextInput>;
+
+export const TextInput = forwardRef<RN.TextInput, StyledProps<TextInputProps>>(({
+    role,
+    size,
+    extendStyle,
+    style,
+    ...rest }, ref) => {
+    const { defaultTypography, typography, colors } = useTheming();
+    const computedStyle = useMemo(() => {
+        const propStyles = [role ? typography(role, size) : {}, propsToStyleSheet(rest, colors)];
+        if (extendStyle === false) {
+            // use Compose to reduce the amount of array objects that are created.
+            return StyleSheet.compose(defaultTypography, propStyles);
+        } else {
+            return StyleSheet.compose(defaultTypography, StyleSheet.compose(style, propStyles));
+        }
+    }, [style, extendStyle, rest]);
+
+    return <RN.TextInput ref={ref} style={computedStyle} {...rest} />;
 }
+);
