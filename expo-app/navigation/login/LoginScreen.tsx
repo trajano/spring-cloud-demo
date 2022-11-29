@@ -1,6 +1,6 @@
 import { BASE_URL } from '@env';
 import { useAuth } from '@trajano/spring-docker-auth-context';
-import { format, Locale } from 'date-fns';
+import { format, Locale, hoursToMilliseconds } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
 import { useEffect, useMemo, useState } from 'react';
@@ -18,8 +18,8 @@ export function LoginForm() {
       "username": username,
       "authenticated": true,
       "accessTokenExpiresInMillis": 120000,
-      // two day expiration of refresh token
-      "refreshTokenExpiresInMillis": 172800000
+      // thirty day expiration of refresh token
+      "refreshTokenExpiresInMillis": hoursToMilliseconds(24 * 30)
     })
   }
 
@@ -38,12 +38,12 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
   const locale: Locale = useMemo(() => {
 
     const dateFnsLocales2 = dateFnsLocales as Record<string, Locale>;
-    return Localization.locales.map(locale => {
+    return Localization.getLocales().map(locale => {
       // handle special cases
-      return locale.replaceAll("-", "")
+      return locale.languageTag.replaceAll("-", "")
     })
-      .filter(localKey => !!dateFnsLocales2[localKey])
-      .map(localKey => dateFnsLocales2[localKey])[0] ?? dateFnsLocales.enUS;
+      .filter(localeKey => !!dateFnsLocales2[localeKey])
+      .map(localeKey => dateFnsLocales2[localeKey])[0] ?? dateFnsLocales.enUS;
 
 
   }, [Localization.locales])
