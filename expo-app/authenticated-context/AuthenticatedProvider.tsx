@@ -77,7 +77,7 @@ export function AuthenticatedProvider({ clientId, issuer, children }: Authentica
 
     async function whoami() {
         console.log({ whoami: accessToken })
-        const r = await fetch(new URL("/whoami/", baseUrl.href), {
+        const r = await fetch(new URL("/whoami/", baseUrl.href).toString(), {
             headers: {
                 authorization: `Bearer ${accessToken}`,
                 "content-type": "application/json",

@@ -1,5 +1,6 @@
 import React, { Children, Component, ComponentType, createElement, forwardRef, PropsWithChildren, ReactElement, Ref, RefAttributes, useCallback, useMemo } from 'react';
 import * as RN from "react-native";
+import { StyleProp } from 'react-native';
 import { Animated, StyleSheet, TextInputProps, TextProps, ViewProps } from "react-native";
 import { useFonts, useTheming } from "../lib/native-unstyled";
 import { propsToStyleSheet } from './propsToStyleSheet';
@@ -174,8 +175,8 @@ export const TextInput = forwardRef<RN.TextInput, StyledProps<TextInputProps>>((
     style,
     ...rest }, ref) => {
     const { defaultTypography, typography, colors } = useTheming();
-    const computedStyle = useMemo(() => {
-        const propStyles = [role ? typography(role, size) : {}, propsToStyleSheet(rest, colors)];
+    const computedStyle = useMemo<StyleProp<RN.TextStyle>>(() => {
+        const propStyles : StyleProp<RN.TextStyle> = [role ? typography(role, size) : {}, propsToStyleSheet(rest, colors)];
         if (extendStyle === false) {
             // use Compose to reduce the amount of array objects that are created.
             return StyleSheet.compose(defaultTypography, propStyles);

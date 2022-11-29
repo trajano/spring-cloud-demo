@@ -26,7 +26,7 @@ export async function jwtVerify<P extends JwtClaims>(
   }
   const decodedCompressed = base64url.toBuffer(accessToken);
   const jwt = pako.inflate(decodedCompressed, { to: "string" });
-  const jwksFetch = await fetch(jwksUrl);
+  const jwksFetch = await fetch(jwksUrl.toString());
   const jwksJson = await jwksFetch.json();
   const jwks = await jose.JWK.asKeyStore(jwksJson);
   const jwsResult = await jose.JWS.createVerify(jwks, {

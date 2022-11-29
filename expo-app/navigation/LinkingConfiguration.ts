@@ -17,7 +17,11 @@ const linking: LinkingOptions<RootStackParamList> = {
         screens: {
           MainDrawer: {
             screens: {
-              TabOneScreen: "one",
+              TabOne: {
+                screens: {
+                  TabOneScreen: "one",
+                },
+              },
             },
           },
           TabTwo: {
