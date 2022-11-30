@@ -1,3 +1,6 @@
 [submodule "react-hooks"]
 	path = react-hooks
 	url = https://github.com/trajano/react-hooks
+[submodule "packages/react-hooks"]
+	path = packages/react-hooks
+	url = https://github.com/trajano/react-hooks

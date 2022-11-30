@@ -7,6 +7,7 @@ import { ScrollView, Text, TextInput, View } from '../src/components';
 import { useTheming } from '../src/lib/native-unstyled';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { AuthState, useAuth } from '@trajano/spring-docker-auth-context';
+import { KeyboardAvoidingView } from 'react-native';
 
 export default function TabTwoScreen() {
   const { colorScheme } = useTheming()
@@ -33,16 +34,22 @@ export default function TabTwoScreen() {
 
   }, [locale])
   return (
-    <ScrollView contentContainerStyle={[styles.container]} contentInsetAdjustmentBehavior="automatic">
-      <Text bg="primary:f" fg="primary:b" style={styles.title}>{now}</Text>
-      <View style={styles.separator} />
-      <Text>Hello {username} <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text></Text>
-      <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} width={300} backgroundColor="#DDDDFF"/>
-      <Text fg="blue">{AuthState[authState]}</Text>
-      <Text style={{ fontFamily: "IBMPlexSans", fontSize: 30 }}>IBMPlexSans <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text> {colorScheme}</Text>
-      <Text style={{ fontFamily: "Lexend", fontSize: 20 }}>Lexend has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text> </Text></Text>
-      <Text style={{ fontFamily: "IslandMoments", fontSize: 40 }}>IslandMoments has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text></Text><Text style={{ fontWeight: "bold" }}>bold</Text></Text>
-    </ScrollView>
+    <KeyboardAvoidingView behavior='position' style={{
+      flex: 1,
+      flexDirection: 'column',
+      justifyContent: 'center',
+    }} keyboardVerticalOffset={0}>
+      <ScrollView contentInsetAdjustmentBehavior="automatic">
+        <Text bg="primary:f" fg="primary:b" style={styles.title}>{now}</Text>
+        <View style={styles.separator} />
+        <Text>Hello {username} <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text></Text>
+        <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} width={300} backgroundColor="#DDDDFF" />
+        <Text fg="blue">{AuthState[authState]}</Text>
+        <Text style={{ fontFamily: "IBMPlexSans", fontSize: 30 }}>IBMPlexSans <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text> {colorScheme}</Text>
+        <Text style={{ fontFamily: "Lexend", fontSize: 20 }}>Lexend has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text> </Text></Text>
+        <Text style={{ fontFamily: "IslandMoments", fontSize: 40 }}>IslandMoments has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text></Text><Text style={{ fontWeight: "bold" }}>bold</Text></Text>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

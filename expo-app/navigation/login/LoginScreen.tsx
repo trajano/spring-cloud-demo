@@ -18,8 +18,9 @@ export function LoginForm() {
       "username": username,
       "authenticated": true,
       "accessTokenExpiresInMillis": 120000,
+      "refreshTokenExpiresInMillis": hoursToMilliseconds(24 * 2)
       // thirty day expiration of refresh token
-      "refreshTokenExpiresInMillis": hoursToMilliseconds(24 * 30)
+      // "refreshTokenExpiresInMillis": hoursToMilliseconds(24 * 30)
     })
   }
 
