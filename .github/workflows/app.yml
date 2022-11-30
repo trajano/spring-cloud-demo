@@ -35,3 +35,7 @@ jobs:
         run: expo publish --non-interactive
         working-directory: ./expo-app
 
+      - name: 🚀 Publish app update for EAS
+        run: eas update --non-interactive --auto
+        working-directory: ./expo-app
+
