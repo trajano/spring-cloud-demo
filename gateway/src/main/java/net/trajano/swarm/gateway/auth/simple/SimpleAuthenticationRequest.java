@@ -20,9 +20,9 @@ public class SimpleAuthenticationRequest {
   private boolean authenticated;
 
   /** Allow request to alter the access token expiration (for testing) */
-  @Nullable private Integer accessTokenExpiresInMillis;
+  @Nullable private Long accessTokenExpiresInMillis;
   /** Allow request to alter the refresh token expiration (for testing) */
-  @Nullable private Integer refreshTokenExpiresInMillis;
+  @Nullable private Long refreshTokenExpiresInMillis;
 
   /** For OIDC login, this is the issuer. */
   private URI issuer;
