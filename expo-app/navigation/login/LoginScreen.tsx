@@ -12,16 +12,22 @@ import type { LoginStackScreenProps } from './types';
 export function LoginForm() {
   const auth = useAuth();
   const [username, setUsername] = useState("");
-  const disabled = useMemo(() => !auth.isConnected || username === "", [auth.isConnected, username]);
+  const [ isLoggingIn, setIsLoggingIn ] = useState(false);
+  const disabled = useMemo(() => !auth.isConnected || username === "" || isLoggingIn, [auth.isConnected, username, isLoggingIn]);
   async function handleLogin() {
-    return auth.login({
-      "username": username,
-      "authenticated": true,
-      "accessTokenExpiresInMillis": 120000,
-      // "refreshTokenExpiresInMillis": hoursToMilliseconds(24 * 2)
-      // thirty day expiration of refresh token
-      "refreshTokenExpiresInMillis": hoursToMilliseconds(24 * 30)
-    })
+    try {
+      setIsLoggingIn(true);
+      return auth.login({
+        "username": username,
+        "authenticated": true,
+        "accessTokenExpiresInMillis": 120000,
+        // "refreshTokenExpiresInMillis": hoursToMilliseconds(24 * 2)
+        // thirty day expiration of refresh token
+        "refreshTokenExpiresInMillis": hoursToMilliseconds(24 * 30)
+      })
+    } finally {
+      setIsLoggingIn(false);
+    }
   }
 
   return (<View>
