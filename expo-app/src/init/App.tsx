@@ -14,10 +14,10 @@ import { LoadingScreen } from '../../screens/LoadingScreen';
 
 export default function App() {
   return (
-    <AuthProvider baseUrl={BASE_URL}
-      clientId='myClient'
-      clientSecret='mySecret'>
-      <SafeAreaProvider>
+    <SafeAreaProvider>
+      <AuthProvider baseUrl={BASE_URL}
+        clientId='myClient'
+        clientSecret='mySecret'>
         <ThemeProvider
           defaultColorScheme='light'
           defaultTypography={{
@@ -38,7 +38,7 @@ export default function App() {
           <Navigation />
           <StatusBar />
         </ThemeProvider>
-      </SafeAreaProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

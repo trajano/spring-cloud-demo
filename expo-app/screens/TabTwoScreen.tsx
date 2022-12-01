@@ -5,13 +5,17 @@ import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
 import { useReducer } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Platform } from 'react-native';
+import { Animated } from 'react-native';
 import { Button, Keyboard, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleSheet, TextInputFocusEventData } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView, Text, TextInput, View } from '../src/components';
 import { useTheming } from '../src/lib/native-unstyled';
 
 export default function TabTwoScreen() {
   const { colorScheme } = useTheming()
   const { authState } = useAuth();
+  const safeAreaInsets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const scrollViewRef = useRef<RNScrollView>();
   const [scrollInfo, setScrollInfo] = useState<NativeScrollEvent>();
@@ -67,9 +71,21 @@ export default function TabTwoScreen() {
     scrollViewRef.current?.scrollTo({ y: 10, animated: true });
   }, [])
 
+  const paddingBottom = new Animated.Value(0);
+
   return (
-    <ScrollView contentInsetAdjustmentBehavior="automatic" ref={scrollViewRef} onScroll={(e) => setScrollInfo(e.nativeEvent)}>
-      <Text bg="primary:f" fg="primary:b" style={styles.title}>{now}</Text>
+    <ScrollView ref={scrollViewRef}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={{
+        paddingTop: Platform.OS === "ios" ? 0 : headerHeight,
+      }}
+      style={{
+        paddingBottom: paddingBottom
+      }}
+      onScroll={(e) => setScrollInfo(e.nativeEvent)}>
+      <View height={headerHeight} bg="yellow">
+        <Text fg="primary:f" style={styles.title}>{now}</Text>
+      </View>
       <Text>{scrollInfo?.contentOffset.x} {scrollInfo?.contentOffset.y}</Text>
       <View style={styles.separator} />
       <Text>Hello {username} <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text></Text>

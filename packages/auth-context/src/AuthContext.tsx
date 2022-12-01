@@ -6,6 +6,7 @@ export const AuthContext = createContext<IAuth>({
   login: () => Promise.resolve(),
   logout: () => Promise.resolve(),
   refresh: () => Promise.resolve(),
+  setBaseUrl: () => { },
   subscribe: () => { return () => { }; },
   accessToken: null,
   accessTokenExpired: true,

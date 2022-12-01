@@ -76,6 +76,11 @@ export interface IAuth {
    */
   baseUrl: URL;
   /**
+   * Sets the base URL for the context.  This allows switching between backends.
+   * @param nextBaseUrl next base URL. It will be converted to URL if it is a string.
+   */
+  setBaseUrl(nextBaseUrl: string | URL): void;
+  /**
    * Determine if the backend is reachable.
    */
   isConnected: boolean;

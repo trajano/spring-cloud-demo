@@ -1,6 +1,6 @@
 import { useDeepState } from "@trajano/react-hooks";
 import { isAfter } from "date-fns";
-import React, { PropsWithChildren, ReactElement, useCallback, useMemo, useRef } from "react";
+import React, { PropsWithChildren, ReactElement, useCallback, useMemo, useReducer, useRef } from "react";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
@@ -12,7 +12,10 @@ import { useLastAuthEvents } from './useLastAuthEvents';
 import { useRefreshOnAppEvent } from './useRefreshOnAppEvent';
 
 type AuthContextProviderProps = PropsWithChildren<{
-  baseUrl: string,
+  /**
+   * Default base URL.
+   */
+  baseUrl: string | URL,
   clientId: string,
   clientSecret: string,
   /**
@@ -38,7 +41,7 @@ type TokenState = {
   oauthToken: OAuthToken | null,
   tokenExpiresAt: Date
 }
-export function AuthProvider({ baseUrl: baseUrlString,
+export function AuthProvider({ baseUrl: defaultBaseUrl,
   clientId,
   clientSecret,
   children,
@@ -47,7 +50,7 @@ export function AuthProvider({ baseUrl: baseUrlString,
   timeBeforeExpirationRefresh = 10,
   storagePrefix = "auth."
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
-  const baseUrl = useMemo(() => new URL(baseUrlString), [baseUrlString]);
+  const [baseUrl, setBaseUrl] = useReducer((_prev: URL, next: string | URL) => typeof next === "string" ? new URL(next) : next, typeof defaultBaseUrl === "string" ? new URL(defaultBaseUrl) : defaultBaseUrl);
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
   const storageRef = useRef(new AuthStore(storagePrefix));
   const authClientRef = useRef(new AuthClient(baseUrl, clientId, clientSecret));
@@ -260,6 +263,7 @@ export function AuthProvider({ baseUrl: baseUrlString,
     oauthToken: tokenState.oauthToken,
     isConnected,
     lastAuthEvents,
+    setBaseUrl,
     subscribe,
     login,
     logout,
