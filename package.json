@@ -2,10 +2,19 @@
   "name": "@trajano/spring-docker-root",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "expo-app",
-    "packages/*"
-  ],
+  "workspaces": {
+    "packages": [
+      "expo-app",
+      "packages/*"
+    ],
+    "nohoist": [
+      "**/babel**",
+      "**/eslint**",
+      "**/jest**",
+      "**/webpack**",
+      "**/type-graphql**"
+    ]
+  },
   "resolutions": {
     "@types/react": "~18.0.24",
     "react": "18.1.0"
@@ -14,6 +23,5 @@
   "devDependencies": {
     "lerna": "^6.0.1"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
