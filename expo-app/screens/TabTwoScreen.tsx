@@ -4,7 +4,7 @@ import { format, Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Keyboard, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleSheet, TextInputFocusEventData } from 'react-native';
+import { Button, Keyboard, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleSheet, TextInputFocusEventData } from 'react-native';
 import { ScrollView, Text, TextInput, View } from '../src/components';
 import { useTheming } from '../src/lib/native-unstyled';
 
@@ -65,6 +65,11 @@ export default function TabTwoScreen() {
       <Text>Hello {username} <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text></Text>
       <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} width={300} onFocus={onFocus} backgroundColor="#DDDDFF" />
       <Text fg="blue">{AuthState[authState]}</Text>
+      <Text>{JSON.stringify(scrollInfo)}</Text>
+      <View height={headerHeight} width={100} bg="red" fg="yellow" alignItems='center' justifyContent='center'>
+        <Text fg="yellow" >{headerHeight}</Text>
+      </View>
+      <Button title='scroll' onPress={() => scrollViewRef.current?.scrollTo({ y: 30, animated: true })} />
       <Text style={{ fontFamily: "IBMPlexSans", fontSize: 30 }}>IBMPlexSans <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text> {colorScheme}</Text>
       <Text style={{ fontFamily: "Lexend", fontSize: 20 }}>Lexend has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text> </Text></Text>
       <Text style={{ fontFamily: "IslandMoments", fontSize: 40 }}>IslandMoments has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text></Text><Text style={{ fontWeight: "bold" }}>bold</Text></Text>

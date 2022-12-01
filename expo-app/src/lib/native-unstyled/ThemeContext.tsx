@@ -212,7 +212,7 @@ export function ThemeProvider({ children,
         }
     }, [textRoles, fontModules])
     const defaultTypography = useMemo(
-        () => ({ ...providedDefaultTypography, color: colors.default[0], backgroundColor: colors.default[1] }),
+        () => ({ ...providedDefaultTypography, color: colors.default[0], backgroundColor: "transparent" }),
         [colors.default, providedDefaultTypography]);
     return <ThemeContext.Provider value={{
         colorScheme,
