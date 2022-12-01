@@ -4,7 +4,7 @@ import { format, Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Keyboard, NativeSyntheticEvent, ScrollView as RNScrollView, StyleSheet, TextInputFocusEventData } from 'react-native';
+import { Keyboard, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleSheet, TextInputFocusEventData } from 'react-native';
 import { ScrollView, Text, TextInput, View } from '../src/components';
 import { useTheming } from '../src/lib/native-unstyled';
 
@@ -13,6 +13,7 @@ export default function TabTwoScreen() {
   const { authState } = useAuth();
   const headerHeight = useHeaderHeight();
   const scrollViewRef = useRef<RNScrollView>();
+  const [scrollInfo, setScrollInfo] = useState<NativeScrollEvent>();
   const locale: Locale = useMemo(() => {
 
     const dateFnsLocales2 = dateFnsLocales as Record<string, Locale>;
@@ -53,12 +54,13 @@ export default function TabTwoScreen() {
 
   const onFocus = useCallback((e: NativeSyntheticEvent<TextInputFocusEventData>) => {
     console.log({ onFocus: e })
-    // scrollViewRef.current?.scrollTo({ y: 10, animated: true });
+    scrollViewRef.current?.scrollTo({ y: 10, animated: true });
   }, [])
 
   return (
-    <ScrollView contentInsetAdjustmentBehavior="automatic" ref={scrollViewRef}>
+    <ScrollView contentInsetAdjustmentBehavior="automatic" ref={scrollViewRef} onScroll={(e) => setScrollInfo(e.nativeEvent)}>
       <Text bg="primary:f" fg="primary:b" style={styles.title}>{now}</Text>
+      <Text>{scrollInfo?.contentOffset.x} {scrollInfo?.contentOffset.y}</Text>
       <View style={styles.separator} />
       <Text>Hello {username} <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text></Text>
       <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} width={300} onFocus={onFocus} backgroundColor="#DDDDFF" />
