@@ -4,6 +4,9 @@ export enum AuthState {
    * Authenticated means that the token is valid.
    */
   AUTHENTICATED,
+  /**
+   * Unauthenticated means that there is no token information at all.
+   */
   UNAUTHENTICATED,
   /**
    * In this state, the refresh is running at the moment.

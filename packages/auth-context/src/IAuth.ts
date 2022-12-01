@@ -27,10 +27,12 @@ export interface IAuth {
    * and not be used for any other purpose.  The value obtained from
    * a subscription should be used as it gets updated as soon
    * as a new token is obtained.
-   */
+   *
+   * The token will be provided as long as it is present.  It
+   * does not check whether it is expired or not.   */
   oauthToken: OAuthToken | null;
   /**
-   * The access token.  May be null.
+   * The access token.  May be null if the token is not obtained.
    *
    * Note this should only be used for setting the initial state
    * and not be used for any other purpose.  The value obtained from
@@ -52,9 +54,11 @@ export interface IAuth {
    * This specifies when the access token will expire.  This may
    * return `Date(0)` if the access token is not available.
    */
-   accessTokenExpiresOn: Date;
+  accessTokenExpiresOn: Date;
   /**
-   * Convenience to get the Authorization header value.
+   * Convenience to get the Authorization header value.  Unlike
+   * accessToken, this becomes `null` when the token is deemed
+   * to be expired already.
    *
    * Note this should only be used for setting the initial state
    * and not be used for any other purpose.  The value obtained from

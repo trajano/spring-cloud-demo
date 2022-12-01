@@ -14,6 +14,7 @@ export function LoginForm() {
   const [username, setUsername] = useState("");
   const [ isLoggingIn, setIsLoggingIn ] = useState(false);
   const disabled = useMemo(() => !auth.isConnected || username === "" || isLoggingIn, [auth.isConnected, username, isLoggingIn]);
+  
   async function handleLogin() {
     try {
       setIsLoggingIn(true);
@@ -21,7 +22,6 @@ export function LoginForm() {
         "username": username,
         "authenticated": true,
         "accessTokenExpiresInMillis": 120000,
-        // "refreshTokenExpiresInMillis": hoursToMilliseconds(24 * 2)
         // thirty day expiration of refresh token
         "refreshTokenExpiresInMillis": hoursToMilliseconds(24 * 30)
       })
@@ -53,7 +53,7 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
       .map(localeKey => dateFnsLocales2[localeKey])[0] ?? dateFnsLocales.enUS;
 
 
-  }, [Localization.locales])
+  }, [])
 
   const auth = useAuth();
   const [now, setNow] = useState(format(Date.now(), "PPPPpppp", { locale }))

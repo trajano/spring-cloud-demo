@@ -68,7 +68,6 @@ export function AuthProvider({ baseUrl: baseUrlString,
   const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(logAuthEventFilterPredicate, logAuthEventSize);
 
   const accessToken = useMemo(() => tokenState.oauthToken?.access_token ?? null, [tokenState.oauthToken]);
-  const authorization = useMemo(() => tokenState.oauthToken ? `Bearer ${tokenState.oauthToken.accessToken}` : null, [tokenState.oauthToken]);
   // This next one is wrong, it needs to be updated when the timeout occurs
   const accessTokenExpired = useMemo(() => {
     if (!tokenState.oauthToken) {
@@ -77,6 +76,7 @@ export function AuthProvider({ baseUrl: baseUrlString,
       return isAfter(Date.now(), tokenState.tokenExpiresAt);
     }
   }, [tokenState.oauthToken, tokenState.tokenExpiresAt]);
+  const authorization = useMemo(() => (!accessTokenExpired && tokenState.oauthToken) ? `Bearer ${tokenState.oauthToken.accessToken}` : null, [tokenState.oauthToken, accessTokenExpired]);
 
   const subscribe = useCallback(function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
