@@ -1,6 +1,5 @@
 import type { ExpoConfig } from "@expo/config";
-export default ({ config, ...rest }: { config: ExpoConfig }) => {
-  console.log(rest);
+export default ({ config }: { config: ExpoConfig }) => {
   return {
     ...config,
   };

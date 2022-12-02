@@ -2,7 +2,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { add, isAfter, parseISO, sub } from 'date-fns';
 import type { OAuthToken } from './OAuthToken';
 export class AuthStore {
-  constructor(private storagePrefix: string) {}
+  /**
+   * Storage prefix with the trailing `.`
+   */
+  private storagePrefix: string;
+  /**
+   *
+   * @param storagePrefix storage prefix without the trailing `.`
+   * @param baseUrl base URL appended to the storage prefix.
+   */
+  constructor(storagePrefix: string, baseUrl: URL) {
+    this.storagePrefix = `${storagePrefix}.${baseUrl.toString()}.`;
+  }
 
   /**
    * Obtains the access token provide it is available and not expired.

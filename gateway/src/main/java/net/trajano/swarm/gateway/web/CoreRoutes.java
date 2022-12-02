@@ -7,7 +7,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -27,7 +26,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @SuppressWarnings("unused")
 public class CoreRoutes {
 
-    private final CorsConfigurer corsConfigurer;
+  private final CorsConfigurer corsConfigurer;
 
   @Value("${gateway.root-html-redirect-uri:#{null}}") private URI rootHtmlRedirectUri;
 
@@ -53,8 +52,9 @@ public class CoreRoutes {
   }
 
   private boolean allowedMethodsAgainstRequestMethodIsAllowed(ServerRequest.Headers headers) {
-    return corsConfigurer.getAllowedMethods().contains(
-        headers.header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD).get(0));
+    return corsConfigurer
+        .getAllowedMethods()
+        .contains(headers.header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD).get(0));
   }
 
   private boolean allowedOriginAgainstRequestOrigin(ServerRequest.Headers headers) {
@@ -102,7 +102,9 @@ public class CoreRoutes {
           }
           return ServerResponse.noContent()
               .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, allowOrigin)
-              .header(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, String.join(",", corsConfigurer.getAllowedMethods()))
+              .header(
+                  HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
+                  String.join(",", corsConfigurer.getAllowedMethods()))
               .header(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, String.join(",", allowHeaders))
               .header(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "false")
               .header(HttpHeaders.ACCESS_CONTROL_MAX_AGE, "86400")

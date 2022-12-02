@@ -1,24 +1,31 @@
 import { BASE_URL } from '@env';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@trajano/spring-docker-auth-context';
-import { format, Locale, hoursToMilliseconds } from 'date-fns';
+import { format, hoursToMilliseconds, Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
 import { useEffect, useMemo, useState } from 'react';
 import { Button, StyleSheet } from 'react-native';
+import { Menu, Provider } from 'react-native-paper';
 import { TextInput } from '../../components/Themed';
 import { ScrollView, Text, View } from '../../src/components';
 import type { LoginStackScreenProps } from './types';
 
 export function LoginForm() {
-  const auth = useAuth();
+  const { login, isConnected, baseUrl, setBaseUrl } = useAuth();
+  const [visible, setVisible] = useState(false);
   const [username, setUsername] = useState("");
-  const [ isLoggingIn, setIsLoggingIn ] = useState(false);
-  const disabled = useMemo(() => !auth.isConnected || username === "" || isLoggingIn, [auth.isConnected, username, isLoggingIn]);
-  
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const disabled = useMemo(() => !isConnected || username === "" || isLoggingIn, [isConnected, username, isLoggingIn]);
+
+  function openMenu() { setVisible(true); }
+
+  function closeMenu() { setVisible(false); }
+
   async function handleLogin() {
     try {
       setIsLoggingIn(true);
-      return auth.login({
+      return login({
         "username": username,
         "authenticated": true,
         "accessTokenExpiresInMillis": 120000,
@@ -30,12 +37,27 @@ export function LoginForm() {
     }
   }
 
-  return (<View>
-    <Text style={styles.title} _t="asdf">Login Screen</Text>
-    <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} style={{ width: 300 }} />
-    <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
-  </View>
-  )
+  async function setAndSaveBaseUrlAsync(baseUrl: string) {
+    await AsyncStorage.setItem("BASE_URL", baseUrl);
+    setBaseUrl(baseUrl);
+  }
+
+  return (
+    <View>
+      <Text style={styles.title} _t="asdf">Login Screen</Text>
+      <Menu
+        visible={visible}
+        onDismiss={closeMenu}
+        anchor={<Button onPress={openMenu} title={baseUrl.toString()} />}
+      >
+        <Menu.Item onPress={() => setAndSaveBaseUrlAsync(BASE_URL)} title={BASE_URL} />
+        <Menu.Item onPress={() => setAndSaveBaseUrlAsync("http://localhost:28082")} title="localhost" />
+        <Menu.Item onPress={() => setAndSaveBaseUrlAsync("http://192.168.0.19:28082")} title="192.168.0.19" />
+      </Menu>
+      <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} style={{ width: 300 }} />
+      <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
+    </View>
+  );
 }
 
 export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login'>) {
@@ -64,14 +86,15 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
 
   }, [locale])
   return (
-    <View style={{ flex: 1 }}>
-      <LoginForm />
-      <ScrollView>
-        <Text>{BASE_URL}</Text>
-        <Text>{JSON.stringify({ isConnected: auth.isConnected, now })}</Text>
-        <Text>{JSON.stringify(auth.lastAuthEvents, null, 2)}</Text>
-      </ScrollView>
-    </View>
+    <Provider>
+      <View style={{ flex: 1 }}>
+        <LoginForm />
+        <ScrollView>
+          <Text>{JSON.stringify({ isConnected: auth.isConnected, now })}</Text>
+          <Text>{JSON.stringify(auth.lastAuthEvents, null, 2)}</Text>
+        </ScrollView>
+      </View>
+    </Provider>
   );
 }
 

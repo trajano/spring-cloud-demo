@@ -52,7 +52,7 @@ export function AuthProvider({ baseUrl: defaultBaseUrl,
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
   const [baseUrl, setBaseUrl] = useReducer((_prev: URL, next: string | URL) => typeof next === "string" ? new URL(next) : next, typeof defaultBaseUrl === "string" ? new URL(defaultBaseUrl) : defaultBaseUrl);
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
-  const storageRef = useRef(new AuthStore(storagePrefix));
+  const storageRef = useRef(new AuthStore(storagePrefix, baseUrl));
   const authClientRef = useRef(new AuthClient(baseUrl, clientId, clientSecret));
 
   const [tokenState, setTokenState] = useDeepState<TokenState>({

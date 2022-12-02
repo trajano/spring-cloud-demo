@@ -2,7 +2,6 @@ package net.trajano.swarm.gateway.web;
 
 import java.time.Duration;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

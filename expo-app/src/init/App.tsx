@@ -1,4 +1,5 @@
 import { BASE_URL } from '@env';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthProvider } from '@trajano/spring-docker-auth-context';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -10,12 +11,19 @@ import * as IslandMoments from "@expo-google-fonts/island-moments";
 import * as Lexend from "@expo-google-fonts/lexend";
 import * as NotoSans from "@expo-google-fonts/noto-sans";
 import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
+import { useEffect, useState } from 'react';
 import { LoadingScreen } from '../../screens/LoadingScreen';
 
 export default function App() {
+  const [baseUrl, setBaseUrl] = useState<string>(BASE_URL);
+  useEffect(() => {
+    (async function () {
+      setBaseUrl(await AsyncStorage.getItem("BASE_URL") || BASE_URL);
+    })();
+  }, []);
   return (
     <SafeAreaProvider>
-      <AuthProvider baseUrl={BASE_URL}
+      <AuthProvider baseUrl={baseUrl}
         clientId='myClient'
         clientSecret='mySecret'>
         <ThemeProvider
