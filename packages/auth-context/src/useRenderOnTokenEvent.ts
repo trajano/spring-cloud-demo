@@ -113,7 +113,7 @@ export function useRenderOnTokenEvent(
      */
     function netInfoSubscription() {
       NetInfo.configure({
-        reachabilityUrl: new URL(endpointConfiguration.pingEndpoint).href,
+        reachabilityUrl: endpointConfiguration.pingEndpoint,
         reachabilityTest: (response) =>
           Promise.resolve(response.status === 200 || response.status === 204),
         useNativeReachability: true,

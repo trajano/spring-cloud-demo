@@ -3,7 +3,7 @@ import type { AuthState } from './AuthState';
 import type { EndpointConfiguration } from './EndpointConfiguration';
 import type { OAuthToken } from './OAuthToken';
 
-export interface IAuth {
+export interface IAuth<A = any> {
   /**
    *
    * @param fn callback function that receives events
@@ -15,7 +15,7 @@ export interface IAuth {
    * @param authenticationCredentials
    * @returns nothing
    */
-  login(authenticationCredentials: Record<string, unknown>): Promise<void>;
+  login(authenticationCredentials: A): Promise<void>;
   /**
    * Refreshes the token outside of the schedule.
    */

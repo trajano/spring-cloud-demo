@@ -14,10 +14,10 @@ export function buildSimpleEndpointConfiguration(
     typeof inBaseUrl === 'string' ? new URL(inBaseUrl) : inBaseUrl;
   return {
     baseUrl: baseUrl.href,
-    authorizationEndpoint: new URL('auth', baseUrl.href).href,
-    refreshEndpoint: new URL('refresh', baseUrl.href).href,
-    revocationEndpoint: new URL('logout', baseUrl.href).href,
-    pingEndpoint: new URL('ping', baseUrl.href).href,
+    authorizationEndpoint: inBaseUrl + 'ping',
+    refreshEndpoint: inBaseUrl + 'refresh',
+    revocationEndpoint: inBaseUrl + 'logout',
+    pingEndpoint: inBaseUrl + 'ping',
     clientId,
     clientSecret,
   };

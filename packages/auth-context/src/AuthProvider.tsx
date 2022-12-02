@@ -96,6 +96,7 @@ export function AuthProvider<A = any>({
   useEffect(() => {
     // there's a state change determine if we need to refresh.
     (async () => {
+      notify({ type: 'CheckRefresh', reason: `Triggered by a change to ${JSON.stringify({ tokenRefreshable, authState })}` })
       if (tokenRefreshable &&
         (authState === AuthState.NEEDS_REFRESH ||
           authState === AuthState.INITIAL)
@@ -107,9 +108,10 @@ export function AuthProvider<A = any>({
         await refresh();
       }
     })();
-  }, [tokenRefreshable, authState, accessTokenExpired, lastCheckTime]);
+  }, [tokenRefreshable, authState]);
 
   useEffect(() => {
+    notify({ type: 'CheckRefresh', reason: `Triggered by a change to ${JSON.stringify({ tokenRefreshable, accessTokenExpired, lastCheckTime })}` })
     // there's a state change determine if we need to refresh.
     if (tokenRefreshable && accessTokenExpired) {
       setAuthState(AuthState.NEEDS_REFRESH);

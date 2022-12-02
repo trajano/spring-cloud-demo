@@ -13,11 +13,15 @@ export class AuthClient<A = any> implements IAuthClient<A> {
    * Header value.
    */
   private authorization: string;
-  private authorizationEndpoint: URL;
-  private refreshEndpoint: URL;
-  private revocationEndpoint: URL;
   /**
-   * The endpoints are converted from string to URLs to ensure they are valid.
+   * Authorization end point
+   */
+  private authorizationEndpoint: string;
+  private refreshEndpoint: string;
+  private revocationEndpoint: string;
+  /**
+   * The endpoints are not converted from string to URLs to ensure they are valid due to an issue
+   * https://github.com/expo/expo/issues/15868
    * @param endpointConfiguration endpoint configuration
    */
   constructor(endpointConfiguration: EndpointConfiguration) {
@@ -25,15 +29,13 @@ export class AuthClient<A = any> implements IAuthClient<A> {
       endpointConfiguration.clientId,
       endpointConfiguration.clientSecret
     );
-    this.authorizationEndpoint = new URL(
-      endpointConfiguration.authorizationEndpoint
-    );
-    this.refreshEndpoint = new URL(endpointConfiguration.refreshEndpoint);
-    this.revocationEndpoint = new URL(endpointConfiguration.revocationEndpoint);
+    this.authorizationEndpoint = endpointConfiguration.authorizationEndpoint;
+    this.refreshEndpoint = endpointConfiguration.refreshEndpoint;
+    this.revocationEndpoint = endpointConfiguration.revocationEndpoint;
   }
 
   public async authenticate(authenticationRequest: A): Promise<OAuthToken> {
-    const response = await fetch(this.authorizationEndpoint.href, {
+    const response = await fetch(this.authorizationEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -49,7 +51,7 @@ export class AuthClient<A = any> implements IAuthClient<A> {
   }
 
   public async refresh(refreshToken: string): Promise<OAuthToken> {
-    const response = await fetch(this.refreshEndpoint.href, {
+    const response = await fetch(this.refreshEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -68,7 +70,7 @@ export class AuthClient<A = any> implements IAuthClient<A> {
   }
 
   public async revoke(refreshToken: string) {
-    const response = await fetch(this.revocationEndpoint.href, {
+    const response = await fetch(this.revocationEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

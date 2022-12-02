@@ -80,10 +80,11 @@ type LoadedTotal = {
     loaded: number,
     total: number
 }
-function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additionalAssets, minimumShowLoadingTime, LoadingComponent }: {
+function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, fontsLoaded, additionalAssets, minimumShowLoadingTime, LoadingComponent }: {
     colorScheme: NonNullable<ColorSchemeName>,
     LoadingComponent?: ComponentType<LoadingComponentProps>,
     initialAssetsLoaded: boolean,
+    fontsLoaded: boolean,
     additionalAssets: Loader[],
     minimumShowLoadingTime: number,
     children: ReactNode
@@ -93,9 +94,9 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, additio
     const [additionalAssetsLoaded, setAdditionalAssetsLoaded] = useState(0);
     const [fromComponent, setFromComponent] = useState<LoadedTotal>({ loaded: 0, total: 0 });
 
-    const totalAssets = useMemo(() => additionalAssets.length + totalFonts + fromComponent.total, [totalFonts, additionalAssets.length, fromComponent.total]);
+    const totalAssets = useMemo(() => additionalAssets.length + 1 + totalFonts + fromComponent.total, [totalFonts, additionalAssets.length, fromComponent.total]);
 
-    const loadedAssets = useMemo(() => loadedFonts + additionalAssets.length + fromComponent.loaded, [loadedFonts, additionalAssetsLoaded, fromComponent.loaded]);
+    const loadedAssets = useMemo(() => loadedFonts + additionalAssets.length + (fontsLoaded ? 1 : 0) + fromComponent.loaded, [fontsLoaded, loadedFonts, additionalAssetsLoaded, fromComponent.loaded]);
 
     const [minimumTimeSpent, setMinimumTimeSpent] = useState(minimumShowLoadingTime === 0);
 
@@ -227,6 +228,7 @@ export function ThemeProvider({ children,
                 colorScheme={colorScheme}
                 LoadingComponent={LoadingComponent}
                 initialAssetsLoaded={initialAssetsLoaded}
+                fontsLoaded={fontsLoaded}
                 additionalAssets={additionalAssets}
                 minimumShowLoadingTime={minimumShowLoadingTime}
             >

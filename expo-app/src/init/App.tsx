@@ -1,6 +1,7 @@
+import 'expo-dev-client';
 import { BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthProvider } from '@trajano/spring-docker-auth-context';
+import { AuthProvider, buildSimpleEndpointConfiguration } from '@trajano/spring-docker-auth-context';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Navigation from '../../navigation';
@@ -15,17 +16,19 @@ import { useEffect, useState } from 'react';
 import { LoadingScreen } from '../../screens/LoadingScreen';
 
 export default function App() {
-  const [baseUrl, setBaseUrl] = useState<string>(BASE_URL);
+  const [defaultEndpointConfiguration, setDefaultEndpointConfiguration] = useState(buildSimpleEndpointConfiguration(BASE_URL));
   useEffect(() => {
     (async function () {
-      setBaseUrl(await AsyncStorage.getItem("BASE_URL") || BASE_URL);
+      let configuration = await AsyncStorage.getItem("ENDPOINT_CONFIGURATION");
+      if (configuration) {
+        console.log(configuration)
+        setDefaultEndpointConfiguration(JSON.parse(configuration));
+      }
     })();
   }, []);
   return (
     <SafeAreaProvider>
-      <AuthProvider baseUrl={baseUrl}
-        clientId='myClient'
-        clientSecret='mySecret'>
+      <AuthProvider defaultEndpointConfiguration={defaultEndpointConfiguration}>
         <ThemeProvider
           defaultColorScheme='light'
           defaultTypography={{
