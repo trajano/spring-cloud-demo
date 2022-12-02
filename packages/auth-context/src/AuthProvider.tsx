@@ -77,7 +77,7 @@ export function AuthProvider({
       }
     },
     [tokenState.oauthToken, tokenState.tokenExpiresAt, lastCheckTime]);
-  const authorization = useMemo(() => (!accessTokenExpired && tokenState.oauthToken) ? `Bearer ${tokenState.oauthToken.accessToken}` : null, [tokenState.oauthToken, accessTokenExpired]);
+  const authorization = useMemo(() => (!accessTokenExpired && tokenState.oauthToken) ? `Bearer ${tokenState.oauthToken.access_token}` : null, [tokenState.oauthToken, accessTokenExpired]);
 
   const subscribe = useCallback(function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
