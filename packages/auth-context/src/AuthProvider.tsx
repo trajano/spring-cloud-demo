@@ -39,7 +39,7 @@ export type TokenState = {
   oauthToken: OAuthToken | null,
   tokenExpiresAt: Date
 }
-export function AuthProvider({
+export function AuthProvider<A = any>({
   defaultEndpointConfiguration,
   children,
   logAuthEventFilterPredicate = (event: AuthEvent) => event.type !== "Connection" && event.type !== "CheckRefresh",
@@ -48,7 +48,7 @@ export function AuthProvider({
   storagePrefix = "auth"
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
   const [endpointConfiguration, setEndpointConfiguration] = useState(defaultEndpointConfiguration);
-  const authClient = useMemo(() => new AuthClient(endpointConfiguration), [endpointConfiguration]);
+  const authClient = useMemo(() => new AuthClient<A>(endpointConfiguration), [endpointConfiguration]);
   const baseUrl = useMemo(() => new URL(endpointConfiguration.baseUrl), [endpointConfiguration.baseUrl]);
   const authStorage = useMemo(() => new AuthStore(storagePrefix, endpointConfiguration.baseUrl), [endpointConfiguration.baseUrl]);
 
@@ -118,7 +118,7 @@ export function AuthProvider({
     }
   }, [tokenRefreshable, accessTokenExpired, lastCheckTime]);
 
-  async function login(authenticationCredentials: Record<string, unknown>): Promise<void> {
+  async function login(authenticationCredentials: A): Promise<void> {
 
     try {
       const nextOauthToken = await authClient.authenticate(authenticationCredentials);

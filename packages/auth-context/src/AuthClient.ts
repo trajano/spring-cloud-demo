@@ -8,7 +8,7 @@ export interface IAuthClient<A = any> {
   refresh(refreshToken: string): Promise<OAuthToken>;
   revoke(refreshToken: string): Promise<void>;
 }
-export class AuthClient implements IAuthClient<Record<string, unknown>> {
+export class AuthClient<A = any> implements IAuthClient<A> {
   /**
    * Header value.
    */
@@ -32,9 +32,7 @@ export class AuthClient implements IAuthClient<Record<string, unknown>> {
     this.revocationEndpoint = new URL(endpointConfiguration.revocationEndpoint);
   }
 
-  public async authenticate(
-    authenticationRequest: Record<string, unknown>
-  ): Promise<OAuthToken> {
+  public async authenticate(authenticationRequest: A): Promise<OAuthToken> {
     const response = await fetch(this.authorizationEndpoint.href, {
       method: 'POST',
       headers: {
