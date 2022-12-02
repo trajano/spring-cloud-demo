@@ -3,11 +3,8 @@ import { AuthState, useAuth } from '@trajano/spring-docker-auth-context';
 import { format, Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
-import { useReducer } from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Platform } from 'react-native';
-import { Animated } from 'react-native';
-import { Button, Keyboard, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView, StyleSheet, TextInputFocusEventData } from 'react-native';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { Animated, Button, Keyboard, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView as RNScrollView, StyleSheet, TextInputFocusEventData } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView, Text, TextInput, View } from '../src/components';
 import { useTheming } from '../src/lib/native-unstyled';
@@ -32,9 +29,6 @@ export default function TabTwoScreen() {
   }, [])
   const [now, setNow] = useState(format(Date.now(), "PPpp", { locale }))
   const [username, setUsername] = useState("")
-  type KeyboardEventType = {
-
-  }
   const [keyboardLog, logKeyboardEvent] = useReducer(
     (prevState: { key: string, name: string, event: any }[], action: { eventName: string, event?: any }) => action.eventName === "clear" ? [] : [...prevState, {
       name: action.eventName,
@@ -87,10 +81,10 @@ export default function TabTwoScreen() {
         <Text fg="primary:f" style={styles.title}>{now}</Text>
       </View>
       <Text>{scrollInfo?.contentOffset.x} {scrollInfo?.contentOffset.y}</Text>
-      <View style={styles.separator} />
       <Text>Hello {username} <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text></Text>
       <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} width={300} onFocus={onFocus} backgroundColor="#DDDDFF" />
       <Text fg="blue">{AuthState[authState]}</Text>
+      <Text>{scrollInfo?.contentOffset.x} {scrollInfo?.contentOffset.y}</Text>
       <Text>{JSON.stringify(scrollInfo, null, 2)}</Text>
       <View height={headerHeight} width={100} bg="red" fg="yellow" alignItems='center' justifyContent='center'>
         <Text fg="yellow" >{headerHeight}</Text>
