@@ -158,6 +158,6 @@
     ]
   },
   "dependencies": {
-    "base64url": "^3.0.1"
+    "js-base64": "^3.7.3"
   }
 }

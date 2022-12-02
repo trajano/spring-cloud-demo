@@ -1,5 +1,6 @@
 import type { AuthEvent, LoggedAuthEvent } from './AuthEvent';
 import type { AuthState } from './AuthState';
+import type { EndpointConfiguration } from './EndpointConfiguration';
 import type { OAuthToken } from './OAuthToken';
 
 export interface IAuth {
@@ -76,14 +77,14 @@ export interface IAuth {
    */
   baseUrl: URL;
   /**
-   * Sets the base URL for the context.  This allows switching between backends.
-   * @param nextBaseUrl next base URL. It will be converted to URL if it is a string.
+   * Sets the endpoint configuration for the context.  This allows switching between backends.
+   * @param next next endpoint configuration.
    */
-  setBaseUrl(nextBaseUrl: string | URL): void;
+  setEndpointConfiguration(next: EndpointConfiguration): void;
   /**
    * Determine if the backend is reachable.
    */
-  isConnected: boolean;
+  tokenRefreshable: boolean;
   /**
    * Last auth events.  The most recent one will be the first element.
    * This is primarily used to diagnose issues where the token becomes invalidated

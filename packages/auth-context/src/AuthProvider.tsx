@@ -1,23 +1,22 @@
 import { useDeepState } from "@trajano/react-hooks";
 import { isAfter } from "date-fns";
-import React, { PropsWithChildren, ReactElement, useCallback, useMemo, useReducer, useRef } from "react";
+import React, { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
 import type { AuthEvent } from "./AuthEvent";
 import { AuthState } from "./AuthState";
 import { AuthStore } from "./AuthStore";
+import type { EndpointConfiguration } from "./EndpointConfiguration";
 import type { OAuthToken } from "./OAuthToken";
 import { useLastAuthEvents } from './useLastAuthEvents';
-import { useRefreshOnAppEvent } from './useRefreshOnAppEvent';
+import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
 
 type AuthContextProviderProps = PropsWithChildren<{
   /**
-   * Default base URL.
+   * Default endpoint configuration
    */
-  baseUrl: string | URL,
-  clientId: string,
-  clientSecret: string,
+  defaultEndpointConfiguration: EndpointConfiguration
   /**
    * AsyncStorage prefix used to store the authentication data.
    */
@@ -36,49 +35,48 @@ type AuthContextProviderProps = PropsWithChildren<{
   logAuthEventSize?: number;
 }>;
 
-type TokenState = {
-  authState: AuthState,
+export type TokenState = {
   oauthToken: OAuthToken | null,
   tokenExpiresAt: Date
 }
-export function AuthProvider({ baseUrl: defaultBaseUrl,
-  clientId,
-  clientSecret,
+export function AuthProvider({
+  defaultEndpointConfiguration,
   children,
   logAuthEventFilterPredicate = (event: AuthEvent) => event.type !== "Connection" && event.type !== "CheckRefresh",
   logAuthEventSize = 50,
   timeBeforeExpirationRefresh = 10,
   storagePrefix = "auth."
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
-  const [baseUrl, setBaseUrl] = useReducer((_prev: URL, next: string | URL) => typeof next === "string" ? new URL(next) : next, typeof defaultBaseUrl === "string" ? new URL(defaultBaseUrl) : defaultBaseUrl);
-  const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
+  const [endpointConfiguration, setEndpointConfiguration] = useState(defaultEndpointConfiguration);
+  const authClient = useMemo(() => new AuthClient(endpointConfiguration), [endpointConfiguration]);
+  const baseUrl = useMemo(() => endpointConfiguration.baseUrl, [endpointConfiguration]);
   const storageRef = useRef(new AuthStore(storagePrefix, baseUrl));
-  const authClientRef = useRef(new AuthClient(baseUrl, clientId, clientSecret));
 
+  const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
+
+  const [authState, setAuthState] = useState(AuthState.INITIAL);
   const [tokenState, setTokenState] = useDeepState<TokenState>({
-    authState: AuthState.INITIAL,
     oauthToken: null,
     tokenExpiresAt: new Date(0)
   });
 
-  /**
-   * Expiration timeout ID ref.  This is a timeout that executes when the OAuth timeout is less than X (default to 10) seconds away from expiration.
-   * When it reaches the expiration it will set the state to NEEDS_REFRESH.
-   * The timeout is cleared on unmount, logout or refresh.
-   */
-  // const expirationTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-
   const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(logAuthEventFilterPredicate, logAuthEventSize);
 
+  // what I want is a hook that will rerender this component when specific dispatch events occur
+  // the dispatch events are app state changes, network state changes, token expiration
+
   const accessToken = useMemo(() => tokenState.oauthToken?.access_token ?? null, [tokenState.oauthToken]);
-  // This next one is wrong, it needs to be updated when the timeout occurs
-  const accessTokenExpired = useMemo(() => {
-    if (!tokenState.oauthToken) {
-      return true;
-    } else {
-      return isAfter(Date.now(), tokenState.tokenExpiresAt);
-    }
-  }, [tokenState.oauthToken, tokenState.tokenExpiresAt]);
+  const { lastCheckTime, tokenRefreshable } = useRenderOnTokenEvent(endpointConfiguration, tokenState.tokenExpiresAt, timeBeforeExpirationRefresh);
+
+  const accessTokenExpired = useMemo(
+    () => {
+      if (!tokenState.oauthToken) {
+        return true;
+      } else {
+        return isAfter(Date.now(), tokenState.tokenExpiresAt);
+      }
+    },
+    [tokenState.oauthToken, tokenState.tokenExpiresAt, lastCheckTime]);
   const authorization = useMemo(() => (!accessTokenExpired && tokenState.oauthToken) ? `Bearer ${tokenState.oauthToken.accessToken}` : null, [tokenState.oauthToken, accessTokenExpired]);
 
   const subscribe = useCallback(function subscribe(fn: (event: AuthEvent) => void) {
@@ -95,13 +93,38 @@ export function AuthProvider({ baseUrl: defaultBaseUrl,
     subscribersRef.current.forEach((fn) => fn(event));
   }, []);
 
+  useEffect(() => {
+    // there's a state change determine if we need to refresh.
+    (async () => {
+      if (tokenRefreshable &&
+        (authState === AuthState.NEEDS_REFRESH ||
+          authState === AuthState.INITIAL)
+      ) {
+        notify({
+          type: 'TokenExpiration',
+          reason: `Token is refreshable and auth state=${AuthState[authState]}`,
+        });
+        await refresh();
+      }
+    })();
+  }, [tokenRefreshable, authState, accessTokenExpired, lastCheckTime]);
+
+  useEffect(() => {
+    // there's a state change determine if we need to refresh.
+    if (tokenRefreshable && accessTokenExpired) {
+      setAuthState(AuthState.NEEDS_REFRESH);
+    } else if (!tokenRefreshable && accessTokenExpired) {
+      setAuthState(AuthState.BACKEND_FAILURE);
+    }
+  }, [tokenRefreshable, accessTokenExpired, lastCheckTime]);
+
   async function login(authenticationCredentials: Record<string, unknown>): Promise<void> {
 
     try {
-      const nextOauthToken = await authClientRef.current.authenticate(authenticationCredentials);
+      const nextOauthToken = await authClient.authenticate(authenticationCredentials);
       const nextTokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(nextOauthToken);
+      setAuthState(AuthState.AUTHENTICATED);
       setTokenState({
-        authState: AuthState.AUTHENTICATED,
         oauthToken: nextOauthToken,
         tokenExpiresAt: nextTokenExpiresAt
       })
@@ -135,15 +158,15 @@ export function AuthProvider({ baseUrl: defaultBaseUrl,
       if (tokenState.oauthToken == null) {
         return;
       }
-      await authClientRef.current.revoke(tokenState.oauthToken.refresh_token)
+      await authClient.revoke(tokenState.oauthToken.refresh_token)
     } catch (e: unknown) {
       if (!(e instanceof AuthenticationClientError)) {
         throw e;
       }
     } finally {
       await storageRef.current.clear();
+      setAuthState(AuthState.UNAUTHENTICATED);
       setTokenState({
-        authState: AuthState.UNAUTHENTICATED,
         oauthToken: null,
         tokenExpiresAt: new Date(0)
       });
@@ -159,15 +182,11 @@ export function AuthProvider({ baseUrl: defaultBaseUrl,
   }
 
   async function refresh() {
-    setTokenState({
-      authState: AuthState.REFRESHING,
-      oauthToken: tokenState.oauthToken,
-      tokenExpiresAt: tokenState.tokenExpiresAt
-    });
+    setAuthState(AuthState.REFRESHING);
     const storedOAuthToken = await storageRef.current.getOAuthToken();
     if (storedOAuthToken == null) {
+      setAuthState(AuthState.UNAUTHENTICATED);
       setTokenState({
-        authState: AuthState.UNAUTHENTICATED,
         oauthToken: null,
         tokenExpiresAt: new Date(0)
       });
@@ -175,13 +194,9 @@ export function AuthProvider({ baseUrl: defaultBaseUrl,
         type: "Unauthenticated",
         reason: "No token stored"
       })
-    } else if (!isConnected) {
+    } else if (!tokenRefreshable) {
+      setAuthState(AuthState.BACKEND_FAILURE);
       // refresh was attempted when the backend is not available
-      setTokenState({
-        authState: AuthState.BACKEND_FAILURE,
-        oauthToken: tokenState.oauthToken,
-        tokenExpiresAt: tokenState.tokenExpiresAt
-      });
       notify({
         type: "TokenExpiration",
         reason: "Backend is not available and token refresh was requested"
@@ -191,10 +206,10 @@ export function AuthProvider({ baseUrl: defaultBaseUrl,
         type: "Refreshing",
       })
       try {
-        const refreshedOAuthToken = await authClientRef.current.refresh(storedOAuthToken.refresh_token);
+        const refreshedOAuthToken = await authClient.refresh(storedOAuthToken.refresh_token);
         const nextTokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
+        setAuthState(AuthState.AUTHENTICATED);
         setTokenState({
-          authState: AuthState.AUTHENTICATED,
           oauthToken: refreshedOAuthToken,
           tokenExpiresAt: nextTokenExpiresAt
         })
@@ -208,8 +223,8 @@ export function AuthProvider({ baseUrl: defaultBaseUrl,
       } catch (e: unknown) {
         if (e instanceof AuthenticationClientError && e.isUnauthorized()) {
           await storageRef.current.clear();
+          setAuthState(AuthState.UNAUTHENTICATED);
           setTokenState({
-            authState: AuthState.UNAUTHENTICATED,
             oauthToken: null,
             tokenExpiresAt: new Date(0)
           });
@@ -220,11 +235,7 @@ export function AuthProvider({ baseUrl: defaultBaseUrl,
           })
         } else if (e instanceof AuthenticationClientError && !e.isUnauthorized()) {
           // at this point there is an error but it's not something caused by the user so don't clear off the token
-          setTokenState({
-            authState: AuthState.BACKEND_FAILURE,
-            oauthToken: tokenState.oauthToken,
-            tokenExpiresAt: tokenState.tokenExpiresAt
-          });
+          setAuthState(AuthState.BACKEND_FAILURE);
           notify({
             type: "TokenExpiration",
             reason: e.message,
@@ -237,33 +248,18 @@ export function AuthProvider({ baseUrl: defaultBaseUrl,
     }
   }
 
-  const { tokenRefreshable: isConnected } = useRefreshOnAppEvent(
-    baseUrl,
-    notify,
-    refresh,
-    () => {
-      setTokenState({
-        authState: AuthState.NEEDS_REFRESH,
-        oauthToken: tokenState.oauthToken,
-        tokenExpiresAt: tokenState.tokenExpiresAt
-      });
-    },
-    timeBeforeExpirationRefresh,
-    10,
-    storageRef.current,
-    tokenState.authState);
 
   return <AuthContext.Provider value={{
-    authState: tokenState.authState,
+    authState,
     authorization,
     accessToken,
     accessTokenExpired,
     accessTokenExpiresOn: tokenState.tokenExpiresAt,
     baseUrl,
     oauthToken: tokenState.oauthToken,
-    isConnected,
+    tokenRefreshable,
     lastAuthEvents,
-    setBaseUrl,
+    setEndpointConfiguration,
     subscribe,
     login,
     logout,

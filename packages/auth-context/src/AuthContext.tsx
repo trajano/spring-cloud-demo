@@ -6,7 +6,7 @@ export const AuthContext = createContext<IAuth>({
   login: () => Promise.resolve(),
   logout: () => Promise.resolve(),
   refresh: () => Promise.resolve(),
-  setBaseUrl: () => { },
+  setEndpointConfiguration: () => { },
   subscribe: () => { return () => { }; },
   accessToken: null,
   accessTokenExpired: true,
@@ -15,6 +15,6 @@ export const AuthContext = createContext<IAuth>({
   authorization: null,
   authState: AuthState.INITIAL,
   baseUrl: new URL("http://undefined"),
-  isConnected: false,
+  tokenRefreshable: false,
   lastAuthEvents: []
 });
