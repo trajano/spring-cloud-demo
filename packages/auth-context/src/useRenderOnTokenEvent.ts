@@ -97,7 +97,6 @@ export function useRenderOnTokenEvent(
             // if the app switches to active, force a NetInfo refresh
             NetInfo.refresh();
           }
-          setLastCheckTime(Date.now());
           setAppState(nextAppState);
         }
       );
@@ -134,7 +133,7 @@ export function useRenderOnTokenEvent(
         clearExpirationTimeout();
       };
     },
-    []
+    [endpointConfiguration]
   );
 
   return {
