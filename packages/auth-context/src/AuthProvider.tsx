@@ -45,12 +45,12 @@ export function AuthProvider({
   logAuthEventFilterPredicate = (event: AuthEvent) => event.type !== "Connection" && event.type !== "CheckRefresh",
   logAuthEventSize = 50,
   timeBeforeExpirationRefresh = 10,
-  storagePrefix = "auth."
+  storagePrefix = "auth"
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
   const [endpointConfiguration, setEndpointConfiguration] = useState(defaultEndpointConfiguration);
   const authClient = useMemo(() => new AuthClient(endpointConfiguration), [endpointConfiguration]);
-  const baseUrl = useMemo(() => endpointConfiguration.baseUrl, [endpointConfiguration]);
-  const storageRef = useRef(new AuthStore(storagePrefix, baseUrl));
+  const baseUrl = useMemo(() => new URL(endpointConfiguration.baseUrl), [endpointConfiguration.baseUrl]);
+  const authStorage = useMemo(() => new AuthStore(storagePrefix, endpointConfiguration.baseUrl), [endpointConfiguration.baseUrl]);
 
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
 
@@ -122,7 +122,7 @@ export function AuthProvider({
 
     try {
       const nextOauthToken = await authClient.authenticate(authenticationCredentials);
-      const nextTokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(nextOauthToken);
+      const nextTokenExpiresAt = await authStorage.storeOAuthTokenAndGetExpiresAt(nextOauthToken);
       setAuthState(AuthState.AUTHENTICATED);
       setTokenState({
         oauthToken: nextOauthToken,
@@ -142,7 +142,7 @@ export function AuthProvider({
       })
     } catch (e: unknown) {
       if (e instanceof AuthenticationClientError) {
-        await storageRef.current.clear();
+        await authStorage.clear();
       }
       throw e;
     }
@@ -164,7 +164,7 @@ export function AuthProvider({
         throw e;
       }
     } finally {
-      await storageRef.current.clear();
+      await authStorage.clear();
       setAuthState(AuthState.UNAUTHENTICATED);
       setTokenState({
         oauthToken: null,
@@ -183,7 +183,7 @@ export function AuthProvider({
 
   async function refresh() {
     setAuthState(AuthState.REFRESHING);
-    const storedOAuthToken = await storageRef.current.getOAuthToken();
+    const storedOAuthToken = await authStorage.getOAuthToken();
     if (storedOAuthToken == null) {
       setAuthState(AuthState.UNAUTHENTICATED);
       setTokenState({
@@ -207,7 +207,7 @@ export function AuthProvider({
       })
       try {
         const refreshedOAuthToken = await authClient.refresh(storedOAuthToken.refresh_token);
-        const nextTokenExpiresAt = await storageRef.current.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
+        const nextTokenExpiresAt = await authStorage.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
         setAuthState(AuthState.AUTHENTICATED);
         setTokenState({
           oauthToken: refreshedOAuthToken,
@@ -222,7 +222,7 @@ export function AuthProvider({
         })
       } catch (e: unknown) {
         if (e instanceof AuthenticationClientError && e.isUnauthorized()) {
-          await storageRef.current.clear();
+          await authStorage.clear();
           setAuthState(AuthState.UNAUTHENTICATED);
           setTokenState({
             oauthToken: null,
@@ -259,6 +259,7 @@ export function AuthProvider({
     oauthToken: tokenState.oauthToken,
     tokenRefreshable,
     lastAuthEvents,
+    endpointConfiguration,
     setEndpointConfiguration,
     subscribe,
     login,

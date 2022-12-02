@@ -7,29 +7,43 @@ it('simple example', () => {
       'example'
     )
   ).toEqual({
-    baseUrl: new URL('https://api.trajano.net'),
-    authorizationEndpoint: new URL('https://api.trajano.net/auth'),
-    refreshEndpoint: new URL('https://api.trajano.net/refresh'),
-    pingEndpoint: new URL('https://api.trajano.net/ping'),
-    revocationEndpoint: new URL('https://api.trajano.net/logout'),
+    baseUrl: 'https://api.trajano.net/',
+    authorizationEndpoint: 'https://api.trajano.net/auth',
+    refreshEndpoint: 'https://api.trajano.net/refresh',
+    pingEndpoint: 'https://api.trajano.net/ping',
+    revocationEndpoint: 'https://api.trajano.net/logout',
     clientId: 'simple',
     clientSecret: 'example',
   });
 });
 it('simple example with URL', () => {
-  expect(
-    buildSimpleEndpointConfiguration(
-      new URL('https://api.trajano.net'),
-      'simple',
-      'example'
-    )
-  ).toEqual({
-    baseUrl: new URL('https://api.trajano.net'),
-    authorizationEndpoint: new URL('https://api.trajano.net/auth'),
-    refreshEndpoint: new URL('https://api.trajano.net/refresh'),
-    pingEndpoint: new URL('https://api.trajano.net/ping'),
-    revocationEndpoint: new URL('https://api.trajano.net/logout'),
+  const configuration = buildSimpleEndpointConfiguration(
+    'https://api.trajano.net',
+    'simple',
+    'example'
+  );
+
+  expect(configuration).toEqual({
+    baseUrl: 'https://api.trajano.net/',
+    authorizationEndpoint: 'https://api.trajano.net/auth',
+    refreshEndpoint: 'https://api.trajano.net/refresh',
+    pingEndpoint: 'https://api.trajano.net/ping',
+    revocationEndpoint: 'https://api.trajano.net/logout',
     clientId: 'simple',
     clientSecret: 'example',
   });
+  expect(configuration).toEqual(
+    JSON.parse(`
+      {
+        "authorizationEndpoint": "https://api.trajano.net/auth",
+        "baseUrl": "https://api.trajano.net/",
+        "pingEndpoint": "https://api.trajano.net/ping",
+        "refreshEndpoint": "https://api.trajano.net/refresh",
+        "revocationEndpoint": "https://api.trajano.net/logout",
+        "clientId": "simple",
+        "clientSecret": "example"
+      }
+      `)
+  );
+  expect(configuration.pingEndpoint).toBe('https://api.trajano.net/ping');
 });

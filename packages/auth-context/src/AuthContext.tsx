@@ -1,5 +1,6 @@
 import { createContext } from "react";
 import { AuthState } from "./AuthState";
+import { buildSimpleEndpointConfiguration } from "./buildSimpleEndpointConfiguration";
 import type { IAuth } from "./IAuth";
 
 export const AuthContext = createContext<IAuth>({
@@ -14,6 +15,7 @@ export const AuthContext = createContext<IAuth>({
   oauthToken: null,
   authorization: null,
   authState: AuthState.INITIAL,
+  endpointConfiguration: buildSimpleEndpointConfiguration(new URL("http://undefined")),
   baseUrl: new URL("http://undefined"),
   tokenRefreshable: false,
   lastAuthEvents: []

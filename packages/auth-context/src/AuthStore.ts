@@ -11,8 +11,8 @@ export class AuthStore {
    * @param storagePrefix storage prefix without the trailing `.`
    * @param baseUrl base URL appended to the storage prefix.
    */
-  constructor(storagePrefix: string, baseUrl: URL) {
-    this.storagePrefix = `${storagePrefix}.${baseUrl.toString()}.`;
+  constructor(storagePrefix: string, baseUrl: string) {
+    this.storagePrefix = `${storagePrefix}.${baseUrl}.`;
   }
 
   /**

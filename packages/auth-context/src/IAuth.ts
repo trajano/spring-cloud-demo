@@ -77,6 +77,10 @@ export interface IAuth {
    */
   baseUrl: URL;
   /**
+   * Current endpoint configuration.
+   */
+  endpointConfiguration: EndpointConfiguration;
+  /**
    * Sets the endpoint configuration for the context.  This allows switching between backends.
    * @param next next endpoint configuration.
    */
