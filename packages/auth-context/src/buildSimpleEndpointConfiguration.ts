@@ -12,9 +12,14 @@ export function buildSimpleEndpointConfiguration(
 ): EndpointConfiguration {
   const baseUrl =
     typeof inBaseUrl === 'string' ? new URL(inBaseUrl) : inBaseUrl;
+  if (__DEV__) {
+    if (baseUrl.href.substring(baseUrl.href.length - 1) !== '/') {
+      console.error("base URL should end with a '/'")
+    }
+  }
   return {
     baseUrl: baseUrl.href,
-    authorizationEndpoint: inBaseUrl + 'ping',
+    authorizationEndpoint: inBaseUrl + 'auth',
     refreshEndpoint: inBaseUrl + 'refresh',
     revocationEndpoint: inBaseUrl + 'logout',
     pingEndpoint: inBaseUrl + 'ping',

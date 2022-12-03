@@ -49,7 +49,17 @@ export function AuthProvider<A = any>({
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
   const [endpointConfiguration, setEndpointConfiguration] = useState(defaultEndpointConfiguration);
   const authClient = useMemo(() => new AuthClient<A>(endpointConfiguration), [endpointConfiguration]);
-  const baseUrl = useMemo(() => new URL(endpointConfiguration.baseUrl), [endpointConfiguration.baseUrl]);
+  const baseUrl = useMemo(
+    () => {
+      if (__DEV__) {
+        if (endpointConfiguration.baseUrl.substring(endpointConfiguration.baseUrl.length - 1) !== '/') {
+          console.error("base URL should end with a '/'")
+        }
+      }
+      return new URL(endpointConfiguration.baseUrl);
+    },
+    [endpointConfiguration.baseUrl]
+  );
   const authStorage = useMemo(() => new AuthStore(storagePrefix, endpointConfiguration.baseUrl), [endpointConfiguration.baseUrl]);
 
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
