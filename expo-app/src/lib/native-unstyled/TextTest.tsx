@@ -1,4 +1,4 @@
-import { useRef, Ref, createRef } from 'react';
+import { useRef, Ref, createRef, RefObject } from 'react';
 import { Animated, Text as RNText, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "../../components";
@@ -6,7 +6,7 @@ import { NativeText, Text as HocText } from './hoc';
 
 export function TextTest() {
     const { top: marginTop, left: marginLeft, right: marginRight, bottom: marginBottom } = useSafeAreaInsets();
-    const textRef = useRef<typeof RNText>() as Ref<typeof RNText>
+    const textRef = useRef<typeof RNText>() as RefObject<typeof RNText>
     return (<View
         style={{
             marginTop,

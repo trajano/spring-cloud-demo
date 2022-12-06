@@ -1,4 +1,4 @@
-import { ComponentType, forwardRef, JSXElementConstructor, NamedExoticComponent, PropsWithoutRef, ReactElement, Ref, RefAttributes } from 'react';
+import { ComponentType, forwardRef, JSXElementConstructor, NamedExoticComponent, PropsWithoutRef, ReactElement, Ref, RefAttributes, useRef, useEffect, RefObject } from 'react';
 import { render } from '@testing-library/react-native';
 import { Text, TextProps } from 'react-native';
 
@@ -31,4 +31,24 @@ describe("hoc", () => {
         const { toJSON: expectedToJSON } = render(<Text>simple string</Text>)
         expect(toJSON()).toStrictEqual(expectedToJSON())
     });
+
+    it("should pass ref", () => {
+        const callback = jest.fn();
+        const HocText = hoc<TextProps, TextProps, typeof Text>(Text);
+        function MyComponent() {
+            const textRef = useRef<typeof Text>() as RefObject<typeof Text>;
+            useEffect(() => {
+                callback(textRef?.current)
+            }, []);
+            return <HocText ref={textRef}>simple string</HocText>
+        }
+
+        const { toJSON } = render(<MyComponent />);
+        const { toJSON: expectedToJSON } = render(<Text>simple string</Text>)
+        expect(toJSON()).toStrictEqual(expectedToJSON())
+        expect(callback).toBeCalledTimes(1);
+        expect(callback.mock.calls[0][0]).toBeTruthy();
+    });
+
+
 });
