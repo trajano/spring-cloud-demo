@@ -24,5 +24,5 @@ if (!Array.isArray(currentBlockList)) {
   currentBlockList = [currentBlockList];
 }
 config.resolver.blockList = [...currentBlockList, /\\.git/];
-console.log(config);
+//console.log(config);
 module.exports = config;
