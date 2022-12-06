@@ -4,11 +4,13 @@ import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
 import { Asset } from "expo-asset";
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
+import { Dict } from 'i18n-js';
 import { ComponentType, createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { ColorSchemeName, useColorScheme, StyleSheet, TextStyle } from 'react-native';
 import { defaultColorSchemes } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from './defaultLightColorSchemeColors';
 import { FontsProvider, useFonts } from "./Fonts";
+import { I18nProvider } from './I18n';
 import { ITheme } from './ITheme';
 import { LoadingComponentProps } from "./LoadingComponentProps";
 import { ColorSchemeColors, ColorSchemes } from "./Themes";
@@ -26,11 +28,6 @@ type Loader = () => Promise<void>
 export type ThemeProviderProps = {
     colorSchemes?: ColorSchemes,
     defaultColorScheme: NonNullable<ColorSchemeName>,
-    /**
-     * Default typography to apply in text elements.  Note only the `System` font family is supported as `Text` elements may
-     * render before the fonts are loaded.
-     */
-    defaultTypography?: Typography & { fontFamily: "System" };
     /**
      * expo-font module assets to load up.
      */
@@ -74,6 +71,7 @@ export type ThemeProviderProps = {
      * asset load time.
      */
     minimumShowLoadingTime?: number;
+    translations?: Dict;
 };
 
 type LoadedTotal = {
@@ -146,14 +144,15 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, fontsLo
 
 export function ThemeProvider({ children,
     defaultColorScheme = "light",
-    defaultTypography: providedDefaultTypography = { fontFamily: "System" },
     fontModules = [],
     initialAssets = [],
     additionalAssets = [],
     textRoles: textRoles = {},
     minimumShowLoadingTime = 0,
+    translations = {},
     LoadingComponent,
-    colorSchemes = defaultColorSchemes, getColorScheme }: ThemeProviderProps) {
+    colorSchemes = defaultColorSchemes,
+    getColorScheme }: ThemeProviderProps) {
     const systemColorScheme = useColorScheme();
     const [colorScheme, setColorScheme] = useState(systemColorScheme ?? defaultColorScheme);
     const [initialAssetsLoaded, setInitialAssetsLoaded] = useState(false);
@@ -213,8 +212,8 @@ export function ThemeProvider({ children,
         }
     }, [textRoles, fontModules])
     const defaultTypography = useMemo(
-        () => ({ ...providedDefaultTypography, color: colors.default[0], backgroundColor: "transparent" }),
-        [colors.default, providedDefaultTypography]);
+        () => ({ color: colors.default[0], backgroundColor: "transparent" }),
+        [colors.default[0]]);
     return <ThemeContext.Provider value={{
         colorScheme,
         colors,
@@ -224,18 +223,20 @@ export function ThemeProvider({ children,
         typography
     }}>
         <FontsProvider fontModules={fontModules} onLoaded={() => { setFontsLoaded(true); }}>
-            <LoadingOrChildren
-                colorScheme={colorScheme}
-                LoadingComponent={LoadingComponent}
-                initialAssetsLoaded={initialAssetsLoaded}
-                fontsLoaded={fontsLoaded}
-                additionalAssets={additionalAssets}
-                minimumShowLoadingTime={minimumShowLoadingTime}
-            >
-                {children}
-            </LoadingOrChildren>
-        </FontsProvider>
-    </ThemeContext.Provider>
+            <I18nProvider translations={translations >
+                <LoadingOrChildren
+                    colorScheme={colorScheme}
+                    LoadingComponent={LoadingComponent}
+                    initialAssetsLoaded={initialAssetsLoaded}
+                    fontsLoaded={fontsLoaded}
+                    additionalAssets={additionalAssets}
+                    minimumShowLoadingTime={minimumShowLoadingTime}
+                >
+                    {children}
+                </LoadingOrChildren>
+            </I18nProvider>
+    </FontsProvider>
+    </ThemeContext.Provider >
 }
 export function useTheming(): ITheme {
     return useContext(ThemeContext);

@@ -104,7 +104,10 @@ export function FontsProvider({
     [fontModules]);
   const isMounted = useMounted();
 
-  const replaceWithNativeFont = useCallback(({ fontFamily, fontWeight = "normal", fontStyle = "normal", ...rest }: TextStyle): TextStyle => {
+  const replaceWithNativeFont = useCallback(({ fontFamily, fontWeight = "normal", fontStyle = "normal", ...rest }: TextStyle = {}): TextStyle => {
+    if (!fontFamily && !fontWeight && !fontStyle) {
+      return rest;
+    }
     const fontFamilyForKey = loadedFonts.fonts[`${fontFamily}:${fontWeight}:${fontStyle}`];
     if (fontFamilyForKey) {
       return { fontFamily: fontFamilyForKey, ...rest };
