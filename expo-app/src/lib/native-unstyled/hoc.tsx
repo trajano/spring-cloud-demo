@@ -1,6 +1,14 @@
-import { Children, cloneElement, ReactElement, ComponentType } from 'react';
-import { AccessibilityProps, Animated, StyleSheet, Text as RNText, TextInput as RNTextInput, TextProps, TextStyle, ViewStyle } from "react-native";
-import { TextInputProps } from 'react-native-paper';
+import { Children, cloneElement, ComponentType, forwardRef, NamedExoticComponent, PropsWithoutRef, ReactElement, Ref, RefAttributes } from 'react';
+import {
+    Animated,
+    StyleSheet,
+    Text as RNText,
+    StyleProp,
+    TextInput as RNTextInput,
+    TextInputProps,
+    TextProps,
+    TextStyle
+} from "react-native";
 import { useFonts } from "./Fonts";
 import { useI18n } from './I18n';
 type TextHocOptions = {
@@ -12,9 +20,9 @@ type TextHocOptions = {
     displayNameFallback?: string;
 }
 
-
-export function textHoc2<P extends TextProps = TextProps>(Component: ComponentType<TextProps>, { displayNameFallback }: TextHocOptions = {}): ComponentType<P> {
-    function wrapped({ style, children: inChildren, ...rest }: P & JSX.IntrinsicAttributes): ReactElement<any, any> {
+function textHoc2<P extends Pick<TextProps, "children" | "style">, Q, T>
+    (Component: ComponentType<Q>, { displayNameFallback }: TextHocOptions = {}): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
+    function wrapped({ style, children: inChildren, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
         const { replaceWithNativeFont } = useFonts();
         const flattenedStyle: TextStyle = StyleSheet.flatten(style) as TextStyle || {};
         const replacedStyle = replaceWithNativeFont(flattenedStyle);
@@ -23,7 +31,7 @@ export function textHoc2<P extends TextProps = TextProps>(Component: ComponentTy
                 return null;
             }
             else if (typeof child === "object" && 'props' in child) {
-
+                console.log(`child.type ${child.type}`);
                 const clone = cloneElement(child as ReactElement, {
                     style: [
                         {
@@ -40,12 +48,12 @@ export function textHoc2<P extends TextProps = TextProps>(Component: ComponentTy
             }
         }
         );
-        return <Component style={replacedStyle} {...rest}>{children}</Component>
+        return <Component style={replacedStyle} {...rest as unknown as Q}>{children}</Component>
     }
     const displayName =
         Component.displayName || Component.name || displayNameFallback || "AnonymousTextComponent";
     wrapped.displayName = displayName;
-    return wrapped;
+    return forwardRef(wrapped);
 }
 
 /**
@@ -60,17 +68,19 @@ export function textHoc2<P extends TextProps = TextProps>(Component: ComponentTy
  * @param options 
  * @returns 
  */
-export function textHoc<P extends Animated.AnimatedProps<TextProps> = Animated.AnimatedProps<TextProps>>(Component: ComponentType<Animated.AnimatedProps<TextProps>>, { displayNameFallback }: TextHocOptions = {}): ComponentType<P> {
-    function wrapped({ style, children: inChildren, ...rest }: P & JSX.IntrinsicAttributes): ReactElement<any, any> {
+function textHoc<P extends Pick<Animated.AnimatedProps<TextProps>, "children" | "style">, Q, T>
+    (Component: ComponentType<Q>, { displayNameFallback }: TextHocOptions = {}): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
+    function wrapped({ style, children: inChildren, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
         const { replaceWithNativeFont } = useFonts();
         const flattenedStyle: TextStyle = StyleSheet.flatten(style) as TextStyle || {};
         const replacedStyle = replaceWithNativeFont(flattenedStyle);
         const children: typeof inChildren = Children.map(inChildren as any, (child) => {
             if (child === null) {
                 return null;
-            } else if (typeof child === "object" && 'props' in child) {
-
-                const clone = cloneElement(child, {
+            }
+            else if (typeof child === "object" && 'props' in child) {
+                console.log(`child.type ${child.type}`);
+                const clone = cloneElement(child as ReactElement, {
                     style: [
                         {
                             fontFamily: flattenedStyle.fontFamily,
@@ -86,12 +96,12 @@ export function textHoc<P extends Animated.AnimatedProps<TextProps> = Animated.A
             }
         }
         );
-        return <Component style={replacedStyle} {...rest}>{children}</Component>
+        return <Component style={replacedStyle} {...rest as unknown as Q}>{children}</Component>
     }
     const displayName =
-        Component.displayName || Component.name || displayNameFallback || "AnonymousTextComponent";
+        Component.displayName || Component.name || displayNameFallback || "AnonymousAnimatedTextComponent";
     wrapped.displayName = displayName;
-    return wrapped;
+    return forwardRef(wrapped);
 }
 
 type I18nProps = {
@@ -159,19 +169,19 @@ function i18nHoc<P extends Animated.AnimatedProps<TextProps> = Animated.Animated
     wrapped.displayName = displayName;
     return wrapped;
 }
-export const Text = i18nHoc(textHoc(Animated.Text), {
+export const Text = i18nHoc(textHoc<Animated.AnimatedProps<TextProps>, Animated.AnimatedProps<TextProps>, typeof RNText>(Animated.Text), {
     displayNameFallback: "HocText",
     _tIsChild: true
 })
 /**
  * TextInput
  */
-export const TextInput = textHoc2(RNTextInput);
+export const TextInput = textHoc2<TextInputProps, TextInputProps, typeof RNTextInput>(RNTextInput);
 
 /**
  * This is a non-animated version of Text.  Primarily used for Markdown to Text components.
  */
-export const NativeText = i18nHoc(textHoc2(RNText), { _tIsChild: true });
+export const NativeText = i18nHoc(textHoc2<TextProps, TextProps, typeof RNText>(RNText), { _tIsChild: true });
 
 function Dis() {
     return <Text _t="key" _tp={{ prop: "val", prop2: "val" }} />

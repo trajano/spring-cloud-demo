@@ -1,4 +1,5 @@
 import React, { Children, Component, ComponentType, createElement, forwardRef, PropsWithChildren, ReactElement, Ref, RefAttributes, useCallback, useMemo } from 'react';
+import { ReactNode } from 'react';
 import * as RN from "react-native";
 import { StyleProp } from 'react-native';
 import { Animated, StyleSheet, TextInputProps, TextProps, ViewProps } from "react-native";
@@ -86,7 +87,7 @@ export type I18nProps = {
 */
     _a?: string;
 }
-export type I18nedProps<P = unknown> = PropsWithChildren<P> & I18nProps;
+export type I18nedProps<P = unknown> = Omit<P, "children"> & I18nProps & { children: ReactNode | ReactNode[] };
 export type WithI18nConfig = {
     /**
      * The children of the element contains the text.  If false then `textProp` must be specified.
@@ -101,7 +102,7 @@ export type WithI18nConfig = {
      */
     allowBasicMarkdown?: boolean;
 }
-export function withI18n<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>, config: WithI18nConfig = {}): ComponentType<I18nedProps<P>> {
+export function withI18n<P,Q>(WrappedComponent: ComponentType<Q>, ref: Ref<any>, config: WithI18nConfig = {}): ComponentType<I18nedProps<P>> {
     const displayName =
         WrappedComponent.displayName || WrappedComponent.name || "Component";
     const defaultConfig: WithI18nConfig = {
@@ -110,7 +111,7 @@ export function withI18n<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>, c
     function I18nedComponent({ forwardedRef, children, _t, ...rest }: I18nedProps<P> & { forwardedRef: Ref<ComponentType<P>> }) {
         const activeConfig = { ...defaultConfig, ...config };
         const nextChildren = (activeConfig.childrenIsText && _t !== undefined) ? _t : children;
-        return <WrappedComponent ref={forwardedRef} {...rest as P & JSX.IntrinsicAttributes}>{nextChildren}</WrappedComponent>;
+        return <WrappedComponent {...rest as unknown as Q} ref={forwardedRef} >{nextChildren}</WrappedComponent>;
 
     }
     I18nedComponent.displayName = displayName;
@@ -176,7 +177,7 @@ export const TextInput = forwardRef<RN.TextInput, StyledProps<TextInputProps>>((
     ...rest }, ref) => {
     const { defaultTypography, typography, colors } = useTheming();
     const computedStyle = useMemo<StyleProp<RN.TextStyle>>(() => {
-        const propStyles : StyleProp<RN.TextStyle> = [role ? typography(role, size) : {}, propsToStyleSheet(rest, colors)];
+        const propStyles: StyleProp<RN.TextStyle> = [role ? typography(role, size) : {}, propsToStyleSheet(rest, colors)];
         if (extendStyle === false) {
             // use Compose to reduce the amount of array objects that are created.
             return StyleSheet.compose(defaultTypography, propStyles);

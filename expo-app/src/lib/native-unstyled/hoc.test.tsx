@@ -1,4 +1,4 @@
-import { ComponentType, forwardRef, NamedExoticComponent, PropsWithoutRef, ReactElement, Ref, RefAttributes } from 'react';
+import { ComponentType, forwardRef, JSXElementConstructor, NamedExoticComponent, PropsWithoutRef, ReactElement, Ref, RefAttributes } from 'react';
 import { render } from '@testing-library/react-native';
 import { Text, TextProps } from 'react-native';
 
@@ -12,8 +12,8 @@ import { Text, TextProps } from 'react-native';
  * @typeParam O options for the HoC building
  * @returns A named exotic componentwith P props that accepts a ref
  */
-function hoc<P, Q, T, O = {}>(Component: ComponentType<Q>, options?: O): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
-    function wrapped(props: P, ref: Ref<T>): ReactElement<Q> {
+function hoc<P, Q, T extends JSXElementConstructor<any>, O = {}>(Component: ComponentType<Q>, options?: O): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
+    function wrapped(props: P, ref: Ref<T>): ReactElement<Q, T> {
         // the an unknown as Q here is an example, but P and Q can be different.
         const componentProps: Q = props as unknown as Q;
         return <Component {...componentProps as Q} ref={ref} />
@@ -21,7 +21,7 @@ function hoc<P, Q, T, O = {}>(Component: ComponentType<Q>, options?: O): NamedEx
     const displayName =
         Component.displayName || Component.name || "AnonymousComponent";
     wrapped.displayName = displayName;
-    return forwardRef<T, P>(wrapped);
+    return forwardRef(wrapped);
 }
 
 describe("hoc", () => {
