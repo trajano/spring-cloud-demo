@@ -7,13 +7,12 @@ interface II18n {
 }
 const I18nContext = createContext<II18n>({
     t: () => "",
-    setLocale: () => { };
+    setLocale: () => { },
 });
 type I18nProviderProps = PropsWithChildren<{
     translations: Dict;
     i18nOptions?: I18nOptions;
     defaultLocale?: string;
-    setLocale(nextLocale: string): void;
 }>
 function preferredLanguage(translations: Dict, preferredLocales: Locale[], defaultLanguage: string): string {
     const availableTranslations = Object.keys(translations);
@@ -34,7 +33,7 @@ export function I18nProvider({ children, defaultLocale, translations, i18nOption
             }
         },
         [translations]);
-    const setLocale = useCallback((nextLocale: string) => { i18n.locale = nextLocale }, [i18n])
+    const setLocale = useCallback((nextLocale: string) => { i18n.locale = nextLocale; }, [i18n])
     return <I18nContext.Provider value={{ t, setLocale }}>{children}</I18nContext.Provider>
 }
 export function useI18n() {

@@ -223,7 +223,7 @@ export function ThemeProvider({ children,
         typography
     }}>
         <FontsProvider fontModules={fontModules} onLoaded={() => { setFontsLoaded(true); }}>
-            <I18nProvider translations={translations >
+            <I18nProvider translations={translations} >
                 <LoadingOrChildren
                     colorScheme={colorScheme}
                     LoadingComponent={LoadingComponent}

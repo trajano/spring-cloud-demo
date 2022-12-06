@@ -1,5 +1,5 @@
 import { Animated, View, Text as RNText } from "react-native";
-import { ComponentType, Component } from 'react';
+import { PropsWithoutRef, Ref, ReactElement, ForwardRefExoticComponent, ComponentType, Component, forwardRef, RefAttributes } from 'react';
 type HocOptions = {
     /**
      * Display name to show on React Native Debugger if it cannot be determined from the `displayName` or `name` property 
@@ -18,5 +18,17 @@ export function hoc<P = {}>(Component: ComponentType<P>, { displayNameFallback }
 export const Text = hoc(Animated.Text, {
     displayNameFallback: "HocText"
 })
+
+
+//forwardRef()
+function textHoc2<P, Q, O, T>(Component: ComponentType<Q>, options: O): ForwardRefExoticComponent<PropsWithoutRef<Q & JSX.IntrinsicAttributes> & RefAttributes<T>> {
+    function wrapped(props: Q & JSX.IntrinsicAttributes, forwardedRef: Ref<T>): ReactElement<any, any> {
+        return <Component {...props} ref={forwardRef} />
+    }
+    const displayName =
+        Component.displayName || Component.name || "AnonymousComponent";
+    wrapped.displayName = displayName;
+    return forwardRef<T, Q & JSX.IntrinsicAttributes>(wrapped);
+}
 
 export const NativeText = hoc(RNText)
