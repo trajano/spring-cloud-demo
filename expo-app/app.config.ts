@@ -4,9 +4,11 @@ export default ({ config }: { config: ExpoConfig }) => {
     ...config,
     name: process.env.APP_NAME ?? config.name,
     ios: {
+      ...config.ios,
       bundleIdentifier: process.env.BUNDLE_ID ?? config.ios?.bundleIdentifier,
     },
     android: {
+      ...config.android,
       package: process.env.BUNDLE_ID ?? config.android?.package,
     },
   };
