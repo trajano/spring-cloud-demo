@@ -21,7 +21,7 @@ export default function TabTwoScreen() {
     const dateFnsLocales2 = dateFnsLocales as Record<string, Locale>;
     return Localization.getLocales().map(locale => {
       // handle special cases
-      return locale.languageTag.replaceAll("-", "")
+      return locale.languageTag.split("-").join("");
     })
       .filter(localKey => !!dateFnsLocales2[localKey])
       .map(localKey => dateFnsLocales2[localKey])[0] ?? dateFnsLocales.enUS;
