@@ -1,4 +1,4 @@
-import type { Locale } from "expo-localization";
+import { Calendar, CalendarIdentifier, Locale } from "expo-localization";
 
 export function getLocales(): Locale[] {
   return [
@@ -12,6 +12,16 @@ export function getLocales(): Locale[] {
       digitGroupingSeparator: ",",
       textDirection: "ltr",
       measurementSystem: "us",
+    },
+  ];
+}
+export function getCalendars(): Calendar[] {
+  return [
+    {
+      calendar: CalendarIdentifier.GREGORIAN,
+      timeZone: "Europe/Warsaw",
+      uses24hourClock: true,
+      firstWeekday: 1,
     },
   ];
 }
