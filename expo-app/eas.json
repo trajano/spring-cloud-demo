@@ -10,6 +10,19 @@
         "BUNDLE_ID": "com.trajano.expoapp.dev"
       }
     },
+    "development-simulator": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "rework",
+      "ios": {
+        "simulator": true
+      },
+      "env": {
+        "APP_NAME": "Spring Dev Client",
+        "APP_ICON": "./assets/images/dev-client-icon.png",
+        "BUNDLE_ID": "com.trajano.expoapp.dev"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "channel": "rework"
