@@ -20,7 +20,7 @@ type TextHocOptions = {
     displayNameFallback?: string;
 }
 
-function useTextHoc<Q>(style: StyleProp<any>, inChildren: ReactNode): {
+function useReplacedWithNativeFonts<Q>(style: StyleProp<any>, inChildren: ReactNode): {
     style: StyleProp<any>,
     children: ReactNode,
 } {
@@ -54,16 +54,16 @@ function useTextHoc<Q>(style: StyleProp<any>, inChildren: ReactNode): {
     };
 }
 
-function textHoc2<P extends Pick<TextProps, "children" | "style">, Q, T>
+function withReplacedWithNativeFontsText<P extends Pick<TextProps, "children" | "style">, Q, T>
     (Component: ComponentType<Q>, { displayNameFallback }: TextHocOptions = {}): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
-    function wrapped({ style: inStyle, children: inChildren, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
-        const { style, children } = useTextHoc<Q>(inStyle, inChildren)
+    function useWrapped({ style: inStyle, children: inChildren, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
+        const { style, children } = useReplacedWithNativeFonts<Q>(inStyle, inChildren)
         return <Component style={style} {...rest as unknown as Q}>{children}</Component>
     }
     const displayName =
         Component.displayName || Component.name || displayNameFallback || "AnonymousTextComponent";
-    wrapped.displayName = displayName;
-    return forwardRef(wrapped);
+    useWrapped.displayName = displayName;
+    return forwardRef(useWrapped);
 }
 
 /**
@@ -78,16 +78,16 @@ function textHoc2<P extends Pick<TextProps, "children" | "style">, Q, T>
  * @param options 
  * @returns 
  */
-function textHoc<P extends Pick<Animated.AnimatedProps<TextProps>, "children" | "style">, Q, T>
+function withReplacedWithNativeFontsAnimatedText<P extends Pick<Animated.AnimatedProps<TextProps>, "children" | "style">, Q, T>
     (Component: ComponentType<Q>, { displayNameFallback }: TextHocOptions = {}): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
-    function wrapped({ style: inStyle, children: inChildren, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
-        const { style, children } = useTextHoc<Q>(inStyle, inChildren as ReactNode)
+    function useWrapped({ style: inStyle, children: inChildren, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
+        const { style, children } = useReplacedWithNativeFonts<Q>(inStyle, inChildren as ReactNode)
         return <Component style={style} {...rest as unknown as Q}>{children}</Component>
     }
     const displayName =
         Component.displayName || Component.name || displayNameFallback || "AnonymousAnimatedTextComponent";
-    wrapped.displayName = displayName;
-    return forwardRef(wrapped);
+    useWrapped.displayName = displayName;
+    return forwardRef(useWrapped);
 }
 
 type I18nProps = {
@@ -124,14 +124,12 @@ type I18nHocOptions = TextHocOptions & {
      */
     _tIsChild?: boolean;
 };
-function i18nHoc<P extends Animated.AnimatedProps<TextProps> = Animated.AnimatedProps<TextProps>>(Component: ComponentType<P>,
+function withI18n<P extends Animated.AnimatedProps<TextProps> = Animated.AnimatedProps<TextProps>>(Component: ComponentType<P>,
     {
         displayNameFallback,
         _tIsChild = false,
         localizedMap = {
             _a: 'accessibilityLabel',
-            _p: "placeholder",
-            _rkl: "returnKeyLabel"
         } }: I18nHocOptions = {}) {
     function useWrapped({ _t, _tp, children: inChildren, ...rest }: Omit<P, "children"> & Pick<Animated.AnimatedProps<TextProps>, 'children'> & I18nProps, ref: Ref<RNText>) {
         const { t } = useI18n();
@@ -155,7 +153,7 @@ function i18nHoc<P extends Animated.AnimatedProps<TextProps> = Animated.Animated
     useWrapped.displayName = displayName;
     return forwardRef(useWrapped);
 }
-export const Text = i18nHoc(textHoc<Animated.AnimatedProps<TextProps>, Animated.AnimatedProps<TextProps>, typeof RNText>(Animated.Text), {
+export const Text = withI18n(withReplacedWithNativeFontsAnimatedText<Animated.AnimatedProps<TextProps>, Animated.AnimatedProps<TextProps>, typeof RNText>(Animated.Text), {
     displayNameFallback: "HocText",
     _tIsChild: true
 })
@@ -165,9 +163,39 @@ export const Text = i18nHoc(textHoc<Animated.AnimatedProps<TextProps>, Animated.
 /**
  * TextInput
  */
-export const TextInput = textHoc2<TextInputProps, TextInputProps, typeof RNTextInput>(RNTextInput);
+export const TextInput = withI18n(withReplacedWithNativeFontsText<TextInputProps, TextInputProps, typeof RNTextInput>(RNTextInput), {
+    localizedMap: {
+        _a: 'accessibilityLabel',
+        _p: "placeholder",
+        _rkl: "returnKeyLabel"
+    }
+});
 
 /**
  * This is a non-animated version of Text.  Primarily used for Markdown to Text components.
+ * This component type is not exposed outside as it is used internally only.
  */
-export const NativeText = textHoc2<TextProps, TextProps, typeof RNText>(RNText);
+export const NativeText = withReplacedWithNativeFontsText<TextProps, TextProps, typeof RNText>(RNText);
+
+
+/**
+ * This is a simple HoC that is a noop that supports ref forwarding.
+ * @param Component component to wrap
+ * @param options options for the HoC building
+ * @typeParam P the exposed props of the higher order component
+ * @typeParam Q the props for the wrapped component
+ * @typeParam T type for ref attribute of the wrapped component
+ * @typeParam O options for the HoC building
+ * @returns A named exotic componentwith P props that accepts a ref
+ */
+function withStyled<P, Q, T, O = {}>(Component: ComponentType<Q>, options?: O): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
+    function wrapped(props: P, ref: Ref<T>): ReactElement<Q> {
+        // the an unknown as Q here is an example, but P and Q can be different.
+        const componentProps: Q = props as unknown as Q;
+        return <Component {...componentProps} ref={ref} />
+    }
+    const displayName =
+        Component.displayName || Component.name || "AnonymousComponent";
+    wrapped.displayName = displayName;
+    return forwardRef(wrapped);
+}

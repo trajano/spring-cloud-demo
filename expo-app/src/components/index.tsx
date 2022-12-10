@@ -2,8 +2,8 @@ import React, { Children, Component, ComponentType, createElement, forwardRef, R
 import * as RN from "react-native";
 import { Animated, StyleProp, StyleSheet, TextInputProps, TextProps, ViewProps } from 'react-native';
 import { useFonts, useTheming } from "../lib/native-unstyled";
-import { propsToStyleSheet } from './propsToStyleSheet';
-import { StyleProps } from './StyleProps';
+import { propsToStyleSheet } from '../lib/native-unstyled/propsToStyleSheet';
+import { StyleProps } from '../lib/native-unstyled/StyleProps';
 export const ScrollView = Animated.ScrollView;
 
 // export function SectionList<ItemT, SectionT>(props: Animated.AnimatedProps<SectionListProps<ItemT, SectionT>>) {
@@ -143,7 +143,7 @@ export function withStyled<P>(WrappedComponent: ComponentType<P>, ref: Ref<any>,
         return <WrappedComponent ref={forwardedRef} style={computedStyle} {...rest as P & JSX.IntrinsicAttributes} />;
     }
     StyledComponent.displayName = displayName;
-    return useCallback((props: StyledProps<P>) => <StyledComponent forwardedRef={ref} {...props} />, []);
+    return (props: StyledProps<P>) => <StyledComponent forwardedRef={ref} {...props} />;
 }
 
 

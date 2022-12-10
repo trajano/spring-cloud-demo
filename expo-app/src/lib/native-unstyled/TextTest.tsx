@@ -2,7 +2,7 @@ import { useRef, Ref, createRef, RefObject } from 'react';
 import { Animated, Text as RNText } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text, View } from "../../components";
-import { propsToStyleSheet } from '../../components/propsToStyleSheet';
+import { propsToStyleSheet } from './propsToStyleSheet';
 import { NativeText, Text as HocText } from './hoc';
 
 export function TextTest() {

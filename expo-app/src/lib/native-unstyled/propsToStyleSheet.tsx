@@ -2,8 +2,8 @@ import memoize from 'lodash.memoize';
 import pick from 'lodash.pick';
 import * as RN from "react-native";
 import { StyleProp } from "react-native";
-import { ColorSchemeColors } from '../lib/native-unstyled/Themes';
-import { lookupColor } from './lookupColor';
+import { ColorSchemeColors } from './Themes';
+import { lookupColor } from '../../components/lookupColor';
 import { StyleProps } from './StyleProps';
 
 /**
