@@ -1,12 +1,10 @@
+import memoize from 'lodash.memoize';
+import pick from 'lodash.pick';
 import * as RN from "react-native";
-import { memo } from 'react';
 import { StyleProp } from "react-native";
 import { ColorSchemeColors } from '../lib/native-unstyled/Themes';
 import { lookupColor } from './lookupColor';
 import { StyleProps } from './StyleProps';
-import memoize from 'lodash.memoize'
-import pick from 'lodash.pick'
-import eq from 'lodash.eq'
 
 /**
  * Style prop keys.  Its a mapping from a prop key to the style prop.
