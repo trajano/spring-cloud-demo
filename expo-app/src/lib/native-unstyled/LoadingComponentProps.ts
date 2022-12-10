@@ -9,5 +9,5 @@ export type LoadingComponentProps = ViewProps & {
    * For example, the loading component would be able to check the value of Auth context to determine if it is
    * in a stable state to remove the loading screen already.
    */
-  additionalResourceUpdate: (loaded: number, total: number) => void;
+  additionalResourceUpdate?: (loaded: number, total: number) => void;
 };
