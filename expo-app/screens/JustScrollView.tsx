@@ -2,7 +2,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { AuthState, useAuth } from '@trajano/spring-docker-auth-context';
 import { addSeconds, formatISO, getTime, millisecondsToSeconds, startOfSecond } from 'date-fns';
 import { useCallback, useRef, useState } from 'react';
-import { Animated } from 'react-native';
+import { Animated, View } from 'react-native';
 import { RefreshControl } from 'react-native-gesture-handler';
 import { Button } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -40,10 +40,29 @@ export function JustScrollView() {
     >
         <Text>Access token <Text role="mono">{accessToken?.slice(-5)}</Text> expires on <Text fontWeight="bold">{formatISO(accessTokenExpiresOn)}</Text>        </Text>
         <Text>Time remaining <Text fontWeight="bold">{timeRemaining} seconds</Text></Text>
-        <Text>AuthState <Text fontWeight="bold">{AuthState[authState]}</Text>        </Text>
+        <Text fontFamily='Lexend'>AuthState <Text fontFamily='Noto' fontWeight="bold">{AuthState[authState]}</Text></Text>
         <Button onPress={async () => {
             setWhoamiJson(JSON.stringify(await whoami(), null, 2));
         }}>Who Am I?</Button>
-        <Text role="mono">{whoamiJson}</Text>
+
+
+        <View style={{
+            width: 300,
+            height: 400,
+            borderRadius: 20,
+            backgroundColor: "transparent",
+            shadowColor: "#000",
+            shadowOffset: {
+                width: 0,
+                height: 2,
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+
+            elevation: 5,
+        }}>
+            <Text color="black">{whoamiJson.substring(0, 1000)}</Text>
+        </View>
+
     </Animated.ScrollView>
 }

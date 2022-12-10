@@ -1,16 +1,12 @@
-import { BASE_URL } from '@env';
-import { useHeaderHeight } from '@react-navigation/elements';
-import { useFocusEffect } from '@react-navigation/native';
 import { FlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import { useMounted } from '@trajano/react-hooks';
 import { useAuth } from '@trajano/spring-docker-auth-context';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { Button, StyleSheet } from 'react-native';
 import { useAuthenticated } from '../authenticated-context';
 import { Text, View } from '../src/components';
-import { MainDrawerScreenProps } from '../types';
 export default function TabOneScreen() {
-  const { logout, refresh, accessToken, oauthToken } = useAuth();
+  const { logout, refresh, accessToken, oauthToken, baseUrl } = useAuth();
   const { claims, internalState } = useAuthenticated();
   const isMounted = useMounted();
 
@@ -21,6 +17,7 @@ export default function TabOneScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const data = [
+    baseUrl,
     process.env,
     oauthToken,
     claims,

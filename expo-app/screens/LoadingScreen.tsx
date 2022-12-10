@@ -2,15 +2,21 @@ import { AuthState, useAuth } from '@trajano/spring-docker-auth-context';
 import { StatusBar } from 'expo-status-bar';
 import AnimatedLottieView from 'lottie-react-native';
 import { useEffect, useState } from 'react';
-import { StyleSheet, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text, View } from '../src/components';
 import { LoadingComponentProps, useTheming } from '../src/lib/native-unstyled';
 
-function AssetsLoaded({ loadedAssets, totalAssets }: Pick<LoadingComponentProps, "loadedAssets" | "totalAssets">) {
+function AssetsLoaded({ loadedAssets, totalAssets, animationDone }: { loadedAssets: number, totalAssets: number, animationDone: boolean }) {
+  const { authState, tokenRefreshable, endpointConfiguration } = useAuth();
   const { bottom: safeAreaInsetBottom } = useSafeAreaInsets();
-  return <View paddingBottom={safeAreaInsetBottom}><Text>{`Assets loaded ${loadedAssets}/${totalAssets}`}</Text></View>
+  return (<View paddingBottom={safeAreaInsetBottom}>
+    <Text>{`Assets loaded ${loadedAssets}/${totalAssets}`}</Text>
+    <Text>{AuthState[authState]}</Text>
+    <Text>{tokenRefreshable ? "Connected" : "Disconnected"} {animationDone ? "Done" : "Playing"}</Text>
+    <Text>Ping: {endpointConfiguration?.pingEndpoint}</Text>
+  </View>);
 }
 
 export function LoadingScreen({ loadedAssets, totalAssets, additionalResourceUpdate }: LoadingComponentProps) {
@@ -18,7 +24,7 @@ export function LoadingScreen({ loadedAssets, totalAssets, additionalResourceUpd
   const { colors } = useTheming();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const portrait = windowHeight > windowWidth;
-  const { authState, isConnected } = useAuth();
+  const { authState, tokenRefreshable } = useAuth();
   const [fromTimeout, setFromTimeout] = useState(0);
   const [fromAnimationFinish, setAnimationFinish] = useState(0);
   useEffect(() => {
@@ -26,13 +32,13 @@ export function LoadingScreen({ loadedAssets, totalAssets, additionalResourceUpd
     const timeout = setTimeout(() => setFromTimeout(1), 2000);
     if (authState === AuthState.UNAUTHENTICATED || authState === AuthState.AUTHENTICATED) {
       additionalResourceUpdate(1 + fromTimeout + fromAnimationFinish, 3);
-    } else if (!isConnected) {
+    } else if (!tokenRefreshable) {
       additionalResourceUpdate(1 + fromTimeout + fromAnimationFinish, 3);
     } else {
       additionalResourceUpdate(fromTimeout + fromAnimationFinish, 3);
     }
     return () => clearTimeout(timeout);
-  }, [authState, isConnected, fromTimeout, fromAnimationFinish]);
+  }, [authState, tokenRefreshable, fromTimeout, fromAnimationFinish]);
 
   return (
     <>
@@ -49,31 +55,9 @@ export function LoadingScreen({ loadedAssets, totalAssets, additionalResourceUpd
             source={require("../assets/lottie/28839-ikura-sushi.json")}
           />
         </View>
-        {portrait && (<AssetsLoaded loadedAssets={loadedAssets} totalAssets={totalAssets} />)}
+        {portrait && (<AssetsLoaded loadedAssets={loadedAssets} totalAssets={totalAssets} animationDone={fromAnimationFinish === 1} />)}
       </View>
       <StatusBar hidden={true} />
     </>
   );
 }
-//source={{ uri: "https://assets5.lottiefiles.com/private_files/lf30_e3tmoL.json" }}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
-  },
-  linkText: {
-    fontSize: 14,
-    color: '#2e78b7',
-  },
-});
