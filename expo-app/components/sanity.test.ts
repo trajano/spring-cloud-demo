@@ -5,6 +5,6 @@ import pickBy from "lodash.pickby";
 it("should remove undefined", () => {
   const prop = { _a: "foo" };
   const prop2 = { _a: undefined, accessibilityLabel: "bar" };
-  const combined = pickBy({ ...prop, ...prop2 }, (v) => v !== undefined);
+  const combined = pickBy({ ...prop, ...prop2 });
   expect(combined).toStrictEqual({ accessibilityLabel: "bar" });
 });

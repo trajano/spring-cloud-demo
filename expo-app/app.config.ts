@@ -1,8 +1,9 @@
 import type { ExpoConfig } from "@expo/config";
-export default ({ config }: { config: ExpoConfig }) => {
+export default ({ config }: { config: ExpoConfig }) : ExpoConfig=> {
   return {
     ...config,
     name: process.env.APP_NAME ?? config.name,
+    icon: process.env.APP_ICON ?? config.icon,
     ios: {
       ...config.ios,
       bundleIdentifier: process.env.BUNDLE_ID ?? config.ios?.bundleIdentifier,

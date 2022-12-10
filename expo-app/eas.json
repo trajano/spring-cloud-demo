@@ -3,13 +3,16 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "channel": "rework",
       "env": {
         "APP_NAME": "Spring Dev Client",
+        "APP_ICON": "./assets/images/dev-client-icon.png",
         "BUNDLE_ID": "com.trajano.expoapp.dev"
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "channel": "rework"
     },
     "production": {}
   }
