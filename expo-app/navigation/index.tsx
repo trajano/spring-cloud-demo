@@ -136,7 +136,7 @@ function BottomTabNavigator() {
         component={DrawerNavigator}
         options={() => ({
           title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="archive" color={color} />,
         })}
       />
       <BottomTab.Screen
@@ -144,7 +144,7 @@ function BottomTabNavigator() {
         component={TextTab}
         options={{
           title: 'Text',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="address-book" color={color} />,
         }}
       />
       <BottomTab.Screen
@@ -152,7 +152,7 @@ function BottomTabNavigator() {
         component={NetworkLoggerTab}
         options={{
           title: 'Network Log',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="globe" color={color} />,
         }}
       />
     </BottomTab.Navigator>
