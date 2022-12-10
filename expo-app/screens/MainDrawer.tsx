@@ -5,6 +5,7 @@ import { MainDrawerParamList } from "../types";
 import { JustScrollView } from "./JustScrollView";
 import { StackNavigatorScrollView } from "./StackNavigatorScrollView";
 import { TabOne } from "./TabOne";
+import { EnvironmentScreen } from "./EnvironmentScreen";
 const Drawer = createDrawerNavigator<MainDrawerParamList>();
 export function DrawerNavigator() {
     const { width, height } = useWindowDimensions();
@@ -17,6 +18,9 @@ export function DrawerNavigator() {
         <Drawer.Screen name="StackNavigatorScrollView" component={StackNavigatorScrollView} options={{
             title: "Auth Event Log",
             headerShown: false
+        }} />
+        <Drawer.Screen name="Environment" component={EnvironmentScreen} options={{
+            title: "Environment"
         }} />
     </Drawer.Navigator>)
 }
