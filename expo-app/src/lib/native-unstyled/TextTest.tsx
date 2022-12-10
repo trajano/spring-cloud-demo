@@ -1,18 +1,20 @@
 import { useRef, Ref, createRef, RefObject } from 'react';
-import { Animated, Text as RNText, View } from "react-native";
+import { Animated, Text as RNText } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Text } from "../../components";
+import { Text, View } from "../../components";
+import { propsToStyleSheet } from '../../components/propsToStyleSheet';
 import { NativeText, Text as HocText } from './hoc';
 
 export function TextTest() {
     const { top: marginTop, left: marginLeft, right: marginRight, bottom: marginBottom } = useSafeAreaInsets();
-    const textRef = useRef<typeof RNText>(null);
+    const textRef = useRef<RNText>(null);
     return (<View
         style={{
             marginTop,
             marginLeft,
             marginBottom,
-            marginRight
+            marginRight,
+            backgroundColor: "silver",
         }}
     >
         <View testID="rnTextOne">
@@ -43,5 +45,34 @@ export function TextTest() {
         <View testID="subView">
             <Text>Test <Text>Sub <Text>Sub-Sub</Text></Text></Text>
         </View>
+
+        {/* <View style={{
+            width: 200,
+            height: 200,
+            borderRadius: 20,
+            backgroundColor: "white",
+            shadowColor: "#000",
+            shadowOffset: {
+                width: 0,
+                height: 2,
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+            padding: 16
+        }}>
+            <Text color="black">whoami</Text>
+        </View> */}
+
+        <View elevation={5} style={{
+            width: 300,
+            height: 300,
+            borderRadius: 20,
+            backgroundColor: "white",
+            padding: 16,
+        }} >
+            <Text color="black">{JSON.stringify(propsToStyleSheet({ elevation: 5 }, {} as any), null, 2)}</Text>
+        </View>
+
     </View>)
 }

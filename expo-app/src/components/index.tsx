@@ -1,8 +1,6 @@
-import React, { Children, Component, ComponentType, createElement, forwardRef, PropsWithChildren, ReactElement, Ref, RefAttributes, useCallback, useMemo } from 'react';
-import { ReactNode } from 'react';
+import React, { Children, Component, ComponentType, createElement, forwardRef, ReactElement, ReactNode, Ref, RefAttributes, useCallback, useMemo } from 'react';
 import * as RN from "react-native";
-import { StyleProp } from 'react-native';
-import { Animated, StyleSheet, TextInputProps, TextProps, ViewProps } from "react-native";
+import { Animated, StyleProp, StyleSheet, TextInputProps, TextProps, ViewProps } from 'react-native';
 import { useFonts, useTheming } from "../lib/native-unstyled";
 import { propsToStyleSheet } from './propsToStyleSheet';
 import { StyleProps } from './StyleProps';
@@ -102,7 +100,7 @@ export type WithI18nConfig = {
      */
     allowBasicMarkdown?: boolean;
 }
-export function withI18n<P,Q>(WrappedComponent: ComponentType<Q>, ref: Ref<any>, config: WithI18nConfig = {}): ComponentType<I18nedProps<P>> {
+export function withI18n<P, Q>(WrappedComponent: ComponentType<Q>, ref: Ref<any>, config: WithI18nConfig = {}): ComponentType<I18nedProps<P>> {
     const displayName =
         WrappedComponent.displayName || WrappedComponent.name || "Component";
     const defaultConfig: WithI18nConfig = {

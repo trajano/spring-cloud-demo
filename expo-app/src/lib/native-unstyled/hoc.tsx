@@ -133,7 +133,7 @@ function i18nHoc<P extends Animated.AnimatedProps<TextProps> = Animated.Animated
             _p: "placeholder",
             _rkl: "returnKeyLabel"
         } }: I18nHocOptions = {}) {
-    function useWrapped({ _t, _tp, children: inChildren, ...rest }: Omit<P, "children"> & Pick<Animated.AnimatedProps<TextProps>, 'children'> & I18nProps) {
+    function useWrapped({ _t, _tp, children: inChildren, ...rest }: Omit<P, "children"> & Pick<Animated.AnimatedProps<TextProps>, 'children'> & I18nProps, ref: Ref<RNText>) {
         const { t } = useI18n();
 
         const localizedProps: Record<string, string | undefined> = {}
@@ -145,15 +145,15 @@ function i18nHoc<P extends Animated.AnimatedProps<TextProps> = Animated.Animated
             }
         }
         if (_tIsChild && _t) {
-            return <Component {...rest as any} {...localizedProps}>{t(_t, _tp)}</Component>
+            return <Component ref={ref} {...rest as any} {...localizedProps}>{t(_t, _tp)}</Component>
         } else {
-            return <Component  {...rest as any} {...localizedProps}>{inChildren}</Component>
+            return <Component ref={ref} {...rest as any} {...localizedProps}>{inChildren}</Component>
         }
     }
     const displayName =
         Component.displayName || Component.name || displayNameFallback || "AnonymousI18nComponent";
     useWrapped.displayName = displayName;
-    return useWrapped;
+    return forwardRef(useWrapped);
 }
 export const Text = i18nHoc(textHoc<Animated.AnimatedProps<TextProps>, Animated.AnimatedProps<TextProps>, typeof RNText>(Animated.Text), {
     displayNameFallback: "HocText",

@@ -27,7 +27,6 @@ const stylePropKeyMapping: [string, string][] = [
     ["borderTopWidth", "borderTopWidth"],
     ["borderWidth", "borderWidth"],
     ["opacity", "opacity"],
-    ["elevation", "elevation"],
     ["alignContent", "alignContent"],
     ["alignItems", "alignItems"],
     ["alignSelf", "alignSelf"],
@@ -41,6 +40,7 @@ const stylePropKeyMapping: [string, string][] = [
     ["borderWidth", "borderWidth"],
     ["bottom", "bottom"],
     ["display", "display"],
+    ["elevation", "elevation"],
     ["end", "end"],
     ["flex", "flex"],
     ["flexBasis", "flexBasis"],
@@ -124,6 +124,144 @@ const stylePropKeys = [
 ];
 
 /**
+ * This is a mapping of Android elevation to React Native shadow values.
+ * https://ethercreative.github.io/react-native-shadow-generator/
+ */
+const elevationToShadow = [
+    {},
+    {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.18,
+        shadowRadius: 1.00,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.20,
+        shadowRadius: 1.41,
+    },
+    {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.22,
+        shadowRadius: 2.22,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.23,
+        shadowRadius: 2.62,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 3,
+        },
+        shadowOpacity: 0.27,
+        shadowRadius: 4.65,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 3,
+        },
+        shadowOpacity: 0.29,
+        shadowRadius: 4.65,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.30,
+        shadowRadius: 4.65,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.32,
+        shadowRadius: 5.46,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+        shadowOpacity: 0.34,
+        shadowRadius: 6.27,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 5,
+        },
+        shadowOpacity: 0.36,
+        shadowRadius: 6.68,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 6,
+        },
+        shadowOpacity: 0.37,
+        shadowRadius: 7.49,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 6,
+        },
+        shadowOpacity: 0.39,
+        shadowRadius: 8.30,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 7,
+        },
+        shadowOpacity: 0.41,
+        shadowRadius: 9.11,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 7,
+        },
+        shadowOpacity: 0.43,
+        shadowRadius: 9.51,
+    }, {
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 8,
+        },
+        shadowOpacity: 0.44,
+        shadowRadius: 10.32,
+    }
+]
+
+/**
  * Given props of a component, extract the style related utility props and compute the stylesheet.  It memoizes the props 
  * @param props props
  * @param colorSchemeColors color scheme colors for color lookups
@@ -158,6 +296,15 @@ function doPropsToStyleSheet(props: Omit<StyleProps, "role" | "size">, colorSche
     }
     for (const stylePropKey of colorStylePropKeyMapping) {
         addColor(stylePropKey[0], stylePropKey[1])
+    }
+
+    /* Elevation specific */
+    if (props.hasOwnProperty("elevation") && typeof (props as Record<string, unknown>)["elevation"] === "number") {
+        const elevation = (props as Record<string, unknown>)["elevation"] as number;
+        accumulatedStyle["shadowColor"] = "#000";
+        accumulatedStyle["shadowOffset"] = elevationToShadow[elevation].shadowOffset
+        accumulatedStyle["shadowOpacity"] = elevationToShadow[elevation].shadowOpacity
+        accumulatedStyle["shadowRadius"] = elevationToShadow[elevation].shadowRadius
     }
 
     return accumulatedStyle;
