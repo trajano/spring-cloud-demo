@@ -1,5 +1,5 @@
 import 'expo-dev-client';
-import { BASE_URL } from '@env';
+import { BASE_URL, TEXT_TEST } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthProvider, buildSimpleEndpointConfiguration } from '@trajano/spring-docker-auth-context';
 import { StatusBar } from 'expo-status-bar';
@@ -14,6 +14,7 @@ import * as NotoSans from "@expo-google-fonts/noto-sans";
 import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
 import { useEffect, useState } from 'react';
 import { LoadingScreen } from '../../screens/LoadingScreen';
+import { TextTest } from '../lib/native-unstyled/TextTest';
 
 export default function App() {
   const [defaultEndpointConfiguration, setDefaultEndpointConfiguration] = useState(buildSimpleEndpointConfiguration(BASE_URL));
@@ -46,7 +47,9 @@ export default function App() {
             require("../../assets/images/icon.png")]}
           LoadingComponent={LoadingScreen}
         >
-          <Navigation />
+          {TEXT_TEST ? 
+          (<TextTest />) :
+          (<Navigation />) }
           <StatusBar />
         </ThemeProvider>
       </AuthProvider>
