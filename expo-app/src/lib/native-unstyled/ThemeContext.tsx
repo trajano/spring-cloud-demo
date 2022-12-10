@@ -223,7 +223,7 @@ export function ThemeProvider({ children,
         typography
     }}>
         <FontsProvider fontModules={fontModules} onLoaded={() => { setFontsLoaded(true); }}>
-            <I18nProvider translations={translations} >
+            <I18nProvider translations={translations}>
                 <LoadingOrChildren
                     colorScheme={colorScheme}
                     LoadingComponent={LoadingComponent}
@@ -235,8 +235,8 @@ export function ThemeProvider({ children,
                     {children}
                 </LoadingOrChildren>
             </I18nProvider>
-    </FontsProvider>
-    </ThemeContext.Provider >
+        </FontsProvider>
+    </ThemeContext.Provider>
 }
 export function useTheming(): ITheme {
     return useContext(ThemeContext);

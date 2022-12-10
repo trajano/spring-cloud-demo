@@ -10,7 +10,10 @@ const I18nContext = createContext<II18n>({
     setLocale: () => { },
 });
 type I18nProviderProps = PropsWithChildren<{
-    translations: Dict;
+    /**
+     * Translations, defaults to an empty dictionary.a
+     */
+    translations?: Dict;
     i18nOptions?: I18nOptions;
     defaultLocale?: string;
 }>
@@ -21,7 +24,7 @@ function preferredLanguage(translations: Dict, preferredLocales: Locale[], defau
         .find((language) => availableTranslations.indexOf(language) !== -1) ?? defaultLanguage;
 }
 
-export function I18nProvider({ children, defaultLocale, translations, i18nOptions: translateOptions }: I18nProviderProps) {
+export function I18nProvider({ children, defaultLocale, translations = {}, i18nOptions: translateOptions }: I18nProviderProps) {
     const i18n = useMemo(() => new I18n(translations, translateOptions), [translations, translateOptions]);
     const t = useCallback((scope: Scope, options?: TranslateOptions) => i18n.t(scope, options), [i18n]);
     useEffect(

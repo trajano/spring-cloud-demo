@@ -1,14 +1,12 @@
-/**
- * js
- */
 import { render } from '@testing-library/react-native';
 import { NativeText as Text } from './hoc';
+import { I18nProvider } from './I18n';
 import { markdownToTextElements } from './markdownToTextElements';
 
 describe("markdownToTextElements", () => {
     it("empty string", () => {
         const { toJSON } = render(markdownToTextElements("")!)
-        const { toJSON: expectedToJSON } = render(<Text></Text>)
+        const { toJSON: expectedToJSON } = render(<I18nProvider><Text></Text></I18nProvider>)
         expect(toJSON()).toStrictEqual(expectedToJSON())
     })
     it("simple string", () => {

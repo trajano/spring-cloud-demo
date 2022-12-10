@@ -1,4 +1,4 @@
-import { Children, cloneElement, ComponentType, forwardRef, NamedExoticComponent, PropsWithoutRef, ReactElement, Ref, RefAttributes } from 'react';
+import { Children, ReactNode, cloneElement, ComponentType, forwardRef, NamedExoticComponent, PropsWithoutRef, ReactElement, Ref, RefAttributes } from 'react';
 import {
     Animated,
     StyleSheet,
@@ -20,35 +20,45 @@ type TextHocOptions = {
     displayNameFallback?: string;
 }
 
+function useTextHoc<Q>(style: StyleProp<any>, inChildren: ReactNode): {
+    style: StyleProp<any>,
+    children: ReactNode,
+} {
+    const { replaceWithNativeFont } = useFonts();
+    const flattenedStyle: TextStyle = StyleSheet.flatten(style) as TextStyle || {};
+    const replacedStyle = replaceWithNativeFont(flattenedStyle);
+    const children: typeof inChildren = Children.map(inChildren, (child) => {
+        if (child === null) {
+            return null;
+        }
+        else if (typeof child === "object" && 'props' in child) {
+            const clone = cloneElement(child as ReactElement, {
+                style: [
+                    {
+                        fontFamily: flattenedStyle.fontFamily,
+                        fontWeight: flattenedStyle.fontWeight,
+                        fontStyle: flattenedStyle.fontStyle
+                    },
+                    child.props.style
+                ]
+            });
+            return clone;
+        } else {
+            return child;
+        }
+    }
+    );
+    return {
+        style: replacedStyle,
+        children
+    };
+}
+
 function textHoc2<P extends Pick<TextProps, "children" | "style">, Q, T>
     (Component: ComponentType<Q>, { displayNameFallback }: TextHocOptions = {}): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
-    function wrapped({ style, children: inChildren, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
-        const { replaceWithNativeFont } = useFonts();
-        const flattenedStyle: TextStyle = StyleSheet.flatten(style) as TextStyle || {};
-        const replacedStyle = replaceWithNativeFont(flattenedStyle);
-        const children: typeof inChildren = Children.map(inChildren, (child) => {
-            if (child === null) {
-                return null;
-            }
-            else if (typeof child === "object" && 'props' in child) {
-                console.log(`child.type ${child.type}`);
-                const clone = cloneElement(child as ReactElement, {
-                    style: [
-                        {
-                            fontFamily: flattenedStyle.fontFamily,
-                            fontWeight: flattenedStyle.fontWeight,
-                            fontStyle: flattenedStyle.fontStyle
-                        },
-                        child.props.style
-                    ]
-                });
-                return clone;
-            } else {
-                return child;
-            }
-        }
-        );
-        return <Component style={replacedStyle} {...rest as unknown as Q}>{children}</Component>
+    function wrapped({ style: inStyle, children: inChildren, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
+        const { style, children } = useTextHoc<Q>(inStyle, inChildren)
+        return <Component style={style} {...rest as unknown as Q}>{children}</Component>
     }
     const displayName =
         Component.displayName || Component.name || displayNameFallback || "AnonymousTextComponent";
@@ -70,33 +80,9 @@ function textHoc2<P extends Pick<TextProps, "children" | "style">, Q, T>
  */
 function textHoc<P extends Pick<Animated.AnimatedProps<TextProps>, "children" | "style">, Q, T>
     (Component: ComponentType<Q>, { displayNameFallback }: TextHocOptions = {}): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
-    function wrapped({ style, children: inChildren, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
-        const { replaceWithNativeFont } = useFonts();
-        const flattenedStyle: TextStyle = StyleSheet.flatten(style) as TextStyle || {};
-        const replacedStyle = replaceWithNativeFont(flattenedStyle);
-        const children: typeof inChildren = Children.map(inChildren as any, (child) => {
-            if (child === null) {
-                return null;
-            }
-            else if (typeof child === "object" && 'props' in child) {
-                console.log(`child.type ${child.type}`);
-                const clone = cloneElement(child as ReactElement, {
-                    style: [
-                        {
-                            fontFamily: flattenedStyle.fontFamily,
-                            fontWeight: flattenedStyle.fontWeight,
-                            fontStyle: flattenedStyle.fontStyle
-                        },
-                        child.props.style
-                    ]
-                });
-                return clone;
-            } else {
-                return child;
-            }
-        }
-        );
-        return <Component style={replacedStyle} {...rest as unknown as Q}>{children}</Component>
+    function wrapped({ style: inStyle, children: inChildren, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
+        const { style, children } = useTextHoc<Q>(inStyle, inChildren as ReactNode)
+        return <Component style={style} {...rest as unknown as Q}>{children}</Component>
     }
     const displayName =
         Component.displayName || Component.name || displayNameFallback || "AnonymousAnimatedTextComponent";
@@ -147,8 +133,8 @@ function i18nHoc<P extends Animated.AnimatedProps<TextProps> = Animated.Animated
             _p: "placeholder",
             _rkl: "returnKeyLabel"
         } }: I18nHocOptions = {}) {
-    const { t } = useI18n();
-    function wrapped({ _t, _tp, children: inChildren, ...rest }: Omit<P, "children"> & Pick<Animated.AnimatedProps<TextProps>, 'children'> & I18nProps) {
+    function useWrapped({ _t, _tp, children: inChildren, ...rest }: Omit<P, "children"> & Pick<Animated.AnimatedProps<TextProps>, 'children'> & I18nProps) {
+        const { t } = useI18n();
 
         const localizedProps: Record<string, string | undefined> = {}
         for (const localizationKey in localizedMap) {
@@ -166,13 +152,16 @@ function i18nHoc<P extends Animated.AnimatedProps<TextProps> = Animated.Animated
     }
     const displayName =
         Component.displayName || Component.name || displayNameFallback || "AnonymousI18nComponent";
-    wrapped.displayName = displayName;
-    return wrapped;
+    useWrapped.displayName = displayName;
+    return useWrapped;
 }
 export const Text = i18nHoc(textHoc<Animated.AnimatedProps<TextProps>, Animated.AnimatedProps<TextProps>, typeof RNText>(Animated.Text), {
     displayNameFallback: "HocText",
     _tIsChild: true
 })
+// export const Text = textHoc<Animated.AnimatedProps<TextProps>, Animated.AnimatedProps<TextProps>, typeof RNText>(Animated.Text, {
+//     displayNameFallback: "HocText"
+// })
 /**
  * TextInput
  */
@@ -181,8 +170,4 @@ export const TextInput = textHoc2<TextInputProps, TextInputProps, typeof RNTextI
 /**
  * This is a non-animated version of Text.  Primarily used for Markdown to Text components.
  */
-export const NativeText = i18nHoc(textHoc2<TextProps, TextProps, typeof RNText>(RNText), { _tIsChild: true });
-
-function Dis() {
-    return <Text _t="key" _tp={{ prop: "val", prop2: "val" }} />
-}
+export const NativeText = textHoc2<TextProps, TextProps, typeof RNText>(RNText);
