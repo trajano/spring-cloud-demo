@@ -298,7 +298,7 @@ function doPropsToStyleSheet(props: Omit<StyleProps, "role" | "size">, colorSche
     }
 
     /* Elevation specific */
-    if (props.hasOwnProperty("elevation") && typeof (props as Record<string, unknown>)["elevation"] === "number" && RN.Platform.OS !== "android") {
+    if (props.hasOwnProperty("elevation") && typeof (props as Record<string, unknown>)["elevation"] === "number" && (props as Record<string, unknown>)["elevation"] !== 0 && RN.Platform.OS !== "android") {
         const elevation = (props as Record<string, unknown>)["elevation"] as number;
         accumulatedStyle["shadowColor"] = "#000";
         accumulatedStyle["shadowOffset"] = elevationToShadow[elevation].shadowOffset

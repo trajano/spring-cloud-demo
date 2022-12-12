@@ -1,9 +1,12 @@
 import { render } from '@testing-library/react-native';
 import { ComponentType, forwardRef, NamedExoticComponent, PropsWithoutRef, ReactElement, Ref, RefAttributes, useEffect, useRef } from 'react';
 import { Animated, Text, TextProps } from 'react-native';
+import { hocDisplayName } from './hocDisplayName';
 
 /**
- * This is a simple HoC that is a noop that supports ref forwarding.
+ * This is a simple HoC that is a noop that supports ref forwarding.  The ref fowarding logic is added
+ * as [refs are not passed through](https://reactjs.org/docs/higher-order-components.html#refs-arent-passed-through) 
+ * HoCs by default.
  * @param Component component to wrap
  * @param options options for the HoC building
  * @typeParam P the exposed props of the higher order component (does not require Q props)
@@ -28,6 +31,38 @@ function hoc<
     useWrapped.displayName = displayName;
     return forwardRef(useWrapped);
 }
+
+
+/**
+ * This is a HoC that implements the template method design pattern.  It uses functions passed in as references to do the work.
+ * @param Component component to wrap
+ * @param name name of the HoC to be added to the displayName
+ * @param wrapper the function that gets called that wraps the original component.  Unlike a typical HoC this passes the the ref from forward.
+ * @param options options for the HoC building
+ * @typeParam P the exposed props of the higher order component (does not require Q props)
+ * @typeParam Q the props for the wrapped component
+ * @typeParam T type for ref attribute of the wrapped component
+ * @typeParam O options for the HoC building
+ * @returns A named exotic componentwith P props that accepts a ref
+ */
+function hocTemplate<
+    P extends Q,
+    Q extends {},
+    T,
+    O = {}
+>(
+    Component: ComponentType<Q>,
+    name: string,
+    wrapper: (props: P, ref: Ref<T>) => ReactElement<Q>,
+    options?: O): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
+
+    function useWrapped(props: P, ref: Ref<T>): ReactElement<Q> {
+        return wrapper(props, ref);
+    }
+    useWrapped.displayName = hocDisplayName(name, Component);
+    return forwardRef(useWrapped);
+}
+
 
 type IgnoredProps = {
     foo: string,

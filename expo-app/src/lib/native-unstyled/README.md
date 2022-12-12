@@ -103,3 +103,7 @@ So for the most part I'll just list the distinguishing features over native-base
 Note there is a problem with all this concept though in that the stylesheets are not registered so it will have a performance impact.  To reduce it's impact the style props use memoization
 
 One thing to note... unlike the normal react-native View, the View style props do not allow all text style props (namely fontFamily, fontWeight and fontStyle)
+
+## Performance
+
+Eventually some of the HoCs will be converted to a babel plugin to further improve runtime performance but that will come later.
