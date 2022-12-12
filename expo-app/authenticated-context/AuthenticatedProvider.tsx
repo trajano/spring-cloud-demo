@@ -27,7 +27,7 @@ type AuthenticatedProviderProps = PropsWithChildren<{
     verifyClaims?: boolean,
     whoAmIEndpoint?: string
 }>;
-export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoami", verifyClaims = true, children }: AuthenticatedProviderProps) {
+export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoami/", verifyClaims = true, children }: AuthenticatedProviderProps) {
 
     const { baseUrl, accessToken, authorization } = useAuth();
     const [claims, setClaims] = useState<JwtClaims>();
@@ -81,8 +81,6 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
     }, [verified, username, accessToken])
 
     async function whoami() {
-        // const r = await fetch(new URL("/whoami/", baseUrl.href).toString(), {
-
         const r = await fetch(baseUrl.href + whoAmIEndpoint, {
             headers: {
                 authorization: authorization!,
@@ -90,7 +88,7 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
                 accept: "application/json",
             },
             method: "GET",
-            credentials: "include"
+            credentials: "omit"
         });
         return r.json();
 
