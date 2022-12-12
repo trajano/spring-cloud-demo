@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { useFonts } from "./Fonts";
 import { useI18n } from './I18n';
-import { withStyled, withStyledNoAnimation } from './withStyled';
+import { withStyled } from './withStyled';
 type TextHocOptions = {
     /**
      * Display name to show on React Native Debugger if it cannot be determined from the `displayName` or `name` property 
@@ -164,4 +164,5 @@ export const TextInput = withI18n(withReplacedWithNativeFontsText<TextInputProps
  */
 export const Text = withI18n(withReplacedWithNativeFontsText<TextProps, TextProps, RNText>(RNText));
 
-export const View = withStyledNoAnimation(RNView)
+export const View = withStyled(RNView)
+withStyled(Animated.View)

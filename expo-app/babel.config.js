@@ -6,11 +6,13 @@ module.exports = function (api) {
       "module:react-native-dotenv",
       '@babel/plugin-proposal-export-namespace-from',
       'react-native-reanimated/plugin',
-      'lodash',
     ],
     env: {
       production: {
-        plugins: ["react-native-paper/babel"],
+        plugins: [
+          "react-native-paper/babel",
+          'lodash'
+        ],
       },
     },
   };
