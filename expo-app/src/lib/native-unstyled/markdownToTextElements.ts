@@ -2,6 +2,7 @@ import MarkdownIT from "markdown-it";
 import Token from "markdown-it/lib/token";
 import { createElement, Fragment } from "react";
 import { Text } from "react-native";
+import { withReplacedWithNativeFonts } from "./withReplacedWithNativeFonts";
 
 type TextNode = {
   type: "text";
@@ -18,11 +19,17 @@ type FormatNode = {
 type Node = TextNode | FormatNode;
 
 /**
- * This uses React Native text rather than the one from `./components` since these are 
- * simple Text blocks.
- * @param s 
- * @param markdownIt 
- * @returns 
+ * This uses React Native Text with the withReplacedWithNativeFonts HoC so that
+ * it will handle custom fonts.
+ */
+const FontSubsitutedText = withReplacedWithNativeFonts(Text);
+
+/**
+ * Converts a limitted markdown string into text components.  The input is limited to
+ * be a single line (no block support), bold and italic only.
+ * @param s markdown string.
+ * @param markdownIt parser.  If not specified, one will be provided.
+ * @returns
  */
 export function inlineMarkdownToTextElements(
   s: string,
@@ -73,7 +80,7 @@ export function inlineMarkdownToTextElements(
   function convertTreeToElements(node: Node, index?: number): JSX.Element {
     if (node.type === "text" && node.isCode) {
       return createElement(
-        Text,
+        FontSubsitutedText,
         { key: `.${index}`, style: { fontFamily: "mono" } },
         node.content
       );
@@ -87,7 +94,7 @@ export function inlineMarkdownToTextElements(
     ) {
       // if root node with only one child element just return the child element and it is a text node and is code
       return createElement(
-        Text,
+        FontSubsitutedText,
         { style: { fontFamily: "mono" } },
         node.children[0].content
       );
@@ -97,7 +104,7 @@ export function inlineMarkdownToTextElements(
       node.children[0].type === "text"
     ) {
       // if root node with only one child element just return the child element and it is a text node
-      return createElement(Text, {}, node.children[0].content);
+      return createElement(FontSubsitutedText, {}, node.children[0].content);
     } else if (!node.parent && node.children.length === 1) {
       // if root node with only one child element just return the child element
       return convertTreeToElements(node.children[0]);
@@ -107,18 +114,22 @@ export function inlineMarkdownToTextElements(
       );
       if (node.format === "em") {
         return createElement(
-          Text,
+          FontSubsitutedText,
           { key: `.${index}`, style: { fontStyle: "italic" } },
           children
         );
       } else if (node.format === "strong") {
         return createElement(
-          Text,
+          FontSubsitutedText,
           { key: `.${index}`, style: { fontWeight: "bold" } },
           children
         );
       } else {
-        return createElement(Text, { key: `.${index}` }, children);
+        return createElement(
+          FontSubsitutedText,
+          { key: `.${index}` },
+          children
+        );
       }
     }
   }

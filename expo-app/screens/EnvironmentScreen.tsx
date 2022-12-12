@@ -6,10 +6,12 @@ import { ReactElement } from 'react';
 import { SectionList, SectionListData, SectionListProps, SectionListRenderItemInfo, Text as RNText } from 'react-native';
 import { View } from '../src/components';
 import { Text } from '../src/lib/native-unstyled';
+
+const isHermes = () => !!((global as any)['HermesInternal']);
 export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string, unknown>>, any> {
     const { manifest, manifest2, systemFonts, expoConfig, ...restOfConstants } = Constants;
     const sections: SectionListData<any>[] = [
-        { key: "@env", data: [{ BASE_URL, TEXT_TEST }] },
+        { key: "@env", data: [{ BASE_URL, TEXT_TEST, isHermes }] },
         {
             key: "expo-constants", data: [
                 restOfConstants as Record<string, unknown>

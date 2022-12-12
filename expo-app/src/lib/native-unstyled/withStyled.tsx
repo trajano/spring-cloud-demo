@@ -7,6 +7,13 @@ import { propsToStyleSheet, withoutStyledProps } from './propsToStyleSheet';
 import { StyleProps } from './StyleProps';
 import { useTheming } from './ThemeContext';
 
+type WithStyledProps = {
+    /**
+     * Specifies that the style props are stripped out before calling the component.
+     * This is disabled by default on production for performance, but enabled on development.
+     */
+    stripStyledPropsToWrappedComponent?: boolean;
+}
 /**
  * This wraps a view component so the styles are exposed.
  * @param Component component to wrap
@@ -19,12 +26,11 @@ export function withStyled<
     P extends Q & StyleProps,
     Q extends { style?: StyleProp<any> },
     T
->(Component: ComponentType<Q>): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
+>(Component: ComponentType<Q>, { stripStyledPropsToWrappedComponent }: WithStyledProps = { stripStyledPropsToWrappedComponent: __DEV__ }): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
     function useWrapped({ style, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
         const { colors } = useTheming();
-        // the an unknown as Q here is an example, but P and Q can be different.
         const stylesFromProps = propsToStyleSheet(rest, colors)
-        const componentProps: Q = withoutStyledProps(rest) as unknown as Q;
+        const componentProps: Q = (stripStyledPropsToWrappedComponent ? withoutStyledProps(rest) : rest) as unknown as Q;
         return <Component {...componentProps} style={[style, stylesFromProps]} ref={ref} />;
     }
     useWrapped.displayName = hocDisplayName("withStyled", Component);

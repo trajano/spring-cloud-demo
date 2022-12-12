@@ -118,6 +118,8 @@ const colorStylePropKeyMapping: [string, string][] = [
  * The prop keys used by styles.
  */
 const stylePropKeys = [
+    "bold",
+    "italic",
     ...stylePropKeyMapping.map(mapping => mapping[0]),
     ...colorStylePropKeyMapping.map(mapping => mapping[0])
 ];
@@ -304,6 +306,14 @@ function doPropsToStyleSheet(props: Omit<StyleProps, "role" | "size">, colorSche
         accumulatedStyle["shadowOffset"] = elevationToShadow[elevation].shadowOffset
         accumulatedStyle["shadowOpacity"] = elevationToShadow[elevation].shadowOpacity
         accumulatedStyle["shadowRadius"] = elevationToShadow[elevation].shadowRadius
+    }
+
+    if (props.hasOwnProperty("bold") && typeof (props as Record<string, unknown>)["bold"] === "boolean" && (props as Record<string, unknown>)["bold"] === true) {
+        accumulatedStyle["fontWeight"] = "bold";
+    }
+
+    if (props.hasOwnProperty("italic") && typeof (props as Record<string, unknown>)["italic"] === "boolean" && (props as Record<string, unknown>)["italic"] === true) {
+        accumulatedStyle["fontStyle"] = "italic";
     }
 
     return accumulatedStyle;

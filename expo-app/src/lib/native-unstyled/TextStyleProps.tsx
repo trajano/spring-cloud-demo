@@ -14,4 +14,13 @@ export type TextStyleProps = Omit<RN.TextStyle, "testID"> & {
      */
     size?: string;
 
+    /**
+     * Alias for fontWeight: "bold"
+     */
+    bold?: boolean;
+
+    /**
+     * Alias for fontStyle: "italic"
+     */
+    italic?: boolean;
 };

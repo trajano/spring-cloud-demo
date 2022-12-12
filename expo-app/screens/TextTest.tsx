@@ -7,6 +7,7 @@ import { useDayClockState } from '../hooks/useDayClockState';
 import { ScrollView, Text, TextInput, View as HocView } from '../src/lib/native-unstyled';
 import { propsToStyleSheet } from '../src/lib/native-unstyled/propsToStyleSheet';
 
+const isHermes = () => !!((global as any)['HermesInternal']);
 export function TextTest() {
     const { top: marginTop, left: marginLeft, right: marginRight, bottom: marginBottom } = useSafeAreaInsets();
     const [username, setUsername] = useState("");
@@ -30,7 +31,7 @@ export function TextTest() {
         <View testID="animatedOne" style={{ backgroundColor: "red" }}>
             <Animated.Text>USTextOne</Animated.Text>
         </View>
-        <HocView testID="hocOne" backgroundColor="yellow">
+        <HocView testID="hocOne" backgroundColor="yellow" color="blue">
             <Text ref={textRef}>{username || "not set"}</Text>
         </HocView>
         <View testID="usTextOne">
@@ -78,6 +79,7 @@ export function TextTest() {
             padding: 16,
         }} >
             <Text color="black">{JSON.stringify(propsToStyleSheet({ elevation: 5 }, {} as any), null, 2)}</Text>
+            <Text>hermes: {isHermes() ? "true" : "false"}</Text>
         </HocView>
 
     </ScrollView>)

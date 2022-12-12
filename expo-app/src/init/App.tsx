@@ -14,10 +14,14 @@ import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { LoadingScreen } from '../../screens/LoadingScreen';
 import { AuthenticatedEndpointConfiguration } from '../../navigation/login/types';
+import { LogBox } from 'react-native';
+import { View, ActivityIndicator } from '../lib/native-unstyled';
 
 const TextTest = lazy(() => import('../../screens/TextTest'));
 const Navigation = lazy(() => import('../../navigation'))
 
+LogBox.ignoreLogs([/^Could not find Fiber with id/]);
+function SuspenseView() { return <View flex={1} justifyContent="center" alignItems='center'><ActivityIndicator size='large' /></View> }
 export default function App() {
   const [defaultEndpointConfiguration, setDefaultEndpointConfiguration] = useState<AuthenticatedEndpointConfiguration>(buildSimpleEndpointConfiguration(BASE_URL));
 
@@ -45,7 +49,7 @@ export default function App() {
             require("../../assets/images/icon.png")]}
           LoadingComponent={LoadingScreen}
         >
-          <Suspense>
+          <Suspense fallback={<SuspenseView />}>
             {TEXT_TEST ?
               (<TextTest />) :
               (<Navigation />)}

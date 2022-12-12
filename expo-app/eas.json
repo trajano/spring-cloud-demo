@@ -25,8 +25,16 @@
     },
     "preview": {
       "distribution": "internal",
-      "channel": "rework"
+      "channel": "rework",
+      "env": {
+        "JS_ENGINE": "hermes"
+      }
     },
-    "production": {}
+    "production": {
+      "channel": "rework",
+      "env": {
+        "JS_ENGINE": "hermes"
+      }
+    }
   }
 }
