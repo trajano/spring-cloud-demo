@@ -1,14 +1,16 @@
-import { Children, cloneElement, PropsWithChildren, ComponentType, forwardRef, NamedExoticComponent, PropsWithoutRef, ReactElement, ReactNode, Ref, RefAttributes } from 'react';
+import { Children, ReactNode, cloneElement, ComponentType, forwardRef, NamedExoticComponent, PropsWithoutRef, ReactElement, Ref, RefAttributes } from 'react';
 import {
-    Animated, View as RNView, StyleProp, StyleSheet,
-    Text as RNText, TextInput as RNTextInput,
+    Animated,
+    StyleSheet,
+    Text as RNText,
+    StyleProp,
+    TextInput as RNTextInput,
     TextInputProps,
     TextProps,
     TextStyle
 } from "react-native";
 import { useFonts } from "./Fonts";
 import { useI18n } from './I18n';
-import { withStyled, withStyledNoAnimation } from './withStyled';
 type TextHocOptions = {
     /**
      * Display name to show on React Native Debugger if it cannot be determined from the `displayName` or `name` property 
@@ -18,12 +20,12 @@ type TextHocOptions = {
     displayNameFallback?: string;
 }
 
-function useReplacedWithNativeFonts(style?: StyleProp<TextStyle>, inChildren?: ReactNode): {
-    style?: StyleProp<TextStyle>,
-    children?: ReactNode,
+function useReplacedWithNativeFonts<Q>(style: StyleProp<any>, inChildren: ReactNode): {
+    style: StyleProp<any>,
+    children: ReactNode,
 } {
     const { replaceWithNativeFont } = useFonts();
-    const flattenedStyle: TextStyle = StyleSheet.flatten(style) || {};
+    const flattenedStyle: TextStyle = StyleSheet.flatten(style) as TextStyle || {};
     const replacedStyle = replaceWithNativeFont(flattenedStyle);
     const children: typeof inChildren = Children.map(inChildren, (child) => {
         if (child === null) {
@@ -52,23 +54,38 @@ function useReplacedWithNativeFonts(style?: StyleProp<TextStyle>, inChildren?: R
     };
 }
 
-function withReplacedWithNativeFontsText<
-    P extends Q,
-    Q extends { style?: StyleProp<TextStyle>, children?: ReactNode },
-    T
->(Component: ComponentType<Q>, { displayNameFallback }: TextHocOptions = {}): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
+function withReplacedWithNativeFontsText<P extends Pick<TextProps, "children" | "style">, Q, T>
+    (Component: ComponentType<Q>, { displayNameFallback }: TextHocOptions = {}): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
     function useWrapped({ style: inStyle, children: inChildren, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
-
-        const { style, children } = useReplacedWithNativeFonts(inStyle, inChildren)
-        return (<Component
-            style={style}
-            {...rest as any}>
-            {children}
-        </Component>);
-
+        const { style, children } = useReplacedWithNativeFonts<Q>(inStyle, inChildren)
+        return <Component style={style} {...rest as unknown as Q}>{children}</Component>
     }
     const displayName =
         Component.displayName || Component.name || displayNameFallback || "AnonymousTextComponent";
+    useWrapped.displayName = displayName;
+    return forwardRef(useWrapped);
+}
+
+/**
+ * 
+ * ```tsx
+ * <Text _t="key">
+ * {{ prop: val, prop2.val}}
+ * </Text>
+ * ```
+ * 
+ * @param Component 
+ * @param options 
+ * @returns 
+ */
+function withReplacedWithNativeFontsAnimatedText<P extends Pick<Animated.AnimatedProps<TextProps>, "children" | "style">, Q, T>
+    (Component: ComponentType<Q>, { displayNameFallback }: TextHocOptions = {}): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
+    function useWrapped({ style: inStyle, children: inChildren, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
+        const { style, children } = useReplacedWithNativeFonts<Q>(inStyle, inChildren as ReactNode)
+        return <Component style={style} {...rest as unknown as Q}>{children}</Component>
+    }
+    const displayName =
+        Component.displayName || Component.name || displayNameFallback || "AnonymousAnimatedTextComponent";
     useWrapped.displayName = displayName;
     return forwardRef(useWrapped);
 }
@@ -136,21 +153,17 @@ function withI18n<P extends Animated.AnimatedProps<TextProps> = Animated.Animate
     useWrapped.displayName = displayName;
     return forwardRef(useWrapped);
 }
-// export const Text = withI18n(withReplacedWithNativeFontsAnimatedText<Animated.AnimatedProps<TextProps>, Animated.AnimatedProps<TextProps>, typeof RNText>(Animated.Text), {
-//     displayNameFallback: "HocText",
-//     _tIsChild: true
-// })
-// export const Text = withI18n(withReplacedWithNativeFontsText<Animated.AnimatedProps<TextProps>, Animated.AnimatedProps<TextProps>, RNText>(Animated.Text), {
-//     displayNameFallback: "HocText",
-//     _tIsChild: true
-// })
+export const Text = withI18n(withReplacedWithNativeFontsAnimatedText<Animated.AnimatedProps<TextProps>, Animated.AnimatedProps<TextProps>, typeof RNText>(Animated.Text), {
+    displayNameFallback: "HocText",
+    _tIsChild: true
+})
 // export const Text = textHoc<Animated.AnimatedProps<TextProps>, Animated.AnimatedProps<TextProps>, typeof RNText>(Animated.Text, {
 //     displayNameFallback: "HocText"
 // })
 /**
  * TextInput
  */
-export const TextInput = withI18n(withReplacedWithNativeFontsText<TextInputProps, TextInputProps, RNTextInput>(RNTextInput), {
+export const TextInput = withI18n(withReplacedWithNativeFontsText<TextInputProps, TextInputProps, typeof RNTextInput>(RNTextInput), {
     localizedMap: {
         _a: 'accessibilityLabel',
         _p: "placeholder",
@@ -162,6 +175,27 @@ export const TextInput = withI18n(withReplacedWithNativeFontsText<TextInputProps
  * This is a non-animated version of Text.  Primarily used for Markdown to Text components.
  * This component type is not exposed outside as it is used internally only.
  */
-export const Text = withI18n(withReplacedWithNativeFontsText<TextProps, TextProps, RNText>(RNText));
+export const NativeText = withReplacedWithNativeFontsText<TextProps, TextProps, typeof RNText>(RNText);
 
-export const View = withStyledNoAnimation(RNView)
+
+/**
+ * This is a simple HoC that is a noop that supports ref forwarding.
+ * @param Component component to wrap
+ * @param options options for the HoC building
+ * @typeParam P the exposed props of the higher order component
+ * @typeParam Q the props for the wrapped component
+ * @typeParam T type for ref attribute of the wrapped component
+ * @typeParam O options for the HoC building
+ * @returns A named exotic componentwith P props that accepts a ref
+ */
+function withStyled<P, Q, T, O = {}>(Component: ComponentType<Q>, options?: O): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
+    function wrapped(props: P, ref: Ref<T>): ReactElement<Q> {
+        // the an unknown as Q here is an example, but P and Q can be different.
+        const componentProps: Q = props as unknown as Q;
+        return <Component {...componentProps} ref={ref} />
+    }
+    const displayName =
+        Component.displayName || Component.name || "AnonymousComponent";
+    wrapped.displayName = displayName;
+    return forwardRef(wrapped);
+}

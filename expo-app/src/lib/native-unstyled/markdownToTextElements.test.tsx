@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react-native';
-import { NativeText as Text } from './hoc';
+import { Text } from './hoc';
 import { I18nProvider } from './I18n';
 import { markdownToTextElements } from './markdownToTextElements';
 

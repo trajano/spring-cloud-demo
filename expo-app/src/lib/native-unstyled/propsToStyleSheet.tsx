@@ -1,5 +1,4 @@
-import memoize from 'lodash.memoize';
-import pick from 'lodash.pick';
+import { memoize, pick, omit } from 'lodash';
 import * as RN from "react-native";
 import { StyleProp } from "react-native";
 import { ColorSchemeColors } from './Themes';
@@ -311,3 +310,6 @@ function doPropsToStyleSheet(props: Omit<StyleProps, "role" | "size">, colorSche
 }
 
 export const propsToStyleSheet = memoize(doPropsToStyleSheet, ((props, colorSchemeColors) => JSON.stringify([pick(props, stylePropKeys), colorSchemeColors])));
+export function withoutStyledProps<P extends {}>(props: P) {
+    return omit(props, stylePropKeys);
+}

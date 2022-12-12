@@ -1,4 +1,4 @@
-import pickBy from "lodash.pickby";
+import { pickBy } from "lodash";
 /**
  * tests for understanding of standard library
  */

@@ -2,6 +2,7 @@ import 'expo-dev-client';
 import { BASE_URL, TEXT_TEST } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthProvider, buildSimpleEndpointConfiguration } from '@trajano/spring-docker-auth-context';
+import 'expo-dev-client';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Navigation from '../../navigation';
@@ -32,11 +33,6 @@ export default function App() {
       <AuthProvider defaultEndpointConfiguration={defaultEndpointConfiguration}>
         <ThemeProvider
           defaultColorScheme='light'
-          defaultTypography={{
-            fontFamily: "System",
-            fontWeight: "normal",
-            fontSize: 16
-          }}
           fontModules={[NotoSans, IBMPlexSans, NotoSansMono, Lexend, IslandMoments]}
           textRoles={{
             mono: { fontFamily: "NotoSansMono" },
@@ -47,9 +43,9 @@ export default function App() {
             require("../../assets/images/icon.png")]}
           LoadingComponent={LoadingScreen}
         >
-          {TEXT_TEST ? 
-          (<TextTest />) :
-          (<Navigation />) }
+          {TEXT_TEST ?
+            (<TextTest />) :
+            (<Navigation />)}
           <StatusBar />
         </ThemeProvider>
       </AuthProvider>

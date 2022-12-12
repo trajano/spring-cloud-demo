@@ -5,8 +5,8 @@ import { Asset } from "expo-asset";
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { Dict } from 'i18n-js';
-import { ComponentType, createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { ColorSchemeName, useColorScheme, StyleSheet, TextStyle } from 'react-native';
+import { ComponentType, createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { ColorSchemeName, useColorScheme } from 'react-native';
 import { defaultColorSchemes } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from './defaultLightColorSchemeColors';
 import { FontsProvider, useFonts } from "./Fonts";
@@ -97,6 +97,7 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, fontsLo
     const loadedAssets = useMemo(() => loadedFonts + additionalAssets.length + (fontsLoaded ? 1 : 0) + fromComponent.loaded, [fontsLoaded, loadedFonts, additionalAssetsLoaded, fromComponent.loaded]);
 
     const [minimumTimeSpent, setMinimumTimeSpent] = useState(minimumShowLoadingTime === 0);
+    const minimumShowLoadingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
     useEffect(() => {
         async function loadAdditionalAssetsAsync() {
@@ -114,8 +115,14 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, fontsLo
         loadAdditionalAssetsAsync();
     }, [additionalAssets])
     useEffect(() => {
-        const t = setTimeout(() => { if (isMounted()) { setMinimumTimeSpent(true) } }, minimumShowLoadingTime);
-        return () => clearTimeout(t);
+        if (minimumShowLoadingTimeoutRef.current !== undefined) {
+            clearTimeout(minimumShowLoadingTimeoutRef.current);
+        }
+        minimumShowLoadingTimeoutRef.current = setTimeout(() => { if (isMounted()) { setMinimumTimeSpent(true) } }, minimumShowLoadingTime);
+        return () => {
+            clearTimeout(minimumShowLoadingTimeoutRef.current);
+            minimumShowLoadingTimeoutRef.current = undefined;
+        }
     }, [minimumShowLoadingTime])
 
     if (!initialAssetsLoaded) {

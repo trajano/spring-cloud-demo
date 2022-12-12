@@ -1,7 +1,7 @@
 import MarkdownIT from "markdown-it";
 import Token from "markdown-it/lib/token";
 import { createElement, Fragment } from "react";
-import { NativeText as Text } from "./hoc";
+import { Text } from "./hoc";
 
 type TextNode = {
   type: "text";

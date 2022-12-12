@@ -8,8 +8,9 @@ import {
   useContext,
   useEffect, useMemo, useState
 } from "react";
-import { TextStyle } from "react-native";
+import { StyleProp, TextStyle } from "react-native";
 
+type FontTextStyle = Pick<TextStyle, "fontFamily" | "fontStyle" | "fontWeight">;
 type IFonts = {
   /**
    * These are fonts that are loaded.  They are keyed using a colon separated composite key containing the family, weight and style of the font.
@@ -24,8 +25,8 @@ type IFonts = {
    */
   total: number;
   replaceWithNativeFont(
-    flattenedStyle: TextStyle
-  ): TextStyle;
+    flattenedStyle: StyleProp<TextStyle>
+  ): StyleProp<TextStyle>;
 };
 const FontsContext = createContext<IFonts>({
   loadedFonts: {},
