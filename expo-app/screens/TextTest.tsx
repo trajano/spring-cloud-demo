@@ -1,9 +1,9 @@
 import { useRef } from 'react';
 import { Animated, Text as RNText } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Text, View } from "../../components";
-import { Text as HocText } from './hoc';
-import { propsToStyleSheet } from './propsToStyleSheet';
+import { Text, View } from "../src/components";
+import { Text as HocText } from '../src/lib/native-unstyled/hoc';
+import { propsToStyleSheet } from '../src/lib/native-unstyled/propsToStyleSheet';
 
 export function TextTest() {
     const { top: marginTop, left: marginLeft, right: marginRight, bottom: marginBottom } = useSafeAreaInsets();

@@ -1,7 +1,6 @@
 import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
 import { useAuth } from "@trajano/spring-docker-auth-context";
 import { PropsWithChildren, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { Alert } from "react-native";
 import EventSource from "react-native-sse";
 import { AuthenticatedContext } from "./IAuthenticatedContext";
 import { JwtClaims } from "./JwtClaims";
@@ -24,11 +23,13 @@ import { jwtVerify } from "./jwtVerify";
 // At present this has a problem on restore in that the access token is not valid yet.
 type AuthenticatedProviderProps = PropsWithChildren<{
     clientId: string,
-    issuer: string
+    issuer: string,
+    verifyClaims?: boolean,
+    whoAmIEndpoint?: string
 }>;
-export function AuthenticatedProvider({ clientId, issuer, children }: AuthenticatedProviderProps) {
+export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoami", verifyClaims = true, children }: AuthenticatedProviderProps) {
 
-    const { baseUrl, accessToken } = useAuth();
+    const { baseUrl, accessToken, authorization } = useAuth();
     const [claims, setClaims] = useState<JwtClaims>();
     const isMounted = useMounted();
     const username = useMemo(() => claims?.sub ?? "", [claims]);
@@ -37,19 +38,23 @@ export function AuthenticatedProvider({ clientId, issuer, children }: Authentica
     const eventStream = useRef<EventSource<string>>();
 
     const [internalState, updateInternalStateFromServerSentEvent] = useReducer((state: string[], nextEvent: string) => { return [...state, nextEvent].slice(-5) }, [])
-    useAsyncSetEffect(async function verifyToken() {
-        // when access token changes the value could fail.
-        // when the internet is broken then the verification will fail 
-        // maybe use a reducer here?
-        try {
-            return jwtVerify(accessToken, new URL("/jwks", baseUrl.href), issuer, clientId);
-        } catch (e) {
-            return Promise.resolve(undefined);
-        }
-    },
+    useAsyncSetEffect(
+        async function verifyToken() {
+            if (verifyClaims) {
+                return undefined;
+            }
+            // when access token changes the value could fail.
+            // when the internet is broken then the verification will fail 
+            // maybe use a reducer here?
+            try {
+                return jwtVerify(accessToken, new URL("/jwks", baseUrl.href), issuer, clientId);
+            } catch (e) {
+                return Promise.resolve(undefined);
+            }
+        },
         (nextClaims) => {
             setClaims(nextClaims);
-        }, [accessToken]);
+        }, [accessToken, verifyClaims]);
 
     useEffect(() => {
         // this should be refactored to it's own file to provide the data stream
@@ -76,10 +81,11 @@ export function AuthenticatedProvider({ clientId, issuer, children }: Authentica
     }, [verified, username, accessToken])
 
     async function whoami() {
-        console.log({ whoami: accessToken })
-        const r = await fetch(new URL("/whoami/", baseUrl.href).toString(), {
+        // const r = await fetch(new URL("/whoami/", baseUrl.href).toString(), {
+
+        const r = await fetch(baseUrl.href + whoAmIEndpoint, {
             headers: {
-                authorization: `Bearer ${accessToken}`,
+                authorization: authorization!,
                 "content-type": "application/json",
                 accept: "application/json",
             },
