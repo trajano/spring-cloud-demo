@@ -16,7 +16,7 @@ export type StyleProps = TextStyleProps & Omit<RN.ViewStyle, "testID" | "transfo
     style?: StyleProp<unknown>;
 
     /**
-     * Background color
+     * Background color alias.
      */
     bg?: string;
 

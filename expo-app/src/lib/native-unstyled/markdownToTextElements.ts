@@ -1,7 +1,7 @@
 import MarkdownIT from "markdown-it";
 import Token from "markdown-it/lib/token";
 import { createElement, Fragment } from "react";
-import { Text } from "./hoc";
+import { Text } from "react-native";
 
 type TextNode = {
   type: "text";
@@ -17,8 +17,17 @@ type FormatNode = {
 };
 type Node = TextNode | FormatNode;
 
-export function markdownToTextElements(s: string): JSX.Element {
-  const markdownIt = new MarkdownIT();
+/**
+ * This uses React Native text rather than the one from `./components` since these are 
+ * simple Text blocks.
+ * @param s 
+ * @param markdownIt 
+ * @returns 
+ */
+export function inlineMarkdownToTextElements(
+  s: string,
+  markdownIt: MarkdownIT = new MarkdownIT()
+): JSX.Element {
   const tokens: Token[] = markdownIt.parseInline(s, null)[0].children || [];
 
   const tree: Node = {

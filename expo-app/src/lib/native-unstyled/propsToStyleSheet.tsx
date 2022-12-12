@@ -298,7 +298,7 @@ function doPropsToStyleSheet(props: Omit<StyleProps, "role" | "size">, colorSche
     }
 
     /* Elevation specific */
-    if (props.hasOwnProperty("elevation") && typeof (props as Record<string, unknown>)["elevation"] === "number") {
+    if (props.hasOwnProperty("elevation") && typeof (props as Record<string, unknown>)["elevation"] === "number" && RN.Platform.OS !== "android") {
         const elevation = (props as Record<string, unknown>)["elevation"] as number;
         accumulatedStyle["shadowColor"] = "#000";
         accumulatedStyle["shadowOffset"] = elevationToShadow[elevation].shadowOffset
@@ -310,6 +310,16 @@ function doPropsToStyleSheet(props: Omit<StyleProps, "role" | "size">, colorSche
 }
 
 export const propsToStyleSheet = memoize(doPropsToStyleSheet, ((props, colorSchemeColors) => JSON.stringify([pick(props, stylePropKeys), colorSchemeColors])));
+/**
+ * Omits styled props.  This is only enabled on `__DEV__`
+ * @param props 
+ * @returns 
+ */
 export function withoutStyledProps<P extends {}>(props: P) {
-    return omit(props, stylePropKeys);
+    if (__DEV__) {
+        return omit(props, stylePropKeys);
+    }
+    else {
+        return props;
+    }
 }

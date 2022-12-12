@@ -1,12 +1,11 @@
 import { BASE_URL, TEXT_TEST } from '@env';
-import { ListRenderItemInfo } from '@shopify/flash-list';
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import * as Localization from 'expo-localization';
 import { ReactElement } from 'react';
-import { Text as RNText, SectionList, SectionListData, SectionListProps, SectionListRenderItemInfo } from 'react-native';
+import { SectionList, SectionListData, SectionListProps, SectionListRenderItemInfo, Text as RNText } from 'react-native';
 import { View } from '../src/components';
-import { Text } from '../src/lib/native-unstyled/hoc';
+import { Text } from '../src/lib/native-unstyled';
 export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string, unknown>>, any> {
     const { manifest, manifest2, systemFonts, expoConfig, ...restOfConstants } = Constants;
     const sections: SectionListData<any>[] = [

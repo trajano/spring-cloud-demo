@@ -5,7 +5,7 @@ import AnimatedLottieView from 'lottie-react-native';
 import { useEffect, useState } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text } from '../src/lib/native-unstyled/hoc';
+import { Text } from '../src/lib/native-unstyled';
 import { LoadingComponentProps, useTheming } from '../src/lib/native-unstyled';
 
 function AssetsLoaded({ loadedAssets, totalAssets, animationDone }: { loadedAssets: number, totalAssets: number, animationDone: boolean }) {

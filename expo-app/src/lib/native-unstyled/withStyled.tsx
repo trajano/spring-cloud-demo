@@ -1,11 +1,9 @@
 import { ComponentType, forwardRef, NamedExoticComponent, PropsWithoutRef, ReactElement, Ref, RefAttributes } from 'react';
 import {
-    Animated,
-    StyleProp,
-    Text,
-    View as RNView
+    StyleProp
 } from "react-native";
-import { propsToStyleSheet } from './propsToStyleSheet';
+import { hocDisplayName } from './hocDisplayName';
+import { propsToStyleSheet, withoutStyledProps } from './propsToStyleSheet';
 import { StyleProps } from './StyleProps';
 import { useTheming } from './ThemeContext';
 
@@ -20,27 +18,15 @@ import { useTheming } from './ThemeContext';
 export function withStyled<
     P extends Q & StyleProps,
     Q extends { style?: StyleProp<any> },
-    T,
-    O = {}
->(Component: ComponentType<Q>, options?: O): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
+    T
+>(Component: ComponentType<Q>): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
     function useWrapped({ style, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
         const { colors } = useTheming();
         // the an unknown as Q here is an example, but P and Q can be different.
         const stylesFromProps = propsToStyleSheet(rest, colors)
-        const componentProps: Q = rest as unknown as Q;
+        const componentProps: Q = withoutStyledProps(rest) as unknown as Q;
         return <Component {...componentProps} style={[style, stylesFromProps]} ref={ref} />;
     }
-    const displayName = Component.displayName || Component.name || "AnonymousComponent";
-    useWrapped.displayName = displayName;
+    useWrapped.displayName = hocDisplayName("withStyled", Component);
     return forwardRef(useWrapped);
-}
-
-const TestView = withStyled(RNView)
-const TestViewAnimated = withStyled(Animated.View)
-
-function Test() {
-    return <>
-        <TestView lineHeight={20}><Text>Hello</Text></TestView>
-        <TestViewAnimated lineHeight={20}><Text>Hello</Text></TestViewAnimated>
-    </>;
 }

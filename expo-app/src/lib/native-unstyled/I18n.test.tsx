@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react-native';
-import { Text } from "./hoc";
+import { Text } from "./components";
 import { I18nProvider } from './I18n';
 
 it("should i18n Text with no context", () => {
