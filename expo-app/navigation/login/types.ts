@@ -12,4 +12,5 @@ export type AuthenticatedEndpointConfiguration = EndpointConfiguration & {
    * Whoami endpoint.  Defaults to `whoami/`
    */
   whoamiEndpoint?: string;
+  verifyClaims?: boolean;
 };

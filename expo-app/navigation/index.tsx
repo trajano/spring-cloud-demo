@@ -80,7 +80,8 @@ export default function Navigation() {
     return <AuthenticatedProvider
       whoAmIEndpoint={endpointConfiguration.whoamiEndpoint}
       issuer='http://localhost'
-      clientId='unknown'
+      verifyClaims={endpointConfiguration.verifyClaims}
+      clientId={endpointConfiguration.clientId}
     >
       <NavigationContainer
         linking={LinkingConfiguration}
