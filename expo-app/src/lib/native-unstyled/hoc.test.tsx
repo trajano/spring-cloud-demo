@@ -49,13 +49,14 @@ describe("hoc", () => {
     it("should work with Text with IgnoredProps", () => {
         const HocText = hoc<IgnoredProps & TextProps, TextProps, Text>(Text);
         const { toJSON } = render(<HocText foo="foo" bar="bar">simple string</HocText>);
-        const { toJSON: expectedToJSON } = render(<Text>simple string</Text>)
+        const UncheckedText = Text as unknown as ComponentType<Record<string, unknown>>;
+        const { toJSON: expectedToJSON } = render(<UncheckedText foo="foo" bar="bar">simple string</UncheckedText>)
         expect(toJSON()).toStrictEqual(expectedToJSON())
     });
-    it("should work with Aniamted.Text", () => {
+    it("should work with Animated.Text", () => {
         const HocText = hoc(Animated.Text);
         const { toJSON } = render(<HocText>simple string</HocText>);
-        const { toJSON: expectedToJSON } = render(<Text>simple string</Text>)
+        const { toJSON: expectedToJSON } = render(<Animated.Text>simple string</Animated.Text>)
         expect(toJSON()).toStrictEqual(expectedToJSON())
     });
 

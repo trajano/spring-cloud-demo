@@ -162,7 +162,7 @@ export const TextInput = withI18n(withReplacedWithNativeFontsText<TextInputProps
  * This is a non-animated version of Text.  Primarily used for Markdown to Text components.
  * This component type is not exposed outside as it is used internally only.
  */
-export const Text = withI18n(withReplacedWithNativeFontsText<TextProps, TextProps, RNText>(RNText));
+export const Text = withI18n(withReplacedWithNativeFontsText<TextProps, TextProps, RNText>(RNText), { _tIsChild: true });
 
 export const View = withStyled(RNView)
 withStyled(Animated.View)

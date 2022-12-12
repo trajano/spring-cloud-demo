@@ -73,3 +73,4 @@ export function TextTest() {
 
     </View>)
 }
+export default TextTest;

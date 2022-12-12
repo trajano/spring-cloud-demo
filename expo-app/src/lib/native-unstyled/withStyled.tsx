@@ -2,9 +2,9 @@ import { ComponentType, forwardRef, NamedExoticComponent, PropsWithoutRef, React
 import {
     Animated,
     StyleProp,
+    Text,
     View as RNView
 } from "react-native";
-import { Text } from './hoc';
 import { propsToStyleSheet } from './propsToStyleSheet';
 import { StyleProps } from './StyleProps';
 import { useTheming } from './ThemeContext';

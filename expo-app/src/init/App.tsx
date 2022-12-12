@@ -4,7 +4,6 @@ import { AuthProvider, buildSimpleEndpointConfiguration } from '@trajano/spring-
 import 'expo-dev-client';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import Navigation from '../../navigation';
 import { ThemeProvider } from '../lib/native-unstyled/ThemeContext';
 
 import * as IBMPlexSans from "@expo-google-fonts/ibm-plex-sans";
@@ -12,10 +11,12 @@ import * as IslandMoments from "@expo-google-fonts/island-moments";
 import * as Lexend from "@expo-google-fonts/lexend";
 import * as NotoSans from "@expo-google-fonts/noto-sans";
 import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { LoadingScreen } from '../../screens/LoadingScreen';
-import { TextTest } from '../../screens/TextTest';
 import { AuthenticatedEndpointConfiguration } from '../../navigation/login/types';
+
+const TextTest = lazy(() => import('../../screens/TextTest'));
+const Navigation = lazy(() => import('../../navigation'))
 
 export default function App() {
   const [defaultEndpointConfiguration, setDefaultEndpointConfiguration] = useState<AuthenticatedEndpointConfiguration>(buildSimpleEndpointConfiguration(BASE_URL));
@@ -44,10 +45,12 @@ export default function App() {
             require("../../assets/images/icon.png")]}
           LoadingComponent={LoadingScreen}
         >
-          {TEXT_TEST ?
-            (<TextTest />) :
-            (<Navigation />)}
-          <StatusBar />
+          <Suspense>
+            {TEXT_TEST ?
+              (<TextTest />) :
+              (<Navigation />)}
+            <StatusBar />
+          </Suspense>
         </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>
