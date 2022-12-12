@@ -55,4 +55,4 @@ export function withStyledNoAnimation<
     return forwardRef(useWrapped);
 }
 
-withStyled(Animated.View)
+withStyledNoAnimation(Animated.View)
