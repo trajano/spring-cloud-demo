@@ -22,6 +22,7 @@ import { useTheming } from '../src/lib/native-unstyled';
 import { RootStackParamList, RootTabParamList } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 import { LoginNavigator } from './login/LoginNavigator';
+import { AuthenticatedEndpointConfiguration } from './login/types';
 
 const PERSISTENCE_KEY = 'NAVIGATION_STATE_V1';
 export default function Navigation() {
@@ -67,6 +68,7 @@ export default function Navigation() {
   }, [])
 
   console.log("Render", AuthState[authState])
+  const endpointConfiguration = auth.endpointConfiguration as AuthenticatedEndpointConfiguration;
   if (authState == AuthState.UNAUTHENTICATED) {
     return <NavigationContainer
       linking={LinkingConfiguration}
@@ -76,8 +78,10 @@ export default function Navigation() {
 
   } else if (authState == AuthState.AUTHENTICATED) {
     return <AuthenticatedProvider
+      whoAmIEndpoint={endpointConfiguration.whoamiEndpoint}
       issuer='http://localhost'
-      clientId='unknown'>
+      clientId='unknown'
+    >
       <NavigationContainer
         linking={LinkingConfiguration}
         initialState={initialState}

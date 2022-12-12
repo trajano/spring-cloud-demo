@@ -1,22 +1,21 @@
 import { BASE_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAuth } from '@trajano/spring-docker-auth-context';
+import { buildSimpleEndpointConfiguration, useAuth } from '@trajano/spring-docker-auth-context';
 import { format, hoursToMilliseconds, Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
 import { useEffect, useMemo, useState } from 'react';
-import { Button, StyleSheet } from 'react-native';
+import { Button, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { Menu, Provider } from 'react-native-paper';
-import { TextInput } from '../../components/Themed';
-import { ScrollView, Text, View } from '../../src/components';
-import type { LoginStackScreenProps } from './types';
+import { Text, TextInput } from '../../src/lib/native-unstyled/hoc';
+import type { AuthenticatedEndpointConfiguration, LoginStackScreenProps } from './types';
 
 export function LoginForm() {
-  const { login, isConnected, baseUrl, setBaseUrl } = useAuth();
+  const { login, tokenRefreshable, baseUrl, setEndpointConfiguration } = useAuth();
   const [visible, setVisible] = useState(false);
   const [username, setUsername] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const disabled = useMemo(() => !isConnected || username === "" || isLoggingIn, [isConnected, username, isLoggingIn]);
+  const disabled = useMemo(() => !tokenRefreshable || username === "" || isLoggingIn, [tokenRefreshable, username, isLoggingIn]);
 
   function openMenu() { setVisible(true); }
 
@@ -27,6 +26,8 @@ export function LoginForm() {
       setIsLoggingIn(true);
       return login({
         "username": username,
+        "password": "password123",
+        "server_uri": "http://ca1:8080",
         "authenticated": true,
         "accessTokenExpiresInMillis": 120000,
         // thirty day expiration of refresh token
@@ -38,8 +39,13 @@ export function LoginForm() {
   }
 
   async function setAndSaveBaseUrlAsync(baseUrl: string) {
-    await AsyncStorage.setItem("BASE_URL", baseUrl);
-    setBaseUrl(baseUrl);
+    const configuration = buildSimpleEndpointConfiguration(baseUrl);
+    await AsyncStorage.setItem("ENDPOINT_CONFIGURATION", JSON.stringify(configuration));
+    setEndpointConfiguration(configuration);
+  }
+  async function setAndSaveEndpointConfigurationAsync(nextEndpointConfiguration: AuthenticatedEndpointConfiguration) {
+    await AsyncStorage.setItem("ENDPOINT_CONFIGURATION", JSON.stringify(nextEndpointConfiguration));
+    setEndpointConfiguration(nextEndpointConfiguration);
   }
 
   return (
@@ -51,8 +57,9 @@ export function LoginForm() {
         anchor={<Button onPress={openMenu} title={baseUrl.toString()} />}
       >
         <Menu.Item onPress={() => setAndSaveBaseUrlAsync(BASE_URL)} title={BASE_URL} />
-        <Menu.Item onPress={() => setAndSaveBaseUrlAsync("http://localhost:28082")} title="localhost" />
-        <Menu.Item onPress={() => setAndSaveBaseUrlAsync("http://192.168.0.19:28082")} title="192.168.0.19" />
+        {Platform.OS === "web" &&
+          <Menu.Item onPress={() => setAndSaveBaseUrlAsync("http://localhost:28082/")} title="Local server" />
+        }
       </Menu>
       <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} style={{ width: 300 }} />
       <Button title={`Login as ${username}`} onPress={handleLogin} disabled={disabled} />
@@ -67,9 +74,10 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
   const locale: Locale = useMemo(() => {
 
     const dateFnsLocales2 = dateFnsLocales as Record<string, Locale>;
-    return Localization.getLocales().map(locale => {
+    return Localization.locales.map(locale => {
       // handle special cases
-      return locale.languageTag.replaceAll("-", "")
+      // Android does not support replaceAll() this is a workaround.
+      return locale.split("-").join("");
     })
       .filter(localeKey => !!dateFnsLocales2[localeKey])
       .map(localeKey => dateFnsLocales2[localeKey])[0] ?? dateFnsLocales.enUS;
@@ -90,7 +98,7 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
       <View style={{ flex: 1 }}>
         <LoginForm />
         <ScrollView>
-          <Text>{JSON.stringify({ isConnected: auth.isConnected, now })}</Text>
+          <Text>{JSON.stringify({ isConnected: auth.tokenRefreshable, now })}</Text>
           <Text>{JSON.stringify(auth.lastAuthEvents, null, 2)}</Text>
         </ScrollView>
       </View>
