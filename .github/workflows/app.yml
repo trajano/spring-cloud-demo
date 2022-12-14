@@ -31,6 +31,8 @@ jobs:
         run: |
           echo BASE_URL=https://api.trajano.net > .env
         working-directory: ./expo-app
+      - name: 📦 Prepare
+        run: yarn workspaces run prepare
       - name: 📦 Test
         run: yarn workspaces run jest
       - name: 🚀 Publish app

@@ -4,8 +4,9 @@
   "private": true,
   "workspaces": {
     "packages": [
-      "expo-app",
-      "packages/*"
+      "packages/react-hooks",
+      "packages/*",
+      "expo-app"
     ],
     "nohoist": [
       "**/babel**",
