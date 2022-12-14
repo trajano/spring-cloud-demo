@@ -20,7 +20,14 @@ export enum AuthState {
   /**
    * In this state, the token was authenticated at one point but now needs to be refreshed.
    * The access token is still available, but it is not guaranteed to be work successfully.
-   * However, the backend is actually down so a retry is needed.
+   * However, the backend is returning an error.  A retry is needed, but based on a time.
    */
   BACKEND_FAILURE,
+  /**
+   * In this state, the token was authenticated at one point but now needs to be refreshed.
+   * The access token is still available, but it is not guaranteed to be work successfully.
+   * However, the backend is not accessible due to network issues.  A retry is needed but
+   * based on the connection state being updated.
+   */
+  BACKEND_INACCESSIBLE,
 }

@@ -157,6 +157,7 @@
     ]
   },
   "dependencies": {
+    "@js-joda/core": "^5.4.2",
     "js-base64": "^3.7.3"
   }
 }

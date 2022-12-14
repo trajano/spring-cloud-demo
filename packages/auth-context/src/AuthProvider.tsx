@@ -76,7 +76,7 @@ export function AuthProvider<A = any>({
   // the dispatch events are app state changes, network state changes, token expiration
 
   const accessToken = useMemo(() => tokenState.oauthToken?.access_token ?? null, [tokenState.oauthToken]);
-  const { lastCheckTime, tokenRefreshable } = useRenderOnTokenEvent(endpointConfiguration, tokenState.tokenExpiresAt, timeBeforeExpirationRefresh);
+  const { lastCheckTime, tokenRefreshable, netInfoState } = useRenderOnTokenEvent(endpointConfiguration, tokenState.tokenExpiresAt, timeBeforeExpirationRefresh);
 
   const accessTokenExpired = useMemo(
     () => {
@@ -126,7 +126,7 @@ export function AuthProvider<A = any>({
     if (tokenRefreshable && accessTokenExpired) {
       setAuthState(AuthState.NEEDS_REFRESH);
     } else if (!tokenRefreshable && accessTokenExpired) {
-      setAuthState(AuthState.BACKEND_FAILURE);
+      setAuthState(AuthState.BACKEND_INACCESSIBLE);
     }
   }, [tokenRefreshable, accessTokenExpired, lastCheckTime]);
 
@@ -207,11 +207,12 @@ export function AuthProvider<A = any>({
         reason: "No token stored"
       })
     } else if (!tokenRefreshable) {
-      setAuthState(AuthState.BACKEND_FAILURE);
+      setAuthState(AuthState.BACKEND_INACCESSIBLE);
       // refresh was attempted when the backend is not available
       notify({
         type: "TokenExpiration",
-        reason: "Backend is not available and token refresh was requested"
+        reason: "Backend is not available and token refresh was requested",
+        netInfoState
       })
     } else {
       notify({
@@ -251,7 +252,8 @@ export function AuthProvider<A = any>({
           notify({
             type: "TokenExpiration",
             reason: e.message,
-            responseBody: await e.response.json()
+            responseBody: await e.response.json(),
+            netInfoState
           })
         } else {
           throw e;

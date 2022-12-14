@@ -3,10 +3,32 @@ import NetInfo, {
   NetInfoStateType,
 } from '@react-native-community/netinfo';
 import { differenceInMilliseconds } from 'date-fns';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import type { EndpointConfiguration } from './EndpointConfiguration';
+import { netInfoStateReducer } from './netInfoStateReducer';
 
+type RenderOnTokenEventState = {
+  /**
+   * Token is refreshable
+   */
+  tokenRefreshable: boolean;
+  /**
+   * Last time the token was checked.
+   */
+  lastCheckTime: number;
+  /**
+   * Net info state.
+   */
+  netInfoState: NetInfoState;
+};
 /**
  * A hook that will rerender a component using this hook when:
  * - app state changes,
@@ -20,7 +42,7 @@ export function useRenderOnTokenEvent(
   endpointConfiguration: EndpointConfiguration,
   tokenExpiresAt: Date,
   timeBeforeExpirationRefresh: number
-): { tokenRefreshable: boolean; lastCheckTime: number } {
+): RenderOnTokenEventState {
   /**
    * Last time the auth token was checked for expiration
    */
@@ -36,7 +58,7 @@ export function useRenderOnTokenEvent(
   /**
    * Net info state.
    */
-  const [netInfoState, setNetInfoState] = useState<NetInfoState>({
+  const [netInfoState, updateNetInfoState] = useReducer(netInfoStateReducer, {
     type: NetInfoStateType.unknown,
     isConnected: null,
     isInternetReachable: null,
@@ -121,12 +143,12 @@ export function useRenderOnTokenEvent(
 
       const unsubscribeNetInfo = NetInfo.addEventListener(
         (nextNetInfoState) => {
-          setNetInfoState(nextNetInfoState);
+          updateNetInfoState(nextNetInfoState);
         }
       );
 
       NetInfo.refresh().then((nextNetInfoState) => {
-        setNetInfoState(nextNetInfoState);
+        updateNetInfoState(nextNetInfoState);
       });
       return () => {
         unsubscribeNetInfo();
@@ -139,5 +161,6 @@ export function useRenderOnTokenEvent(
   return {
     tokenRefreshable,
     lastCheckTime,
+    netInfoState,
   };
 }

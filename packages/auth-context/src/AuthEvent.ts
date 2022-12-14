@@ -82,8 +82,12 @@ type TokenExpirationEvent = {
   /**
    * Body of response if available
    */
-   responseBody?: string;
-  };
+  responseBody?: string;
+  /**
+   * Net info state.
+   */
+  netInfoState?: NetInfoState
+};
 /**
  * This gets fired when there is a transition from authenticated to unauthenticated.  Or when the initial
  * state had determined that the user is not authenticated/
@@ -121,6 +125,6 @@ export type AuthEvent =
   | TokenExpirationEvent
   | UnauthenticatedEvent;
 export type LoggedAuthEvent = AuthEvent & {
-  key: string,
-  on: Date
-}
+  key: string;
+  on: Date;
+};
