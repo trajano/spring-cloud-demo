@@ -35,9 +35,6 @@ jobs:
         run: yarn workspaces run prepare
       - name: 📦 Test
         run: yarn workspaces run test
-      - name: 🚀 Publish app
-        run: expo publish --non-interactive
-        working-directory: ./expo-app
 
       - name: 🚀 Publish app update for EAS
         run: eas update --non-interactive --auto
