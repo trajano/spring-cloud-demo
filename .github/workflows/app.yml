@@ -34,7 +34,7 @@ jobs:
       - name: 📦 Prepare
         run: yarn workspaces run prepare
       - name: 📦 Test
-        run: yarn workspaces run jest
+        run: yarn workspaces run test
       - name: 🚀 Publish app
         run: expo publish --non-interactive
         working-directory: ./expo-app
