@@ -1,19 +1,16 @@
-import NetInfo, {
-  NetInfoState,
-  NetInfoStateType,
+import {
+  NetInfoState
 } from '@react-native-community/netinfo';
 import { differenceInMilliseconds } from 'date-fns';
 import {
   useCallback,
   useEffect,
-  useMemo,
-  useReducer,
-  useRef,
-  useState,
+  useMemo, useRef,
+  useState
 } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
 import type { EndpointConfiguration } from './EndpointConfiguration';
-import { netInfoStateReducer } from './netInfoStateReducer';
+import { useAppStateWithNetInfoRefresh } from './useAppStateWithNetInfoRefresh';
+import { useNetInfoState } from './useNetInfoState';
 
 type RenderOnTokenEventState = {
   /**
@@ -51,19 +48,7 @@ export function useRenderOnTokenEvent(
   /**
    * App State
    */
-  const [appState, setAppState] = useState<AppStateStatus>(
-    AppState.currentState
-  );
-
-  /**
-   * Net info state.
-   */
-  const [netInfoState, updateNetInfoState] = useReducer(netInfoStateReducer, {
-    type: NetInfoStateType.unknown,
-    isConnected: null,
-    isInternetReachable: null,
-    details: null,
-  });
+  const appState = useAppStateWithNetInfoRefresh();
 
   /**
    * Expiration timeout ID ref.  This is a timeout that executes when the OAuth timeout is less than X (default to 10) seconds away from expiration.
@@ -75,6 +60,18 @@ export function useRenderOnTokenEvent(
     clearTimeout(expirationTimeoutRef.current);
     expirationTimeoutRef.current = undefined;
   }, [expirationTimeoutRef]);
+
+  /**
+   * Net info state.
+   */
+  const netInfoState = useNetInfoState(
+    endpointConfiguration,
+    clearExpirationTimeout
+  );
+
+  /**
+   * Token is refreshable if the app is active, there's a connection and the backend is reachable.
+   */
   const tokenRefreshable = useMemo<boolean>(
     () =>
       appState === 'active' &&
@@ -105,57 +102,6 @@ export function useRenderOnTokenEvent(
       return () => clearExpirationTimeout();
     },
     [tokenExpiresAt]
-  );
-
-  useEffect(
-    /**
-     * Monitors app state changes.
-     */
-    function appStateSubscription() {
-      const appStateSubscription = AppState.addEventListener(
-        'change',
-        (nextAppState) => {
-          if (nextAppState === 'active') {
-            // if the app switches to active, force a NetInfo refresh
-            NetInfo.refresh();
-          }
-          setAppState(nextAppState);
-        }
-      );
-      return () => {
-        appStateSubscription.remove();
-      };
-    },
-    []
-  );
-
-  useEffect(
-    /**
-     * Monitors network state changes.
-     */
-    function netInfoSubscription() {
-      NetInfo.configure({
-        reachabilityUrl: endpointConfiguration.pingEndpoint,
-        reachabilityTest: (response) =>
-          Promise.resolve(response.status === 200 || response.status === 204),
-        useNativeReachability: true,
-      });
-
-      const unsubscribeNetInfo = NetInfo.addEventListener(
-        (nextNetInfoState) => {
-          updateNetInfoState(nextNetInfoState);
-        }
-      );
-
-      NetInfo.refresh().then((nextNetInfoState) => {
-        updateNetInfoState(nextNetInfoState);
-      });
-      return () => {
-        unsubscribeNetInfo();
-        clearExpirationTimeout();
-      };
-    },
-    [endpointConfiguration]
   );
 
   return {
