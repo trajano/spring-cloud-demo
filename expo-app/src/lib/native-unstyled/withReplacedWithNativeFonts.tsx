@@ -47,7 +47,7 @@ export function withReplacedWithNativeFonts<
 
         const { style, children } = useReplacedWithNativeFonts(inStyle, inChildren)
         return (<Component
-            {...rest as unknown as Omit<Q, "children" | "style">}
+            {...rest as unknown as Q}
             style={style}>
             {children}
         </Component>);
