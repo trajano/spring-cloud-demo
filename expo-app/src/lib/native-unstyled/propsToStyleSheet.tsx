@@ -1,4 +1,4 @@
-import { memoize, pick, omit } from 'lodash';
+import { isEmpty, memoize, pick, omit } from 'lodash';
 import * as RN from "react-native";
 import { StyleProp } from "react-native";
 import { ColorSchemeColors } from './Themes';
@@ -266,9 +266,9 @@ const elevationToShadow = [
  * Given props of a component, extract the style related utility props and compute the stylesheet.  It memoizes the props 
  * @param props props
  * @param colorSchemeColors color scheme colors for color lookups
- * @returns style prop
+ * @returns style prop, may be undefined if empty.
  */
-function doPropsToStyleSheet(props: Omit<StyleProps, "role" | "size">, colorSchemeColors: ColorSchemeColors): StyleProp<Record<string, unknown>> {
+function doPropsToStyleSheet(props: Omit<StyleProps, "role" | "size">, colorSchemeColors: ColorSchemeColors): StyleProp<Record<string, unknown>> | undefined {
     const accumulatedStyle: Record<string, unknown> = {};
     /**
      * Look up the prop value if present compute it as the style key
@@ -316,7 +316,7 @@ function doPropsToStyleSheet(props: Omit<StyleProps, "role" | "size">, colorSche
         accumulatedStyle["fontStyle"] = "italic";
     }
 
-    return accumulatedStyle;
+    return isEmpty(accumulatedStyle) ? undefined : accumulatedStyle;
 }
 
 export const propsToStyleSheet = memoize(doPropsToStyleSheet, ((props, colorSchemeColors) => JSON.stringify([pick(props, stylePropKeys), colorSchemeColors])));

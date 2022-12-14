@@ -31,6 +31,7 @@ function useReplacedWithNativeFonts(style?: StyleProp<TextStyle>, inChildren?: R
         }
     }
     );
+
     return {
         style: replacedStyle,
         children
@@ -46,8 +47,8 @@ export function withReplacedWithNativeFonts<
 
         const { style, children } = useReplacedWithNativeFonts(inStyle, inChildren)
         return (<Component
-            style={style}
-            {...rest as any}>
+            {...rest as unknown as Omit<Q, "children" | "style">}
+            style={style}>
             {children}
         </Component>);
 

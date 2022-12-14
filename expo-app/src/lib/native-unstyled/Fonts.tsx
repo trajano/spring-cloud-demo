@@ -8,9 +8,9 @@ import {
   useContext,
   useEffect, useMemo, useState
 } from "react";
+import { identity, isEmpty, noop, pick, pickBy } from "lodash";
 import { StyleProp, TextStyle } from "react-native";
 
-type FontTextStyle = Pick<TextStyle, "fontFamily" | "fontStyle" | "fontWeight">;
 type IFonts = {
   /**
    * These are fonts that are loaded.  They are keyed using a colon separated composite key containing the family, weight and style of the font.
@@ -24,9 +24,13 @@ type IFonts = {
    * Total number of fonts to load.
    */
   total: number;
+  /**
+   * Replace the data with a native font.  May return undefined if it will yield an empty object.
+   * @param flattenedStyle 
+   */
   replaceWithNativeFont(
     flattenedStyle: StyleProp<TextStyle>
-  ): StyleProp<TextStyle>;
+  ): StyleProp<TextStyle> | undefined;
 };
 const FontsContext = createContext<IFonts>({
   loadedFonts: {},
@@ -35,8 +39,8 @@ const FontsContext = createContext<IFonts>({
   replaceWithNativeFont: () => ({}),
 });
 type FontsProviderProps = PropsWithChildren<{
-  fontModules: any[];
-  onLoaded: () => void;
+  fontModules?: any[];
+  onLoaded?: () => void;
 }>;
 const moduleFontWeightToStyleFontWeight: Record<
   string,
@@ -84,13 +88,14 @@ async function loadFontModuleAsync(fontModule: any): Promise<Record<string, stri
   return fontsLoaded;
 
 }
-
+function fontStylePredicate(value: any, key: string) {
+  return value && (key === "fontWeight" || key === "fontStyle" || key === "fontFamily");
+}
 export function FontsProvider({
-  fontModules,
-  onLoaded,
+  fontModules = [],
+  onLoaded = noop,
   children
 }: FontsProviderProps): ReactElement {
-
   const [loadedFonts, setLoadedFonts] = useState<{ loaded: boolean, fonts: Record<string, string> }>({ loaded: false, fonts: {} });
   const [loaded, setLoaded] = useState(0);
   const total = useMemo(() => fontModules.length, [fontModules]);
@@ -105,9 +110,9 @@ export function FontsProvider({
     [fontModules]);
   const isMounted = useMounted();
 
-  const replaceWithNativeFont = useCallback(({ fontFamily, fontWeight = "normal", fontStyle = "normal", ...rest }: TextStyle = {}): TextStyle => {
+  const replaceWithNativeFont = useCallback(function replaceWithNativeFont({ fontFamily, fontWeight, fontStyle, ...rest }: TextStyle = {}): TextStyle | undefined {
     if (!fontFamily && !fontWeight && !fontStyle) {
-      return rest;
+      return isEmpty(rest) ? undefined : rest;
     }
     const fontFamilyForKey = loadedFonts.fonts[`${fontFamily}:${fontWeight}:${fontStyle}`];
     if (fontFamilyForKey) {
@@ -128,9 +133,9 @@ export function FontsProvider({
       // Allow for faux-bold fonts
       return { fontFamily: loadedFonts.fonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", fontStyle: "italic", ...rest };
     } else if (fontFamily && !Font.isLoaded(fontFamily)) {
-      return { fontWeight, fontStyle, ...rest };
+      return pickBy({ fontWeight, fontStyle, ...rest }, fontStylePredicate);
     } else {
-      return { fontFamily, fontWeight, fontStyle, ...rest };
+      return pickBy({ fontFamily, fontWeight, fontStyle, ...rest }, fontStylePredicate);
     }
   }, [fontFamilyNames, loadedFonts]);
 
@@ -159,7 +164,6 @@ export function FontsProvider({
     loadFontsAsync();
 
   }, [])
-
 
   return <FontsContext.Provider value={{ loadedFonts: loadedFonts.fonts, loaded, total, replaceWithNativeFont }}>{children}</FontsContext.Provider>
 }

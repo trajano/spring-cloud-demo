@@ -1,12 +1,18 @@
 import { render } from '@testing-library/react-native';
-import { Text } from 'react-native';
+import { ReactNode } from 'react';
+import { Text } from '../native-unstyled';
+import { FontsProvider } from './Fonts';
 import { I18nProvider } from './I18n';
 import { inlineMarkdownToTextElements } from './markdownToTextElements';
 
 describe("markdownToTextElements", () => {
+    function customRender(ui: ReactNode, { ...renderOptions }) {
+        return render(<FontsProvider><I18nProvider>{ui}</I18nProvider></FontsProvider>, renderOptions);
+    }
+
     it("empty string", () => {
+        const { toJSON: expectedToJSON } = render(<Text></Text>);
         const { toJSON } = render(inlineMarkdownToTextElements("")!)
-        const { toJSON: expectedToJSON } = render(<I18nProvider><Text></Text></I18nProvider>)
         expect(toJSON()).toStrictEqual(expectedToJSON())
     })
     it("simple string", () => {
