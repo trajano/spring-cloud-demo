@@ -29,7 +29,6 @@ export default function App() {
     (async function () {
       let configuration = await AsyncStorage.getItem("ENDPOINT_CONFIGURATION");
       if (configuration) {
-        console.log(configuration)
         setDefaultEndpointConfiguration(JSON.parse(configuration));
       }
     })();

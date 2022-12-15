@@ -1,4 +1,4 @@
-import {
+import type {
   NetInfoState
 } from '@react-native-community/netinfo';
 import { differenceInMilliseconds } from 'date-fns';

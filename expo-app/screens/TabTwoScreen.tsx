@@ -4,10 +4,10 @@ import { format, Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { Animated, Button, Keyboard, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView as RNScrollView, StyleSheet, TextInputFocusEventData } from 'react-native';
+import { Button, Keyboard, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView as RNScrollView, StyleSheet, TextInputFocusEventData } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ScrollView, Text, TextInput, View } from '../src/components';
-import { useTheming } from '../src/lib/native-unstyled';
+import { ScrollView, Text, TextInput, useTheming, View } from '../src/lib/native-unstyled';
+import { Text as RNText } from 'react-native'
 
 export default function TabTwoScreen() {
   const { colorScheme } = useTheming()
@@ -17,6 +17,13 @@ export default function TabTwoScreen() {
   const scrollViewRef = useRef<RNScrollView>();
   const [scrollInfo, setScrollInfo] = useState<NativeScrollEvent>();
   const locale: Locale = useMemo(() => {
+    let preferredLocales = Localization.getLocales();
+    if (__DEV__) {
+      if (!Array.isArray(preferredLocales)) {
+        console.warn("getLocales() didn't return an array, it may be a promise when running in a debugger, defaulting to `enUS`")
+        return dateFnsLocales.enUS;
+      }
+    }
 
     const dateFnsLocales2 = dateFnsLocales as Record<string, Locale>;
     return Localization.getLocales().map(locale => {
@@ -53,28 +60,24 @@ export default function TabTwoScreen() {
     }
   }, [])
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    const c = setInterval(() => setNow(format(Date.now(), "PPpp", { locale })), 1000);
-    return () => clearInterval(c);
+  //   const c = setInterval(() => setNow(format(Date.now(), "PPpp", { locale })), 1000);
+  //   return () => clearInterval(c);
 
-  }, [locale])
+  // }, [locale])
 
   const onFocus = useCallback((e: NativeSyntheticEvent<TextInputFocusEventData>) => {
     console.log({ onFocus: e })
     scrollViewRef.current?.scrollTo({ y: 10, animated: true });
   }, [])
 
-  const paddingBottom = new Animated.Value(0);
 
   return (
     <ScrollView ref={scrollViewRef}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{
         paddingTop: Platform.OS === "ios" ? 0 : headerHeight,
-      }}
-      style={{
-        paddingBottom: paddingBottom
       }}
       onScroll={(e) => setScrollInfo(e.nativeEvent)}>
       <View height={headerHeight} bg="yellow">
@@ -96,7 +99,8 @@ export default function TabTwoScreen() {
       <Text style={{ fontFamily: "Lexend", fontSize: 20 }}>Lexend has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text> </Text></Text>
       <Text style={{ fontFamily: "IslandMoments", fontSize: 40 }}>IslandMoments has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text></Text><Text style={{ fontWeight: "bold" }}>bold</Text></Text>
       <Text style={{ fontFamily: "IBMPlexSans", fontSize: 30 }}>IBMPlexSans <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text> {colorScheme}</Text>
-      <Text style={{ fontFamily: "Lexend", fontSize: 20 }}>Lexend has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text> </Text></Text>
+      <RNText testID="Lexend faux italic" style={{ fontFamily: "Lexend_400Regular", fontStyle: "italic", fontSize:30 }}>Lexend faux italic</RNText>
+      <RNText style={{ fontFamily: "Lexend_700Bold", fontStyle: "italic", fontSize:30 }}>Lexend Bolded faux italic</RNText>
       <Text style={{ fontFamily: "IslandMoments", fontSize: 40 }}>IslandMoments has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text></Text><Text style={{ fontWeight: "bold" }}>bold</Text></Text>
     </ScrollView>
   );

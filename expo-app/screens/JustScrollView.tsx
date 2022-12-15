@@ -7,10 +7,11 @@ import { RefreshControl } from 'react-native-gesture-handler';
 import { Button } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthenticated } from '../authenticated-context';
+import { AuthenticatedEndpointConfiguration } from '../navigation/login/types';
 import { Text } from '../src/components';
 export function JustScrollView() {
     const safeAreaInsets = useSafeAreaInsets();
-    const { accessToken, accessTokenExpiresOn, authState, refresh } = useAuth();
+    const { accessToken, accessTokenExpiresOn, authState, refresh, endpointConfiguration } = useAuth();
     const [timeRemaining, setTimeRemaining] = useState<number>(millisecondsToSeconds(accessTokenExpiresOn.getTime() - Date.now()))
     const timerRef = useRef<ReturnType<typeof setTimeout>>();
     const [refreshing, setRefreshing] = useState(false);
@@ -43,7 +44,7 @@ export function JustScrollView() {
         <Text fontFamily='Lexend'>AuthState <Text fontFamily='Noto' fontWeight="bold">{AuthState[authState]}</Text></Text>
         <Button onPress={async () => {
             setWhoamiJson(JSON.stringify(await whoami(), null, 2));
-        }}>Who Am I?</Button>
+        }}>{(endpointConfiguration as AuthenticatedEndpointConfiguration).whoamiEndpoint}</Button>
 
 
         <View style={{
