@@ -8,8 +8,9 @@ import {
   useContext,
   useEffect, useMemo, useState
 } from "react";
-import { identity, isEmpty, noop, pick, pickBy } from "lodash";
+import { identity, noop, omit, pick } from "lodash";
 import { StyleProp, TextStyle } from "react-native";
+import { replaceStyleWithNativeFont } from "./replaceStyleWithNativeFont";
 
 type IFonts = {
   /**
@@ -88,7 +89,7 @@ async function loadFontModuleAsync(fontModule: any): Promise<Record<string, stri
   return fontsLoaded;
 
 }
-function fontStylePredicate(value: any, key: string) {
+export function fontStylePredicate(value: any, key: string) {
   return value && (key === "fontWeight" || key === "fontStyle" || key === "fontFamily");
 }
 export function FontsProvider({
@@ -110,32 +111,12 @@ export function FontsProvider({
     [fontModules]);
   const isMounted = useMounted();
 
-  const replaceWithNativeFont = useCallback(function replaceWithNativeFont({ fontFamily, fontWeight, fontStyle, ...rest }: TextStyle = {}): TextStyle | undefined {
-    if (!fontFamily && !fontWeight && !fontStyle) {
-      return isEmpty(rest) ? undefined : rest;
-    }
-    const fontFamilyForKey = loadedFonts.fonts[`${fontFamily}:${fontWeight}:${fontStyle}`];
-    if (fontFamilyForKey) {
-      return { fontFamily: fontFamilyForKey, ...rest };
-      // } else if (fontWeight === "bold" && fontStyle === "italic" && loadedFonts[`${fontFamily}:normal:italic`]) {
-      //   // Allow for faux-italic fonts
-      //   return { fontFamily: loadedFonts[`${fontFamily}:normal:normal`], fontWeight: "bold", fontStyle: "italic", ...rest };
-
-    } else if (fontWeight === "bold" && loadedFonts.fonts[`${fontFamily}:normal:${fontStyle}`]) {
-      // Allow for faux-bold fonts
-      return { fontFamily: loadedFonts.fonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", ...rest };
-
-    } else if (fontStyle === "italic" && loadedFonts.fonts[`${fontFamily}:${fontWeight}:normal`]) {
-      // Allow for faux-italic fonts
-      return { fontFamily: loadedFonts.fonts[`${fontFamily}:${fontWeight}:normal`], fontStyle: "italic", ...rest };
-
-    } else if (fontWeight === "bold" && fontStyle === "italic" && loadedFonts.fonts[`${fontFamily}:normal:normal`]) {
-      // Allow for faux-bold fonts
-      return { fontFamily: loadedFonts.fonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", fontStyle: "italic", ...rest };
-    } else if (fontFamily && !Font.isLoaded(fontFamily)) {
-      return pickBy({ fontWeight, fontStyle, ...rest }, fontStylePredicate);
+  const replaceWithNativeFont = useCallback(function replaceWithNativeFont(style: TextStyle = {}): TextStyle | undefined {
+    if (loadedFonts.loaded) {
+      return replaceStyleWithNativeFont(style, loadedFonts.fonts);
     } else {
-      return pickBy({ fontFamily, fontWeight, fontStyle, ...rest }, fontStylePredicate);
+      // If the fonts are not loaded then the family has to be excluded.
+      return omit(style, "fontFamily");
     }
   }, [fontFamilyNames, loadedFonts]);
 
@@ -160,6 +141,7 @@ export function FontsProvider({
         setLoadedFonts({ loaded: true, fonts: fontsLoadedInEffect });
         onLoaded();
       }
+
     }
     loadFontsAsync();
 

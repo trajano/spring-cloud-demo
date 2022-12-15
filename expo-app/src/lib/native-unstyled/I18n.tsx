@@ -32,7 +32,15 @@ export function I18nProvider({ children, defaultLocale, translations = {}, i18nO
             if (defaultLocale) {
                 i18n.locale = defaultLocale;
             } else {
-                i18n.locale = preferredLanguage(translations, getLocales(), i18n.defaultLocale);
+                let preferredLocales = getLocales();
+                if (__DEV__)  {
+                    if (!Array.isArray(preferredLocales)) {
+                        console.warn("getLocales() didn't return an array, it may be a promise when running in a debugger, defaulting to `en`")
+                        i18n.locale = "en";
+                        return;
+                    }
+                }
+                i18n.locale = preferredLanguage(translations, preferredLocales, i18n.defaultLocale);
             }
         },
         [translations]);
