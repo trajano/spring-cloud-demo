@@ -89,9 +89,6 @@ async function loadFontModuleAsync(fontModule: any): Promise<Record<string, stri
   return fontsLoaded;
 
 }
-export function fontStylePredicate(value: any, key: string) {
-  return value && (key === "fontWeight" || key === "fontStyle" || key === "fontFamily");
-}
 export function FontsProvider({
   fontModules = [],
   onLoaded = noop,

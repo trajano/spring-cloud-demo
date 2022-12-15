@@ -1,7 +1,9 @@
 import * as Font from "expo-font";
 import { isEmpty, pickBy } from "lodash";
 import { TextStyle } from "react-native";
-import { fontStylePredicate } from "./Fonts";
+function fontStylePredicate(value: any, key: string) {
+  return value && (key === "fontWeight" || key === "fontStyle" || key === "fontFamily");
+}
 
 export function replaceStyleWithNativeFont({ fontFamily, fontWeight, fontStyle, ...rest }: TextStyle, fonts: Record<string, string>): TextStyle | undefined {
   if (!fontFamily && !fontWeight && !fontStyle) {

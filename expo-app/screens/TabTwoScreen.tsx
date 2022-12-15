@@ -99,8 +99,8 @@ export default function TabTwoScreen() {
       <Text style={{ fontFamily: "Lexend", fontSize: 20 }}>Lexend has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text> </Text></Text>
       <Text style={{ fontFamily: "IslandMoments", fontSize: 40 }}>IslandMoments has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text></Text><Text style={{ fontWeight: "bold" }}>bold</Text></Text>
       <Text style={{ fontFamily: "IBMPlexSans", fontSize: 30 }}>IBMPlexSans <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text> {colorScheme}</Text>
-      <RNText testID="Lexend faux italic" style={{ fontFamily: "Lexend_400Regular", fontStyle: "italic", fontSize:30 }}>Lexend faux italic</RNText>
-      <RNText style={{ fontFamily: "Lexend_700Bold", fontStyle: "italic", fontSize:30 }}>Lexend Bolded faux italic</RNText>
+      <RNText testID="Lexend faux italic" style={{ fontFamily: "Lexend_400Regular", fontStyle: "italic", fontSize: 30 }}>Lexend faux italic</RNText>
+      <RNText style={{ fontFamily: "Lexend_700Bold", fontStyle: "italic", fontSize: 30 }}>Lexend Bolded faux italic</RNText>
       <Text style={{ fontFamily: "IslandMoments", fontSize: 40 }}>IslandMoments has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text></Text><Text style={{ fontWeight: "bold" }}>bold</Text></Text>
     </ScrollView>
   );
