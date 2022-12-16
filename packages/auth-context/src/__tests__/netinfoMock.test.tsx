@@ -1,10 +1,16 @@
 import NetInfo, {
-  NetInfoStateType, resetConnectionState, setConnectionState
+  NetInfoStateType, setConnectionState, resetConnectionState, NetInfoState
 } from '@react-native-community/netinfo';
-it("foo", async () => {
+declare module '@react-native-community/netinfo' {
+  export function resetConnectionState(): void;
+  export function setConnectionState(next: NetInfoState): void;
+}
+it("work closely to the real thing", async () => {
   const c = await NetInfo.fetch();
   expect(c.isInternetReachable).toBeTruthy();
-  setConnectionState({
+  const mysub = jest.fn();
+  const sub = NetInfo.addEventListener(mysub);
+  const newState: NetInfoState = {
     type: NetInfoStateType.wifi,
     isConnected: true,
     isInternetReachable: false,
@@ -20,9 +26,12 @@ it("foo", async () => {
       rxLinkSpeed: null,
       txLinkSpeed: null,
     },
-  })
+  };
+  setConnectionState(newState)
   const cz = await NetInfo.fetch();
   expect(cz.isInternetReachable).toBeFalsy();
+  expect(mysub).toBeCalledWith(newState);
+  sub();
   resetConnectionState();
   const cy = await NetInfo.fetch();
   expect(cy.isInternetReachable).toBeTruthy();

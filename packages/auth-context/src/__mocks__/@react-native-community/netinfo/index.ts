@@ -1,5 +1,6 @@
 import type NetInfo from '@react-native-community/netinfo';
 import type {
+  NetInfoChangeHandler,
   NetInfoConfiguration,
   NetInfoState,
 } from '@react-native-community/netinfo';
@@ -35,18 +36,33 @@ const connectedState: NetInfoState = {
 };
 
 const currentStateMock = jest.fn<NetInfoState, []>(() => connectedState);
+let listeners: NetInfoChangeHandler[] = [];
 
 export default <typeof NetInfo>{
   fetch: jest.fn(() => Promise.resolve(currentStateMock())),
   refresh: jest.fn(() => Promise.resolve(currentStateMock())),
   configure: jest.fn((_configuration: Partial<NetInfoConfiguration>) => {}),
-  addEventListener: jest.fn(() => jest.fn()),
+  addEventListener: jest.fn((listener) => {
+    listeners.push(listener);
+    return () =>
+      listeners.splice(
+        listeners.findIndex((v) => v === listener),
+        1
+      );
+  }),
   useNetInfo: jest.fn(() => currentStateMock()),
 };
+
+/**
+ * Sets the connection state and fires all the listeners
+ * @param nextState
+ */
 export function setConnectionState(nextState: NetInfoState) {
   currentStateMock.mockImplementation(() => nextState);
+  listeners.forEach((listener) => listener(nextState));
 }
 
 export function resetConnectionState() {
   currentStateMock.mockImplementation(() => connectedState);
+  listeners = [];
 }
