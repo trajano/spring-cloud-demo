@@ -14,7 +14,7 @@ export function buildSimpleEndpointConfiguration(
     typeof inBaseUrl === 'string' ? inBaseUrl : inBaseUrl.toString();
   if (__DEV__) {
     if (baseUrl.substring(baseUrl.length - 1) !== '/') {
-      console.error("base URL should end with a '/'");
+      throw new Error(`baseUrl=${baseUrl} should end with a '/'`);
     }
   }
   return {

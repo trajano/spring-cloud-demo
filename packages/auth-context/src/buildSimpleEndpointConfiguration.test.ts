@@ -16,6 +16,21 @@ it('simple example', () => {
     clientSecret: 'example',
   });
 });
+it('should warn if the trailing slash is missing', () => {
+  try {
+    buildSimpleEndpointConfiguration(
+      'https://api.trajano.net',
+      'simple',
+      'example'
+    );
+    fail('should not get here');
+  } catch (e: unknown) {
+    expect(e).toStrictEqual(
+      new Error("baseUrl=https://api.trajano.net should end with a '/'")
+    );
+  }
+});
+
 it('simple example with URL', () => {
   const configuration = buildSimpleEndpointConfiguration(
     new URL('https://api.trajano.net/'),
