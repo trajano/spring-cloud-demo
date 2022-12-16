@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`examples of some things 1`] = `
+<View>
+  <TextInput
+    onChangeText={[Function]}
+    testID="input"
+    value="Ada Lovelace"
+  />
+  <View
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+  >
+    <Text>
+      Print Username
+    </Text>
+  </View>
+  <Text
+    testID="printed-username"
+  >
+    Ada Lovelace
+  </Text>
+</View>
+`;

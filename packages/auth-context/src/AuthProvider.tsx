@@ -1,5 +1,4 @@
-import { useDeepState } from "@trajano/react-hooks";
-import { isAfter } from "date-fns";
+import { isBefore } from "date-fns";
 import React, { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
@@ -65,7 +64,7 @@ export function AuthProvider<A = any>({
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
 
   const [authState, setAuthState] = useState(AuthState.INITIAL);
-  const [tokenState, setTokenState] = useDeepState<TokenState>({
+  const [tokenState, setTokenState] = useState<TokenState>({
     oauthToken: null,
     tokenExpiresAt: new Date(0)
   });
@@ -83,7 +82,7 @@ export function AuthProvider<A = any>({
       if (!tokenState.oauthToken) {
         return true;
       } else {
-        return isAfter(Date.now(), tokenState.tokenExpiresAt);
+        return !isBefore(Date.now(), tokenState.tokenExpiresAt);
       }
     },
     [tokenState.oauthToken, tokenState.tokenExpiresAt, lastCheckTime]);
@@ -122,10 +121,13 @@ export function AuthProvider<A = any>({
 
   useEffect(() => {
     notify({ type: 'CheckRefresh', reason: `Triggered by a change to ${JSON.stringify({ tokenRefreshable, accessTokenExpired, lastCheckTime })}` })
-    // there's a state change determine if we need to refresh.
-    if (tokenRefreshable && accessTokenExpired) {
+    // there's no oauth token to refresh and AuthState !== UNAUTHENTICATED
+    if (tokenState.oauthToken === null && authState !== AuthState.UNAUTHENTICATED) {
+      setAuthState(AuthState.UNAUTHENTICATED);
+    } else if (tokenRefreshable && accessTokenExpired && tokenState.oauthToken !== null) {
+      // there's a state change determine if we need to refresh.
       setAuthState(AuthState.NEEDS_REFRESH);
-    } else if (!tokenRefreshable && accessTokenExpired) {
+    } else if (!tokenRefreshable && accessTokenExpired && tokenState.oauthToken !== null) {
       setAuthState(AuthState.BACKEND_INACCESSIBLE);
     }
   }, [tokenRefreshable, accessTokenExpired, lastCheckTime]);
@@ -194,7 +196,6 @@ export function AuthProvider<A = any>({
   }
 
   async function refresh() {
-    setAuthState(AuthState.REFRESHING);
     const storedOAuthToken = await authStorage.getOAuthToken();
     if (storedOAuthToken == null) {
       setAuthState(AuthState.UNAUTHENTICATED);
@@ -215,6 +216,7 @@ export function AuthProvider<A = any>({
         netInfoState
       })
     } else {
+      setAuthState(AuthState.REFRESHING);
       notify({
         type: "Refreshing",
       })

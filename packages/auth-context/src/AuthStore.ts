@@ -51,7 +51,6 @@ export class AuthStore {
       this.storagePrefix + '.oauthToken',
       JSON.stringify(oauthToken)
     );
-
     const expiresAt = add(now ?? Date.now(), {
       seconds: oauthToken.expires_in,
     });

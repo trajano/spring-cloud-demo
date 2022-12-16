@@ -1,13 +1,6 @@
-import type {
-  NetInfoState
-} from '@react-native-community/netinfo';
+import type { NetInfoState } from '@react-native-community/netinfo';
 import { differenceInMilliseconds } from 'date-fns';
-import {
-  useCallback,
-  useEffect,
-  useMemo, useRef,
-  useState
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { EndpointConfiguration } from './EndpointConfiguration';
 import { useAppStateWithNetInfoRefresh } from './useAppStateWithNetInfoRefresh';
 import { useNetInfoState } from './useNetInfoState';
@@ -90,7 +83,7 @@ export function useRenderOnTokenEvent(
       setLastCheckTime(Date.now());
       const nextCheckInMs = Math.min(
         60000,
-        differenceInMilliseconds(Date.now(), tokenExpiresAt) -
+        differenceInMilliseconds(tokenExpiresAt, Date.now()) -
           timeBeforeExpirationRefresh * 1000
       );
       if (nextCheckInMs > 0) {
