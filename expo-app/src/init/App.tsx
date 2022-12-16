@@ -23,7 +23,7 @@ const Navigation = lazy(() => import('../../navigation'))
 LogBox.ignoreLogs([/^Could not find Fiber with id/]);
 function SuspenseView() { return <View flex={1} justifyContent="center" alignItems='center'><ActivityIndicator size='large' /></View> }
 export default function App() {
-  const [defaultEndpointConfiguration, setDefaultEndpointConfiguration] = useState<AuthenticatedEndpointConfiguration>(buildSimpleEndpointConfiguration(BASE_URL));
+  const [defaultEndpointConfiguration, setDefaultEndpointConfiguration] = useState<AuthenticatedEndpointConfiguration>(buildSimpleEndpointConfiguration(BASE_URL ?? "https://api.trajano.net/"));
 
   useEffect(() => {
     (async function () {
