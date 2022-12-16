@@ -105,7 +105,7 @@ it("Failed login", async () => {
         await login({ user: "test" });
       } catch (e: unknown) {
         if (typeof e === "object" && (e as AuthenticationClientError).isAuthenticationClientError) {
-          setLoginFailure(true);
+          setLoginFailure((e as AuthenticationClientError).isUnauthorized());
         }
 
       }

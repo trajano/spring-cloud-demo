@@ -3,7 +3,7 @@ import NetInfo, {
   NetInfoStateType,
 } from '@react-native-community/netinfo';
 import { useEffect, useReducer } from 'react';
-import type { EndpointConfiguration } from './EndpointConfiguration';
+import type { EndpointConfiguration } from '../EndpointConfiguration';
 import { netInfoStateReducer } from './netInfoStateReducer';
 
 /**
@@ -13,7 +13,7 @@ import { netInfoStateReducer } from './netInfoStateReducer';
  * @param onNetInfoUnsubscribe invoked when the subscription is going to be removed.
  */
 export function useNetInfoState(
-  endpointConfiguration: EndpointConfiguration,
+  endpointConfiguration: Pick<EndpointConfiguration, 'pingEndpoint'>,
   onNetInfoUnsubscribe?: () => void
 ): NetInfoState {
   /**
