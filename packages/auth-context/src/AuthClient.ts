@@ -4,7 +4,7 @@ import type { EndpointConfiguration } from './EndpointConfiguration';
 import type { OAuthToken } from './OAuthToken';
 
 export interface IAuthClient<A = any> {
-  authenticate(authenticationRequest: A): Promise<OAuthToken>;
+  authenticate(authenticationRequest: A): Promise<[OAuthToken, Response]>;
   refresh(refreshToken: string): Promise<OAuthToken>;
   revoke(refreshToken: string): Promise<void>;
 }
@@ -34,7 +34,13 @@ export class AuthClient<A = any> implements IAuthClient<A> {
     this.revocationEndpoint = endpointConfiguration.revocationEndpoint;
   }
 
-  public async authenticate(authenticationRequest: A): Promise<OAuthToken> {
+  /**
+   * Calls the API endpoint to authenticate.
+   * @param authenticationRequest
+   * @returns [ OAuthToken, Response ]
+   * @throws AuthenticationClientError
+   */
+  public async authenticate(authenticationRequest: A): Promise<[OAuthToken, Response]> {
     const response = await fetch(this.authorizationEndpoint, {
       method: 'POST',
       headers: {
@@ -47,7 +53,7 @@ export class AuthClient<A = any> implements IAuthClient<A> {
     if (!response.ok) {
       throw new AuthenticationClientError(response);
     }
-    return response.json();
+    return [await response.json(), response];
   }
 
   public async refresh(refreshToken: string): Promise<OAuthToken> {

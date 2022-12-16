@@ -11,11 +11,15 @@ export interface IAuth<A = any> {
    */
   subscribe(fn: (event: AuthEvent) => void): () => void;
   /**
+   * This performs the call to the authentication server with the credentials provided.
+   * If the authentication was successful it provide the API response for further processing.
+   * If there's a failure a AuthenticationClientError will be thrown.
    *
    * @param authenticationCredentials
-   * @returns nothing
+   * @returns the fetch API response
+   * @throws AuthenticationClientError
    */
-  login(authenticationCredentials: A): Promise<void>;
+  login(authenticationCredentials: A): Promise<Response>;
   /**
    * Refreshes the token outside of the schedule.
    */

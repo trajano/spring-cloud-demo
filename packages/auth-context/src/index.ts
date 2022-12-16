@@ -1,4 +1,5 @@
 export { AuthProvider } from './AuthProvider';
+export { AuthenticationClientError } from './AuthenticationClientError';
 export { useAuth } from './useAuth';
 export { AuthState } from './AuthState';
 export { AuthStore } from './AuthStore';

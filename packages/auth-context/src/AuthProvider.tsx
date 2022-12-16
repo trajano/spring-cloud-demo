@@ -132,10 +132,10 @@ export function AuthProvider<A = any>({
     }
   }, [tokenRefreshable, accessTokenExpired, lastCheckTime]);
 
-  async function login(authenticationCredentials: A): Promise<void> {
+  async function login(authenticationCredentials: A): Promise<Response> {
 
     try {
-      const nextOauthToken = await authClient.authenticate(authenticationCredentials);
+      const [nextOauthToken, authenticationResponse] = await authClient.authenticate(authenticationCredentials);
       const nextTokenExpiresAt = await authStorage.storeOAuthTokenAndGetExpiresAt(nextOauthToken);
       setAuthState(AuthState.AUTHENTICATED);
       setTokenState({
@@ -154,6 +154,7 @@ export function AuthProvider<A = any>({
         authorization: `Bearer ${nextOauthToken.access_token}`,
         tokenExpiresAt: nextTokenExpiresAt
       })
+      return authenticationResponse;
     } catch (e: unknown) {
       if (e instanceof AuthenticationClientError) {
         await authStorage.clear();
