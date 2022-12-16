@@ -3,7 +3,7 @@ import '@testing-library/jest-native/extend-expect';
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
 import fetchMock from 'fetch-mock-jest';
 import React, { useState } from 'react';
-import { AppState, Button, Pressable, Text } from 'react-native';
+import { AppState,  Pressable, Text } from 'react-native';
 import { AuthenticationClientError } from './AuthenticationClientError';
 import { AuthProvider } from './AuthProvider';
 import { AuthState } from './AuthState';
@@ -26,7 +26,7 @@ it("AsyncStorage works", async () => {
   const c = await AsyncStorage.getItem("C");
   expect(c).toBeNull();
 })
-it("UNAUTHENTICATED", () => {
+it("UNAUTHENTICATED", async () => {
   function MyComponent() {
     const { authState } = useAuth();
     return (<>
@@ -35,8 +35,7 @@ it("UNAUTHENTICATED", () => {
   }
   fetchMock.get("http://asdf.com/ping", { ok: true })
   const { getByTestId } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent /></AuthProvider>)
-  act(() => jest.runAllTicks());
-  expect(getByTestId("hello")).toHaveTextContent("UNAUTHENTICATED");
+  await waitFor(()=> expect(getByTestId("hello")).toHaveTextContent("UNAUTHENTICATED"));
 });
 it("Sign In", async () => {
   function MyComponent() {
@@ -44,7 +43,6 @@ it("Sign In", async () => {
     return (<>
       <Text testID='hello'>{authState}</Text>
       <Pressable testID='login' onPress={() => login({ user: "test" })} ><Text>Login</Text></Pressable>
-      <Button testID='loginButton' onPress={() => login({ user: "test" })} title="Login" />
     </>)
   }
   fetchMock.get("http://asdf.com/ping", { body: { ok: true } })
