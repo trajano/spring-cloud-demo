@@ -11,18 +11,18 @@ export function buildSimpleEndpointConfiguration(
   clientSecret = 'unknown'
 ): EndpointConfiguration {
   const baseUrl =
-    typeof inBaseUrl === 'string' ? new URL(inBaseUrl) : inBaseUrl;
+    typeof inBaseUrl === 'string' ? inBaseUrl : inBaseUrl.toString();
   if (__DEV__) {
-    if (baseUrl.href.substring(baseUrl.href.length - 1) !== '/') {
-      console.error("base URL should end with a '/'")
+    if (baseUrl.substring(baseUrl.length - 1) !== '/') {
+      console.error("base URL should end with a '/'");
     }
   }
   return {
-    baseUrl: baseUrl.href,
-    authorizationEndpoint: inBaseUrl + 'auth',
-    refreshEndpoint: inBaseUrl + 'refresh',
-    revocationEndpoint: inBaseUrl + 'logout',
-    pingEndpoint: inBaseUrl + 'ping',
+    baseUrl: baseUrl,
+    authorizationEndpoint: baseUrl + 'auth',
+    refreshEndpoint: baseUrl + 'refresh',
+    revocationEndpoint: baseUrl + 'logout',
+    pingEndpoint: baseUrl + 'ping',
     clientId,
     clientSecret,
   };

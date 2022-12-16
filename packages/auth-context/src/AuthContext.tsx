@@ -6,7 +6,7 @@ import type { IAuth } from "./IAuth";
 export const AuthContext = createContext<IAuth>({
   login: () => Promise.reject(),
   logout: () => Promise.resolve(),
-  refresh: () => Promise.resolve(),
+  refresh: () => Promise.reject(),
   setEndpointConfiguration: () => { },
   subscribe: () => { return () => { }; },
   accessToken: null,
