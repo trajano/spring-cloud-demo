@@ -4,7 +4,7 @@ import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react
 import fetchMock from 'fetch-mock-jest';
 import React, { useState } from 'react';
 import { AppState, Button, Pressable, Text } from 'react-native';
-import type { AuthenticationClientError } from './AuthenticationClientError';
+import { AuthenticationClientError } from './AuthenticationClientError';
 import { AuthProvider } from './AuthProvider';
 import { AuthState } from './AuthState';
 import { buildSimpleEndpointConfiguration } from './buildSimpleEndpointConfiguration';
@@ -26,7 +26,7 @@ it("AsyncStorage works", async () => {
   const c = await AsyncStorage.getItem("C");
   expect(c).toBeNull();
 })
-it.skip("UNAUTHENTICATED", () => {
+it("UNAUTHENTICATED", () => {
   function MyComponent() {
     const { authState } = useAuth();
     return (<>
@@ -38,7 +38,7 @@ it.skip("UNAUTHENTICATED", () => {
   act(() => jest.runAllTicks());
   expect(getByTestId("hello")).toHaveTextContent("UNAUTHENTICATED");
 });
-it.skip("Sign In", async () => {
+it("Sign In", async () => {
   function MyComponent() {
     const { authState, login } = useAuth();
     return (<>
@@ -104,8 +104,8 @@ it("Failed login", async () => {
       try {
         await login({ user: "test" });
       } catch (e: unknown) {
-        if (typeof e === "object" && (e as AuthenticationClientError).isAuthenticationClientError) {
-          setLoginFailure((e as AuthenticationClientError).isUnauthorized());
+        if (typeof e === "object" && (e as AuthenticationClientError).isAuthenticationClientError && e instanceof AuthenticationClientError) {
+          setLoginFailure(e.isUnauthorized());
         }
 
       }
