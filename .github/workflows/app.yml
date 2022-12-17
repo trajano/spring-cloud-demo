@@ -30,7 +30,7 @@ jobs:
         run: yarn install --frozen-lockfile --network-concurrency 2
       - name: Create env
         run: |
-          echo BASE_URL=https://api.trajano.net > .env
+          echo BASE_URL=https://api.trajano.net/ > .env
         working-directory: ./expo-app
       - name: 📦 Prepare
         run: yarn workspaces run prepare
