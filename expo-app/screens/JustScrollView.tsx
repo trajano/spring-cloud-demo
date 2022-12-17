@@ -8,10 +8,10 @@ import { Button } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthenticated } from '../authenticated-context';
 import { AuthenticatedEndpointConfiguration } from '../navigation/login/types';
-import { Text } from '../src/components';
+import { Text } from '../src/lib/native-unstyled';
 export function JustScrollView() {
     const safeAreaInsets = useSafeAreaInsets();
-    const { accessToken, accessTokenExpiresOn, authState, refresh, endpointConfiguration } = useAuth();
+    const { accessToken, accessTokenExpiresOn, authState, refresh, endpointConfiguration, accessTokenExpired } = useAuth();
     const [timeRemaining, setTimeRemaining] = useState<number>(millisecondsToSeconds(accessTokenExpiresOn.getTime() - Date.now()))
     const timerRef = useRef<ReturnType<typeof setTimeout>>();
     const [refreshing, setRefreshing] = useState(false);
@@ -39,7 +39,7 @@ export function JustScrollView() {
             />
         }
     >
-        <Text>Access token <Text role="mono">{accessToken?.slice(-5)}</Text> expires on <Text fontWeight="bold">{formatISO(accessTokenExpiresOn)}</Text>        </Text>
+        <Text backgroundColor={accessTokenExpired ? "red" : undefined}>Access token <Text role="mono">{accessToken?.slice(-5)}</Text> expires on <Text fontWeight="bold">{formatISO(accessTokenExpiresOn)}</Text>        </Text>
         <Text>Time remaining <Text fontWeight="bold">{timeRemaining} seconds</Text></Text>
         <Text fontFamily='Lexend'>AuthState <Text fontFamily='Noto' fontWeight="bold">{AuthState[authState]}</Text></Text>
         <Button onPress={async () => {

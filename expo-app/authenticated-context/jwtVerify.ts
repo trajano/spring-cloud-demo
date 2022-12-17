@@ -24,25 +24,29 @@ export async function jwtVerify<P extends JwtClaims>(
       exp: 0,
     } as unknown as P;
   }
-  const decodedCompressed = base64url.toBuffer(accessToken);
-  const jwt = pako.inflate(decodedCompressed, { to: "string" });
-  const jwksFetch = await fetch(jwksUrl.toString());
-  const jwksJson = await jwksFetch.json();
-  const jwks = await jose.JWK.asKeyStore(jwksJson);
-  const jwsResult = await jose.JWS.createVerify(jwks, {
-    allowEmbeddedKey: false,
-  }).verify(jwt);
-  const payload = JSON.parse(jwsResult.payload.toString()) as P;
-  if (
-    payload.aud &&
-    payload.exp &&
-    payload.sub &&
-    payload.iss === issuer &&
-    payload.aud.findIndex((aud) => aud === clientId) >= 0 &&
-    payload.exp >= Date.now() / 1000
-  ) {
-    return payload;
-  } else {
-    throw new Error("JWT not valid");
+  try {
+    const decodedCompressed = base64url.toBuffer(accessToken);
+    const jwt = pako.inflate(decodedCompressed, { to: "string" });
+    const jwksFetch = await fetch(jwksUrl.toString());
+    const jwksJson = await jwksFetch.json();
+    const jwks = await jose.JWK.asKeyStore(jwksJson);
+    const jwsResult = await jose.JWS.createVerify(jwks, {
+      allowEmbeddedKey: false,
+    }).verify(jwt);
+    const payload = JSON.parse(jwsResult.payload.toString()) as P;
+    if (
+      payload.aud &&
+      payload.exp &&
+      payload.sub &&
+      payload.iss === issuer &&
+      payload.aud.findIndex((aud) => aud === clientId) >= 0 &&
+      payload.exp >= Date.now() / 1000
+    ) {
+      return payload;
+    } else {
+      throw new Error("JWT not valid");
+    }
+  } catch (e) {
+    throw new Error(`e`, e);
   }
 }

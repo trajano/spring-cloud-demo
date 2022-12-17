@@ -1,4 +1,4 @@
-import { isBefore } from "date-fns";
+import { isBefore, sub, formatISO, formatISO9075 } from "date-fns";
 import React, { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
@@ -84,7 +84,7 @@ export function AuthProvider<A = any>({
       if (!tokenState.oauthToken) {
         return true;
       } else {
-        return !isBefore(Date.now(), tokenState.tokenExpiresAt);
+        return !isBefore(Date.now(), sub(tokenState.tokenExpiresAt, { seconds: timeBeforeExpirationRefresh }));
       }
     },
     [tokenState.oauthToken, tokenState.tokenExpiresAt, lastCheckTime]);
@@ -96,18 +96,10 @@ export function AuthProvider<A = any>({
       (subscription) => !Object.is(subscription, fn));
   }, []);
 
-  /**
-   * Notifies subscribers.  There's a specific handler if it is "Unauthenticated" that the provider handles.
-   */
-  const notify = useCallback(function notify(event: AuthEvent) {
-    pushAuthEvent(event);
-    subscribersRef.current.forEach((fn) => fn(event));
-  }, []);
-
   useEffect(() => {
     // there's a state change determine if we need to refresh.
     (async () => {
-      notify({ type: 'CheckRefresh', reason: `Triggered by a change to ${JSON.stringify({ tokenRefreshable, authState })}` })
+      notify({ type: 'CheckRefresh', reason: `Triggered by a change to tokenRefreshable=${tokenRefreshable} authState: ${AuthState[authState]}` })
       if (tokenRefreshable &&
         (authState === AuthState.NEEDS_REFRESH ||
           authState === AuthState.INITIAL)
@@ -122,7 +114,7 @@ export function AuthProvider<A = any>({
   }, [tokenRefreshable, authState]);
 
   useEffect(() => {
-    notify({ type: 'CheckRefresh', reason: `Triggered by a change to ${JSON.stringify({ tokenRefreshable, accessTokenExpired, lastCheckTime })}` })
+    notify({ type: 'CheckRefresh', reason: `Triggered by a change to tokenRefreshable=${tokenRefreshable} accessTokenExpired: ${accessTokenExpired} lastCheckTime: ${new Date(lastCheckTime).toISOString()}` })
     // there's no oauth token to refresh and AuthState !== UNAUTHENTICATED
     if (tokenState.oauthToken === null && authState !== AuthState.UNAUTHENTICATED) {
       setAuthState(AuthState.UNAUTHENTICATED);
@@ -133,6 +125,17 @@ export function AuthProvider<A = any>({
       setAuthState(AuthState.BACKEND_INACCESSIBLE);
     }
   }, [tokenRefreshable, accessTokenExpired, lastCheckTime]);
+
+  /**
+   * Notifies subscribers.  There's a specific handler if it is "Unauthenticated" that the provider handles.
+   */
+  function notify(event: AuthEvent) {
+    // apply auth state if available.
+    event.authState = authState;
+    pushAuthEvent(event);
+    subscribersRef.current.forEach((fn) => fn(event));
+  }
+
 
   async function login(authenticationCredentials: A): Promise<Response> {
 

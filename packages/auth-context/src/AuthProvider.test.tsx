@@ -2,14 +2,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import '@testing-library/jest-native/extend-expect';
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
 import fetchMock from 'fetch-mock-jest';
-import React, { useState } from 'react';
-import { AppState,  Pressable, Text } from 'react-native';
+import { add } from 'date-fns';
+import React, { useEffect, useState } from 'react';
+import { AppState, Pressable, Text } from 'react-native';
 import { AuthenticationClientError } from './AuthenticationClientError';
 import { AuthProvider } from './AuthProvider';
 import { AuthState } from './AuthState';
 import { buildSimpleEndpointConfiguration } from './buildSimpleEndpointConfiguration';
 import type { OAuthToken } from './OAuthToken';
 import { useAuth } from './useAuth';
+import type { AuthenticatedEvent, AuthEvent } from './AuthEvent';
 beforeEach(() => {
   jest.useFakeTimers({ advanceTimers: true });
   AppState.currentState = "active";
@@ -35,24 +37,30 @@ it("UNAUTHENTICATED", async () => {
   }
   fetchMock.get("http://asdf.com/ping", { ok: true })
   const { getByTestId } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent /></AuthProvider>)
-  await waitFor(()=> expect(getByTestId("hello")).toHaveTextContent("UNAUTHENTICATED"));
+  await waitFor(() => expect(getByTestId("hello")).toHaveTextContent("UNAUTHENTICATED"));
 });
 it("Sign In", async () => {
   function MyComponent() {
-    const { authState, login } = useAuth();
+    const { authState, tokenRefreshable, login } = useAuth();
     return (<>
       <Text testID='hello'>{authState}</Text>
+      <Text testID='tokenRefreshable'>{tokenRefreshable ? "tokenRefreshable" : ""}</Text>
       <Pressable testID='login' onPress={() => login({ user: "test" })} ><Text>Login</Text></Pressable>
     </>)
   }
   fetchMock.get("http://asdf.com/ping", { body: { ok: true } })
+  const startInstant = Date.now();
   const { getByTestId } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent /></AuthProvider>)
   act(() => jest.runAllTicks());
+  await waitFor(() => expect(getByTestId("tokenRefreshable")).toHaveTextContent("tokenRefreshable"));
   expect(getByTestId("hello")).toHaveTextContent("2");
-  fetchMock.post("http://asdf.com/auth", { body: { access_token: "accessToken", refresh_token: "RefreshToken", token_type: "Bearer", expires_in: 600 } as OAuthToken });
+  fetchMock.post("http://asdf.com/auth", { body: { access_token: "accessToken", refresh_token: "RefreshToken", token_type: "Bearer", expires_in: 600 } as OAuthToken }, { delay: 100 });
   await act(() => fireEvent.press(getByTestId("login")));
+  // There's some animation lag after pressing login
+
   await waitFor(() => expect(getByTestId("hello")).toHaveTextContent("1"));
-  ;
+  const animationTime = Date.now() - startInstant - 100;
+  expect(animationTime).toBeGreaterThanOrEqual(100);
 });
 
 it("Failed login", async () => {

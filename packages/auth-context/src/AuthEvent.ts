@@ -1,9 +1,12 @@
 import type { NetInfoState } from '@react-native-community/netinfo';
+import type { AuthState } from './AuthState';
 /**
  * This gets fired when a valid authentication token was obtained after authentication or refresh.
+ * Exported so it can be used in a test.
  */
-type AuthenticatedEvent = {
+export type AuthenticatedEvent = {
   type: 'Authenticated';
+  authState?: AuthState;
   /**
    * The raw access token.
    */
@@ -24,6 +27,7 @@ type AuthenticatedEvent = {
  */
 type LoggedInEvent = {
   type: 'LoggedIn';
+  authState?: AuthState;
   /**
    * The raw access token.
    */
@@ -43,6 +47,7 @@ type LoggedInEvent = {
  */
 type CheckRefreshEvent = {
   type: 'CheckRefresh';
+  authState?: AuthState;
   /**
    * Reason for refresh if any
    */
@@ -54,6 +59,7 @@ type CheckRefreshEvent = {
  */
 type RefreshingEvent = {
   type: 'Refreshing';
+  authState?: AuthState;
   /**
    * Reason for refresh if any
    */
@@ -64,6 +70,7 @@ type RefreshingEvent = {
  */
 export type ConnectionChangeEvent = {
   type: 'Connection';
+  authState?: AuthState;
   /**
    * Current net info state.
    */
@@ -75,6 +82,7 @@ export type ConnectionChangeEvent = {
 };
 type TokenExpirationEvent = {
   type: 'TokenExpiration';
+  authState?: AuthState;
   /**
    * Reason for token expiration if any
    */
@@ -86,7 +94,7 @@ type TokenExpirationEvent = {
   /**
    * Net info state.
    */
-  netInfoState?: NetInfoState
+  netInfoState?: NetInfoState;
 };
 /**
  * This gets fired when there is a transition from authenticated to unauthenticated.  Or when the initial
@@ -94,6 +102,7 @@ type TokenExpirationEvent = {
  */
 type UnauthenticatedEvent = {
   type: 'Unauthenticated';
+  authState?: AuthState;
   /**
    * Reason why it is not authenticated if any.
    */
@@ -110,6 +119,7 @@ type UnauthenticatedEvent = {
  */
 type LoggedOutEvent = {
   type: 'LoggedOut';
+  authState?: AuthState;
   /**
    * Reason for log off if any.
    */

@@ -52,6 +52,10 @@ export interface IAuth<A = any> {
    * This indicates that the access token is expired and should not
    * be verifiable.
    *
+   * This will return true if it is within the
+   * `timeBeforeExpirationRefresh` period so the token is still valid
+   * but should really be refreshed as soon as possible.
+   *
    * This returns true if the access token is not available.
    */
   accessTokenExpired: boolean;

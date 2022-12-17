@@ -36,11 +36,16 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
     const verified = useMemo(() => !!claims, [claims]);
 
     const eventStream = useRef<EventSource<string>>();
+    console.log({
+        verifyClaims,
+        clientId,
+        issuer
+    })
 
     const [internalState, updateInternalStateFromServerSentEvent] = useReducer((state: string[], nextEvent: string) => { return [...state, nextEvent].slice(-5) }, [])
     useAsyncSetEffect(
         async function verifyToken() {
-            if (verifyClaims) {
+            if (!verifyClaims) {
                 return undefined;
             }
             // when access token changes the value could fail.
