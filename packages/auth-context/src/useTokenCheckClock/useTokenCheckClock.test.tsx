@@ -9,14 +9,14 @@ beforeEach(() => {
   jest.setSystemTime(specimenTime);
 });
 it("initial will not trigger any further updates aside from the initial state", () => {
-  const { result } = renderHook(() => useTokenCheckClock(AuthState.INITIAL, null, 10), {})
+  const { result } = renderHook(() => useTokenCheckClock(AuthState.INITIAL, null, 10000), {})
   expect(result.current.lastCheckTime).toBe(specimenTime.getTime())
   jest.advanceTimersByTime(60000);
   expect(result.current.lastCheckTime).toBe(specimenTime.getTime())
 })
 
 it("test with BACKEND_FAILURE", () => {
-  const { result } = renderHook(() => useTokenCheckClock(AuthState.BACKEND_FAILURE, null, 10), {})
+  const { result } = renderHook(() => useTokenCheckClock(AuthState.BACKEND_FAILURE, null, 10000), {})
   expect(result.current.lastCheckTime).toBe(specimenTime.getTime())
   jest.advanceTimersByTime(59999);
   expect(result.current.lastCheckTime).toBe(specimenTime.getTime())
@@ -27,7 +27,7 @@ it("test with BACKEND_FAILURE", () => {
 it("test with AUTHENTICATED", () => {
   const expiresAt = add(specimenTime, { seconds: 120 })
 
-  const { result } = renderHook(() => useTokenCheckClock(AuthState.AUTHENTICATED, expiresAt, 10), {})
+  const { result } = renderHook(() => useTokenCheckClock(AuthState.AUTHENTICATED, expiresAt, 10000), {})
   expect(result.current.lastCheckTime).toBe(specimenTime.getTime())
   jest.advanceTimersByTime(59999);
   expect(result.current.lastCheckTime).toBe(specimenTime.getTime())

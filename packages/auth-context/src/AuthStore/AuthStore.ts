@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { add, isBefore, parseISO, sub } from 'date-fns';
+import { add, isBefore, parseISO, sub, subMilliseconds } from 'date-fns';
 import type { OAuthToken } from '../OAuthToken';
 import { isTokenValid } from './isTokenValid';
 export class AuthStore {
@@ -89,6 +89,15 @@ export class AuthStore {
   async isExpiringInSeconds(seconds: number): Promise<boolean> {
     const tokenExpiresAt = await this.getTokenExpiresAt();
     return !isBefore(Date.now(), sub(tokenExpiresAt, { seconds }));
+  }
+  /**
+   * Checks if the token is expiring or expired in the given number of seconds.
+   * @param seconds seconds before expiration
+   * @returns true if the token is expiring or expired.  This will never return null and will return true if there's no token.
+   */
+  async isExpiringInMilliseconds(millis: number): Promise<boolean> {
+    const tokenExpiresAt = await this.getTokenExpiresAt();
+    return !isBefore(Date.now(), subMilliseconds(tokenExpiresAt, millis));
   }
 
   async clear(): Promise<void> {

@@ -1,5 +1,5 @@
-import { isBefore, sub, formatISO, formatISO9075 } from "date-fns";
-import React, { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { isBefore, sub, addMilliseconds, subMilliseconds } from "date-fns";
+import React, { PropsWithChildren, ReactElement, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { AuthClient } from "./AuthClient";
 import { AuthContext } from "./AuthContext";
 import { AuthenticationClientError } from "./AuthenticationClientError";
@@ -10,7 +10,6 @@ import type { EndpointConfiguration } from "./EndpointConfiguration";
 import type { OAuthToken } from "./OAuthToken";
 import { useLastAuthEvents } from './useLastAuthEvents';
 import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
-import { useTokenCheckClock } from "./useTokenCheckClock";
 
 type AuthContextProviderProps = PropsWithChildren<{
   /**
@@ -22,7 +21,7 @@ type AuthContextProviderProps = PropsWithChildren<{
    */
   storagePrefix?: string,
   /**
-   * Time in seconds to consider refreshing the access token.  Defaults to 10.
+   * Time in milliseconds to consider refreshing the access token.  Defaults to 10 seconds.
    */
   timeBeforeExpirationRefresh?: number
   /**
@@ -37,14 +36,14 @@ type AuthContextProviderProps = PropsWithChildren<{
 
 export type TokenState = {
   oauthToken: OAuthToken | null,
-  tokenExpiresAt: Date
+  tokenExpiresAt: Date | null
 }
 export function AuthProvider<A = any>({
   defaultEndpointConfiguration,
   children,
   logAuthEventFilterPredicate = (event: AuthEvent) => event.type !== "Connection" && event.type !== "CheckRefresh",
   logAuthEventSize = 50,
-  timeBeforeExpirationRefresh = 10,
+  timeBeforeExpirationRefresh = 10000,
   storagePrefix = "auth"
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
   const [endpointConfiguration, setEndpointConfiguration] = useState(defaultEndpointConfiguration);
@@ -53,7 +52,7 @@ export function AuthProvider<A = any>({
     () => {
       if (__DEV__) {
         if (endpointConfiguration.baseUrl.substring(endpointConfiguration.baseUrl.length - 1) !== '/') {
-          console.error("base URL should end with a '/'")
+          throw new Error(`base URL ${endpointConfiguration.baseUrl} should end with a '/'`)
         }
       }
       return new URL(endpointConfiguration.baseUrl);
@@ -67,27 +66,38 @@ export function AuthProvider<A = any>({
   const [authState, setAuthState] = useState(AuthState.INITIAL);
   const [tokenState, setTokenState] = useState<TokenState>({
     oauthToken: null,
-    tokenExpiresAt: new Date(0)
+    tokenExpiresAt: null
   });
-  const { lastCheckTime } = useTokenCheckClock(authState, tokenState.tokenExpiresAt, timeBeforeExpirationRefresh)
 
   const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(logAuthEventFilterPredicate, logAuthEventSize);
+  const { lastCheckTime, tokenRefreshable, netInfoState } = useRenderOnTokenEvent(endpointConfiguration, tokenState.tokenExpiresAt, timeBeforeExpirationRefresh, authState);
 
   // what I want is a hook that will rerender this component when specific dispatch events occur
   // the dispatch events are app state changes, network state changes, token expiration
 
-  const accessToken = useMemo(() => tokenState.oauthToken?.access_token ?? null, [tokenState.oauthToken]);
-  const { tokenRefreshable, netInfoState } = useRenderOnTokenEvent(endpointConfiguration);
+  const accessToken = tokenState.oauthToken?.access_token ?? null;
 
-  const accessTokenExpired = useMemo(
-    () => {
-      if (!tokenState.oauthToken) {
-        return true;
-      } else {
-        return !isBefore(Date.now(), sub(tokenState.tokenExpiresAt, { seconds: timeBeforeExpirationRefresh }));
-      }
-    },
-    [tokenState.oauthToken, tokenState.tokenExpiresAt, lastCheckTime]);
+  // const accessTokenExpired = (!tokenState.oauthToken || !tokenState.tokenExpiresAt) || !isBefore(Date.now(), subMilliseconds(tokenState.tokenExpiresAt, timeBeforeExpirationRefresh));
+
+  const [accessTokenExpired, setAccessTokenExpired] = useState<boolean | null>(true);
+  useEffect(() => {
+    authStorage.isExpiringInSeconds(timeBeforeExpirationRefresh)
+    if (!tokenState.oauthToken || !tokenState.tokenExpiresAt) {
+      setAccessTokenExpired(true);
+    } else {
+      setAccessTokenExpired(!isBefore(Date.now(), subMilliseconds(tokenState.tokenExpiresAt, timeBeforeExpirationRefresh)));
+    }
+  }, [tokenState.oauthToken, tokenState.tokenExpiresAt, lastCheckTime])
+  // const accessTokenExpired = useMemo(
+  //   () => {
+  //     console.log([tokenState.oauthToken, tokenState.tokenExpiresAt, lastCheckTime, !isBefore(Date.now(), subMilliseconds(tokenState.tokenExpiresAt, timeBeforeExpirationRefresh))])
+  //     if (!tokenState.oauthToken || !tokenState.tokenExpiresAt) {
+  //       return true;
+  //     } else {
+  //       return !isBefore(Date.now(), subMilliseconds(tokenState.tokenExpiresAt, timeBeforeExpirationRefresh));
+  //     }
+  //   },
+  //   [tokenState.oauthToken, tokenState.tokenExpiresAt, lastCheckTime]);
   const authorization = useMemo(() => (!accessTokenExpired && tokenState.oauthToken) ? `Bearer ${tokenState.oauthToken.access_token}` : null, [tokenState.oauthToken, accessTokenExpired]);
 
   const subscribe = useCallback(function subscribe(fn: (event: AuthEvent) => void) {
@@ -96,11 +106,50 @@ export function AuthProvider<A = any>({
       (subscription) => !Object.is(subscription, fn));
   }, []);
 
+
+  useEffect(() => {
+    notify({ type: 'CheckRefresh', reason: `Triggered by a change to tokenRefreshable=${tokenRefreshable} accessTokenExpired: ${accessTokenExpired} lastCheckTime: ${new Date(lastCheckTime).toISOString()}` })
+    if (accessTokenExpired === null) {
+      // do nothing as the access token is not yet initialized
+      return;
+    }
+
+    if (false && !accessTokenExpired && tokenState.oauthToken !== null && authState === AuthState.INITIAL) {
+      setAuthState(AuthState.NEEDS_REFRESH);
+    }
+    // there's no oauth token to refresh and AuthState !== UNAUTHENTICATED
+    else if (tokenState.oauthToken === null && authState !== AuthState.UNAUTHENTICATED && authState !== AuthState.INITIAL) {
+      setAuthState(AuthState.UNAUTHENTICATED);
+      notify({ type: "Unauthenticated", reason: `there's no oauth token to refresh and authState ${AuthState[authState]} !== UNAUTHENTICATED` });
+    } else if (tokenRefreshable && accessTokenExpired && tokenState.oauthToken !== null) {
+      // there's a state change determine if we need to refresh.
+      setAuthState(AuthState.NEEDS_REFRESH);
+    } else if (!tokenRefreshable && accessTokenExpired && tokenState.oauthToken !== null) {
+      setAuthState(AuthState.BACKEND_INACCESSIBLE);
+    }
+  }, [tokenRefreshable, accessTokenExpired, lastCheckTime]);
+
+
   useEffect(() => {
     // there's a state change determine if we need to refresh.
     (async () => {
       notify({ type: 'CheckRefresh', reason: `Triggered by a change to tokenRefreshable=${tokenRefreshable} authState: ${AuthState[authState]}` })
-      if (tokenRefreshable &&
+      if (accessTokenExpired === null) {
+        // don't do anything yet
+        return;
+      }
+      if (false && authState === AuthState.INITIAL && !(await authStorage.isExpired())) {
+        setAuthState(AuthState.AUTHENTICATED)
+        notify({
+          type: 'Authenticated',
+          reason: `From stored token`,
+          accessToken: accessToken!,
+          authorization: authorization!,
+          tokenExpiresAt: await authStorage.getTokenExpiresAt()
+        });
+
+      }
+      else if (tokenRefreshable &&
         (authState === AuthState.NEEDS_REFRESH ||
           authState === AuthState.INITIAL)
       ) {
@@ -112,20 +161,6 @@ export function AuthProvider<A = any>({
       }
     })();
   }, [tokenRefreshable, authState]);
-
-  useEffect(() => {
-    notify({ type: 'CheckRefresh', reason: `Triggered by a change to tokenRefreshable=${tokenRefreshable} accessTokenExpired: ${accessTokenExpired} lastCheckTime: ${new Date(lastCheckTime).toISOString()}` })
-    // there's no oauth token to refresh and AuthState !== UNAUTHENTICATED
-    if (tokenState.oauthToken === null && authState !== AuthState.UNAUTHENTICATED) {
-      setAuthState(AuthState.UNAUTHENTICATED);
-    } else if (tokenRefreshable && accessTokenExpired && tokenState.oauthToken !== null) {
-      // there's a state change determine if we need to refresh.
-      setAuthState(AuthState.NEEDS_REFRESH);
-    } else if (!tokenRefreshable && accessTokenExpired && tokenState.oauthToken !== null) {
-      setAuthState(AuthState.BACKEND_INACCESSIBLE);
-    }
-  }, [tokenRefreshable, accessTokenExpired, lastCheckTime]);
-
   /**
    * Notifies subscribers.  There's a specific handler if it is "Unauthenticated" that the provider handles.
    */
@@ -276,7 +311,7 @@ export function AuthProvider<A = any>({
     authorization,
     accessToken,
     accessTokenExpired,
-    accessTokenExpiresOn: tokenState.tokenExpiresAt,
+    accessTokenExpiresOn: tokenState.tokenExpiresAt || new Date(0),
     baseUrl,
     oauthToken: tokenState.oauthToken,
     tokenRefreshable,
