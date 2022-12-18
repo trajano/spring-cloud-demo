@@ -10,6 +10,7 @@ import type { EndpointConfiguration } from "./EndpointConfiguration";
 import type { OAuthToken } from "./OAuthToken";
 import { useLastAuthEvents } from './useLastAuthEvents';
 import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
+import { useTokenCheckClock } from "./useTokenCheckClock";
 
 type AuthContextProviderProps = PropsWithChildren<{
   /**
@@ -68,6 +69,7 @@ export function AuthProvider<A = any>({
     oauthToken: null,
     tokenExpiresAt: new Date(0)
   });
+  const { lastCheckTime } = useTokenCheckClock(authState, tokenState.tokenExpiresAt, timeBeforeExpirationRefresh)
 
   const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(logAuthEventFilterPredicate, logAuthEventSize);
 
@@ -75,7 +77,7 @@ export function AuthProvider<A = any>({
   // the dispatch events are app state changes, network state changes, token expiration
 
   const accessToken = useMemo(() => tokenState.oauthToken?.access_token ?? null, [tokenState.oauthToken]);
-  const { lastCheckTime, tokenRefreshable, netInfoState } = useRenderOnTokenEvent(endpointConfiguration, tokenState.tokenExpiresAt, timeBeforeExpirationRefresh);
+  const { tokenRefreshable, netInfoState } = useRenderOnTokenEvent(endpointConfiguration);
 
   const accessTokenExpired = useMemo(
     () => {
