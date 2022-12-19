@@ -115,7 +115,6 @@ export function AuthProvider<A = any>({
   const accessTokenExpired = useMemo(() => isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh), [lastCheckTime, tokenExpiresAtRef.current, timeBeforeExpirationRefresh]);
   const authorization = useMemo(() => (!accessTokenExpired && !!oauthTokenRef.current) ? `Bearer ${accessToken}` : null, [lastCheckTime, accessTokenExpired, oauthTokenRef.current]);
 
-
   function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
     return () => subscribersRef.current.filter(
@@ -286,7 +285,6 @@ export function AuthProvider<A = any>({
       refreshingRef.current = false;
     }
   }
-
 
   useInitialAuthStateEffect({
     setAuthStateAndNotify,
