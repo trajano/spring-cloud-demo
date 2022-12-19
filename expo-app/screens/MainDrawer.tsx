@@ -15,16 +15,18 @@ export function DrawerNavigator() {
     // hack TabOne as ComponentType for now.
     return (<Drawer.Navigator screenOptions={{ headerShown: false, drawerType }} defaultStatus={defaultStatus}     >
         <Drawer.Screen name="TabOne" component={TabOne as ComponentType} options={{ headerShown: false }} />
-        <Drawer.Screen name="JustScrollView" component={JustScrollView} options={{ headerShown: false, title: "Access token" }} />
+        <Drawer.Screen name="JustScrollView" component={JustScrollView} options={{ headerShown: true, title: "Access token" }} />
         <Drawer.Screen name="StackNavigatorScrollView" component={StackNavigatorScrollView} options={{
             title: "Auth Event Log",
             headerShown: false
         }} />
         <Drawer.Screen name="Environment" component={EnvironmentScreen} options={{
-            title: "Environment"
+            title: "Environment",
+            headerShown: true,
         }} />
         <Drawer.Screen name="AsyncStorage" component={AsyncStorageScreen} options={{
-            title: "Async Storage", headerShown: true,
+            title: "Async Storage",
+            headerShown: true,
         }} />
     </Drawer.Navigator>)
 }
