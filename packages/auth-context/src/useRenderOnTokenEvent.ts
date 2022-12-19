@@ -40,12 +40,6 @@ export function useRenderOnTokenEvent(
    * App State
    */
   const appState = useAppStateWithNetInfoRefresh();
-  const { lastCheckTime } = useTokenCheckClock(
-    authState,
-    tokenExpiresAt,
-    timeBeforeExpirationRefresh
-  );
-
   /**
    * Net info state.
    */
@@ -64,7 +58,7 @@ export function useRenderOnTokenEvent(
 
   return {
     tokenRefreshable,
-    lastCheckTime,
+    lastCheckTime:0,
     netInfoState,
   };
 }

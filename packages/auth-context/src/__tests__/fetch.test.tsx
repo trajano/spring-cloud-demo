@@ -1,7 +1,6 @@
 import fetchMock from 'fetch-mock-jest';
 describe("http", () => {
   beforeEach(() => {
-    // jest.useFakeTimers('modern');
     jest.useFakeTimers({ advanceTimers: true });
   })
 
@@ -20,9 +19,19 @@ describe("http", () => {
     const response = await fetch("https://trajano.net/bad-request");
     expect(Date.now()).toBe(new Date("2022-01-01T00:00:00Z").getTime());
     expect(response.status).toBe(400);
+    expect(response.ok).toBe(false);
     expect(await response.json()).toStrictEqual({ "bad": "request" });
   })
 
+  it("401 Error example", async () => {
+    jest.setSystemTime(new Date("2022-01-01T00:00:00Z"));
+    fetchMock.mock("https://trajano.net/bad-request", { status: 401, body: { bad: "request" } })
+    const response = await fetch("https://trajano.net/bad-request");
+    expect(Date.now()).toBe(new Date("2022-01-01T00:00:00Z").getTime());
+    expect(response.status).toBe(401);
+    expect(response.ok).toBe(false);
+    expect(await response.json()).toStrictEqual({ "bad": "request" });
+  })
   afterEach(() => {
     jest.useRealTimers();
     fetchMock.mockReset();

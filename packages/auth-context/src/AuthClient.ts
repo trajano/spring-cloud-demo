@@ -40,7 +40,9 @@ export class AuthClient<A = any> implements IAuthClient<A> {
    * @returns [ OAuthToken, Response ]
    * @throws AuthenticationClientError
    */
-  public async authenticate(authenticationRequest: A): Promise<[OAuthToken, Response]> {
+  public async authenticate(
+    authenticationRequest: A
+  ): Promise<[OAuthToken, Response]> {
     const response = await fetch(this.authorizationEndpoint, {
       method: 'POST',
       headers: {
