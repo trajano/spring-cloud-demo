@@ -233,7 +233,7 @@ export function AuthProvider<A = any>({
             notify({
               type: "Unauthenticated",
               reason: e.message,
-              responseBody: await e.response.json()
+              responseBody: e.responseBody
             })
           } else if (e instanceof AuthenticationClientError && !e.isUnauthorized()) {
             // at this point there is an error but it's not something caused by the user so don't clear off the token
@@ -242,7 +242,7 @@ export function AuthProvider<A = any>({
               event: {
                 type: "TokenExpiration",
                 reason: e.message,
-                responseBody: await e.response.json(),
+                responseBody: e.responseBody,
                 netInfoState
               }
             });

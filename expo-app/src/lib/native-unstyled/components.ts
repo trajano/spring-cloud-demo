@@ -19,6 +19,8 @@ import {
   Text as RNText,
   View as RNView,
 } from "react-native";
+import { BlurView as ExpoBlurView } from "expo-blur";
+import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import { withI18n } from "./withI18n";
 import { withReplacedWithNativeFonts } from "./withReplacedWithNativeFonts";
 import { withStyled } from "./withStyled";
@@ -31,6 +33,15 @@ export const Pressable = withStyled(RNPressable);
 export const RefreshControl = withStyled(RNRefreshControl);
 export const ScrollView = withStyled(RNScrollView);
 export const SectionList = withStyled(RNSectionList);
+
+/**
+ * Expo BlurView
+ */
+export const BlurView = withStyled(ExpoBlurView);
+/**
+ * Expo LinearGradient
+ */
+export const LinearGradient = withStyled(ExpoLinearGradient);
 
 /**
  * TextInput

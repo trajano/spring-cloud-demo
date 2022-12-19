@@ -1,6 +1,6 @@
-# React Native Unstyled
+# Expo Unstyled
 
-The objective of the library is to add Quality of Life improvements to existing React Native components. It is _not_ a component library per se but can be use as a base for one.
+The objective of the library is to add Quality of Life improvements to existing React Native and Expo components. It is _not_ a component library per se but can be use as a base for one.
 
 Key functions:
 

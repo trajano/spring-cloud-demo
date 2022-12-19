@@ -47,6 +47,6 @@ export async function jwtVerify<P extends JwtClaims>(
       throw new Error("JWT not valid");
     }
   } catch (e) {
-    throw new Error(`e`, e);
+    throw new Error(`e`, { cause: e });
   }
 }

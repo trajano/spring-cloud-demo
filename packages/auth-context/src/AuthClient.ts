@@ -35,6 +35,28 @@ export class AuthClient<A = any> implements IAuthClient<A> {
   }
 
   /**
+   * This extracts the body from the response as .text() rather than .json()
+   * so error handlers can use it to get the content that was sent as-is.
+   *
+   * It may be slower, but this ensures we do not lose useful data for debugging.
+   *
+   * This also handles the responsibility of assembling the client error.
+   * @param response response
+   */
+  private async resolveJson<A>(response: Response): Promise<A> {
+    const responseBody = await response.text();
+    try {
+      return JSON.parse(responseBody) as A;
+    } catch (e) {
+      throw new AuthenticationClientError(
+        response,
+        responseBody,
+        'unable to parse response as JSON'
+      );
+    }
+  }
+
+  /**
    * Calls the API endpoint to authenticate.
    * @param authenticationRequest
    * @returns [ OAuthToken, Response ]
@@ -53,9 +75,9 @@ export class AuthClient<A = any> implements IAuthClient<A> {
       body: JSON.stringify(authenticationRequest),
     });
     if (!response.ok) {
-      throw new AuthenticationClientError(response);
+      throw new AuthenticationClientError(response, await response.text());
     }
-    return [await response.json(), response];
+    return [await this.resolveJson(response), response];
   }
 
   public async refresh(refreshToken: string): Promise<OAuthToken> {
@@ -72,9 +94,9 @@ export class AuthClient<A = any> implements IAuthClient<A> {
       }).toString(),
     });
     if (!response.ok) {
-      throw new AuthenticationClientError(response);
+      throw new AuthenticationClientError(response, await response.text());
     }
-    return response.json();
+    return this.resolveJson(response);
   }
 
   public async revoke(refreshToken: string) {
@@ -91,8 +113,8 @@ export class AuthClient<A = any> implements IAuthClient<A> {
       }).toString(),
     });
     if (!response.ok) {
-      throw new AuthenticationClientError(response);
+      throw new AuthenticationClientError(response, await response.text());
     }
-    await response.json();
+    return this.resolveJson<any>(response);
   }
 }
