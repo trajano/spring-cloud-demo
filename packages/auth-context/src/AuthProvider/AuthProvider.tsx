@@ -57,6 +57,7 @@ export function AuthProvider<A = any>({
   timeBeforeExpirationRefresh = 10000,
   storagePrefix = "auth"
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
+  const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(logAuthEventFilterPredicate, logAuthEventSize);
   const [endpointConfiguration, setEndpointConfiguration] = useState(defaultEndpointConfiguration);
   const authClient = useMemo(() => new AuthClient<A>(endpointConfiguration), [endpointConfiguration]);
   const baseUrl = useMemo(
@@ -86,7 +87,6 @@ export function AuthProvider<A = any>({
     },
     AuthState.INITIAL);
 
-  const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(logAuthEventFilterPredicate, logAuthEventSize);
   const { tokenRefreshable, netInfoState } = useRenderOnTokenEvent(endpointConfiguration);
 
   /**
@@ -128,8 +128,6 @@ export function AuthProvider<A = any>({
    * will render these anyway and we're not optimizing from the return value either.
    */
   function notify(event: AuthEvent) {
-    // apply auth state if available.
-    event.authState = authState;
     pushAuthEvent(event);
     subscribersRef.current.forEach((fn) => fn(event));
   }
