@@ -6,6 +6,7 @@ import { JustScrollView } from "./JustScrollView";
 import { StackNavigatorScrollView } from "./StackNavigatorScrollView";
 import { TabOne } from "./TabOne";
 import { EnvironmentScreen } from "./EnvironmentScreen";
+import { AuthStorageScreen } from "./AuthStorageScreen";
 const Drawer = createDrawerNavigator<MainDrawerParamList>();
 export function DrawerNavigator() {
     const { width, height } = useWindowDimensions();
@@ -21,6 +22,9 @@ export function DrawerNavigator() {
         }} />
         <Drawer.Screen name="Environment" component={EnvironmentScreen} options={{
             title: "Environment"
+        }} />
+        <Drawer.Screen name="AuthStorage" component={AuthStorageScreen} options={{
+            title: "Async Storage", headerShown: true,
         }} />
     </Drawer.Navigator>)
 }

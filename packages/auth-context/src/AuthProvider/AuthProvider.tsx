@@ -282,6 +282,15 @@ export function AuthProvider<A = any>({
         // no op
       } else if (authState === AuthState.NEEDS_REFRESH && lastBackendFailureAttemptRef.current === lastCheckTime) {
         // no op
+      } else if (authState === AuthState.BACKEND_INACCESSIBLE && !tokenRefreshable) {
+        // no op
+      } else if (authState === AuthState.BACKEND_INACCESSIBLE && lastBackendFailureAttemptRef.current === lastCheckTime) {
+        // no op
+      } else if (authState === AuthState.BACKEND_INACCESSIBLE && tokenRefreshable) {
+        setAuthStateAndNotify({
+          next: AuthState.NEEDS_REFRESH,
+          event: { type: "TokenExpiration", reason: "Needs refresh from backend inaccessible" }
+        })
       } else if (authState === AuthState.BACKEND_FAILURE && lastBackendFailureAttemptRef.current !== lastCheckTime && !refreshingRef.current) {
         notify({ type: "CheckRefresh", reason: "Needs refresh from backend failure and not refreshing" })
         setAuthStateAndNotify({
@@ -300,6 +309,7 @@ export function AuthProvider<A = any>({
             reason: `Token has expired at ${tokenExpiresAtRef.current?.toISOString()} but backend is not accessible`
           }
         })
+        lastBackendFailureAttemptRef.current = lastCheckTime;
       } else if (authState === AuthState.AUTHENTICATED && isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh)) {
         setAuthStateAndNotify({
           next: AuthState.NEEDS_REFRESH,
