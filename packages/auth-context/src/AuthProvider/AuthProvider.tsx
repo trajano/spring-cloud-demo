@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, ReactElement, useMemo, useRef, useState } from "react";
+import React, { PropsWithChildren, ReactElement, useMemo, useReducer, useRef, useState } from "react";
 import { AuthClient } from "../AuthClient";
 import { AuthContext } from "../AuthContext";
 import { AuthenticationClientError } from "../AuthenticationClientError";
@@ -75,7 +75,16 @@ export function AuthProvider<A = any>({
 
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
 
-  const [authState, setAuthState] = useState(AuthState.INITIAL);
+  const [authState, setAuthStateAndNotify] = useReducer(
+    function reduceAuthStateAndNotify(prev: AuthState, { next, event }: { next: AuthState, event: AuthEvent }): AuthState {
+      notify(event);
+      if (prev === next) {
+        return prev;
+      } else {
+        return next;
+      }
+    },
+    AuthState.INITIAL);
 
   const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(logAuthEventFilterPredicate, logAuthEventSize);
   const { tokenRefreshable, netInfoState } = useRenderOnTokenEvent(endpointConfiguration);
@@ -106,13 +115,6 @@ export function AuthProvider<A = any>({
   const accessTokenExpired = useMemo(() => isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh), [lastCheckTime, tokenExpiresAtRef.current, timeBeforeExpirationRefresh]);
   const authorization = useMemo(() => (!accessTokenExpired && !!oauthTokenRef.current) ? `Bearer ${accessToken}` : null, [lastCheckTime, accessTokenExpired, oauthTokenRef.current]);
 
-  /**
-   * This will be changed to reducer later to ensure notifications occur for every state change.
-   */
-  function setAuthStateAndNotify({ next, event }: { next: AuthState, event: AuthEvent }): void {
-    setAuthState(next);
-    notify(event);
-  }
 
   function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
@@ -138,19 +140,24 @@ export function AuthProvider<A = any>({
       const [nextOauthToken, authenticationResponse] = await authClient.authenticate(authenticationCredentials);
       const nextTokenExpiresAt = await authStorage.storeOAuthTokenAndGetExpiresAt(nextOauthToken);
       await updateTokenInfoRef(authStorage, oauthTokenRef, tokenExpiresAtRef);
-      setAuthState(AuthState.AUTHENTICATED);
-
       notify({
         type: "LoggedIn",
+        reason: "Logged with credentials",
+        authState,
         accessToken: nextOauthToken.access_token,
         authorization: `Bearer ${nextOauthToken.access_token}`,
         tokenExpiresAt: nextTokenExpiresAt
       })
-      notify({
-        type: "Authenticated",
-        accessToken: nextOauthToken.access_token,
-        authorization: `Bearer ${nextOauthToken.access_token}`,
-        tokenExpiresAt: nextTokenExpiresAt
+      setAuthStateAndNotify({
+        next: AuthState.AUTHENTICATED,
+        event: {
+          type: "Authenticated",
+          reason: "Login",
+          authState,
+          accessToken: nextOauthToken.access_token,
+          authorization: `Bearer ${nextOauthToken.access_token}`,
+          tokenExpiresAt: nextTokenExpiresAt
+        }
       })
       return authenticationResponse;
     } catch (e: unknown) {
@@ -182,11 +189,13 @@ export function AuthProvider<A = any>({
       await updateTokenInfoRef(authStorage, oauthTokenRef, tokenExpiresAtRef);
       setAuthStateAndNotify({
         next: AuthState.UNAUTHENTICATED, event: {
-          type: "LoggedOut"
+          type: "LoggedOut",
+          authState
         }
       })
       notify({
         type: "Unauthenticated",
+        authState,
         reason: "Logged out"
       })
 
@@ -195,10 +204,14 @@ export function AuthProvider<A = any>({
 
   async function refresh() {
     if (refreshingRef.current) {
-      notify({ type: "Refreshing", reason: "Already in progress" });
+      notify({
+        type: "Refreshing",
+        authState,
+        reason: "Already in progress"
+      });
       return;
     }
-    setAuthStateAndNotify({ next: AuthState.REFRESHING, event: { type: "Refreshing", reason: "Requested" } });
+    setAuthStateAndNotify({ next: AuthState.REFRESHING, event: { type: "Refreshing", authState, reason: "Requested" } });
     refreshingRef.current = true;
     try {
       const storedOAuthToken = await authStorage.getOAuthToken();
@@ -209,6 +222,7 @@ export function AuthProvider<A = any>({
           next: AuthState.UNAUTHENTICATED,
           event: {
             type: "Unauthenticated",
+            authState,
             reason: "No token stored. Normally should not happen here."
           }
         });
@@ -218,6 +232,7 @@ export function AuthProvider<A = any>({
           next: AuthState.BACKEND_INACCESSIBLE,
           event: {
             type: "TokenExpiration",
+            authState,
             reason: "Backend is not available and token refresh was requested",
             netInfoState
           }
@@ -232,6 +247,7 @@ export function AuthProvider<A = any>({
             event: {
               type: "Authenticated",
               reason: "Refreshed",
+              authState,
               accessToken: refreshedOAuthToken.access_token,
               authorization: `Bearer ${refreshedOAuthToken.access_token}`,
               tokenExpiresAt: nextTokenExpiresAt
@@ -245,6 +261,7 @@ export function AuthProvider<A = any>({
               next: AuthState.UNAUTHENTICATED,
               event: {
                 type: "Unauthenticated",
+                authState,
                 reason: e.message,
                 responseBody: e.responseBody
               }
@@ -256,6 +273,7 @@ export function AuthProvider<A = any>({
               next: AuthState.BACKEND_FAILURE,
               event: {
                 type: "TokenExpiration",
+                authState,
                 reason: e.message,
                 responseBody: e.responseBody,
                 netInfoState

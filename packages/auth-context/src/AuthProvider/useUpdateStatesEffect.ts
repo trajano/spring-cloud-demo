@@ -1,5 +1,5 @@
 import NetInfo from '@react-native-community/netinfo';
-import { Dispatch, MutableRefObject, useEffect, useRef } from 'react';
+import { Dispatch, MutableRefObject, useEffect } from 'react';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import type { AuthStore } from '../AuthStore';
@@ -87,6 +87,7 @@ export function useUpdateStatesEffect({
           next: AuthState.NEEDS_REFRESH,
           event: {
             type: 'TokenExpiration',
+            authState,
             reason: 'Needs refresh, backend was inaccessible is now accessible',
           },
         });
@@ -95,14 +96,11 @@ export function useUpdateStatesEffect({
         lastBackendFailureAttemptRef.current !== lastCheckTime &&
         !refreshingRef.current
       ) {
-        notify({
-          type: 'CheckRefresh',
-          reason: 'Needs refresh from backend failure and not refreshing',
-        });
         setAuthStateAndNotify({
           next: AuthState.NEEDS_REFRESH,
           event: {
             type: 'TokenExpiration',
+            authState,
             reason: 'Needs refresh from backend failure',
           },
         });
@@ -113,6 +111,7 @@ export function useUpdateStatesEffect({
       ) {
         notify({
           type: 'CheckRefresh',
+          authState,
           reason: 'Needs refresh and token is refreshable and not refreshing',
         });
         await refresh();
@@ -122,6 +121,7 @@ export function useUpdateStatesEffect({
           next: AuthState.BACKEND_INACCESSIBLE,
           event: {
             type: 'TokenExpiration',
+            authState,
             reason: `Token has expired at ${tokenExpiresAtRef.current?.toISOString()} but backend is not accessible`,
           },
         });
@@ -134,6 +134,7 @@ export function useUpdateStatesEffect({
           next: AuthState.NEEDS_REFRESH,
           event: {
             type: 'TokenExpiration',
+            authState,
             reason: `Token has expired at ${tokenExpiresAtRef.current?.toISOString()} and needs refresh`,
           },
         });
@@ -153,17 +154,15 @@ export function useUpdateStatesEffect({
     if (authState !== AuthState.INITIAL) {
       notify({
         type: 'CheckRefresh',
-        reason: `Update in lastCheckTime: ${new Date(
-          lastCheckTime
-        ).toISOString()} authState: ${
-          AuthState[authState]
-        } tokenRefreshable: ${tokenRefreshable} tokenExpiresAt: ${JSON.stringify(
-          tokenExpiresAtRef
-        )} (${
-          isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh)
-            ? 'expired'
-            : 'not expired'
-        })`,
+        reason: 'Update in useEffect dependencies',
+        authState: authState,
+        lastCheckTime: new Date(lastCheckTime),
+        tokenRefreshable,
+        tokenExpiresAt: tokenExpiresAtRef.current,
+        tokenExpired: isTokenRefExpired(
+          tokenExpiresAtRef,
+          timeBeforeExpirationRefresh
+        ),
       });
       // console.log({
       //   lastCheckTime: new Date(lastCheckTime).toISOString(),

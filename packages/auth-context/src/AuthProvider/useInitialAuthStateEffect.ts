@@ -1,8 +1,4 @@
-import {
-  Dispatch,
-  MutableRefObject,
-  useEffect
-} from 'react';
+import { Dispatch, MutableRefObject, useEffect } from 'react';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import type { AuthStore } from '../AuthStore';
@@ -36,6 +32,7 @@ export function useInitialAuthStateEffect({
         setAuthStateAndNotify({
           next: AuthState.UNAUTHENTICATED,
           event: {
+            authState: AuthState.INITIAL,
             type: 'Unauthenticated',
             reason: 'no token or expiration information on initial state',
           },
@@ -48,6 +45,7 @@ export function useInitialAuthStateEffect({
           next: AuthState.AUTHENTICATED,
           event: {
             type: 'Authenticated',
+            authState: AuthState.INITIAL,
             reason: 'active token restored from storage on intial state',
             accessToken: oauthTokenRef.current.access_token,
             authorization: `Bearer ${oauthTokenRef.current.access_token}`,
@@ -60,6 +58,7 @@ export function useInitialAuthStateEffect({
           next: AuthState.NEEDS_REFRESH,
           event: {
             type: 'TokenExpiration',
+            authState: AuthState.INITIAL,
             reason: 'expired token restored from storage on intial state',
           },
         });

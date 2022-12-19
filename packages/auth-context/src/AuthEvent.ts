@@ -1,10 +1,18 @@
 import type { NetInfoState } from '@react-native-community/netinfo';
 import type { AuthState } from './AuthState';
+type CommonAuthEvent = {
+  type: string;
+  authState: AuthState;
+  /**
+   * Reason for event if any
+   */
+  reason?: string;
+};
 /**
  * This gets fired when a valid authentication token was obtained after authentication or refresh.
  * Exported so it can be used in a test.
  */
-export type AuthenticatedEvent = {
+export type AuthenticatedEvent = CommonAuthEvent & {
   type: 'Authenticated';
   authState?: AuthState;
   /**
@@ -16,18 +24,13 @@ export type AuthenticatedEvent = {
    */
   authorization: string;
   tokenExpiresAt: Date;
-  /**
-   * Reason for authentication if any
-   */
-  reason?: string;
 };
 /**
  * This gets fired when a valid authentication token was obtained after authentication.  This is
  * not fired when there is a refresh and is fired before {@link AuthenticatedEvent}
  */
-type LoggedInEvent = {
+type LoggedInEvent = CommonAuthEvent & {
   type: 'LoggedIn';
-  authState?: AuthState;
   /**
    * The raw access token.
    */
@@ -37,56 +40,36 @@ type LoggedInEvent = {
    */
   authorization: string;
   tokenExpiresAt: Date;
-  /**
-   * Reason for authentication if any
-   */
-  reason?: string;
 };
 /**
  * This gets fired when the refresh process is about to start and it is being checked if needed or possible.
  */
-type CheckRefreshEvent = {
+type CheckRefreshEvent = CommonAuthEvent & {
   type: 'CheckRefresh';
-  authState?: AuthState;
-  /**
-   * Reason for refresh if any
-   */
-  reason?: string;
+  lastCheckTime?: Date;
+  tokenRefreshable?: boolean;
+  tokenExpired?: boolean;
+  tokenExpiresAt?: Date | null;
 };
 
 /**
  * This gets fired when the refresh process is started.  This occurs before the app client refresh is called.
  */
-type RefreshingEvent = {
+type RefreshingEvent = CommonAuthEvent & {
   type: 'Refreshing';
-  authState?: AuthState;
-  /**
-   * Reason for refresh if any
-   */
-  reason?: string;
 };
 /**
  * Connection change event.  This is explicity exported to allow better type safety.
  */
-export type ConnectionChangeEvent = {
+export type ConnectionChangeEvent = CommonAuthEvent & {
   type: 'Connection';
-  authState?: AuthState;
   /**
    * Current net info state.
    */
   netInfoState: NetInfoState;
-  /**
-   * Reason for refresh if any
-   */
-  reason?: string;
 };
-type TokenExpirationEvent = {
+type TokenExpirationEvent = CommonAuthEvent & {
   type: 'TokenExpiration';
-  authState?: AuthState;
-  /**
-   * Reason for token expiration if any
-   */
-  reason?: string;
   /**
    * Body of response if available
    */
@@ -100,13 +83,8 @@ type TokenExpirationEvent = {
  * This gets fired when there is a transition from authenticated to unauthenticated.  Or when the initial
  * state had determined that the user is not authenticated/
  */
-type UnauthenticatedEvent = {
+type UnauthenticatedEvent = CommonAuthEvent & {
   type: 'Unauthenticated';
-  authState?: AuthState;
-  /**
-   * Reason why it is not authenticated if any.
-   */
-  reason?: string;
   /**
    * Body of response if available
    */
@@ -117,13 +95,8 @@ type UnauthenticatedEvent = {
  * A use case for handling this event is to remove any notification or background fetch handlers from the app and also to
  * deregister the notification token on a remote server.
  */
-type LoggedOutEvent = {
+type LoggedOutEvent = CommonAuthEvent & {
   type: 'LoggedOut';
-  authState?: AuthState;
-  /**
-   * Reason for log off if any.
-   */
-  reason?: string;
 };
 export type AuthEvent =
   | AuthenticatedEvent
