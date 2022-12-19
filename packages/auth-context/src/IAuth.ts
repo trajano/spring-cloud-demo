@@ -61,7 +61,8 @@ export interface IAuth<A = any> {
   accessTokenExpired: boolean;
   /**
    * This specifies when the access token will expire.  This may
-   * return `Date(0)` if the access token is not available.
+   * return an arbitrary time value in the past if the access token
+   * or expiration is not available.
    */
   accessTokenExpiresOn: Date;
   /**

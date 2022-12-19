@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, ReactElement, useEffect, useMemo, useRef, useState } from "react";
+import React, { PropsWithChildren, ReactElement, useMemo, useRef, useState } from "react";
 import { AuthClient } from "../AuthClient";
 import { AuthContext } from "../AuthContext";
 import { AuthenticationClientError } from "../AuthenticationClientError";
@@ -13,6 +13,7 @@ import { useTokenCheckClock } from "../useTokenCheckClock";
 import { isTokenRefExpired } from "./isTokenRefExpired";
 import { updateTokenInfoRef } from "./updateTokenInfoRef";
 import { useInitialAuthStateEffect } from "./useInitialAuthStateEffect";
+import { useUpdateStatesEffect } from './useUpdateStatesEffect';
 
 type AuthContextProviderProps = PropsWithChildren<{
   /**
@@ -77,13 +78,12 @@ export function AuthProvider<A = any>({
   const [authState, setAuthState] = useState(AuthState.INITIAL);
 
   const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(logAuthEventFilterPredicate, logAuthEventSize);
-  const { tokenRefreshable, netInfoState } = useRenderOnTokenEvent(endpointConfiguration, null, 0, authState);
+  const { tokenRefreshable, netInfoState } = useRenderOnTokenEvent(endpointConfiguration);
 
   /**
    * Indicates that refresh is active
    */
   const refreshingRef = useRef(authState === AuthState.REFRESHING);
-
 
   // OAuth token reference, this is updated by some effect
   const oauthTokenRef = useRef<OAuthToken | null>(null);
@@ -251,6 +251,7 @@ export function AuthProvider<A = any>({
             });
           } else if (e instanceof AuthenticationClientError && !e.isUnauthorized()) {
             // at this point there is an error but it's not something caused by the user so don't clear off the token
+            lastBackendFailureAttemptRef.current = lastCheckTime;
             setAuthStateAndNotify({
               next: AuthState.BACKEND_FAILURE,
               event: {
@@ -260,7 +261,6 @@ export function AuthProvider<A = any>({
                 netInfoState
               }
             });
-            lastBackendFailureAttemptRef.current = lastCheckTime;
           } else {
             throw e;
           }
@@ -280,83 +280,27 @@ export function AuthProvider<A = any>({
     timeBeforeExpirationRefresh
   });
 
-  useEffect(() => {
-    async function updateStatesAfterRender() {
-      await updateTokenInfoRef(authStorage, oauthTokenRef, tokenExpiresAtRef);
-      if (authState === AuthState.INITIAL || authState === AuthState.UNAUTHENTICATED || authState === AuthState.REFRESHING || !!refreshingRef.current) {
-        // no op
-      } else if (authState === AuthState.AUTHENTICATED && !isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh)) {
-        // no op
-      } else if (authState === AuthState.NEEDS_REFRESH && tokenRefreshable && refreshingRef.current) {
-        // no op
-      } else if (authState === AuthState.BACKEND_FAILURE && lastBackendFailureAttemptRef.current === lastCheckTime) {
-        // no op
-      } else if (authState === AuthState.NEEDS_REFRESH && lastBackendFailureAttemptRef.current === lastCheckTime) {
-        // no op
-      } else if (authState === AuthState.BACKEND_INACCESSIBLE && !tokenRefreshable) {
-        // no op
-      } else if (authState === AuthState.BACKEND_INACCESSIBLE && lastBackendFailureAttemptRef.current === lastCheckTime) {
-        // no op
-      } else if (authState === AuthState.BACKEND_INACCESSIBLE && tokenRefreshable) {
-        // clear off attempt
-        lastBackendFailureAttemptRef.current = 0;
-        setAuthStateAndNotify({
-          next: AuthState.NEEDS_REFRESH,
-          event: { type: "TokenExpiration", reason: "Needs refresh, backend was inaccessible is now accessible" }
-        })
-      } else if (authState === AuthState.BACKEND_FAILURE && lastBackendFailureAttemptRef.current !== lastCheckTime && !refreshingRef.current) {
-        notify({ type: "CheckRefresh", reason: "Needs refresh from backend failure and not refreshing" })
-        setAuthStateAndNotify({
-          next: AuthState.NEEDS_REFRESH,
-          event: { type: "TokenExpiration", reason: "Needs refresh from backend failure" }
-        })
-      } else if (authState === AuthState.NEEDS_REFRESH && tokenRefreshable && !refreshingRef.current) {
-        notify({ type: "CheckRefresh", reason: "Needs refresh and token is refreshable and not refreshing" })
-        await refresh();
-      } else if (authState === AuthState.NEEDS_REFRESH && !tokenRefreshable) {
-        // use zero because there's still that grace time
-        setAuthStateAndNotify({
-          next: AuthState.BACKEND_INACCESSIBLE,
-          event: {
-            type: "TokenExpiration",
-            reason: `Token has expired at ${tokenExpiresAtRef.current?.toISOString()} but backend is not accessible`
-          }
-        })
-        lastBackendFailureAttemptRef.current = lastCheckTime;
-      } else if (authState === AuthState.AUTHENTICATED && isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh)) {
-        setAuthStateAndNotify({
-          next: AuthState.NEEDS_REFRESH,
-          event: {
-            type: "TokenExpiration",
-            reason: `Token has expired at ${tokenExpiresAtRef.current?.toISOString()} and needs refresh`
-          }
-        })
-      } else {
-        /* istanbul ignore next */
-        console.warn(`Unexpected state = ${JSON.stringify({ lastCheckTime: new Date(lastCheckTime).toISOString(), authState: AuthState[authState], tokenRefreshable, oauthTokenRef, tokenExpiresAtRef })}`);
-      }
-    }
-    if (authState !== AuthState.INITIAL) {
-      notify({
-        type: "CheckRefresh",
-        reason: `Update in lastCheckTime: ${new Date(lastCheckTime).toISOString()} authState: ${AuthState[authState]} tokenRefreshable: ${tokenRefreshable} tokenExpiresAt: ${JSON.stringify(tokenExpiresAtRef)} (${isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh) ? "expired" : "not expired"})`,
-      })
-      // console.log({
-      //   lastCheckTime: new Date(lastCheckTime).toISOString(),
-      //   reason: `Update in authState: ${AuthState[authState]} tokenRefreshable: ${tokenRefreshable} tokenExpiresAt: ${JSON.stringify(tokenExpiresAtRef)} (${isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh) ? "expired" : "not expired"})`,
-      //   lastBackendFailureAttemptRef: new Date(lastBackendFailureAttemptRef.current),
-      //   now: new Date().toISOString()
-      // })
-      updateStatesAfterRender();
-    }
-  }, [lastCheckTime, authState, tokenRefreshable])
+  useUpdateStatesEffect({
+    authState,
+    lastCheckTime,
+    tokenRefreshable,
+    authStorage,
+    oauthTokenRef,
+    tokenExpiresAtRef,
+    lastBackendFailureAttemptRef,
+    refreshingRef,
+    timeBeforeExpirationRefresh,
+    setAuthStateAndNotify,
+    notify,
+    refresh
+  });
 
   return <AuthContext.Provider value={{
     authState,
     authorization,
     accessToken,
     accessTokenExpired,
-    accessTokenExpiresOn: tokenExpiresAtRef.current || new Date(0),
+    accessTokenExpiresOn: tokenExpiresAtRef.current ?? new Date(lastCheckTime),
     baseUrl,
     oauthToken: oauthTokenRef.current,
     tokenRefreshable,

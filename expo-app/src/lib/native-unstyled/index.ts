@@ -16,3 +16,4 @@ export type { LoadingComponentProps } from "./LoadingComponentProps";
 export { ThemeProvider, useColors, useTheming } from "./ThemeContext";
 export { useFonts } from "./Fonts";
 export * from "./components";
+export type { StyleProps } from "./StyleProps";

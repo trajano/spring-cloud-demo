@@ -1,10 +1,8 @@
 import type { NetInfoState } from '@react-native-community/netinfo';
 import { useMemo } from 'react';
-import type { AuthState } from './AuthState';
 import type { EndpointConfiguration } from './EndpointConfiguration';
 import { useAppStateWithNetInfoRefresh } from './useAppStateWithNetInfoRefresh';
 import { useNetInfoState } from './useNetInfoState';
-import { useTokenCheckClock } from './useTokenCheckClock';
 
 type RenderOnTokenEventState = {
   /**
@@ -26,15 +24,9 @@ type RenderOnTokenEventState = {
  * - network state changes
  * - token needs to be rechecked.
  * @param endpointConfiguration to obtain the ping URL
- * @param tokenExpiresAt when does the token expire
- * @param timeBeforeExpirationRefresh Time in milliseconds to consider refreshing the access token.  Defaults to 10000.
- * @param authState Authentication state
  */
 export function useRenderOnTokenEvent(
-  endpointConfiguration: EndpointConfiguration,
-  tokenExpiresAt: Date | null,
-  timeBeforeExpirationRefresh: number,
-  authState: AuthState
+  endpointConfiguration: EndpointConfiguration
 ): RenderOnTokenEventState {
   /**
    * App State
@@ -58,7 +50,7 @@ export function useRenderOnTokenEvent(
 
   return {
     tokenRefreshable,
-    lastCheckTime:0,
+    lastCheckTime: 0,
     netInfoState,
   };
 }

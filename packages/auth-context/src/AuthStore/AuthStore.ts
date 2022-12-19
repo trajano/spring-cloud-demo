@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { add, isBefore, parseISO, sub, subMilliseconds } from 'date-fns';
+import { add, isBefore, parseISO, subMilliseconds } from 'date-fns';
 import type { OAuthToken } from '../OAuthToken';
 import { isTokenValid } from './isTokenValid';
 export class AuthStore {
