@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useRef } from 'react';
-import { AuthState } from '..';
+import { AuthState } from '../AuthState';
 import type { TokenCheckClockState } from './TokenCheckClockState';
 import { updatePerSecondReducer } from './updatePerSecondReducer';
 
@@ -42,13 +42,6 @@ export function useTokenCheckClock(
             tokenExpiresAt.getTime() - Date.now() - timeBeforeExpirationRefresh
           ) -
           (Date.now() % 1000);
-        // console.log({
-        //   nextTimeout,
-        //   now: Date.now(),
-        //   nowD: new Date().toISOString(),
-        //   lastCheckTime,
-        //   lastCheckTimeD: new Date(lastCheckTime).toISOString(),
-        // });
         if (nextTimeout > 0) {
           timerRef.current = setTimeout(handleTimeout, nextTimeout);
         }
