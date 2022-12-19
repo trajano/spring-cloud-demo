@@ -298,9 +298,11 @@ export function AuthProvider<A = any>({
       } else if (authState === AuthState.BACKEND_INACCESSIBLE && lastBackendFailureAttemptRef.current === lastCheckTime) {
         // no op
       } else if (authState === AuthState.BACKEND_INACCESSIBLE && tokenRefreshable) {
+        // clear off attempt
+        lastBackendFailureAttemptRef.current = 0;
         setAuthStateAndNotify({
           next: AuthState.NEEDS_REFRESH,
-          event: { type: "TokenExpiration", reason: "Needs refresh from backend inaccessible" }
+          event: { type: "TokenExpiration", reason: "Needs refresh, backend was inaccessible is now accessible" }
         })
       } else if (authState === AuthState.BACKEND_FAILURE && lastBackendFailureAttemptRef.current !== lastCheckTime && !refreshingRef.current) {
         notify({ type: "CheckRefresh", reason: "Needs refresh from backend failure and not refreshing" })

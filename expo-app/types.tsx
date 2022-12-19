@@ -54,7 +54,7 @@ export type MainDrawerParamList = {
   TabOne: NavigatorScreenParams<MainDrawerTabOneParamList>;
   JustScrollView: undefined;
   Environment: undefined;
-  AuthStorage: undefined;
+  AsyncStorage: undefined;
   StackNavigatorScrollView: NavigatorScreenParams<MainDrawerStackNavigatorScrollViewParamList>;
 }
 
