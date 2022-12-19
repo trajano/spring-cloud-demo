@@ -78,18 +78,9 @@ export class AuthStore {
    * @returns true if the token is expired.  This will never return null and will return true if there's no token.
    */
   async isExpired(): Promise<boolean> {
-    return this.isExpiringInSeconds(0);
+    return this.isExpiringInMillis(0);
   }
 
-  /**
-   * Checks if the token is expiring or expired in the given number of seconds.
-   * @param seconds seconds before expiration
-   * @returns true if the token is expiring or expired.  This will never return null and will return true if there's no token.
-   */
-  async isExpiringInSeconds(seconds: number): Promise<boolean> {
-    const tokenExpiresAt = await this.getTokenExpiresAt();
-    return !isBefore(Date.now(), sub(tokenExpiresAt, { seconds }));
-  }
   /**
    * Checks if the token is expiring or expired in the given number of seconds.
    * @param seconds seconds before expiration

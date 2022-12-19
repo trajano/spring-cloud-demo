@@ -79,6 +79,7 @@ export default function TabTwoScreen() {
       contentContainerStyle={{
         paddingTop: Platform.OS === "ios" ? 0 : headerHeight,
       }}
+      scrollEventThrottle={16}
       onScroll={(e) => setScrollInfo(e.nativeEvent)}>
       <View height={headerHeight} bg="yellow">
         <Text fg="primary:f" style={styles.title}>{now}</Text>

@@ -16,6 +16,6 @@ it('should throw an error if the current value is not divisble by 1000', () => {
     updatePerSecondReducer(1001, 1001);
     fail("should not get here");
   } catch (e) {
-    expect(e).toStrictEqual(new Error("Existing value 1001 is not divisble by 1000"));
+    expect(e).toStrictEqual(new Error("Existing value 1001 is not divisible by 1000"));
   }
 });

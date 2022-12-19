@@ -11,14 +11,17 @@ import { buildSimpleEndpointConfiguration } from '../buildSimpleEndpointConfigur
 import type { OAuthToken } from '../OAuthToken';
 import { useAuth } from '../useAuth';
 import { AuthProvider } from './AuthProvider';
+let fetchConfigResponse: (new () => Response) | undefined;
 beforeEach(() => {
   jest.useFakeTimers({ advanceTimers: true });
+  fetchConfigResponse = fetchMock.config.Response;
   AppState.currentState = "active";
   AsyncStorage.clear();
 })
 afterEach(cleanup);
 afterEach(() => {
   fetchMock.mockReset();
+  fetchMock.config.Response = fetchConfigResponse;
   jest.useRealTimers();
   AppState.currentState = 'unknown'
 })
@@ -156,6 +159,52 @@ describe("with component", () => {
       expect(e).toStrictEqual(new Error("baseUrl=http://asdf.com should end with a '/'"))
     }
 
+  });
+
+  it("login failed logout", async () => {
+    const notifications = jest.fn() as jest.Mock<() => void>;
+    const freshAccessToken: OAuthToken = { access_token: "freshAccessToken", refresh_token: "RefreshToken", token_type: "Bearer", expires_in: 600 };
+    fetchMock.get("http://asdf.com/ping", { body: { ok: true } })
+      .post("http://asdf.com/auth", { body: freshAccessToken })
+    const { getByTestId } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
+
+    await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
+    act(() => { fireEvent.press(getByTestId("login")) });
+
+    await waitFor(() => expect(notifications).toBeCalledWith(expect.objectContaining({ type: "LoggedIn", accessToken: "freshAccessToken" } as Partial<AuthEvent>)))
+    expect(notifications).toBeCalledWith(expect.objectContaining({ type: "Authenticated", accessToken: "freshAccessToken" } as Partial<AuthEvent>))
+    expect(getByTestId("authState")).toHaveTextContent("AUTHENTICATED");
+
+    expect(await AsyncStorage.getItem('auth.http://asdf.com/..oauthToken')).toBe(JSON.stringify(freshAccessToken));
+    const tokenExpiresAt = new Date(await AsyncStorage.getItem('auth.http://asdf.com/..tokenExpiresAt') as string)
+    // give at least a second of slack
+    expect(tokenExpiresAt.getTime()).toBeGreaterThanOrEqual(Date.now() + 600000 - 1000)
+
+    fetchMock.config.Response = Response;
+    fetchMock.post("http://asdf.com/logout", Response.error());
+
+    act(() => { fireEvent.press(getByTestId("logout")) });
+    await waitFor(() => expect(notifications).toBeCalledWith(expect.objectContaining({ type: "LoggedOut" } as Partial<AuthEvent>)))
+    expect(notifications).toBeCalledWith(expect.objectContaining({ type: "Unauthenticated" } as Partial<AuthEvent>))
+    await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
+    expect(await AsyncStorage.getAllKeys()).toHaveLength(0)
+  });
+
+  it("just logout without login", async () => {
+    fetchMock.config.Response = Response;
+    const notifications = jest.fn() as jest.Mock<() => void>;
+    const freshAccessToken: OAuthToken = { access_token: "freshAccessToken", refresh_token: "RefreshToken", token_type: "Bearer", expires_in: 600 };
+    fetchMock.get("http://asdf.com/ping", { body: { ok: true } })
+      .post("http://asdf.com/auth", { body: freshAccessToken })
+      .post("http://asdf.com/logout", Response.error());
+    const { getByTestId } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
+
+    await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
+    act(() => { fireEvent.press(getByTestId("logout")) });
+    await waitFor(() => expect(notifications).toBeCalledWith(expect.objectContaining({ type: "LoggedOut" } as Partial<AuthEvent>)))
+    expect(notifications).toBeCalledWith(expect.objectContaining({ type: "Unauthenticated" } as Partial<AuthEvent>))
+    await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
+    expect(await AsyncStorage.getAllKeys()).toHaveLength(0)
   });
 
 });
