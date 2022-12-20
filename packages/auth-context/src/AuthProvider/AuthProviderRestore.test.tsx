@@ -67,18 +67,18 @@ it("Restore saved not expired", async () => {
   await AsyncStorage.setItem('auth.http://asdf.com/..oauthToken', JSON.stringify(oldAccessToken));
   await AsyncStorage.setItem('auth.http://asdf.com/..tokenExpiresAt', addMilliseconds(specimenInstant, 600000).toISOString());
 
-
   const notifications = jest.fn() as jest.Mock<() => void>;
   fetchMock
     .get("http://asdf.com/ping", { body: { ok: true } })
     .post("http://asdf.com/refresh", new Promise(res => setTimeout(res, 100, { body: { access_token: "newAccessToken", refresh_token: "NotThePreviousRefreshToken", token_type: "Bearer", expires_in: 600 } as OAuthToken })))
   const { getByTestId, unmount } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
-
+  expect(getByTestId("hello")).toHaveTextContent("INITIAL")
   // await waitFor(() => expect(notifications).toBeCalledWith(expect.objectContaining({ type: "TokenExpiration" } as Partial<AuthEvent>)))
   // console.log(notifications.mock.calls)
   await waitFor(() => expect(notifications).toBeCalledWith(expect.objectContaining({ type: "Authenticated", accessToken: "oldAccessToken" } as Partial<AuthEvent>)))
   expect(getByTestId("accessToken")).toHaveTextContent("oldAccessToken");
-
+  expect(getByTestId("hello")).toHaveTextContent("AUTHENTICATED")
+  expect(getByTestId("accessTokenExpiresOn")).toHaveTextContent(addMilliseconds(specimenInstant, 600000).toISOString())
   expect(jest.getTimerCount()).toBe(1)
   unmount();
   expect(jest.getTimerCount()).toBe(0)
@@ -103,7 +103,7 @@ it("Restore saved expired", async () => {
 
   await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "TokenExpiration" } as Partial<AuthEvent>)))
   await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "Refreshing" } as Partial<AuthEvent>)))
-  await waitFor(() => expect(notifications).toHaveBeenLastCalledWith(expect.objectContaining({ type: "Authenticated" } as Partial<AuthEvent>)))
+  await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "Authenticated" } as Partial<AuthEvent>)))
   expect(jest.getTimerCount()).toBe(1)
   await waitFor(() => expect(getByTestId("hello")).toHaveTextContent("AUTHENTICATED"));
   await waitFor(() => expect(notifications).toBeCalledWith(expect.objectContaining({ type: "TokenExpiration" } as Partial<AuthEvent>)))
@@ -130,7 +130,7 @@ it("Restore saved expired but broken token response", async () => {
 
   await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "TokenExpiration" } as Partial<AuthEvent>)))
   await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "Refreshing" } as Partial<AuthEvent>)))
-  await waitFor(() => expect(notifications).toHaveBeenLastCalledWith(expect.objectContaining({ type: "TokenExpiration", reason: "unable to parse response as JSON" } as Partial<AuthEvent>)))
+  await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "TokenExpiration", reason: "unable to parse response as JSON" } as Partial<AuthEvent>)))
   expect(jest.getTimerCount()).toBe(1)
   await waitFor(() => expect(getByTestId("hello")).toHaveTextContent("BACKEND_FAILURE"));
 
@@ -156,7 +156,7 @@ it("Restore saved expired but 500 refresh response", async () => {
 
   await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "TokenExpiration" } as Partial<AuthEvent>)))
   await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "Refreshing" } as Partial<AuthEvent>)))
-  await waitFor(() => expect(notifications).toHaveBeenLastCalledWith(expect.objectContaining({ type: "TokenExpiration", reason: "HTTP Error 500" } as Partial<AuthEvent>)))
+  await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "TokenExpiration", reason: "HTTP Error 500" } as Partial<AuthEvent>)))
   expect(jest.getTimerCount()).toBe(1)
   await waitFor(() => expect(getByTestId("hello")).toHaveTextContent("BACKEND_FAILURE"));
 
@@ -183,7 +183,7 @@ it("Restore saved expired but error refresh response", async () => {
 
   await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "TokenExpiration" } as Partial<AuthEvent>)))
   await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "Refreshing" } as Partial<AuthEvent>)))
-  await waitFor(() => expect(notifications).toHaveBeenLastCalledWith(expect.objectContaining({ type: "TokenExpiration", reason: "HTTP Error 0" } as Partial<AuthEvent>)))
+  await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "TokenExpiration", reason: "HTTP Error 0" } as Partial<AuthEvent>)))
   expect(jest.getTimerCount()).toBe(1)
   await waitFor(() => expect(getByTestId("hello")).toHaveTextContent("BACKEND_FAILURE"));
 

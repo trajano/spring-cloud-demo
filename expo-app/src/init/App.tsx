@@ -11,12 +11,14 @@ import * as IslandMoments from "@expo-google-fonts/island-moments";
 import * as Lexend from "@expo-google-fonts/lexend";
 import * as NotoSans from "@expo-google-fonts/noto-sans";
 import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
-import { lazy, Suspense, useEffect, useState } from 'react';
-import { LoadingScreen } from '../../screens/LoadingScreen';
-import { AuthenticatedEndpointConfiguration } from '../../navigation/login/types';
+import { lazy, useEffect, useState, Suspense } from 'react';
 import { LogBox } from 'react-native';
-import { View, ActivityIndicator } from '../lib/native-unstyled';
+import { AuthenticatedEndpointConfiguration } from '../../navigation/login/types';
+import { LoadingScreen } from '../../screens/LoadingScreen';
+import { ActivityIndicator, View } from '../lib/native-unstyled';
 
+// import Navigation from '../../navigation';
+// import { TextTest } from '../../screens/TextTest';
 const TextTest = lazy(() => import('../../screens/TextTest'));
 const Navigation = lazy(() => import('../../navigation'))
 
@@ -52,8 +54,8 @@ export default function App() {
             {TEXT_TEST ?
               (<TextTest />) :
               (<Navigation />)}
-            <StatusBar />
           </Suspense>
+          <StatusBar />
         </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>

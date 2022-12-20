@@ -8,4 +8,9 @@ export type TokenCheckClockState = {
    * second to reduce the frequency of state changes.
    */
   lastCheckTime: number;
+  /**
+   * Time since epoch when the next check will be performed.  This will be null
+   * if there is no future timer set.
+   */
+  nextCheckTime: number | null;
 };

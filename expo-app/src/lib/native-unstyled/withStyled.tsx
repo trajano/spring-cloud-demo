@@ -31,7 +31,11 @@ export function withStyled<
         const { colors } = useTheming();
         const stylesFromProps = propsToStyleSheet(rest, colors)
         const componentProps: Q = (stripStyledPropsToWrappedComponent ? withoutStyledProps(rest) : rest) as unknown as Q;
-        return <Component {...componentProps} style={[style, stylesFromProps]} ref={ref} />;
+        if (style) {
+            return <Component {...componentProps} style={[style, stylesFromProps]} ref={ref} />;
+        } else {
+            return <Component {...componentProps} style={stylesFromProps} ref={ref} />;
+        }
     }
     useWrapped.displayName = hocDisplayName("withStyled", Component);
     return forwardRef(useWrapped);

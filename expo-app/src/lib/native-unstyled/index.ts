@@ -17,3 +17,4 @@ export { ThemeProvider, useColors, useTheming } from "./ThemeContext";
 export { useFonts } from "./Fonts";
 export * from "./components";
 export type { StyleProps } from "./StyleProps";
+export { useRefreshControl } from "./useRefreshControl";

@@ -37,7 +37,7 @@ const FontsContext = createContext<IFonts>({
   loadedFonts: {},
   loaded: 0,
   total: 0,
-  replaceWithNativeFont: () => ({}),
+  replaceWithNativeFont: (flattenedStyle: StyleProp<TextStyle>) => flattenedStyle,
 });
 type FontsProviderProps = PropsWithChildren<{
   fontModules?: any[];

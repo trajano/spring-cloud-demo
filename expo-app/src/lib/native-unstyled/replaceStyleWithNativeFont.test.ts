@@ -43,6 +43,19 @@ it("no style", () => {
   );
   expect(style).toStrictEqual({ fontFamily: "IBMPlexSans_400Regular" });
 });
+it("no font", () => {
+  const style = replaceStyleWithNativeFont(
+    {
+      backgroundColor: "red",
+      flex: 1,
+    },
+    loadedFonts
+  );
+  expect(style).toStrictEqual({
+    backgroundColor: "red",
+    flex: 1,
+  });
+});
 
 it("preserve other styles", () => {
   const style = replaceStyleWithNativeFont(
@@ -123,18 +136,17 @@ it("just italic should look up", () => {
 });
 
 it("just italic should look up", () => {
-    const style = replaceStyleWithNativeFont(
-      {
-        fontFamily: "IBMPlexSans",
-        fontWeight: "100",
-        fontStyle: "italic",
-        fontSize: 30,
-      },
-      loadedFonts
-    );
-    expect(style).toStrictEqual({
-      fontFamily: "IBMPlexSans_100Thin_Italic",
+  const style = replaceStyleWithNativeFont(
+    {
+      fontFamily: "IBMPlexSans",
+      fontWeight: "100",
+      fontStyle: "italic",
       fontSize: 30,
-    });
+    },
+    loadedFonts
+  );
+  expect(style).toStrictEqual({
+    fontFamily: "IBMPlexSans_100Thin_Italic",
+    fontSize: 30,
   });
-  
+});

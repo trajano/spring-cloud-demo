@@ -18,5 +18,7 @@ export const AuthContext = createContext<IAuth>({
   endpointConfiguration: buildSimpleEndpointConfiguration(new URL("http://undefined")),
   baseUrl: new URL("http://undefined"),
   tokenRefreshable: false,
+  lastCheckOn: new Date(),
+  nextCheckOn: null,
   lastAuthEvents: []
 });

@@ -99,6 +99,15 @@ export interface IAuth<A = any> {
    */
   tokenRefreshable: boolean;
   /**
+   * When the last check for authentication state using timer effect was done.
+   */
+  lastCheckOn: Date;
+  /**
+   * When the next check for authentication state using timer effect will be done.  Null if there
+   * is no planned timer check.
+   */
+  nextCheckOn: Date | null;
+  /**
    * Last auth events.  The most recent one will be the first element.
    * This is primarily used to diagnose issues where the token becomes invalidated
    * and the user was forcefully logged out.

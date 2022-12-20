@@ -6,7 +6,7 @@ import { updatePerSecondReducer } from './updatePerSecondReducer';
 /**
  * This is a hook that provides a state that updates forcing a render.
  * It triggers on the following conditions:
- * 1. if BACKEND_FAILURE or NEEDS_REFRESH it creates a timeout that does a state change in timeoutForBackendFailureCheck
+ * 1. if BACKEND_FAILURE  it creates a timeout that does a state change in timeoutForBackendFailureCheck
  * 2. if AUTHENTICATED it creates a timeout of the minimum of maxTimeoutForRefreshCheck and tokenExpiresAt - now - timeBeforeExpirationRefresh
  * 3. if any of the remaining states INITIAL or UNAUTHENTICATED or BACKEND_INACCESSIBLE then no timeout updates, basically deactivated
  * @param authState current auth state
@@ -26,35 +26,37 @@ export function useTokenCheckClock(
     updatePerSecondReducer,
     Math.ceil(Date.now() / 1000) * 1000
   );
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const nextCheckTimeRef = useRef<number | null>(null);
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
     function handleTimeout() {
       updateLastCheckTime(Date.now());
-      if (
-        authState === AuthState.BACKEND_FAILURE ||
-        authState === AuthState.NEEDS_REFRESH
-      ) {
-        timerRef.current = setTimeout(
-          handleTimeout,
-          timeoutForBackendFailureCheck - (Date.now() % 1000)
-        );
+      if (authState === AuthState.BACKEND_FAILURE) {
+        const nextCheckTimeout =
+          timeoutForBackendFailureCheck - (Date.now() % 1000);
+        nextCheckTimeRef.current = Date.now() + nextCheckTimeout;
+        timer = setTimeout(handleTimeout, nextCheckTimeout);
       } else if (authState === AuthState.AUTHENTICATED && tokenExpiresAt) {
-        const nextTimeout =
+        const nextCheckTimeout =
           Math.min(
             maxTimeoutForRefreshCheck,
             tokenExpiresAt.getTime() - Date.now() - timeBeforeExpirationRefresh
           ) -
           (Date.now() % 1000);
-        if (nextTimeout > 0) {
-          timerRef.current = setTimeout(handleTimeout, nextTimeout);
+        if (nextCheckTimeout > 0) {
+          timer = setTimeout(handleTimeout, nextCheckTimeout);
+          nextCheckTimeRef.current = Date.now() + nextCheckTimeout;
+        } else {
+          nextCheckTimeRef.current = null;
         }
+      } else {
+        nextCheckTimeRef.current = null;
       }
     }
     handleTimeout();
     return () => {
-      if (timerRef.current !== undefined) {
-        clearTimeout(timerRef.current);
-        timerRef.current = undefined;
+      if (timer) {
+        clearTimeout(timer);
       }
     };
   }, [
@@ -66,5 +68,6 @@ export function useTokenCheckClock(
   ]);
   return {
     lastCheckTime,
+    nextCheckTime: nextCheckTimeRef.current,
   };
 }

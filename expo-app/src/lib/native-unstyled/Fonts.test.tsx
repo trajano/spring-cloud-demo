@@ -1,4 +1,4 @@
-import { act, render, waitFor } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import { View } from 'react-native';
 import { FontsProvider, useFonts } from './Fonts';
 describe("replaceWithNativeFont", () => {

@@ -8,6 +8,7 @@ import { updateTokenInfoRef } from './updateTokenInfoRef';
 import { isTokenRefExpired } from './isTokenRefExpired';
 
 type InitialAuthStateEffectProps = {
+  authStateRef: MutableRefObject<AuthState>;
   setAuthStateAndNotify: Dispatch<{ next: AuthState; event: AuthEvent }>;
   authStorage: AuthStore;
   oauthTokenRef: MutableRefObject<OAuthToken | null>;
@@ -15,6 +16,7 @@ type InitialAuthStateEffectProps = {
   timeBeforeExpirationRefresh: number;
 };
 export function useInitialAuthStateEffect({
+  authStateRef,
   setAuthStateAndNotify,
   authStorage,
   oauthTokenRef,
@@ -22,10 +24,25 @@ export function useInitialAuthStateEffect({
   timeBeforeExpirationRefresh,
 }: InitialAuthStateEffectProps) {
   useEffect(() => {
+
     /**
      * Sets the initial auth state after getting the current token.
      */
     async function setInitialAuthState() {
+      if (__DEV__) {
+        if (authStateRef.current !== AuthState.INITIAL) {
+          console.error(
+            `Expected INITIAL auth state on render, but was ${
+              AuthState[authStateRef.current]
+            }`
+          );
+          throw Error(
+            `Expected INITIAL auth state on render, but was ${
+              AuthState[authStateRef.current]
+            }`
+          );
+        }
+      }
       await updateTokenInfoRef(authStorage, oauthTokenRef, tokenExpiresAtRef);
       if (!oauthTokenRef.current || !tokenExpiresAtRef.current) {
         // no token so unauthenticated
