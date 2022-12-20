@@ -16,7 +16,6 @@ type UpdateStatesEffectProps = {
   oauthTokenRef: MutableRefObject<OAuthToken | null>;
   tokenExpiresAtRef: MutableRefObject<Date | null>;
   lastBackendFailureAttemptRef: MutableRefObject<number>;
-  // refreshingRef: MutableRefObject<boolean>;
   timeBeforeExpirationRefresh: number;
   setAuthStateAndNotify: Dispatch<{ next: AuthState; event: AuthEvent }>;
   notify: (event: AuthEvent) => void;
@@ -29,7 +28,6 @@ export function useUpdateStatesEffect({
   authStorage,
   oauthTokenRef,
   tokenExpiresAtRef,
-  // refreshingRef,
   lastBackendFailureAttemptRef,
   timeBeforeExpirationRefresh,
   setAuthStateAndNotify,

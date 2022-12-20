@@ -12,7 +12,6 @@ import { useRenderOnTokenEvent } from '../useRenderOnTokenEvent';
 import { useTokenCheckClock } from "../useTokenCheckClock";
 import { isTokenRefExpired } from "./isTokenRefExpired";
 import { updateTokenInfoRef } from "./updateTokenInfoRef";
-import { useInitialAuthStateEffect } from "./useInitialAuthStateEffect";
 import { useUpdateStatesEffect } from './useUpdateStatesEffect';
 
 type AuthContextProviderProps = PropsWithChildren<{
@@ -85,18 +84,10 @@ export function AuthProvider<A = any>({
 
   const { tokenRefreshable, netInfoState } = useRenderOnTokenEvent(endpointConfiguration);
 
-  // // maybe this should be a ref
-  // const [authState, setAuthState] = useState(AuthState.INITIAL);
-
   /**
    * Authentication state.
    */
   const authStateRef = useRef(AuthState.INITIAL);
-
-  // /**
-  //  * Indicates that refresh is active
-  //  */
-  // const refreshingRef = useRef(authState === AuthState.REFRESHING);
 
   // OAuth token reference, this is updated by some effect
   const oauthTokenRef = useRef<OAuthToken | null>(null);
@@ -144,7 +135,6 @@ export function AuthProvider<A = any>({
    */
   function setAuthStateAndNotify({ next, event }: { next: AuthState, event: AuthEvent | AuthEvent[] }): void {
 
-    //setAuthState(next);
     authStateRef.current = next;
     if (Array.isArray(event)) {
       event.forEach(notify);
@@ -322,21 +312,11 @@ export function AuthProvider<A = any>({
     oauthTokenRef,
     tokenExpiresAtRef,
     lastBackendFailureAttemptRef,
-    //    refreshingRef,
     timeBeforeExpirationRefresh,
     setAuthStateAndNotify,
     notify,
     refresh
   });
-
-  // useInitialAuthStateEffect({
-  //   authStateRef,
-  //   setAuthStateAndNotify,
-  //   authStorage,
-  //   oauthTokenRef,
-  //   tokenExpiresAtRef,
-  //   timeBeforeExpirationRefresh
-  // });
 
   return <AuthContext.Provider value={{
     authState: authStateRef.current,
