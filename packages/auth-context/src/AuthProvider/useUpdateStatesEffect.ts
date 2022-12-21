@@ -11,6 +11,7 @@ import { updateTokenInfoRef } from './updateTokenInfoRef';
 type UpdateStatesEffectProps = {
   authState: AuthState;
   lastCheckTime: number;
+  nextCheckTime: number | null;
   tokenRefreshable: boolean;
   authStorage: AuthStore;
   oauthTokenRef: MutableRefObject<OAuthToken | null>;
@@ -19,11 +20,13 @@ type UpdateStatesEffectProps = {
   timeBeforeExpirationRefresh: number;
   setAuthStateAndNotify: Dispatch<{ next: AuthState; event: AuthEvent }>;
   notify: (event: AuthEvent) => void;
+  forceCheck: () => void;
   refresh: () => Promise<void>;
 };
 export function useUpdateStatesEffect({
   authState,
   lastCheckTime,
+  nextCheckTime,
   tokenRefreshable,
   authStorage,
   oauthTokenRef,
@@ -31,14 +34,10 @@ export function useUpdateStatesEffect({
   lastBackendFailureAttemptRef,
   timeBeforeExpirationRefresh,
   setAuthStateAndNotify,
+  forceCheck,
   notify,
   refresh,
 }: UpdateStatesEffectProps) {
-  /**
-   * Forces a rerender.
-   */
-  const [_timesForced, forceCheck] = useReducer((prev) => prev + 1, 0);
-
   useEffect(() => {
     /**
      * Sets the initial auth state after getting the current token.
@@ -46,9 +45,6 @@ export function useUpdateStatesEffect({
     async function setInitialAuthState() {
       if (__DEV__) {
         if (authState !== AuthState.INITIAL) {
-          console.error(
-            `Expected INITIAL auth state on render, but was ${AuthState[authState]}`
-          );
           throw Error(
             `Expected INITIAL auth state on render, but was ${AuthState[authState]}`
           );
@@ -96,56 +92,70 @@ export function useUpdateStatesEffect({
     /**
      * This may call async functions, but the values are not used hence the results are ignored.
      */
-    function handleAuthState() {
+    async function handleAuthState() {
       if (
         authState === AuthState.INITIAL ||
         authState === AuthState.UNAUTHENTICATED ||
         authState === AuthState.REFRESHING
       ) {
         // no op
-      } else if (
-        authState === AuthState.AUTHENTICATED &&
-        !isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh)
+        return;
+      }
+
+      if (authState === AuthState.AUTHENTICATED) {
+        if (nextCheckTime === null) {
+          forceCheck();
+        }
+        if (isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh)) {
+          setAuthStateAndNotify({
+            next: AuthState.NEEDS_REFRESH,
+            event: {
+              type: 'TokenExpiration',
+              authState,
+              reason: `Token has expired at ${tokenExpiresAtRef.current?.toISOString()} and needs refresh`,
+            },
+          });
+        }
+      }
+
+      if (authState === AuthState.NEEDS_REFRESH) {
+        if (tokenRefreshable) {
+          await refresh();
+        } else {
+          setAuthStateAndNotify({
+            next: AuthState.BACKEND_INACCESSIBLE,
+            event: {
+              type: 'TokenExpiration',
+              authState,
+              reason: `Token has expired at ${tokenExpiresAtRef.current?.toISOString()} but backend is not accessible`,
+            },
+          });
+          lastBackendFailureAttemptRef.current = lastCheckTime;
+        }
+      }
+
+      if (
+        authState === AuthState.BACKEND_INACCESSIBLE &&
+        lastBackendFailureAttemptRef.current === lastCheckTime
       ) {
-        // no op
-      } else if (
+        if (tokenRefreshable) {
+          setAuthStateAndNotify({
+            next: AuthState.NEEDS_REFRESH,
+            event: {
+              type: 'TokenExpiration',
+              authState,
+              reason: 'Needs refresh, backend now accessible',
+            },
+          });
+        } else {
+          // sometimes the Native reachability check does not fire.  This ensures it is fired at least once per check time.
+          await NetInfo.refresh();
+        }
+      }
+
+      if (
         authState === AuthState.BACKEND_FAILURE &&
         lastBackendFailureAttemptRef.current === lastCheckTime
-      ) {
-        // no op
-      } else if (
-        authState === AuthState.NEEDS_REFRESH &&
-        lastBackendFailureAttemptRef.current === lastCheckTime
-      ) {
-        // no op
-      } else if (
-        authState === AuthState.BACKEND_INACCESSIBLE &&
-        !tokenRefreshable
-      ) {
-        // sometimes the Native reachability check does not fire.  This ensures it is fired at least once per check time.
-        NetInfo.refresh().catch(noop);
-      } else if (
-        authState === AuthState.BACKEND_INACCESSIBLE &&
-        lastBackendFailureAttemptRef.current === lastCheckTime
-      ) {
-        // no op
-      } else if (
-        authState === AuthState.BACKEND_INACCESSIBLE &&
-        tokenRefreshable
-      ) {
-        // clear off attempt
-        lastBackendFailureAttemptRef.current = 0;
-        setAuthStateAndNotify({
-          next: AuthState.NEEDS_REFRESH,
-          event: {
-            type: 'TokenExpiration',
-            authState,
-            reason: 'Needs refresh, backend was inaccessible is now accessible',
-          },
-        });
-      } else if (
-        authState === AuthState.BACKEND_FAILURE &&
-        lastBackendFailureAttemptRef.current !== lastCheckTime
       ) {
         setAuthStateAndNotify({
           next: AuthState.NEEDS_REFRESH,
@@ -155,54 +165,12 @@ export function useUpdateStatesEffect({
             reason: 'Needs refresh from backend failure',
           },
         });
-      } else if (authState === AuthState.NEEDS_REFRESH && tokenRefreshable) {
-        notify({
-          type: 'CheckRefresh',
-          authState,
-          reason: 'Needs refresh and token is refreshable and not refreshing',
-        });
-        refresh().catch(noop);
-      } else if (authState === AuthState.NEEDS_REFRESH && !tokenRefreshable) {
-        // use zero because there's still that grace time
-        setAuthStateAndNotify({
-          next: AuthState.BACKEND_INACCESSIBLE,
-          event: {
-            type: 'TokenExpiration',
-            authState,
-            reason: `Token has expired at ${tokenExpiresAtRef.current?.toISOString()} but backend is not accessible`,
-          },
-        });
-        lastBackendFailureAttemptRef.current = lastCheckTime;
-      } else if (
-        authState === AuthState.AUTHENTICATED &&
-        isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh)
-      ) {
-        setAuthStateAndNotify({
-          next: AuthState.NEEDS_REFRESH,
-          event: {
-            type: 'TokenExpiration',
-            authState,
-            reason: `Token has expired at ${tokenExpiresAtRef.current?.toISOString()} and needs refresh`,
-          },
-        });
-      } else {
-        /* istanbul ignore next */
-        console.warn(
-          `Unexpected state = ${JSON.stringify({
-            lastCheckTime: new Date(lastCheckTime).toISOString(),
-            authState: AuthState[authState],
-            tokenRefreshable,
-            oauthTokenRef,
-            tokenExpiresAtRef,
-          })}`
-        );
       }
-      forceCheck();
     }
 
     async function updateStatesAfterRender() {
       await updateTokenInfoRef(authStorage, oauthTokenRef, tokenExpiresAtRef);
-      handleAuthState();
+      await handleAuthState();
     }
     if (authState === AuthState.INITIAL) {
       setInitialAuthState();

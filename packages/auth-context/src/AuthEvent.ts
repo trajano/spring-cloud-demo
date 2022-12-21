@@ -14,7 +14,6 @@ type CommonAuthEvent = {
  */
 export type AuthenticatedEvent = CommonAuthEvent & {
   type: 'Authenticated';
-  authState?: AuthState;
   /**
    * The raw access token.
    */

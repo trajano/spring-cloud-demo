@@ -12,6 +12,10 @@ import { useRenderOnTokenEvent } from '../useRenderOnTokenEvent';
 import { useTokenCheckClock } from "../useTokenCheckClock";
 import { isTokenRefExpired } from "./isTokenRefExpired";
 import { updateTokenInfoRef } from "./updateTokenInfoRef";
+import { useBackendFailureTimeoutEffect } from "./useBackendFailureTimeoutEffect";
+import { useInitialAuthStateEffect } from "./useInitialAuthStateEffect";
+import { useNeedsRefreshEffect } from "./useNeedsRefreshEffect";
+import { useTokenExpirationTimeoutEffect } from "./useTokenExpirationTimeoutEffect";
 import { useUpdateStatesEffect } from './useUpdateStatesEffect';
 
 type AuthContextProviderProps = PropsWithChildren<{
@@ -59,10 +63,6 @@ export function AuthProvider<A = any>({
   storagePrefix = "auth"
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
 
-  /**
-   * Forces a rerender.
-   */
-  const [_timesForced, forceCheck] = useReducer((prev) => prev + 1, 0);
   const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(logAuthEventFilterPredicate, logAuthEventSize);
   const [endpointConfiguration, setEndpointConfiguration] = useState(defaultEndpointConfiguration);
   const authClient = useMemo(() => new AuthClient<A>(endpointConfiguration), [endpointConfiguration]);
@@ -87,7 +87,8 @@ export function AuthProvider<A = any>({
   /**
    * Authentication state.
    */
-  const authStateRef = useRef(AuthState.INITIAL);
+  const [authState, setAuthState] = useState(AuthState.INITIAL);
+
 
   // OAuth token reference, this is updated by some effect
   const oauthTokenRef = useRef<OAuthToken | null>(null);
@@ -95,23 +96,43 @@ export function AuthProvider<A = any>({
   // Token expires reference, this is updated by some effect
   const tokenExpiresAtRef = useRef<Date | null>(null);
 
-  const { lastCheckTime, nextCheckTime } = useTokenCheckClock(
-    authStateRef.current,
-    tokenExpiresAtRef.current,
+  // const { lastCheckTime, nextCheckTime, forceCheck } = useTokenCheckClock(
+  //   authStateRef.current,
+  //   tokenExpiresAtRef.current,
+  //   timeBeforeExpirationRefresh
+  // );
+  const {
+    timeoutRef: tokenExpirationTimeoutRef,
+    lastCheckAt: lastCheckOn,
+    nextCheckAt: nextCheckOn
+  } = useTokenExpirationTimeoutEffect({
+    authState,
+    setAuthState,
+    maxTimeoutForRefreshCheck: 60000,
+    timeBeforeExpirationRefresh,
+    tokenExpiresAt: tokenExpiresAtRef.current,
+    notify,
+  })
+
+  const { timeoutRef: backendFailureTimeoutRef } = useBackendFailureTimeoutEffect({
+    authState,
+    setAuthState,
+    notify,
+    backendFailureTimeout: 60000,
+  })
+
+  const accessToken = useMemo(() => oauthTokenRef.current?.access_token ?? null, [
+    tokenExpirationTimeoutRef.current,
+    backendFailureTimeoutRef.current,
+    oauthTokenRef.current?.access_token
+  ]);
+  const accessTokenExpired = useMemo(() => isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh), [
+    tokenExpirationTimeoutRef.current,
+    backendFailureTimeoutRef.current,
     timeBeforeExpirationRefresh
-  );
-
-  /**
-   * When the last backend failure attempt as done. Prevents effect infinite loops.
-   */
-  const lastBackendFailureAttemptRef = useRef(lastCheckTime);
-
-  const accessToken = useMemo(() => oauthTokenRef.current?.access_token ?? null, [lastCheckTime, oauthTokenRef.current?.access_token]);
-  const accessTokenExpired = useMemo(() => isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh), [lastCheckTime, tokenExpiresAtRef.current, timeBeforeExpirationRefresh]);
-  const authorization = useMemo(() => (!accessTokenExpired && !!oauthTokenRef.current) ? `Bearer ${accessToken}` : null, [lastCheckTime, accessTokenExpired, oauthTokenRef.current]);
-  const lastCheckOn = useMemo(() => new Date(lastCheckTime), [lastCheckTime])
-  const nextCheckOn = useMemo(() => nextCheckTime ? new Date(nextCheckTime) : null, [nextCheckTime])
-  const accessTokenExpiresOn = useMemo(() => tokenExpiresAtRef.current ?? new Date(lastCheckTime), [lastCheckTime, tokenExpiresAtRef.current])
+  ]);
+  const authorization = useMemo(() => (!accessTokenExpired && !!oauthTokenRef.current) ? `Bearer ${accessToken}` : null, [accessTokenExpired, accessToken]);
+  const accessTokenExpiresOn = useMemo(() => tokenExpiresAtRef.current ?? new Date(0), [tokenExpirationTimeoutRef.current, tokenExpiresAtRef.current])
 
   function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
@@ -135,7 +156,8 @@ export function AuthProvider<A = any>({
    */
   function setAuthStateAndNotify({ next, event }: { next: AuthState, event: AuthEvent | AuthEvent[] }): void {
 
-    authStateRef.current = next;
+    //authStateRef.current = next;
+    setAuthState(next);
     if (Array.isArray(event)) {
       event.forEach(notify);
     } else {
@@ -155,14 +177,14 @@ export function AuthProvider<A = any>({
         event: [{
           type: "LoggedIn",
           reason: "Logged with credentials",
-          authState: authStateRef.current,
+          authState,
           accessToken: nextOauthToken.access_token,
           authorization: `Bearer ${nextOauthToken.access_token}`,
           tokenExpiresAt: nextTokenExpiresAt
         }, {
           type: "Authenticated",
           reason: "Login",
-          authState: authStateRef.current,
+          authState,
           accessToken: nextOauthToken.access_token,
           authorization: `Bearer ${nextOauthToken.access_token}`,
           tokenExpiresAt: nextTokenExpiresAt
@@ -199,12 +221,12 @@ export function AuthProvider<A = any>({
       setAuthStateAndNotify({
         next: AuthState.UNAUTHENTICATED, event: {
           type: "LoggedOut",
-          authState: authStateRef.current,
+          authState,
         }
       })
       notify({
         type: "Unauthenticated",
-        authState: authStateRef.current,
+        authState,
         reason: "Logged out"
       })
 
@@ -212,10 +234,10 @@ export function AuthProvider<A = any>({
   }
 
   async function refresh() {
-    if (authStateRef.current === AuthState.REFRESHING) {
+    if (authState === AuthState.REFRESHING) {
       notify({
         type: "Refreshing",
-        authState: authStateRef.current,
+        authState,
         reason: "Already in progress"
       });
       return;
@@ -224,7 +246,7 @@ export function AuthProvider<A = any>({
       next: AuthState.REFRESHING,
       event: {
         type: "Refreshing",
-        authState: authStateRef.current,
+        authState,
         reason: "Requested"
       }
     });
@@ -237,7 +259,7 @@ export function AuthProvider<A = any>({
           next: AuthState.UNAUTHENTICATED,
           event: {
             type: "Unauthenticated",
-            authState: authStateRef.current,
+            authState,
             reason: "No token stored. Normally should not happen here."
           }
         });
@@ -247,7 +269,7 @@ export function AuthProvider<A = any>({
           next: AuthState.BACKEND_INACCESSIBLE,
           event: {
             type: "TokenExpiration",
-            authState: authStateRef.current,
+            authState,
             reason: "Backend is not available and token refresh was requested",
             netInfoState
           }
@@ -262,7 +284,7 @@ export function AuthProvider<A = any>({
             event: {
               type: "Authenticated",
               reason: "Refreshed",
-              authState: authStateRef.current,
+              authState,
               accessToken: refreshedOAuthToken.access_token,
               authorization: `Bearer ${refreshedOAuthToken.access_token}`,
               tokenExpiresAt: nextTokenExpiresAt
@@ -276,19 +298,19 @@ export function AuthProvider<A = any>({
               next: AuthState.UNAUTHENTICATED,
               event: {
                 type: "Unauthenticated",
-                authState: authStateRef.current,
+                authState,
                 reason: e.message,
                 responseBody: e.responseBody
               }
             });
           } else if (e instanceof AuthenticationClientError && !e.isUnauthorized()) {
             // at this point there is an error but it's not something caused by the user so don't clear off the token
-            lastBackendFailureAttemptRef.current = lastCheckTime;
+            //    lastBackendFailureAttemptRef.current = lastCheckTime;
             setAuthStateAndNotify({
               next: AuthState.BACKEND_FAILURE,
               event: {
                 type: "TokenExpiration",
-                authState: authStateRef.current,
+                authState,
                 reason: e.message,
                 responseBody: e.responseBody,
                 netInfoState
@@ -300,26 +322,33 @@ export function AuthProvider<A = any>({
         }
       }
     } finally {
-      forceCheck()
+      //forceCheck()
     }
   }
 
-  useUpdateStatesEffect({
-    authState: authStateRef.current,
-    lastCheckTime,
-    tokenRefreshable,
+
+  useInitialAuthStateEffect({
+    authState,
+    setAuthState,
+    notify,
     authStorage,
     oauthTokenRef,
     tokenExpiresAtRef,
-    lastBackendFailureAttemptRef,
-    timeBeforeExpirationRefresh,
-    setAuthStateAndNotify,
+    updateTokenInfoRef,
+    timeBeforeExpirationRefresh
+  })
+  useNeedsRefreshEffect({
+    authState,
+    setAuthState,
+    tokenRefreshable,
+    refresh,
     notify,
-    refresh
-  });
+  })
+
+
 
   return <AuthContext.Provider value={{
-    authState: authStateRef.current,
+    authState,
     authorization,
     accessToken,
     accessTokenExpired,

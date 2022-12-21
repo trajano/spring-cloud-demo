@@ -1,4 +1,11 @@
-import { Dispatch, RefObject, SetStateAction, useEffect, useRef } from 'react';
+import {
+  Dispatch,
+  RefObject,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import { isTokenExpired } from './isTokenExpired';
@@ -19,6 +26,10 @@ export type TokenExpirationTimeoutEffectProps = {
  */
 export type TokenExpirationTimeoutState = {
   timeoutRef: RefObject<ReturnType<typeof setTimeout>>;
+  // will likely remove in the future, but keeping it here for debugging
+  lastCheckAt: Date;
+  // will likely remove in the future, but keeping it here for debugging
+  nextCheckAt: Date | null;
 };
 /**
  * This sets up a timeout on AUTHENTICATED state that cycles every `maxTimeoutForRefreshCheck` ms or
@@ -34,6 +45,8 @@ export function useTokenExpirationTimeoutEffect({
   notify,
 }: TokenExpirationTimeoutEffectProps): TokenExpirationTimeoutState {
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const [lastCheckAt, setLastCheckAt] = useState(new Date());
+  const [nextCheckAt, setNextCheckAt] = useState<Date | null>(null);
   useEffect(() => {
     if (authState === AuthState.AUTHENTICATED) {
       function updateStateOnTimeout() {
@@ -46,7 +59,9 @@ export function useTokenExpirationTimeoutEffect({
         }
         if (!timeoutRef.current) {
           clearTimeout(timeoutRef.current);
+          timeoutRef.current = undefined;
         }
+        setNextCheckAt(null);
         if (isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh)) {
           setAuthState(AuthState.NEEDS_REFRESH);
           notify({
@@ -61,8 +76,16 @@ export function useTokenExpirationTimeoutEffect({
           );
 
           timeoutRef.current = setTimeout(updateStateOnTimeout, ms);
+          setNextCheckAt(new Date(Date.now() + ms));
         }
       }
+      notify({
+        type: 'CheckRefresh',
+        authState,
+        reason: 'useTokenExpirationTimeoutEffect dependency update',
+        tokenExpiresAt,
+      });
+      setLastCheckAt(new Date());
       updateStateOnTimeout();
     }
     return () => {
@@ -73,9 +96,13 @@ export function useTokenExpirationTimeoutEffect({
     };
   }, [
     authState,
-    maxTimeoutForRefreshCheck,
     tokenExpiresAt,
+    maxTimeoutForRefreshCheck,
     timeBeforeExpirationRefresh,
   ]);
-  return { timeoutRef: timeoutRef as RefObject<ReturnType<typeof setTimeout>> };
+  return {
+    lastCheckAt,
+    nextCheckAt,
+    timeoutRef: timeoutRef as RefObject<ReturnType<typeof setTimeout>>,
+  };
 }

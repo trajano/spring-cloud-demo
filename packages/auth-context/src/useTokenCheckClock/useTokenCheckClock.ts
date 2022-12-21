@@ -26,11 +26,15 @@ export function useTokenCheckClock(
     updatePerSecondReducer,
     Math.ceil(Date.now() / 1000) * 1000
   );
+  /**
+   * Forces a rerender.
+   */
+  const [timesForced, forceCheck] = useReducer((prev) => prev + 1, 0);
+
   const nextCheckTimeRef = useRef<number | null>(null);
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
     function handleTimeout() {
-      updateLastCheckTime(Date.now());
       if (authState === AuthState.BACKEND_FAILURE) {
         const nextCheckTimeout =
           timeoutForBackendFailureCheck - (Date.now() % 1000);
@@ -52,6 +56,7 @@ export function useTokenCheckClock(
       } else {
         nextCheckTimeRef.current = null;
       }
+      updateLastCheckTime(Date.now());
     }
     handleTimeout();
     return () => {
@@ -65,9 +70,11 @@ export function useTokenCheckClock(
     timeBeforeExpirationRefresh,
     maxTimeoutForRefreshCheck,
     timeoutForBackendFailureCheck,
+    timesForced,
   ]);
   return {
     lastCheckTime,
     nextCheckTime: nextCheckTimeRef.current,
+    forceCheck,
   };
 }

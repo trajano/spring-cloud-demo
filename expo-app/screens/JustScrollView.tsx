@@ -1,5 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { AuthState, useAuth } from '@trajano/spring-docker-auth-context';
+import { AuthState, AuthStore, useAuth } from '@trajano/spring-docker-auth-context';
 import { addSeconds, formatISO, getTime, millisecondsToSeconds, startOfSecond } from 'date-fns';
 import { useCallback, useRef, useState } from 'react';
 import { Animated, View } from 'react-native';
@@ -12,7 +13,7 @@ import { Text } from '../src/lib/native-unstyled';
 import { useRefreshControl } from '../src/lib/native-unstyled';
 export function JustScrollView() {
     const safeAreaInsets = useSafeAreaInsets();
-    const { accessToken, accessTokenExpiresOn, authState, refresh, endpointConfiguration, lastCheckOn, nextCheckOn, accessTokenExpired } = useAuth();
+    const { accessToken, accessTokenExpiresOn, authState, refresh, endpointConfiguration, lastCheckOn, nextCheckOn, accessTokenExpired, baseUrl } = useAuth();
     const [timeRemaining, setTimeRemaining] = useState<number>(millisecondsToSeconds(accessTokenExpiresOn.getTime() - Date.now()))
     const timerRef = useRef<ReturnType<typeof setTimeout>>();
     const refreshControl = useRefreshControl(async () => {
@@ -21,6 +22,10 @@ export function JustScrollView() {
     });
     const { whoami } = useAuthenticated();
     const [whoamiJson, setWhoamiJson] = useState("");
+
+    async function expire() {
+        await AsyncStorage.setItem(`auth.${baseUrl.toString()}..tokenExpiresAt`, new Date(Date.now() - 10).toISOString());
+    }
 
     const updateClock = useCallback(() => {
         timerRef.current = setTimeout(() => {
@@ -40,9 +45,7 @@ export function JustScrollView() {
         <Text style={{ fontFamily: 'NotoSansMono', fontSize: 16 }}>Last check <Text bold>{formatISO(lastCheckOn, { representation: "time" })}</Text></Text>
         <Text style={{ fontFamily: 'NotoSansMono', fontSize: 16 }}>Next check <Text bold>{nextCheckOn ? formatISO(nextCheckOn, { representation: "time" }) : "none"}</Text></Text>
         <Text fontFamily='Lexend'>AuthState <Text fontFamily='Noto' fontWeight="bold">{AuthState[authState]}</Text></Text>
-        <Button onPress={async () => {
-            setWhoamiJson(JSON.stringify(await whoami(), null, 2));
-        }}>Expire</Button>
+        <Button onPress={expire}>Expire {baseUrl.toString()}</Button>
         <Button onPress={async () => {
             setWhoamiJson(JSON.stringify(await whoami(), null, 2));
         }}>{(endpointConfiguration as AuthenticatedEndpointConfiguration).whoamiEndpoint}</Button>

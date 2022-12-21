@@ -13,4 +13,5 @@ export type TokenCheckClockState = {
    * if there is no future timer set.
    */
   nextCheckTime: number | null;
+  forceCheck(): void;
 };
