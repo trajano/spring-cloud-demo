@@ -1,4 +1,5 @@
-import React, { PropsWithChildren, ReactElement, useMemo, useReducer, useRef, useState } from "react";
+import React, { PropsWithChildren, ReactElement, useMemo, useRef, useState } from "react";
+import type { IAuth } from "../IAuth";
 import { AuthClient } from "../AuthClient";
 import { AuthContext } from "../AuthContext";
 import { AuthenticationClientError } from "../AuthenticationClientError";
@@ -9,14 +10,12 @@ import type { EndpointConfiguration } from "../EndpointConfiguration";
 import type { OAuthToken } from "../OAuthToken";
 import { useLastAuthEvents } from '../useLastAuthEvents';
 import { useRenderOnTokenEvent } from '../useRenderOnTokenEvent';
-import { useTokenCheckClock } from "../useTokenCheckClock";
 import { isTokenRefExpired } from "./isTokenRefExpired";
 import { updateTokenInfoRef } from "./updateTokenInfoRef";
 import { useBackendFailureTimeoutEffect } from "./useBackendFailureTimeoutEffect";
 import { useInitialAuthStateEffect } from "./useInitialAuthStateEffect";
 import { useNeedsRefreshEffect } from "./useNeedsRefreshEffect";
 import { useTokenExpirationTimeoutEffect } from "./useTokenExpirationTimeoutEffect";
-import { useUpdateStatesEffect } from './useUpdateStatesEffect';
 
 type AuthContextProviderProps = PropsWithChildren<{
   /**
@@ -96,11 +95,6 @@ export function AuthProvider<A = any>({
   // Token expires reference, this is updated by some effect
   const tokenExpiresAtRef = useRef<Date | null>(null);
 
-  // const { lastCheckTime, nextCheckTime, forceCheck } = useTokenCheckClock(
-  //   authStateRef.current,
-  //   tokenExpiresAtRef.current,
-  //   timeBeforeExpirationRefresh
-  // );
   const {
     timeoutRef: tokenExpirationTimeoutRef,
     lastCheckAt: lastCheckOn,
@@ -121,18 +115,6 @@ export function AuthProvider<A = any>({
     backendFailureTimeout: 60000,
   })
 
-  const accessToken = useMemo(() => oauthTokenRef.current?.access_token ?? null, [
-    tokenExpirationTimeoutRef.current,
-    backendFailureTimeoutRef.current,
-    oauthTokenRef.current?.access_token
-  ]);
-  const accessTokenExpired = useMemo(() => isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh), [
-    tokenExpirationTimeoutRef.current,
-    backendFailureTimeoutRef.current,
-    timeBeforeExpirationRefresh
-  ]);
-  const authorization = useMemo(() => (!accessTokenExpired && !!oauthTokenRef.current) ? `Bearer ${accessToken}` : null, [accessTokenExpired, accessToken]);
-  const accessTokenExpiresOn = useMemo(() => tokenExpiresAtRef.current ?? new Date(0), [tokenExpirationTimeoutRef.current, tokenExpiresAtRef.current])
 
   function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
@@ -156,7 +138,6 @@ export function AuthProvider<A = any>({
    */
   function setAuthStateAndNotify({ next, event }: { next: AuthState, event: AuthEvent | AuthEvent[] }): void {
 
-    //authStateRef.current = next;
     setAuthState(next);
     if (Array.isArray(event)) {
       event.forEach(notify);
@@ -326,7 +307,6 @@ export function AuthProvider<A = any>({
     }
   }
 
-
   useInitialAuthStateEffect({
     authState,
     setAuthState,
@@ -345,13 +325,24 @@ export function AuthProvider<A = any>({
     notify,
   })
 
+  const accessToken = useMemo(() => oauthTokenRef.current?.access_token ?? null, [
+    tokenExpirationTimeoutRef.current,
+    backendFailureTimeoutRef.current,
+    oauthTokenRef.current?.access_token
+  ]);
+  const accessTokenExpired = useMemo(() => isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh), [
+    tokenExpirationTimeoutRef.current,
+    backendFailureTimeoutRef.current,
+    timeBeforeExpirationRefresh
+  ]);
+  const authorization = useMemo(() => (!accessTokenExpired && !!oauthTokenRef.current) ? `Bearer ${accessToken}` : null, [accessTokenExpired, accessToken]);
+  const accessTokenExpiresOn = useMemo(() => tokenExpiresAtRef.current ?? new Date(0), [tokenExpirationTimeoutRef.current, tokenExpiresAtRef.current])
 
-
-  return <AuthContext.Provider value={{
+  const contextValue: IAuth = useMemo(() => ({
     authState,
     authorization,
-    accessToken,
-    accessTokenExpired,
+    accessToken: oauthTokenRef.current?.access_token ?? null,
+    accessTokenExpired: isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh),
     accessTokenExpiresOn,
     baseUrl,
     oauthToken: oauthTokenRef.current,
@@ -365,5 +356,18 @@ export function AuthProvider<A = any>({
     login,
     logout,
     refresh
-  }}>{children}</AuthContext.Provider>
+  }), [
+    authState,
+    baseUrl,
+    oauthTokenRef.current,
+    lastCheckOn.getTime(),
+    nextCheckOn?.getTime,
+    tokenRefreshable,
+    lastAuthEvents,
+    authorization,
+    tokenExpiresAtRef.current?.getTime(),
+    endpointConfiguration
+  ])
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
 }

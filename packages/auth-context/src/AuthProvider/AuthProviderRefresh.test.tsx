@@ -1,16 +1,15 @@
-import '@testing-library/jest-native/extend-expect';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import '@testing-library/jest-native/extend-expect';
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
-import { addMilliseconds } from 'date-fns';
 import fetchMock from 'fetch-mock';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { AppState, Pressable, Text } from 'react-native';
 import type { AuthEvent } from '../AuthEvent';
-import { AuthProvider } from './AuthProvider';
 import { AuthState } from '../AuthState';
 import { buildSimpleEndpointConfiguration } from '../buildSimpleEndpointConfiguration';
 import type { OAuthToken } from '../OAuthToken';
 import { useAuth } from '../useAuth';
+import { AuthProvider } from './AuthProvider';
 
 const specimenInstant = new Date("2022-11-11T12:00:00Z")
 let globalFetch: typeof fetch;
