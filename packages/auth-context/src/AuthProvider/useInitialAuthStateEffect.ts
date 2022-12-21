@@ -10,6 +10,7 @@ import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import type { OAuthToken } from '../OAuthToken';
 import { isTokenRefExpired } from './isTokenRefExpired';
+import { updateTokenInfoRef } from './updateTokenInfoRef';
 
 /**
  * @testonly
@@ -21,11 +22,6 @@ export type InitialAuthStateProps = {
   authStorage: AuthStore;
   oauthTokenRef: MutableRefObject<OAuthToken | null>;
   tokenExpiresAtRef: MutableRefObject<Date | null>;
-  updateTokenInfoRef: (
-    authStorage: AuthStore,
-    oauthTokenRef: MutableRefObject<OAuthToken | null>,
-    tokenExpiresAtRef: MutableRefObject<Date | null>
-  ) => Promise<void>;
   timeBeforeExpirationRefresh: number;
 };
 export function useInitialAuthStateEffect({
@@ -36,7 +32,6 @@ export function useInitialAuthStateEffect({
   oauthTokenRef,
   tokenExpiresAtRef,
   timeBeforeExpirationRefresh,
-  updateTokenInfoRef,
 }: InitialAuthStateProps) {
   const setInitialAuthState = useCallback(async () => {
     if (__DEV__) {

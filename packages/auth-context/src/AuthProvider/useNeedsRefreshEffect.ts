@@ -8,12 +8,12 @@ import { AuthState } from '../AuthState';
 export type NeedsRefreshEffectProps = {
   authState: AuthState;
   setAuthState: Dispatch<SetStateAction<AuthState>>;
+  notify: (event: AuthEvent) => void;
   /**
    * Indicates that the token is refreshable from the device.
    */
   tokenRefreshable: boolean;
   refresh: () => Promise<void>;
-  notify: (event: AuthEvent) => void;
   /**
    * called when there is a refresh error.  by default it simply logs to console.error
    * Technically should never get here since the failure states are already done in refresh()
@@ -35,6 +35,11 @@ export function useNeedsRefreshEffect({
         refresh().catch(onRefreshError);
       } else {
         setAuthState(AuthState.BACKEND_INACCESSIBLE);
+      }
+    }
+    else if (authState === AuthState.BACKEND_INACCESSIBLE) {
+      if (tokenRefreshable) {
+        setAuthState(AuthState.NEEDS_REFRESH);
       }
     }
   }, [authState, tokenRefreshable]);

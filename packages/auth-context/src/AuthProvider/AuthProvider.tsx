@@ -1,5 +1,4 @@
 import React, { PropsWithChildren, ReactElement, useMemo, useRef, useState } from "react";
-import type { IAuth } from "../IAuth";
 import { AuthClient } from "../AuthClient";
 import { AuthContext } from "../AuthContext";
 import { AuthenticationClientError } from "../AuthenticationClientError";
@@ -7,14 +6,16 @@ import type { AuthEvent } from "../AuthEvent";
 import { AuthState } from "../AuthState";
 import { AuthStore } from "../AuthStore";
 import type { EndpointConfiguration } from "../EndpointConfiguration";
+import type { IAuth } from "../IAuth";
 import type { OAuthToken } from "../OAuthToken";
 import { useLastAuthEvents } from '../useLastAuthEvents';
-import { useRenderOnTokenEvent } from '../useRenderOnTokenEvent';
 import { isTokenRefExpired } from "./isTokenRefExpired";
 import { updateTokenInfoRef } from "./updateTokenInfoRef";
 import { useBackendFailureTimeoutEffect } from "./useBackendFailureTimeoutEffect";
 import { useInitialAuthStateEffect } from "./useInitialAuthStateEffect";
 import { useNeedsRefreshEffect } from "./useNeedsRefreshEffect";
+import { useRefreshCallback } from "./useRefreshCallback";
+import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
 import { useTokenExpirationTimeoutEffect } from "./useTokenExpirationTimeoutEffect";
 
 type AuthContextProviderProps = PropsWithChildren<{
@@ -214,98 +215,17 @@ export function AuthProvider<A = any>({
     }
   }
 
-  async function refresh() {
-    if (authState === AuthState.REFRESHING) {
-      notify({
-        type: "Refreshing",
-        authState,
-        reason: "Already in progress"
-      });
-      return;
-    }
-    setAuthStateAndNotify({
-      next: AuthState.REFRESHING,
-      event: {
-        type: "Refreshing",
-        authState,
-        reason: "Requested"
-      }
-    });
-    try {
-      const storedOAuthToken = await authStorage.getOAuthToken();
-      if (storedOAuthToken == null) {
-        // No token stored. Normally should not happen hear unless the token was removed from storage by
-        // some means other than the API.
-        setAuthStateAndNotify({
-          next: AuthState.UNAUTHENTICATED,
-          event: {
-            type: "Unauthenticated",
-            authState,
-            reason: "No token stored. Normally should not happen here."
-          }
-        });
-      } else if (!tokenRefreshable) {
-        // refresh was attempted when the backend is not available.  This may occur when refresh is forced.
-        setAuthStateAndNotify({
-          next: AuthState.BACKEND_INACCESSIBLE,
-          event: {
-            type: "TokenExpiration",
-            authState,
-            reason: "Backend is not available and token refresh was requested",
-            netInfoState
-          }
-        });
-      } else {
-        try {
-          const refreshedOAuthToken = await authClient.refresh(storedOAuthToken.refresh_token);
-          const nextTokenExpiresAt = await authStorage.storeOAuthTokenAndGetExpiresAt(refreshedOAuthToken)
-          await updateTokenInfoRef(authStorage, oauthTokenRef, tokenExpiresAtRef);
-          setAuthStateAndNotify({
-            next: AuthState.AUTHENTICATED,
-            event: {
-              type: "Authenticated",
-              reason: "Refreshed",
-              authState,
-              accessToken: refreshedOAuthToken.access_token,
-              authorization: `Bearer ${refreshedOAuthToken.access_token}`,
-              tokenExpiresAt: nextTokenExpiresAt
-            }
-          });
-        } catch (e: unknown) {
-          if (e instanceof AuthenticationClientError && e.isUnauthorized()) {
-            await authStorage.clear();
-            await updateTokenInfoRef(authStorage, oauthTokenRef, tokenExpiresAtRef);
-            setAuthStateAndNotify({
-              next: AuthState.UNAUTHENTICATED,
-              event: {
-                type: "Unauthenticated",
-                authState,
-                reason: e.message,
-                responseBody: e.responseBody
-              }
-            });
-          } else if (e instanceof AuthenticationClientError && !e.isUnauthorized()) {
-            // at this point there is an error but it's not something caused by the user so don't clear off the token
-            //    lastBackendFailureAttemptRef.current = lastCheckTime;
-            setAuthStateAndNotify({
-              next: AuthState.BACKEND_FAILURE,
-              event: {
-                type: "TokenExpiration",
-                authState,
-                reason: e.message,
-                responseBody: e.responseBody,
-                netInfoState
-              }
-            });
-          } else {
-            throw e;
-          }
-        }
-      }
-    } finally {
-      //forceCheck()
-    }
-  }
+  const refresh = useRefreshCallback({
+    authState,
+    setAuthState,
+    notify,
+    authStorage,
+    oauthTokenRef,
+    tokenExpiresAtRef,
+    authClient,
+    netInfoState,
+    tokenRefreshable
+  })
 
   useInitialAuthStateEffect({
     authState,
@@ -314,15 +234,15 @@ export function AuthProvider<A = any>({
     authStorage,
     oauthTokenRef,
     tokenExpiresAtRef,
-    updateTokenInfoRef,
     timeBeforeExpirationRefresh
   })
+
   useNeedsRefreshEffect({
     authState,
     setAuthState,
+    notify,
     tokenRefreshable,
     refresh,
-    notify,
   })
 
   const accessToken = useMemo(() => oauthTokenRef.current?.access_token ?? null, [

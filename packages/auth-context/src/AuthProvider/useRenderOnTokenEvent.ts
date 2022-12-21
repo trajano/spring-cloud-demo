@@ -1,8 +1,8 @@
 import type { NetInfoState } from '@react-native-community/netinfo';
 import { useMemo } from 'react';
-import type { EndpointConfiguration } from './EndpointConfiguration';
+import type { EndpointConfiguration } from '../EndpointConfiguration';
 import { useAppStateWithNetInfoRefresh } from './useAppStateWithNetInfoRefresh';
-import { useNetInfoState } from './useNetInfoState';
+import { useNetInfoState } from '../useNetInfoState';
 
 type RenderOnTokenEventState = {
   /**
