@@ -31,6 +31,8 @@ it("default context values", async () => {
         await auth.logout();
         setLogout(true)
 
+        await auth.forceCheckAuthStorage();
+
         auth.subscribe(jest.fn())();
         setSubscribe(true)
         auth.setEndpointConfiguration({} as EndpointConfiguration);

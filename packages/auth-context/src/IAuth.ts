@@ -103,10 +103,10 @@ export interface IAuth<A = any> {
    */
   lastCheckOn: Date;
   /**
-   * When the next check for authentication state using timer effect will be done.  Null if there
-   * is no planned timer check.
+   * Force check of the auth storage data.  This is primarily used for testing purposes as the
+   * data is not normally modified outside the context.
    */
-  nextCheckOn: Date | null;
+  forceCheckAuthStorage(): Promise<void>;
   /**
    * Last auth events.  The most recent one will be the first element.
    * This is primarily used to diagnose issues where the token becomes invalidated

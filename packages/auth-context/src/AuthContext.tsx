@@ -9,6 +9,7 @@ export const AuthContext = createContext<IAuth>({
   refresh: () => Promise.reject(),
   setEndpointConfiguration: () => { },
   subscribe: () => { return () => { }; },
+  forceCheckAuthStorage: () => Promise.resolve(),
   accessToken: null,
   accessTokenExpired: true,
   accessTokenExpiresOn: new Date(0),
@@ -19,6 +20,5 @@ export const AuthContext = createContext<IAuth>({
   baseUrl: new URL("http://undefined"),
   tokenRefreshable: false,
   lastCheckOn: new Date(),
-  nextCheckOn: null,
   lastAuthEvents: []
 });

@@ -30,7 +30,7 @@ afterEach(() => {
 })
 
 function MyComponent({ notifications }: { notifications: () => void }) {
-  const { authState, login, accessTokenExpiresOn, accessToken, tokenRefreshable, subscribe } = useAuth();
+  const { authState, login, accessTokenExpiresOn, accessToken, authorization, tokenRefreshable, subscribe } = useAuth();
   useEffect(() => subscribe(notifications), []);
   const doLogin = useMemo(() => async function doLogin() {
     return login({ user: "test" });
@@ -38,6 +38,7 @@ function MyComponent({ notifications }: { notifications: () => void }) {
   return (<>
     <Text testID='hello'>{AuthState[authState]}</Text>
     <Text testID='accessToken'>{accessToken}</Text>
+    <Text testID='authorization'>{authorization}</Text>
     <Text testID='tokenRefreshable'>{tokenRefreshable ? "tokenRefreshable" : ""}</Text>
     <Text testID='accessTokenExpiresOn'>{accessTokenExpiresOn?.toISOString()}</Text>
     <Pressable onPress={doLogin}><Text testID='login'>Login</Text></Pressable>
@@ -67,6 +68,7 @@ it("Refresh two times", async () => {
   expect(notifications).toBeCalledWith(expect.objectContaining({ type: "TokenExpiration", authState: AuthState.AUTHENTICATED } as Partial<AuthEvent>))
   await waitFor(() => expect(getByTestId("hello")).toHaveTextContent("REFRESHING"));
   await waitFor(() => expect(getByTestId("hello")).toHaveTextContent("AUTHENTICATED"));
+  await waitFor(() => expect(getByTestId("accessToken")).toHaveTextContent("newAccessToken"));
 
 
   // do second refresh
@@ -78,6 +80,8 @@ it("Refresh two times", async () => {
   await waitFor(() => expect(getByTestId("hello")).toHaveTextContent("REFRESHING"));
   await waitFor(() => expect(notifications).toBeCalledWith(expect.objectContaining({ type: "Authenticated", "accessToken": "newAccessTokenPartTwo" } as Partial<AuthEvent>)))
   await waitFor(() => expect(getByTestId("hello")).toHaveTextContent("AUTHENTICATED"));
+  await waitFor(() => expect(getByTestId("accessToken")).toHaveTextContent("newAccessTokenPartTwo"));
+  await waitFor(() => expect(getByTestId("authorization")).toHaveTextContent("Bearer newAccessTokenPartTwo"));
 
   expect(jest.getTimerCount()).toBe(1)
   unmount();

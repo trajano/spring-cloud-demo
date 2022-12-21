@@ -12,12 +12,17 @@ import { AuthStore } from '../AuthStore';
 import type { OAuthToken } from '../OAuthToken';
 import {
   NeedsRefreshEffectProps,
-  useNeedsRefreshEffect,
+  useNeedsRefreshEffect
 } from './useNeedsRefreshEffect';
 import { RefreshCallbackProps, useRefreshCallback } from './useRefreshCallback';
 
 jest.mock('../AuthClient');
+afterEach(() => {
+  AsyncStorage.clear();
+});
+
 test('mostly mocked', async () => {
+  const updateFromStorage = jest.fn() as any;
   const oldAccessToken: OAuthToken = {
     access_token: 'oldAccessToken',
     refresh_token: 'RefreshToken',
@@ -41,8 +46,6 @@ test('mostly mocked', async () => {
   const authClient = jest.mocked(
     new AuthClient(buildSimpleEndpointConfiguration('http://asdf.com/'))
   );
-  const oauthTokenRef = { current: null };
-  const tokenExpiresAtRef = { current: null };
   const authStorage = new AuthStore('auth', 'http://asdf.com/');
   const { result } = renderHook<RefreshCallbackProps<any>, () => Promise<void>>(
     (props) => useRefreshCallback(props),
@@ -54,9 +57,9 @@ test('mostly mocked', async () => {
         tokenRefreshable: true,
         authStorage,
         netInfoState,
-        oauthTokenRef,
-        tokenExpiresAtRef,
+        oauthToken: oldAccessToken,
         authClient,
+        updateFromStorage,
       },
     }
   );
@@ -73,6 +76,46 @@ test('mostly mocked', async () => {
   expect(setAuthState).toBeCalledTimes(2);
   expect(setAuthState).toHaveBeenNthCalledWith(1, AuthState.REFRESHING);
   expect(setAuthState).toHaveBeenNthCalledWith(2, AuthState.AUTHENTICATED);
+});
+
+test('no token stored', async () => {
+  const updateFromStorage = jest.mocked(() =>
+    Promise.resolve({
+      oauthToken: null,
+      tokenExpiresAt: null,
+    })
+  );
+  const setAuthState = jest.fn() as jest.Mocked<
+    Dispatch<SetStateAction<AuthState>>
+  >;
+  const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
+  const netInfoState = {} as NetInfoState;
+  const authClient = jest.mocked(
+    new AuthClient(buildSimpleEndpointConfiguration('http://asdf.com/'))
+  );
+  const authStorage = new AuthStore('auth', 'http://asdf.com/');
+  const { result } = renderHook<RefreshCallbackProps<any>, () => Promise<void>>(
+    (props) => useRefreshCallback(props),
+    {
+      initialProps: {
+        authState: AuthState.NEEDS_REFRESH,
+        setAuthState,
+        notify,
+        tokenRefreshable: true,
+        authStorage,
+        netInfoState,
+        oauthToken: null,
+        updateFromStorage,
+        authClient,
+      },
+    }
+  );
+  expect(setAuthState).toBeCalledTimes(0);
+  let refresh = result.current;
+
+  await act(() => refresh());
+  expect(setAuthState).toBeCalledTimes(2);
+  expect(setAuthState).toHaveBeenLastCalledWith(AuthState.UNAUTHENTICATED);
 });
 
 test('forced refresh while not token is not refreshable', async () => {
@@ -94,40 +137,36 @@ test('forced refresh while not token is not refreshable', async () => {
   const setAuthState = jest.fn() as jest.Mocked<
     Dispatch<SetStateAction<AuthState>>
   >;
+  const updateFromStorage = jest.fn() as any;
   const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
   const netInfoState = {} as NetInfoState;
   const authClient = jest.mocked(
     new AuthClient(buildSimpleEndpointConfiguration('http://asdf.com/'))
   );
-  const oauthTokenRef = { current: null };
-  const tokenExpiresAtRef = { current: null };
   const authStorage = new AuthStore('auth', 'http://asdf.com/');
-  const { result } = renderHook<RefreshCallbackProps<any>, () => Promise<void>>(
-    (props) => useRefreshCallback(props),
-    {
-      initialProps: {
-        authState: AuthState.NEEDS_REFRESH,
-        setAuthState,
-        notify,
-        tokenRefreshable: false,
-        authStorage,
-        netInfoState,
-        oauthTokenRef,
-        tokenExpiresAtRef,
-        authClient,
-      },
-    }
-  );
+  const { result, waitFor } = renderHook<
+    RefreshCallbackProps<any>,
+    () => Promise<void>
+  >((props) => useRefreshCallback(props), {
+    initialProps: {
+      authState: AuthState.NEEDS_REFRESH,
+      setAuthState,
+      notify,
+      tokenRefreshable: false,
+      authStorage,
+      netInfoState,
+      oauthToken: oldAccessToken,
+      updateFromStorage,
+      authClient,
+    },
+  });
   expect(setAuthState).toBeCalledTimes(0);
   let refresh = result.current;
 
-  await refresh();
-  expect(setAuthState).toBeCalledTimes(2);
-  expect(setAuthState).toHaveBeenNthCalledWith(1, AuthState.REFRESHING);
-  expect(setAuthState).toHaveBeenNthCalledWith(
-    2,
-    AuthState.BACKEND_INACCESSIBLE
-  );
+  await act(async () => {
+    await refresh();
+  });
+  expect(setAuthState).toHaveBeenLastCalledWith(AuthState.BACKEND_INACCESSIBLE);
 });
 
 test('token not refreshable then it becomes refreshable with needsRefreshEffect', async () => {
@@ -154,9 +193,8 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
   const authClient = jest.mocked(
     new AuthClient(buildSimpleEndpointConfiguration('http://asdf.com/'))
   );
-  const oauthTokenRef = { current: null };
-  const tokenExpiresAtRef = { current: null };
   const authStorage = new AuthStore('auth', 'http://asdf.com/');
+  const updateFromStorage = jest.fn() as any;
   const { result, rerender: rerenderRefreshCallback } = renderHook<
     RefreshCallbackProps<any>,
     () => Promise<void>
@@ -168,8 +206,13 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
       tokenRefreshable: false,
       authStorage,
       netInfoState,
-      oauthTokenRef,
-      tokenExpiresAtRef,
+      oauthToken: {
+        access_token: 'old',
+        expires_in: 23,
+        refresh_token: 'ref',
+        token_type: 'Bearer',
+      },
+      updateFromStorage,
       authClient,
     },
   });
@@ -194,8 +237,13 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
     tokenRefreshable: false,
     authStorage,
     netInfoState,
-    oauthTokenRef,
-    tokenExpiresAtRef,
+    oauthToken: {
+      access_token: 'old',
+      expires_in: 23,
+      refresh_token: 'ref',
+      token_type: 'Bearer',
+    },
+    updateFromStorage,
     authClient,
   });
   rerenderNeedsEffect({
@@ -214,8 +262,13 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
     tokenRefreshable: true,
     authStorage,
     netInfoState,
-    oauthTokenRef,
-    tokenExpiresAtRef,
+    oauthToken: {
+      access_token: 'old',
+      expires_in: 23,
+      refresh_token: 'ref',
+      token_type: 'Bearer',
+    },
+    updateFromStorage,
     authClient,
   });
   rerenderNeedsEffect({
@@ -235,8 +288,13 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
     tokenRefreshable: true,
     authStorage,
     netInfoState,
-    oauthTokenRef,
-    tokenExpiresAtRef,
+    oauthToken: {
+      access_token: 'old',
+      expires_in: 23,
+      refresh_token: 'ref',
+      token_type: 'Bearer',
+    },
+    updateFromStorage,
     authClient,
   });
 
@@ -262,7 +320,9 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
 
   expect(setAuthState).toHaveBeenLastCalledWith(AuthState.REFRESHING);
   await waitFor(() => expect(authClient.refresh).toHaveBeenCalledTimes(1));
-  expect(setAuthState).toHaveBeenLastCalledWith(AuthState.AUTHENTICATED);
+  await waitFor(() =>
+    expect(setAuthState).toHaveBeenLastCalledWith(AuthState.AUTHENTICATED)
+  );
 });
 
 test('refreshing while refreshing', async () => {
@@ -273,8 +333,8 @@ test('refreshing while refreshing', async () => {
   const netInfoState = {} as NetInfoState;
   const authClient = jest.fn() as unknown as jest.Mocked<AuthClient<any>>;
   const authStorage = jest.fn() as unknown as jest.Mocked<AuthStore>;
-  const oauthTokenRef = { current: null };
-  const tokenExpiresAtRef = { current: null };
+  const updateFromStorage = jest.fn() as any;
+
   const { result } = renderHook<RefreshCallbackProps<any>, () => Promise<void>>(
     (props) => useRefreshCallback(props),
     {
@@ -285,8 +345,13 @@ test('refreshing while refreshing', async () => {
         tokenRefreshable: true,
         authStorage,
         netInfoState,
-        oauthTokenRef,
-        tokenExpiresAtRef,
+        oauthToken: {
+          access_token: 'old',
+          expires_in: 23,
+          refresh_token: 'ref',
+          token_type: 'Bearer',
+        },
+        updateFromStorage,
         authClient,
       },
     }

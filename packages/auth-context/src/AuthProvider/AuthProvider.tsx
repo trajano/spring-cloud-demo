@@ -10,7 +10,6 @@ import type { IAuth } from "../IAuth";
 import type { OAuthToken } from "../OAuthToken";
 import { useLastAuthEvents } from '../useLastAuthEvents';
 import { isTokenRefExpired } from "./isTokenRefExpired";
-import { updateTokenInfoRef } from "./updateTokenInfoRef";
 import { useBackendFailureTimeoutEffect } from "./useBackendFailureTimeoutEffect";
 import { useInitialAuthStateEffect } from "./useInitialAuthStateEffect";
 import { useNeedsRefreshEffect } from "./useNeedsRefreshEffect";
@@ -89,17 +88,16 @@ export function AuthProvider<A = any>({
    */
   const [authState, setAuthState] = useState(AuthState.INITIAL);
 
-
-  // OAuth token reference, this is updated by some effect
-  const oauthTokenRef = useRef<OAuthToken | null>(null);
+  /**
+   * OAuth token
+   */
+  const [oauthToken, setOAuthToken] = useState<OAuthToken | null>(null);
 
   // Token expires reference, this is updated by some effect
   const tokenExpiresAtRef = useRef<Date | null>(null);
 
   const {
     timeoutRef: tokenExpirationTimeoutRef,
-    lastCheckAt: lastCheckOn,
-    nextCheckAt: nextCheckOn
   } = useTokenExpirationTimeoutEffect({
     authState,
     setAuthState,
@@ -133,6 +131,23 @@ export function AuthProvider<A = any>({
     subscribersRef.current.forEach((fn) => fn(event));
   }
 
+  async function updateFromStorage(): Promise<{ oauthToken: OAuthToken | null, tokenExpiresAt: Date | null }> {
+    const nextOauthToken = await authStorage.getOAuthToken()
+    setOAuthToken(nextOauthToken);
+    tokenExpiresAtRef.current =
+      (await authStorage.getTokenExpiresAt()) ?? tokenExpiresAtRef.current;
+    return { oauthToken: nextOauthToken, tokenExpiresAt: tokenExpiresAtRef.current }
+  }
+  async function forceCheckAuthStorage() {
+    await updateFromStorage();
+    // The following also triggers a state change which forces a rerender
+    pushAuthEvent({
+      type: "Refreshing",
+      authState,
+      reason: `force check auth storage ${oauthToken} ${tokenExpiresAtRef}`
+    })
+  }
+
   /**
    * Sets the auth state and performs a notification.  Since the notification triggers a state change using
    * pushAuthEvent, it cannot be placed as a reducer function.
@@ -153,7 +168,7 @@ export function AuthProvider<A = any>({
     try {
       const [nextOauthToken, authenticationResponse] = await authClient.authenticate(authenticationCredentials);
       const nextTokenExpiresAt = await authStorage.storeOAuthTokenAndGetExpiresAt(nextOauthToken);
-      await updateTokenInfoRef(authStorage, oauthTokenRef, tokenExpiresAtRef);
+      await updateFromStorage();
       setAuthStateAndNotify({
         next: AuthState.AUTHENTICATED,
         event: [{
@@ -176,7 +191,7 @@ export function AuthProvider<A = any>({
     } catch (e: unknown) {
       if (e instanceof AuthenticationClientError) {
         await authStorage.clear();
-        await updateTokenInfoRef(authStorage, oauthTokenRef, tokenExpiresAtRef);
+        await updateFromStorage();
       }
       throw e;
     }
@@ -189,17 +204,17 @@ export function AuthProvider<A = any>({
   async function logout() {
 
     try {
-      if (!oauthTokenRef.current) {
+      if (!oauthToken) {
         return;
       }
-      await authClient.revoke(oauthTokenRef.current.refresh_token)
+      await authClient.revoke(oauthToken.refresh_token)
     } catch (e: unknown) {
       if (!(e instanceof AuthenticationClientError)) {
         throw e;
       }
     } finally {
       await authStorage.clear();
-      await updateTokenInfoRef(authStorage, oauthTokenRef, tokenExpiresAtRef);
+      await updateFromStorage();
       setAuthStateAndNotify({
         next: AuthState.UNAUTHENTICATED, event: {
           type: "LoggedOut",
@@ -219,9 +234,9 @@ export function AuthProvider<A = any>({
     authState,
     setAuthState,
     notify,
+    oauthToken,
     authStorage,
-    oauthTokenRef,
-    tokenExpiresAtRef,
+    updateFromStorage,
     authClient,
     netInfoState,
     tokenRefreshable
@@ -231,8 +246,8 @@ export function AuthProvider<A = any>({
     authState,
     setAuthState,
     notify,
+    updateFromStorage,
     authStorage,
-    oauthTokenRef,
     tokenExpiresAtRef,
     timeBeforeExpirationRefresh
   })
@@ -245,32 +260,33 @@ export function AuthProvider<A = any>({
     refresh,
   })
 
-  const accessToken = useMemo(() => oauthTokenRef.current?.access_token ?? null, [
+  const accessToken = useMemo(() => oauthToken?.access_token ?? null, [
     tokenExpirationTimeoutRef.current,
     backendFailureTimeoutRef.current,
-    oauthTokenRef.current?.access_token
+    oauthToken?.access_token
   ]);
   const accessTokenExpired = useMemo(() => isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh), [
     tokenExpirationTimeoutRef.current,
     backendFailureTimeoutRef.current,
     timeBeforeExpirationRefresh
   ]);
-  const authorization = useMemo(() => (!accessTokenExpired && !!oauthTokenRef.current) ? `Bearer ${accessToken}` : null, [accessTokenExpired, accessToken]);
+  const authorization = useMemo(() => (!accessTokenExpired && !!oauthToken) ? `Bearer ${accessToken}` : null, [accessTokenExpired, accessToken]);
   const accessTokenExpiresOn = useMemo(() => tokenExpiresAtRef.current ?? new Date(0), [tokenExpirationTimeoutRef.current, tokenExpiresAtRef.current])
 
   const contextValue: IAuth = useMemo(() => ({
     authState,
     authorization,
-    accessToken: oauthTokenRef.current?.access_token ?? null,
+    accessToken: oauthToken?.access_token ?? null,
     accessTokenExpired: isTokenRefExpired(tokenExpiresAtRef, timeBeforeExpirationRefresh),
     accessTokenExpiresOn,
     baseUrl,
-    oauthToken: oauthTokenRef.current,
-    lastCheckOn,
-    nextCheckOn,
+    oauthToken,
+    lastCheckOn: new Date(),
+    nextCheckOn: null,
     tokenRefreshable,
     lastAuthEvents,
     endpointConfiguration,
+    forceCheckAuthStorage,
     setEndpointConfiguration,
     subscribe,
     login,
@@ -279,9 +295,7 @@ export function AuthProvider<A = any>({
   }), [
     authState,
     baseUrl,
-    oauthTokenRef.current,
-    lastCheckOn.getTime(),
-    nextCheckOn?.getTime,
+    oauthToken,
     tokenRefreshable,
     lastAuthEvents,
     authorization,

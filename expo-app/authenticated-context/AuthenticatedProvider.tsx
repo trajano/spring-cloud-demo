@@ -80,20 +80,25 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
 
     }, [verified, username, accessToken])
 
-    async function whoami() {
-        const r = await fetch(baseUrl.href + whoAmIEndpoint, {
-            headers: {
-                authorization: authorization!,
-                "content-type": "application/json",
-                accept: "application/json",
-            },
-            method: "GET",
-            credentials: "omit"
-        });
-        return r.json();
+    const whoami = useMemo(() => {
+        console.log({ whoami: accessToken?.slice(-5) })
+        return async function whoami() {
+            console.log({ whoamiCall: accessToken?.slice(-5) })
+            const r = await fetch(baseUrl.href + whoAmIEndpoint, {
+                headers: {
+                    authorization: authorization!,
+                    "content-type": "application/json",
+                    accept: "application/json",
+                },
+                method: "GET",
+                credentials: "omit"
+            });
+            return r.json();
 
-    }
+        };
+    }, [accessToken, authorization]);
 
+    console.log({ AuthenticatedContext: accessToken?.slice(-5) })
     return (<AuthenticatedContext.Provider value={{
         internalState,
         username,

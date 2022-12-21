@@ -24,11 +24,18 @@ export type NeedsRefreshEffectProps = {
 export function useNeedsRefreshEffect({
   authState,
   setAuthState,
+  notify,
   tokenRefreshable,
   refresh,
   onRefreshError = (reason) => console.error(reason),
 }: NeedsRefreshEffectProps) {
   useEffect(() => {
+    notify({
+      type: 'CheckRefresh',
+      authState,
+      reason: 'useNeedsRefreshEffect dependency update',
+      tokenRefreshable,
+    });
     if (authState === AuthState.NEEDS_REFRESH) {
       if (tokenRefreshable) {
         setAuthState(AuthState.REFRESHING);
@@ -36,8 +43,7 @@ export function useNeedsRefreshEffect({
       } else {
         setAuthState(AuthState.BACKEND_INACCESSIBLE);
       }
-    }
-    else if (authState === AuthState.BACKEND_INACCESSIBLE) {
+    } else if (authState === AuthState.BACKEND_INACCESSIBLE) {
       if (tokenRefreshable) {
         setAuthState(AuthState.NEEDS_REFRESH);
       }
