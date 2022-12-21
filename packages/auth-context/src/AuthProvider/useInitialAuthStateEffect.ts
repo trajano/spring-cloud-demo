@@ -1,9 +1,7 @@
 import {
-  Dispatch,
-  MutableRefObject,
-  SetStateAction,
+  Dispatch, SetStateAction,
   useCallback,
-  useEffect,
+  useEffect
 } from 'react';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
@@ -19,19 +17,18 @@ export type InitialAuthStateProps = {
   setAuthState: Dispatch<SetStateAction<AuthState>>;
   notify: (event: AuthEvent) => void;
   authStorage: AuthStore;
-  tokenExpiresAtRef: MutableRefObject<Date | null>;
   timeBeforeExpirationRefresh: number;
-  updateFromStorage(): Promise<{
-    oauthToken: OAuthToken | null;
-    tokenExpiresAt: Date | null;
-  }>;
+  setOAuthToken: Dispatch<SetStateAction<OAuthToken | null>>;
+  setTokenExpiresAt: Dispatch<SetStateAction<Date | null>>;
 };
 export function useInitialAuthStateEffect({
   authState,
   setAuthState,
   notify,
   timeBeforeExpirationRefresh,
-  updateFromStorage,
+  authStorage,
+  setOAuthToken,
+  setTokenExpiresAt,
 }: InitialAuthStateProps) {
   const setInitialAuthState = useCallback(async () => {
     if (__DEV__) {
@@ -41,8 +38,10 @@ export function useInitialAuthStateEffect({
         );
       }
     }
-    const { oauthToken, tokenExpiresAt } = await updateFromStorage();
-    if (!oauthToken || !tokenExpiresAt) {
+    const nextOAuthToken = await authStorage.getOAuthToken();
+    const nextTokenExpiresAt = await authStorage.getTokenExpiresAt();
+
+    if (!nextOAuthToken || !nextTokenExpiresAt) {
       // no token so unauthenticated
       setAuthState(AuthState.UNAUTHENTICATED);
       notify({
@@ -50,16 +49,22 @@ export function useInitialAuthStateEffect({
         type: 'Unauthenticated',
         reason: 'no token or expiration information on initial state',
       });
-    } else if (!isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh)) {
+      return;
+    }
+
+    setOAuthToken(nextOAuthToken);
+    setTokenExpiresAt(nextTokenExpiresAt);
+
+    if (!isTokenExpired(nextTokenExpiresAt, timeBeforeExpirationRefresh)) {
       // token present and not expired yet, so authenticated
       setAuthState(AuthState.AUTHENTICATED);
       notify({
         type: 'Authenticated',
         authState,
         reason: 'active token restored from storage on intial state',
-        accessToken: oauthToken.access_token,
-        authorization: `Bearer ${oauthToken.access_token}`,
-        tokenExpiresAt: tokenExpiresAt,
+        accessToken: nextOAuthToken.access_token,
+        authorization: `Bearer ${nextOAuthToken.access_token}`,
+        tokenExpiresAt: nextTokenExpiresAt,
       });
     } else {
       // token has expired so needs refresh

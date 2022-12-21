@@ -1,10 +1,4 @@
-import {
-  Dispatch,
-  RefObject,
-  SetStateAction,
-  useEffect,
-  useRef
-} from 'react';
+import { Dispatch, RefObject, SetStateAction, useEffect, useRef } from 'react';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import { isTokenExpired } from './isTokenExpired';
@@ -47,13 +41,8 @@ export function useTokenExpirationTimeoutEffect({
   useEffect(() => {
     if (authState === AuthState.AUTHENTICATED) {
       function updateStateOnTimeout() {
-        /* istanbul ignore next */
-        if (__DEV__) {
-          if (!tokenExpiresAt) {
-            throw new Error(
-              'tokenExpiresAt is not defined while state is AUTHENTICATED'
-            );
-          }
+        if (!tokenExpiresAt) {
+          return;
         }
         if (!timeoutRef.current) {
           clearTimeout(timeoutRef.current);
@@ -69,7 +58,7 @@ export function useTokenExpirationTimeoutEffect({
         } else {
           const ms = Math.min(
             maxTimeoutForRefreshCheck,
-            tokenExpiresAt!.getTime() - Date.now() - timeBeforeExpirationRefresh
+            tokenExpiresAt.getTime() - Date.now() - timeBeforeExpirationRefresh
           );
 
           timeoutRef.current = setTimeout(updateStateOnTimeout, ms);

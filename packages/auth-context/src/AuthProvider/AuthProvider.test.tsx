@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import '@testing-library/jest-native/extend-expect';
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
 import fetchMock from 'fetch-mock-jest';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AppState, Pressable, Text } from 'react-native';
 import { AuthenticationClientError } from '../AuthenticationClientError';
 import type { AuthEvent } from '../AuthEvent';
@@ -41,14 +41,15 @@ describe("with component", () => {
   function MyComponent({ notifications, onLoginFailure }: { notifications: () => void, onLoginFailure?: (e: unknown) => void }) {
     const { authState, login, logout, tokenRefreshable, subscribe } = useAuth();
     const [loginFailure, setLoginFailure] = useState<unknown>();
-    async function handleLogin() {
+    const handleLogin = useMemo(() => async function handleLogin() {
       try {
         await login({ user: "test" });
       } catch (e: unknown) {
         setLoginFailure(e);
         onLoginFailure && onLoginFailure(e);
       }
-    }
+    }, [])
+    const handleLogout = useMemo(() => () => logout(), [])
     useEffect(() => subscribe(notifications), []);
 
     return (<>
@@ -56,7 +57,7 @@ describe("with component", () => {
       <Text testID='tokenRefreshable'>{tokenRefreshable ? "tokenRefreshable" : ""}</Text>
       <Text testID='loginFailure'>{loginFailure ? "loginFailure" : ""}</Text>
       <Pressable testID='login' onPress={handleLogin} ><Text>Login</Text></Pressable>
-      <Pressable testID='logout' onPress={() => logout()} ><Text>Logout</Text></Pressable>
+      <Pressable testID='logout' onPress={handleLogout} ><Text>Logout</Text></Pressable>
     </>)
   }
 

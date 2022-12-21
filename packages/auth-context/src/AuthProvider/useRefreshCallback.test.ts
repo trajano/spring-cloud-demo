@@ -12,7 +12,7 @@ import { AuthStore } from '../AuthStore';
 import type { OAuthToken } from '../OAuthToken';
 import {
   NeedsRefreshEffectProps,
-  useNeedsRefreshEffect
+  useNeedsRefreshEffect,
 } from './useNeedsRefreshEffect';
 import { RefreshCallbackProps, useRefreshCallback } from './useRefreshCallback';
 
@@ -144,22 +144,22 @@ test('forced refresh while not token is not refreshable', async () => {
     new AuthClient(buildSimpleEndpointConfiguration('http://asdf.com/'))
   );
   const authStorage = new AuthStore('auth', 'http://asdf.com/');
-  const { result, waitFor } = renderHook<
-    RefreshCallbackProps<any>,
-    () => Promise<void>
-  >((props) => useRefreshCallback(props), {
-    initialProps: {
-      authState: AuthState.NEEDS_REFRESH,
-      setAuthState,
-      notify,
-      tokenRefreshable: false,
-      authStorage,
-      netInfoState,
-      oauthToken: oldAccessToken,
-      updateFromStorage,
-      authClient,
-    },
-  });
+  const { result } = renderHook<RefreshCallbackProps<any>, () => Promise<void>>(
+    (props) => useRefreshCallback(props),
+    {
+      initialProps: {
+        authState: AuthState.NEEDS_REFRESH,
+        setAuthState,
+        notify,
+        tokenRefreshable: false,
+        authStorage,
+        netInfoState,
+        oauthToken: oldAccessToken,
+        updateFromStorage,
+        authClient,
+      },
+    }
+  );
   expect(setAuthState).toBeCalledTimes(0);
   let refresh = result.current;
 
