@@ -10,6 +10,8 @@ type FontSectionData = { fontFamily: string, specimen: string };
 const variantSuffixes = [
     "Black",
     "Bold",
+    "Condensed",
+    "CondensedBold",
     "DemiBold",
     "ExtraBold",
     "Heavy",
@@ -17,6 +19,7 @@ const variantSuffixes = [
     "Italic",
     "Light",
     "Medium",
+    "Oblique",
     "Regular",
     "Semibold",
     "SemiBold",
@@ -24,6 +27,10 @@ const variantSuffixes = [
     "UltraBold",
     "Ultralight",
     "UltralightItalic",
+    "W3",
+    "W4",
+    "W6",
+    "W7",
 ]
 const SectionHeader = memo(({ fontFamily }: { fontFamily: string }) => <BlurView
     padding={16} justifyContent="center"><Text fontFamily={fontFamily} fontSize={20}>{fontFamily}</Text></BlurView>)
@@ -31,10 +38,14 @@ const SpecimentView = memo(({ fontFamily, specimen }: { fontFamily: string, spec
     <View
         flex={1} padding={16} backgroundColor="#f0f0e0"><Text fontFamily={fontFamily}>{specimen}</Text></View>)
 
-function hasNoVariantSuffix(fontFamily: string): boolean {
+/**
+ * 
+ * @testonly
+ */
+export function hasNoVariantSuffix(fontFamily: string): boolean {
     return variantSuffixes
         .flatMap((suffix) => ["_" + suffix, "-" + suffix])
-        .findIndex(suffix => fontFamily.indexOf(suffix) >= 0) === -1
+        .findIndex(suffix => fontFamily.toLowerCase().indexOf(suffix.toLowerCase()) >= 0) === -1
 
 }
 
