@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import '@testing-library/jest-native/extend-expect';
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
 import fetchMock from 'fetch-mock-jest';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { AppState, Pressable, Text } from 'react-native';
 import { AuthenticationClientError } from '../AuthenticationClientError';
 import type { AuthEvent } from '../AuthEvent';
@@ -39,17 +39,17 @@ it("AsyncStorage works", async () => {
 
 describe("with component", () => {
   function MyComponent({ notifications, onLoginFailure, onRender }: { notifications: () => void, onLoginFailure?: (e: unknown) => void, onRender?: () => void }) {
-    const { authState, loginAsync: login, logoutAsync: logout, backendReachable, subscribe, forceCheckAuthStorageAsync: forceCheckAuthStorage } = useAuth();
+    const { authState, loginAsync, logoutAsync, backendReachable, subscribe, forceCheckAuthStorageAsync: forceCheckAuthStorage } = useAuth();
     const [loginFailure, setLoginFailure] = useState<unknown>();
-    const handleLogin = useMemo(() => async function handleLogin() {
+    const handleLogin = useCallback(async function handleLogin() {
       try {
-        await login({ user: "test" });
+        await loginAsync({ user: "test" });
       } catch (e: unknown) {
         setLoginFailure(e);
         onLoginFailure && onLoginFailure(e);
       }
-    }, [])
-    const handleLogout = useMemo(() => () => logout(), [])
+    }, [loginAsync])
+    const handleLogout = useCallback(() => logoutAsync(), [logoutAsync])
     useEffect(() => subscribe(notifications), []);
     onRender && onRender();
     return (<>

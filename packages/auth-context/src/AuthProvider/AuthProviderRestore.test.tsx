@@ -3,7 +3,7 @@ import '@testing-library/jest-native/extend-expect';
 import { cleanup, render, waitFor } from '@testing-library/react-native';
 import { addMilliseconds, subMilliseconds } from 'date-fns';
 import fetchMock from 'fetch-mock';
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { AppState, Pressable, Text } from 'react-native';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
@@ -35,15 +35,15 @@ afterEach(() => {
 })
 
 function MyComponent({ notifications }: { notifications: () => void }) {
-  const { authState, loginAsync: login, accessTokenExpiresOn, accessToken, backendReachable: tokenRefreshable, subscribe } = useAuth();
-  const doLogin = useMemo(() => async function doLogin() {
+  const { authState, loginAsync: login, accessTokenExpiresOn, accessToken, backendReachable, subscribe } = useAuth();
+  const doLogin = useCallback(async function doLogin() {
     return login({ user: "test" });
   }, [])
   useEffect(() => subscribe(notifications), []);
   return (<>
     <Text testID='hello'>{AuthState[authState]}</Text>
     <Text testID='accessToken'>{accessToken}</Text>
-    <Text testID='tokenRefreshable'>{tokenRefreshable ? "tokenRefreshable" : ""}</Text>
+    <Text testID='tokenRefreshable'>{backendReachable ? "tokenRefreshable" : ""}</Text>
     <Text testID='accessTokenExpiresOn'>{accessTokenExpiresOn?.toISOString()}</Text>
     <Pressable onPress={doLogin}><Text testID='login'>Login</Text></Pressable>
   </>)

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import '@testing-library/jest-native/extend-expect';
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
 import fetchMock from 'fetch-mock';
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { AppState, Pressable, Text } from 'react-native';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
@@ -32,7 +32,7 @@ afterEach(() => {
 function MyComponent({ notifications }: { notifications: () => void }) {
   const { authState, loginAsync: login, accessTokenExpiresOn, accessToken, authorization, backendReachable: tokenRefreshable, subscribe } = useAuth();
   useEffect(() => subscribe(notifications), []);
-  const doLogin = useMemo(() => async function doLogin() {
+  const doLogin = useCallback(async function doLogin() {
     return login({ user: "test" });
   }, [])
   return (<>
