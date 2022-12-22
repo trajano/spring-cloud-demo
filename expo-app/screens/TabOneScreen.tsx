@@ -28,7 +28,7 @@ export default function TabOneScreen() {
     return <View><Text>{JSON.stringify(item, null, 2)}</Text></View>
   }, []);
 
-  const refreshToken = useMemo(() => async function refreshToken() {
+  const refreshToken = useCallback(async function refreshToken() {
     setRefreshing(true);
     await refreshAsync();
     if (isMounted()) {

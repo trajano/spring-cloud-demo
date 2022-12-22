@@ -22,7 +22,7 @@ export function JustScrollView() {
     const { whoami } = useAuthenticated();
     const [whoamiJson, setWhoamiJson] = useState("");
 
-    const expire = useMemo(() => async function expire() {
+    const expire = useCallback(async function expire() {
         await AsyncStorage.setItem(`auth.${baseUrl.toString()}..tokenExpiresAt`, new Date(Date.now() - 10).toISOString());
         await forceCheckAuthStorageAsync();
     }, []);
@@ -35,7 +35,7 @@ export function JustScrollView() {
         return () => clearTimeout(timerRef.current);
     }, [timerRef, accessTokenExpiresOn])
     useFocusEffect(updateClock);
-    const updateWhoAmI = useMemo(() => async () => {
+    const updateWhoAmI = useCallback(async () => {
         setWhoamiJson(JSON.stringify(await whoami(), null, 2));
     }, [whoami])
 

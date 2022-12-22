@@ -2,7 +2,7 @@ import { useTimeoutEffect } from '@trajano/react-hooks';
 import { AuthState, useAuth } from '@trajano/spring-docker-auth-context';
 import { StatusBar } from 'expo-status-bar';
 import AnimatedLottieView from 'lottie-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LoadingComponentProps, Text, useTheming } from '../src/lib/native-unstyled';
@@ -37,7 +37,7 @@ export function LoadingScreen({ loadedAssets, totalAssets, additionalResourceUpd
     }
   }, [authState, fromTimeout, fromAnimationFinish]);
 
-  const onAnimationFinish = useMemo(() => () => { setAnimationFinish(1); }, []);
+  const onAnimationFinish = useCallback(() => { setAnimationFinish(1); }, []);
   return (
     <>
       <View style={{ width: windowWidth, height: windowHeight, backgroundColor: colors.default[1], alignItems: "center", justifyContent: "space-between" }}>

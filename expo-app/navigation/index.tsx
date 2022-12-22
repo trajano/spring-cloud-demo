@@ -9,7 +9,7 @@ import { createMaterialBottomTabNavigator } from '@react-navigation/material-bot
 import { NavigationContainer, NavigationState } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthEvent, AuthState, useAuth } from '@trajano/spring-docker-auth-context';
-import { ComponentProps, useEffect, useMemo, useState } from 'react';
+import { ComponentProps, useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, Platform } from 'react-native';
 import { AuthenticatedProvider } from '../authenticated-context';
 import { useExpoUpdateEffect } from '../hooks/useExpoUpdateEffect';
@@ -40,7 +40,7 @@ export default function Navigation() {
   const [ready, setReady] = useState(false);
   const [initialState, setInitialState] = useState<NavigationState>();
 
-  const authEventHandler = useMemo(() => function authEventHandler(event: AuthEvent) {
+  const authEventHandler = useCallback(function authEventHandler(event: AuthEvent) {
     console.log(cleanAuthEvent(event));
 
     if (event.type === "Unauthenticated") {
@@ -48,7 +48,6 @@ export default function Navigation() {
     } else if (event.type === "Authenticated") {
       setAuthNavigationState(AuthState.AUTHENTICATED)
     }
-
   }, []);
 
   useEffect(() => {
@@ -76,11 +75,10 @@ export default function Navigation() {
   }, [ready]);
 
 
-  const onStateChange = useMemo(() => (state: NavigationState | undefined) => { AsyncStorage.setItem(PERSISTENCE_KEY, JSON.stringify(state)) }, []);
+  const onStateChange = useCallback((state: NavigationState | undefined) => { AsyncStorage.setItem(PERSISTENCE_KEY, JSON.stringify(state)) }, []);
+
   useEffect(() => {
-
     return auth.subscribe(authEventHandler)
-
   }, [])
 
   const endpointConfiguration = auth.endpointConfiguration as AuthenticatedEndpointConfiguration;

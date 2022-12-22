@@ -1,6 +1,6 @@
 import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
 import { useAuth } from "@trajano/spring-docker-auth-context";
-import { PropsWithChildren, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { PropsWithChildren, useEffect, useCallback, useMemo, useReducer, useRef, useState } from "react";
 import EventSource from "react-native-sse";
 import { AuthenticatedContext } from "./IAuthenticatedContext";
 import { JwtClaims } from "./JwtClaims";
@@ -80,8 +80,8 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
 
     }, [verified, username, accessToken])
 
-    const whoami = useMemo(() => {
-        return async function whoami() {
+    const whoami = useCallback(
+        async function whoami() {
             console.log({ whoamiCall: accessToken?.slice(-5) })
             const r = await fetch(baseUrl.href + whoAmIEndpoint, {
                 headers: {
@@ -93,9 +93,7 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
                 credentials: "omit"
             });
             return r.json();
-
-        };
-    }, [accessToken, authorization]);
+        }, [accessToken, authorization]);
 
     return (<AuthenticatedContext.Provider value={{
         internalState,
