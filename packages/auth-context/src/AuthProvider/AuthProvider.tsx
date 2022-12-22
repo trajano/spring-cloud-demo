@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, ReactElement, useMemo, useRef, useState } from "react";
+import React, { PropsWithChildren, ReactElement, useEffect, useMemo, useRef, useState } from "react";
 import { useDeepState, useDateState } from '@trajano/react-hooks';
 import { AuthClient } from "../AuthClient";
 import { AuthContext } from "../AuthContext";
@@ -115,7 +115,7 @@ export function AuthProvider<A = any>({
 
   function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
-    return () => subscribersRef.current.filter(
+    return () => subscribersRef.current = subscribersRef.current.filter(
       (subscription) => !Object.is(subscription, fn));
   }
 
@@ -239,6 +239,7 @@ export function AuthProvider<A = any>({
     tokenRefreshable,
     refresh,
   })
+
   const contextValue: IAuth = useMemo(() => ({
     authState,
     authorization: (!isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) && !!oauthToken) ? `Bearer ${oauthToken?.access_token}` : null,

@@ -8,7 +8,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import { NavigationContainer, NavigationState } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useAsyncSetEffect } from '@trajano/react-hooks';
 import { AuthEvent, AuthState, useAuth } from '@trajano/spring-docker-auth-context';
 import { ComponentProps, useEffect, useMemo, useState } from 'react';
 import { Linking, Platform } from 'react-native';
@@ -25,6 +24,12 @@ import { LoginNavigator } from './login/LoginNavigator';
 import { AuthenticatedEndpointConfiguration } from './login/types';
 
 const PERSISTENCE_KEY = 'NAVIGATION_STATE_V1';
+function cleanAuthEvent({ type, authState, accessToken, authorization, ...rest }: AuthEvent & Record<string, any>): string {
+  return `${AuthState[authState]} [${type}] ` + JSON.stringify({
+    accessToken: accessToken?.slice(-5),
+    ...rest
+  });
+}
 export default function Navigation() {
   const auth = useAuth();
   const { reactNavigationTheme } = useTheming();
@@ -32,8 +37,8 @@ export default function Navigation() {
   const [ready, setReady] = useState(false);
   const [initialState, setInitialState] = useState<NavigationState>();
 
-  function authEventHandler(event: AuthEvent) {
-    console.log({ event });
+  const authEventHandler = useMemo(() => function authEventHandler(event: AuthEvent) {
+    console.log(cleanAuthEvent(event));
 
     if (event.type === "Unauthenticated") {
       setAuthNavigationState(AuthState.UNAUTHENTICATED)
@@ -41,7 +46,7 @@ export default function Navigation() {
       setAuthNavigationState(AuthState.AUTHENTICATED)
     }
 
-  }
+  }, []);
 
   useEffect(() => {
     const restoreState = async () => {

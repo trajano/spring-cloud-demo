@@ -4,10 +4,10 @@ import { useDeepState } from '@trajano/react-hooks';
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import * as Localization from 'expo-localization';
-import { identity } from 'lodash';
+import { omit, identity } from 'lodash';
 import { ReactElement, useCallback } from 'react';
-import { SectionList, SectionListData, SectionListProps, SectionListRenderItemInfo } from 'react-native';
-import { BlurView, Text } from '../src/lib/native-unstyled';
+import { Platform, SectionList, SectionListData, SectionListProps, SectionListRenderItemInfo } from 'react-native';
+import { BlurView, Text, View } from '../src/lib/native-unstyled';
 
 const isHermes = () => !!((global as any)['HermesInternal']);
 export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string, unknown>>, any> {
@@ -20,7 +20,14 @@ export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string
             ]
         },
         {
-            key: "expo-constants.expoConfig", data: [expoConfig as unknown as Record<string, unknown>]
+            key: "expo-constants.expoConfig", data: [
+                omit(expoConfig as unknown as Record<string, unknown>, "ios", "android", "web")
+            ]
+        },
+        {
+            key: "expo-constants.expoConfig." + Platform.OS, data: [
+                (expoConfig as unknown as Record<string, unknown>)[Platform.OS]
+            ]
         },
         {
             key: "expo-constants.manifests", data: [
@@ -53,8 +60,8 @@ export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string
         };
         return sections.map(section => (section.key! in replacements) ? { key: section.key!, data: replacements[section.key!] } : section)
     }
-    const renderSectionHeader = useCallback(({ section }: { section: SectionListData<any, any> }) => <BlurView padding={16}><Text bold>{section.key}</Text></BlurView>, []);
-    const renderItem = useCallback(({ item }: SectionListRenderItemInfo<any>) => <Text>{JSON.stringify(item, null, 2)}</Text>, [])
+    const renderSectionHeader = useCallback(({ section }: { section: SectionListData<any, any> }) => <BlurView intensity={90} padding={16}><Text bold>{section.key}</Text></BlurView>, [sections]);
+    const renderItem = useCallback(({ item }: SectionListRenderItemInfo<any>) => <View padding={16} backgroundColor="black"><Text color="silver">{JSON.stringify(item, null, 2)}</Text></View>, [sections])
 
     useFocusEffect(useCallback(() => {
         (async () => {
