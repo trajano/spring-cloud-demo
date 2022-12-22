@@ -241,7 +241,7 @@ export function AuthProvider<A = any>({
     setAuthState,
     notify,
     tokenRefreshable: backendReachable,
-    refresh: refreshAsync,
+    refreshAsync,
   })
 
   const contextValue: IAuth = useMemo(() => ({

@@ -25,7 +25,7 @@ test('happy path with one cycle and updating all the way to needs refresh', () =
         setAuthState,
         tokenRefreshable: true,
         notify,
-        refresh,
+        refreshAsync: refresh,
       },
     }
   );
@@ -52,7 +52,7 @@ test('backend not accessible', () => {
         authState: AuthState.NEEDS_REFRESH,
         setAuthState,
         tokenRefreshable: false,
-        refresh,
+        refreshAsync: refresh,
         notify,
       },
     }
@@ -82,7 +82,7 @@ test('backend not accessible', () => {
         authState: AuthState.NEEDS_REFRESH,
         setAuthState,
         tokenRefreshable: false,
-        refresh,
+        refreshAsync: refresh,
         notify,
       },
     }

@@ -54,7 +54,7 @@ test('happy path from intial to authenticated to needs refresh then back to auth
       authState: AuthState.INITIAL,
       setAuthState,
       tokenRefreshable: true,
-      refresh,
+      refreshAsync: refresh,
       notify,
     },
   });
@@ -78,7 +78,7 @@ test('happy path from intial to authenticated to needs refresh then back to auth
     authState: AuthState.AUTHENTICATED,
     setAuthState,
     tokenRefreshable: true,
-    refresh,
+    refreshAsync: refresh,
     notify,
   });
 
@@ -105,7 +105,7 @@ test('happy path from intial to authenticated to needs refresh then back to auth
     authState: AuthState.NEEDS_REFRESH,
     setAuthState,
     tokenRefreshable: true,
-    refresh,
+    refreshAsync: refresh,
     notify,
   });
   jest.advanceTimersByTime(60000);

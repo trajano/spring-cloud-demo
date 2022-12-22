@@ -228,7 +228,7 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
       setAuthState,
       tokenRefreshable: false,
       notify,
-      refresh: result.current,
+      refreshAsync: result.current,
     },
   });
   expect(setAuthState).toBeCalledTimes(1);
@@ -255,7 +255,7 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
     setAuthState,
     tokenRefreshable: false,
     notify,
-    refresh: result.current,
+    refreshAsync: result.current,
   });
 
   // now simulate that token becomes refreshable again
@@ -281,7 +281,7 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
     setAuthState,
     tokenRefreshable: true,
     notify,
-    refresh: result.current,
+    refreshAsync: result.current,
   });
 
   expect(setAuthState).toHaveBeenLastCalledWith(AuthState.NEEDS_REFRESH);
@@ -320,7 +320,7 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
       setAuthState,
       tokenRefreshable: true,
       notify,
-      refresh: result.current,
+      refreshAsync: result.current,
     })
   );
 

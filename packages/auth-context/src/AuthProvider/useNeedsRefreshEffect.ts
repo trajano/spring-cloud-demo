@@ -13,7 +13,7 @@ export type NeedsRefreshEffectProps = {
    * Indicates that the token is refreshable from the device.
    */
   tokenRefreshable: boolean;
-  refresh: () => Promise<void>;
+  refreshAsync: () => Promise<void>;
   /**
    * called when there is a refresh error.  by default it simply logs to console.error
    * Technically should never get here since the failure states are already done in refresh()
@@ -26,7 +26,7 @@ export function useNeedsRefreshEffect({
   setAuthState,
   notify,
   tokenRefreshable,
-  refresh,
+  refreshAsync,
   onRefreshError = (reason) => console.error(reason),
 }: NeedsRefreshEffectProps) {
   useEffect(() => {
@@ -39,7 +39,7 @@ export function useNeedsRefreshEffect({
     if (authState === AuthState.NEEDS_REFRESH) {
       if (tokenRefreshable) {
         setAuthState(AuthState.REFRESHING);
-        refresh().catch(onRefreshError);
+        refreshAsync().catch(onRefreshError);
       } else {
         setAuthState(AuthState.BACKEND_INACCESSIBLE);
       }
