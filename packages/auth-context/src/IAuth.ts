@@ -19,12 +19,12 @@ export interface IAuth<A = any> {
    * @returns the fetch API response
    * @throws AuthenticationClientError
    */
-  login(authenticationCredentials: A): Promise<Response>;
+  loginAsync(authenticationCredentials: A): Promise<Response>;
   /**
    * Refreshes the token outside of the schedule.
    */
-  refresh(): Promise<void>;
-  logout(): Promise<void>;
+  refreshAsync(): Promise<void>;
+  logoutAsync(): Promise<void>;
   /**
    * The OAuth token from the store if available.  May be null.
    *
@@ -108,7 +108,7 @@ export interface IAuth<A = any> {
    * Force check of the auth storage data.  This is primarily used for testing purposes as the
    * data is not normally modified outside the context.
    */
-  forceCheckAuthStorage(): Promise<void>;
+  forceCheckAuthStorageAsync(): Promise<void>;
   /**
    * Last auth events.  The most recent one will be the first element.
    * This is primarily used to diagnose issues where the token becomes invalidated

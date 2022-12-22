@@ -19,19 +19,19 @@ it("default context values", async () => {
     const [subscribe, setSubscribe] = useState(false);
     useEffect(() => {
       (async () => {
-        try { await auth.login({ a: "b" }) }
+        try { await auth.loginAsync({ a: "b" }) }
         catch (e) {
           setLogin(true)
         }
-        try { await auth.refresh() }
+        try { await auth.refreshAsync() }
         catch (e) {
           setRefresh(true)
         }
 
-        await auth.logout();
+        await auth.logoutAsync();
         setLogout(true)
 
-        await auth.forceCheckAuthStorage();
+        await auth.forceCheckAuthStorageAsync();
 
         auth.subscribe(jest.fn())();
         setSubscribe(true)

@@ -17,7 +17,10 @@ export default function TabTwoScreen() {
   const headerHeight = useHeaderHeight();
   const scrollViewRef = useRef<RNScrollView>();
   const [scrollInfo, setScrollInfo] = useDebouncedDeepState<NativeScrollEvent>({
-
+    contentOffset: {
+      x: 0,
+      y: 0
+    }
   } as NativeScrollEvent, 100);
   const locale: Locale = useMemo(() => {
     let preferredLocales = Localization.getLocales();

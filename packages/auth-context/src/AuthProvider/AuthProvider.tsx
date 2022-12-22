@@ -1,5 +1,5 @@
-import React, { PropsWithChildren, ReactElement, useEffect, useMemo, useRef, useState } from "react";
-import { useDeepState, useDateState } from '@trajano/react-hooks';
+import { useDateState, useDeepState } from '@trajano/react-hooks';
+import React, { PropsWithChildren, ReactElement, useMemo, useRef, useState } from "react";
 import { AuthClient } from "../AuthClient";
 import { AuthContext } from "../AuthContext";
 import { AuthenticationClientError } from "../AuthenticationClientError";
@@ -137,14 +137,14 @@ export function AuthProvider<A = any>({
    * Forces the state to pull from auth storage.  Primarily used for testing as the auth storage is not
    * meant to be modified outside this context.
    */
-  async function forceCheckAuthStorage() {
+  async function forceCheckAuthStorageAsync() {
     const nextOauthToken = await authStorage.getOAuthToken();
     const nextTokenExpiresAt = await authStorage.getTokenExpiresAt();
     setOAuthToken(nextOauthToken);
     setTokenExpiresAt(nextTokenExpiresAt);
   }
 
-  async function login(authenticationCredentials: A): Promise<Response> {
+  async function loginAsync(authenticationCredentials: A): Promise<Response> {
 
     try {
       const [nextOauthToken, authenticationResponse] = await authClient.authenticate(authenticationCredentials);
@@ -183,7 +183,7 @@ export function AuthProvider<A = any>({
   /**
    * This will perform the logout.  Client failures are ignored since there's no point handling it.
    */
-  async function logout() {
+  async function logoutAsync() {
 
     try {
       if (!oauthToken) {
@@ -213,7 +213,7 @@ export function AuthProvider<A = any>({
     }
   }
 
-  const refresh = useRefreshCallback({
+  const refreshAsync = useRefreshCallback({
     authState,
     setAuthState,
     notify,
@@ -241,7 +241,7 @@ export function AuthProvider<A = any>({
     setAuthState,
     notify,
     tokenRefreshable: backendReachable,
-    refresh,
+    refresh: refreshAsync,
   })
 
   const contextValue: IAuth = useMemo(() => ({
@@ -256,12 +256,12 @@ export function AuthProvider<A = any>({
     backendReachable,
     lastAuthEvents,
     endpointConfiguration,
-    forceCheckAuthStorage,
+    forceCheckAuthStorageAsync,
     setEndpointConfiguration,
     subscribe,
-    login,
-    logout,
-    refresh
+    loginAsync,
+    logoutAsync,
+    refreshAsync,
   }), [
     authState,
     baseUrl,

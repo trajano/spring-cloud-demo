@@ -39,7 +39,7 @@ it("AsyncStorage works", async () => {
 
 describe("with component", () => {
   function MyComponent({ notifications, onLoginFailure, onRender }: { notifications: () => void, onLoginFailure?: (e: unknown) => void, onRender?: () => void }) {
-    const { authState, login, logout, backendReachable, subscribe, forceCheckAuthStorage } = useAuth();
+    const { authState, loginAsync: login, logoutAsync: logout, backendReachable, subscribe, forceCheckAuthStorageAsync: forceCheckAuthStorage } = useAuth();
     const [loginFailure, setLoginFailure] = useState<unknown>();
     const handleLogin = useMemo(() => async function handleLogin() {
       try {

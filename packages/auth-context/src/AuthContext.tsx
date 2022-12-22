@@ -4,12 +4,12 @@ import { buildSimpleEndpointConfiguration } from "./buildSimpleEndpointConfigura
 import type { IAuth } from "./IAuth";
 
 export const AuthContext = createContext<IAuth>({
-  login: () => Promise.reject(),
-  logout: () => Promise.resolve(),
-  refresh: () => Promise.reject(),
+  loginAsync: () => Promise.reject(),
+  logoutAsync: () => Promise.resolve(),
+  refreshAsync: () => Promise.reject(),
   setEndpointConfiguration: () => { },
   subscribe: () => { return () => { }; },
-  forceCheckAuthStorage: () => Promise.resolve(),
+  forceCheckAuthStorageAsync: () => Promise.resolve(),
   accessToken: null,
   accessTokenExpired: true,
   accessTokenExpiresOn: new Date(0),

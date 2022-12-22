@@ -10,7 +10,7 @@ export type TokenExpirationTimeoutEffectProps = {
   authState: AuthState;
   setAuthState: Dispatch<SetStateAction<AuthState>>;
   maxTimeoutForRefreshCheck: number;
-  tokenExpiresAt: Date | null | undefined;
+  tokenExpiresAt: Date;
   timeBeforeExpirationRefresh: number;
   notify: (event: AuthEvent) => void;
 };

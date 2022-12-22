@@ -1,17 +1,17 @@
 import { FlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import { useMounted } from '@trajano/react-hooks';
 import { useAuth } from '@trajano/spring-docker-auth-context';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Button, StyleSheet } from 'react-native';
 import { useAuthenticated } from '../authenticated-context';
 import { Text, View } from '../src/components';
 export default function TabOneScreen() {
-  const { logout, refresh, accessToken, oauthToken, baseUrl } = useAuth();
+  const { logoutAsync, refreshAsync, accessToken, oauthToken, baseUrl } = useAuth();
   const { claims, internalState } = useAuthenticated();
   const isMounted = useMounted();
 
   async function handleLogout() {
-    await logout();
+    await logoutAsync();
   }
 
   const [refreshing, setRefreshing] = useState(false);
@@ -24,17 +24,17 @@ export default function TabOneScreen() {
     accessToken?.slice(-5),
     ...internalState
   ];
-  function renderItem({ item }: ListRenderItemInfo<any>) {
+  const renderItem = useCallback(function renderItem({ item }: ListRenderItemInfo<any>) {
     return <View><Text>{JSON.stringify(item, null, 2)}</Text></View>
-  }
+  }, []);
 
-  async function refreshToken() {
+  const refreshToken = useMemo(() => async function refreshToken() {
     setRefreshing(true);
-    await refresh();
+    await refreshAsync();
     if (isMounted()) {
       setRefreshing(false);
     }
-  }
+  }, []);
 
   return (
     <FlashList
@@ -42,7 +42,7 @@ export default function TabOneScreen() {
       estimatedItemSize={188}
       ListHeaderComponent={() => <View style={{ borderWidth: 1 }}><Text style={styles.title}>I should be Some Default Font</Text></View>}
       ListFooterComponent={() => <Button title="Logout" onPress={handleLogout} />}
-      onRefresh={() => refreshToken()}
+      onRefresh={refreshToken}
       refreshing={refreshing}
       data={data}
       renderItem={renderItem}

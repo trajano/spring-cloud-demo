@@ -3,7 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { AuthState, useAuth } from '@trajano/spring-docker-auth-context';
 import { addSeconds, formatISO, getTime, millisecondsToSeconds, startOfSecond } from 'date-fns';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Animated, View } from 'react-native';
+import { Animated, ColorValue, View } from 'react-native';
 
 import { Button } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,19 +12,19 @@ import { AuthenticatedEndpointConfiguration } from '../navigation/login/types';
 import { Text, useRefreshControl } from '../src/lib/native-unstyled';
 export function JustScrollView() {
     const safeAreaInsets = useSafeAreaInsets();
-    const { accessToken, accessTokenExpiresOn, authState, refresh, endpointConfiguration, lastCheckOn, forceCheckAuthStorage, tokenRefreshable, accessTokenExpired, baseUrl } = useAuth();
+    const { accessToken, accessTokenExpiresOn, authState, refreshAsync, endpointConfiguration, lastCheckOn, forceCheckAuthStorageAsync, backendReachable, accessTokenExpired, baseUrl } = useAuth();
     const [timeRemaining, setTimeRemaining] = useState<number>(millisecondsToSeconds(accessTokenExpiresOn.getTime() - Date.now()))
     const timerRef = useRef<ReturnType<typeof setTimeout>>();
     const refreshControl = useRefreshControl(async () => {
         setWhoamiJson("");
-        await refresh();
+        await refreshAsync();
     });
     const { whoami } = useAuthenticated();
     const [whoamiJson, setWhoamiJson] = useState("");
 
     const expire = useMemo(() => async function expire() {
         await AsyncStorage.setItem(`auth.${baseUrl.toString()}..tokenExpiresAt`, new Date(Date.now() - 10).toISOString());
-        await forceCheckAuthStorage();
+        await forceCheckAuthStorageAsync();
     }, []);
 
     const updateClock = useCallback(() => {
@@ -39,14 +39,24 @@ export function JustScrollView() {
         setWhoamiJson(JSON.stringify(await whoami(), null, 2));
     }, [whoami])
 
+    const accessTokenBackgroundColor: ColorValue | undefined = useMemo(() => {
+        if (accessTokenExpired && timeRemaining < 0) {
+            return "red"
+        } else if (accessTokenExpired && timeRemaining >= 0) {
+            return "yellow";
+        } else {
+            return undefined;
+        }
+    }, [timeRemaining < 0, accessTokenExpired])
+
     return <Animated.ScrollView contentInset={safeAreaInsets}
         contentContainerStyle={{ padding: 16 }}
         refreshControl={refreshControl}
     >
-        <Text backgroundColor={accessTokenExpired ? "red" : undefined}>Access token <Text role="mono">{accessToken?.slice(-5)}</Text> expires on <Text fontWeight="bold">{formatISO(accessTokenExpiresOn, { representation: "time" })}</Text></Text>
+        <Text backgroundColor={accessTokenBackgroundColor}>Access token <Text role="mono">{accessToken?.slice(-5)}</Text> expires on <Text fontWeight="bold">{formatISO(accessTokenExpiresOn, { representation: "time" })}</Text></Text>
         <Text>Time remaining <Text fontWeight="bold">{timeRemaining} seconds</Text></Text>
         <Text style={{ fontFamily: 'NotoSansMono', fontSize: 16 }}>Last check <Text bold>{formatISO(lastCheckOn, { representation: "time" })}</Text></Text>
-        <Text backgroundColor={tokenRefreshable ? undefined : "red"}>{tokenRefreshable ? "Token refreshable" : "TOKEN NOT REFRESHABLE"}</Text>
+        <Text backgroundColor={backendReachable ? undefined : "red"}>{backendReachable ? `${baseUrl} reachable` : `${baseUrl} NOT REACHABLE`}</Text>
         <Text fontFamily='Lexend'>AuthState <Text fontFamily='Noto' fontWeight="bold">{AuthState[authState]}</Text></Text>
 
         <Button onPress={expire}>Expire {baseUrl.toString()}</Button>

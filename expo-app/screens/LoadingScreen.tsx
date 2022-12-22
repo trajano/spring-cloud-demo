@@ -2,20 +2,19 @@ import { useTimeoutEffect } from '@trajano/react-hooks';
 import { AuthState, useAuth } from '@trajano/spring-docker-auth-context';
 import { StatusBar } from 'expo-status-bar';
 import AnimatedLottieView from 'lottie-react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text } from '../src/lib/native-unstyled';
-import { LoadingComponentProps, useTheming } from '../src/lib/native-unstyled';
+import { LoadingComponentProps, Text, useTheming } from '../src/lib/native-unstyled';
 
 function AssetsLoaded({ loadedAssets, totalAssets, animationDone }: { loadedAssets: number, totalAssets: number, animationDone: boolean }) {
-  const { authState, tokenRefreshable, endpointConfiguration } = useAuth();
+  const { authState, backendReachable, endpointConfiguration } = useAuth();
   const { bottom: safeAreaInsetBottom } = useSafeAreaInsets();
   return (<View style={{ paddingBottom: safeAreaInsetBottom }}>
     <Text>{`Assets loaded ${loadedAssets}/${totalAssets}`}</Text>
     <Text>{AuthState[authState]}</Text>
-    <Text>{tokenRefreshable ? "Connected" : "Disconnected"} {animationDone ? "Done" : "Playing"}</Text>
-    <Text>Ping: {endpointConfiguration?.pingEndpoint}</Text>
+    <Text>{animationDone ? "Animation Done" : "Playing Animation"}</Text>
+    <Text>{backendReachable ? "Connected" : "Disconnected"}: {endpointConfiguration?.pingEndpoint}</Text>
   </View>);
 }
 
@@ -24,22 +23,21 @@ export function LoadingScreen({ loadedAssets, totalAssets, additionalResourceUpd
   const { colors } = useTheming();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions()
   const portrait = windowHeight > windowWidth;
-  const { authState, tokenRefreshable } = useAuth();
+  const { authState } = useAuth();
   const [fromTimeout, setFromTimeout] = useState(0);
   const [fromAnimationFinish, setAnimationFinish] = useState(0);
   useTimeoutEffect(() => setFromTimeout(1), 2000, []);
   useEffect(() => {
     if (additionalResourceUpdate) {
       if (authState === AuthState.UNAUTHENTICATED || authState === AuthState.AUTHENTICATED) {
-        additionalResourceUpdate(1 + fromTimeout + fromAnimationFinish, 3);
-      } else if (!tokenRefreshable) {
-        additionalResourceUpdate(1 + fromTimeout + fromAnimationFinish, 3);
+        additionalResourceUpdate(1 + fromTimeout + fromAnimationFinish, 2);
       } else {
-        additionalResourceUpdate(fromTimeout + fromAnimationFinish, 3);
+        additionalResourceUpdate(fromTimeout + fromAnimationFinish, 2);
       }
     }
-  }, [authState, tokenRefreshable, fromTimeout, fromAnimationFinish]);
+  }, [authState, fromTimeout, fromAnimationFinish]);
 
+  const onAnimationFinish = useMemo(() => () => { setAnimationFinish(1); }, []);
   return (
     <>
       <View style={{ width: windowWidth, height: windowHeight, backgroundColor: colors.default[1], alignItems: "center", justifyContent: "space-between" }}>
@@ -47,7 +45,7 @@ export function LoadingScreen({ loadedAssets, totalAssets, additionalResourceUpd
           <AnimatedLottieView
             autoPlay
             loop={false}
-            onAnimationFinish={() => { setAnimationFinish(1); }}
+            onAnimationFinish={onAnimationFinish}
             style={{
               width: windowWidth > windowHeight ? windowHeight : windowWidth,
               height: windowWidth > windowHeight ? windowHeight : windowWidth,
