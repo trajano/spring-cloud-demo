@@ -28,7 +28,7 @@ const PERSISTENCE_KEY = 'NAVIGATION_STATE_V1';
 export default function Navigation() {
   const auth = useAuth();
   const { reactNavigationTheme } = useTheming();
-  const [authState, setAuthState] = useState(auth.authState);
+  const [authNavigationState, setAuthNavigationState] = useState(auth.authState);
   const [ready, setReady] = useState(false);
   const [initialState, setInitialState] = useState<NavigationState>();
 
@@ -36,30 +36,37 @@ export default function Navigation() {
     console.log({ event });
 
     if (event.type === "Unauthenticated") {
-      setAuthState(AuthState.UNAUTHENTICATED)
+      setAuthNavigationState(AuthState.UNAUTHENTICATED)
     } else if (event.type === "Authenticated") {
-      setAuthState(AuthState.AUTHENTICATED)
+      setAuthNavigationState(AuthState.AUTHENTICATED)
     }
 
   }
 
-  useAsyncSetEffect(
-    async () => {
+  useEffect(() => {
+    const restoreState = async () => {
+      try {
+        const initialUrl = await Linking.getInitialURL();
 
-      const initialUrl = await Linking.getInitialURL();
-      if (Platform.OS !== "web" && initialUrl !== null) {
-        // Only restore state if there's no deep link and we're not on web
-        return AsyncStorage.getItem(PERSISTENCE_KEY);
-      } else {
-        return null;
-      }
-    },
-    (storedState) => {
-      if (storedState !== null) {
-        setInitialState(JSON.parse(storedState));
+        if (Platform.OS !== 'web' && initialUrl == null) {
+          // Only restore state if there's no deep link and we're not on web
+          const savedStateString = await AsyncStorage.getItem(PERSISTENCE_KEY);
+          const state = savedStateString ? JSON.parse(savedStateString) : undefined;
+
+          if (state !== undefined) {
+            setInitialState(state);
+          }
+        }
+      } finally {
         setReady(true);
       }
-    }, [ready]);
+    };
+
+    if (!ready) {
+      restoreState();
+    }
+  }, [ready]);
+
 
   const onStateChange = useMemo(() => (state: NavigationState | undefined) => { AsyncStorage.setItem(PERSISTENCE_KEY, JSON.stringify(state)) }, []);
   useEffect(() => {
@@ -68,16 +75,15 @@ export default function Navigation() {
 
   }, [])
 
-  console.log("Render", AuthState[authState], initialState)
   const endpointConfiguration = auth.endpointConfiguration as AuthenticatedEndpointConfiguration;
-  if (authState == AuthState.UNAUTHENTICATED) {
+  if (authNavigationState == AuthState.UNAUTHENTICATED) {
     return <NavigationContainer
       linking={LinkingConfiguration}
       theme={reactNavigationTheme}>
       <LoginNavigator />
     </NavigationContainer>
 
-  } else if (authState == AuthState.AUTHENTICATED) {
+  } else if (authNavigationState == AuthState.AUTHENTICATED && ready) {
     return <AuthenticatedProvider
       whoAmIEndpoint={endpointConfiguration.whoamiEndpoint}
       issuer='http://localhost'
