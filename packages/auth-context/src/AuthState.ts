@@ -1,8 +1,13 @@
 export enum AuthState {
+  /**
+   * Inital state.  In this state all the auth data is pulled from storage.  This
+   * is the only time with the exception of {@link IAuth.forceCheckAuthStorageAsync}
+   * where the OAuth token data is read from {@link AuthStore}.
+   */
   INITIAL,
   /**
    * Authenticated means that the token is valid.  Note the token is still valid even
-   * if the backend is not reachable, us {@link IAuth.backendReachable} to make the
+   * if the backend is not reachable, use {@link IAuth.backendReachable} to make the
    * determination.
    */
   AUTHENTICATED,
