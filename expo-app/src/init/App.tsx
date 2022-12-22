@@ -17,6 +17,7 @@ import { LogBox } from 'react-native';
 import { AuthenticatedEndpointConfiguration } from '../../navigation/login/types';
 import { LoadingScreen } from '../../screens/LoadingScreen';
 import { ActivityIndicator, View } from '../lib/native-unstyled';
+import { deactivateKeepAwake } from 'expo-keep-awake';
 
 const TextTest = lazy(() => import('../../screens/TextTest'));
 const Navigation = lazy(() => import('../../navigation'))
@@ -33,6 +34,7 @@ export default function App() {
         setDefaultEndpointConfiguration(JSON.parse(configuration));
       }
     })();
+    deactivateKeepAwake();
   }, []);
   return (
     <SafeAreaProvider>

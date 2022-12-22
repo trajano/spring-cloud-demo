@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import { ReactElement, useCallback } from 'react';
+import { ReactElement, memo, useCallback } from 'react';
 import { SectionList, SectionListData, SectionListProps, SectionListRenderItemInfo } from 'react-native';
 import { BlurView, Text, View } from '../src/lib/native-unstyled';
 
@@ -25,6 +25,11 @@ const variantSuffixes = [
     "Ultralight",
     "UltralightItalic",
 ]
+const SectionHeader = memo(({ fontFamily }: { fontFamily: string }) => <BlurView
+    padding={16} justifyContent="center"><Text fontFamily={fontFamily} fontSize={20}>{fontFamily}</Text></BlurView>)
+const SpecimentView = memo(({ fontFamily, specimen }: { fontFamily: string, specimen: string }) =>
+    <View
+        flex={1} padding={16} backgroundColor="#f0f0e0"><Text fontFamily={fontFamily}>{specimen}</Text></View>)
 
 function hasNoVariantSuffix(fontFamily: string): boolean {
     return variantSuffixes
@@ -48,10 +53,8 @@ export function SystemFontsScreen(): ReactElement<SectionListProps<string>, any>
             key: fontName, data: fontSpecimens(fontName)
         }));
 
-    const renderSectionHeader = useCallback(({ section }: { section: SectionListData<any, any> }) => <BlurView
-        padding={16} justifyContent="center"><Text fontFamily={section.key} fontSize={20}>{section.key}</Text></BlurView>, [sections]);
-    const renderItem = useCallback(({ item, section, index }: SectionListRenderItemInfo<FontSectionData>) => <View
-        flex={1} padding={16} backgroundColor="#f0f0e0"><Text fontFamily={item.fontFamily}>{item.specimen}</Text></View>, [sections])
+    const renderSectionHeader = useCallback(({ section }: { section: SectionListData<any, any> }) => <SectionHeader fontFamily={section.key} />, [sections]);
+    const renderItem = useCallback(({ item }: SectionListRenderItemInfo<FontSectionData>) => <SpecimentView fontFamily={item.fontFamily} specimen={item.specimen} />, [sections])
 
     return <SectionList<FontSectionData>
         sections={sections}
