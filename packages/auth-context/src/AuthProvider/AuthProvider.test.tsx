@@ -38,8 +38,8 @@ it("AsyncStorage works", async () => {
 })
 
 describe("with component", () => {
-  function MyComponent({ notifications, onLoginFailure }: { notifications: () => void, onLoginFailure?: (e: unknown) => void }) {
-    const { authState, login, logout, tokenRefreshable, subscribe } = useAuth();
+  function MyComponent({ notifications, onLoginFailure, onRender }: { notifications: () => void, onLoginFailure?: (e: unknown) => void, onRender?: () => void }) {
+    const { authState, login, logout, tokenRefreshable, subscribe, forceCheckAuthStorage } = useAuth();
     const [loginFailure, setLoginFailure] = useState<unknown>();
     const handleLogin = useMemo(() => async function handleLogin() {
       try {
@@ -51,13 +51,14 @@ describe("with component", () => {
     }, [])
     const handleLogout = useMemo(() => () => logout(), [])
     useEffect(() => subscribe(notifications), []);
-
+    onRender && onRender();
     return (<>
       <Text testID='authState'>{AuthState[authState]}</Text>
       <Text testID='tokenRefreshable'>{tokenRefreshable ? "tokenRefreshable" : ""}</Text>
       <Text testID='loginFailure'>{loginFailure ? "loginFailure" : ""}</Text>
       <Pressable testID='login' onPress={handleLogin} ><Text>Login</Text></Pressable>
       <Pressable testID='logout' onPress={handleLogout} ><Text>Logout</Text></Pressable>
+      <Pressable testID='forceCheckAuthStorage' onPress={forceCheckAuthStorage}><Text>Force Check Auth Storage</Text></Pressable>
     </>)
   }
 
@@ -69,13 +70,18 @@ describe("with component", () => {
     await waitFor(() => expect(getByTestId("tokenRefreshable")).toHaveTextContent("tokenRefreshable"));
     await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
   });
+
   it("login logout", async () => {
     const notifications = jest.fn() as jest.Mock<() => void>;
+    const onRender = jest.fn();
     const freshAccessToken: OAuthToken = { access_token: "freshAccessToken", refresh_token: "RefreshToken", token_type: "Bearer", expires_in: 600 };
     fetchMock.get("http://asdf.com/ping", { body: { ok: true } })
       .post("http://asdf.com/auth", { body: freshAccessToken })
       .post("http://asdf.com/logout", { body: { ok: true } });
-    const { getByTestId } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
+    const { getByTestId } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent
+      onRender={onRender}
+      notifications={notifications}
+    /></AuthProvider>)
 
     await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
     act(() => { fireEvent.press(getByTestId("login")) });
@@ -94,6 +100,37 @@ describe("with component", () => {
     expect(notifications).toBeCalledWith(expect.objectContaining({ type: "Unauthenticated" } as Partial<AuthEvent>))
     await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
     expect(await AsyncStorage.getAllKeys()).toHaveLength(0)
+  });
+
+  it("force Auth Storage check", async () => {
+    const notifications = jest.fn() as jest.Mock<() => void>;
+    const onRender = jest.fn();
+    const freshAccessToken: OAuthToken = { access_token: "freshAccessToken", refresh_token: "RefreshToken", token_type: "Bearer", expires_in: 600 };
+    fetchMock.get("http://asdf.com/ping", { body: { ok: true } })
+      .post("http://asdf.com/auth", { body: freshAccessToken })
+      .post("http://asdf.com/logout", { body: { ok: true } });
+    const { getByTestId } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent
+      onRender={onRender}
+      notifications={notifications}
+    /></AuthProvider>)
+
+    await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
+    act(() => { fireEvent.press(getByTestId("login")) });
+
+    await waitFor(() => expect(notifications).toBeCalledWith(expect.objectContaining({ type: "LoggedIn", accessToken: "freshAccessToken" } as Partial<AuthEvent>)))
+    expect(notifications).toBeCalledWith(expect.objectContaining({ type: "Authenticated", accessToken: "freshAccessToken" } as Partial<AuthEvent>))
+    expect(getByTestId("authState")).toHaveTextContent("AUTHENTICATED");
+
+    expect(await AsyncStorage.getItem('auth.http://asdf.com/..oauthToken')).toBe(JSON.stringify(freshAccessToken));
+    const tokenExpiresAt = new Date(await AsyncStorage.getItem('auth.http://asdf.com/..tokenExpiresAt') as string)
+    // give at least a second of slack
+    expect(tokenExpiresAt.getTime()).toBeGreaterThanOrEqual(Date.now() + 600000 - 1000)
+
+    onRender.mockClear();
+    act(() => { fireEvent.press(getByTestId("forceCheckAuthStorage")) });
+    expect(getByTestId("authState")).toHaveTextContent("AUTHENTICATED");
+
+    expect(onRender).toHaveBeenCalledTimes(0);
   });
 
   it("Failed login", async () => {

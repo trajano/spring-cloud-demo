@@ -48,7 +48,7 @@ type CheckRefreshEvent = CommonAuthEvent & {
   lastCheckTime?: Date;
   tokenRefreshable?: boolean;
   tokenExpired?: boolean;
-  tokenExpiresAt?: Date | null;
+  tokenExpiresAt?: Date;
 };
 
 /**

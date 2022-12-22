@@ -22,10 +22,8 @@ export type RefreshCallbackProps<T> = {
   tokenRefreshable: boolean;
   netInfoState: NetInfoState;
   oauthToken: OAuthToken | null;
-  updateFromStorage(): Promise<{
-    oauthToken: OAuthToken | null;
-    tokenExpiresAt: Date | null;
-  }>;
+  setOAuthToken: Dispatch<OAuthToken | null>;
+  setTokenExpiresAt: Dispatch<Date | number>;
 };
 
 /**
@@ -38,9 +36,10 @@ export function useRefreshCallback<T>({
   oauthToken,
   authStorage,
   authClient,
+  setOAuthToken,
+  setTokenExpiresAt,
   tokenRefreshable,
   netInfoState,
-  updateFromStorage,
 }: RefreshCallbackProps<T>): () => Promise<void> {
   async function refresh() {
     if (authState === AuthState.REFRESHING) {
@@ -85,7 +84,8 @@ export function useRefreshCallback<T>({
             await authStorage.storeOAuthTokenAndGetExpiresAt(
               refreshedOAuthToken
             );
-          await updateFromStorage();
+          setOAuthToken(refreshedOAuthToken);
+          setTokenExpiresAt(nextTokenExpiresAt);
           setAuthState(AuthState.AUTHENTICATED);
           notify({
             type: 'Authenticated',
@@ -98,7 +98,8 @@ export function useRefreshCallback<T>({
         } catch (e: unknown) {
           if (e instanceof AuthenticationClientError && e.isUnauthorized()) {
             await authStorage.clear();
-            await updateFromStorage();
+            setOAuthToken(null);
+            setTokenExpiresAt(0);
             setAuthState(AuthState.UNAUTHENTICATED);
             notify({
               type: 'Unauthenticated',

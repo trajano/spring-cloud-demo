@@ -22,7 +22,8 @@ afterEach(() => {
 });
 
 test('mostly mocked', async () => {
-  const updateFromStorage = jest.fn() as any;
+  const setOAuthToken = jest.fn();
+  const setTokenExpiresAt = jest.fn();
   const oldAccessToken: OAuthToken = {
     access_token: 'oldAccessToken',
     refresh_token: 'RefreshToken',
@@ -59,7 +60,8 @@ test('mostly mocked', async () => {
         netInfoState,
         oauthToken: oldAccessToken,
         authClient,
-        updateFromStorage,
+        setOAuthToken,
+        setTokenExpiresAt,
       },
     }
   );
@@ -79,12 +81,8 @@ test('mostly mocked', async () => {
 });
 
 test('no token stored', async () => {
-  const updateFromStorage = jest.mocked(() =>
-    Promise.resolve({
-      oauthToken: null,
-      tokenExpiresAt: null,
-    })
-  );
+  const setOAuthToken = jest.fn();
+  const setTokenExpiresAt = jest.fn();
   const setAuthState = jest.fn() as jest.Mocked<
     Dispatch<SetStateAction<AuthState>>
   >;
@@ -105,7 +103,8 @@ test('no token stored', async () => {
         authStorage,
         netInfoState,
         oauthToken: null,
-        updateFromStorage,
+        setOAuthToken,
+        setTokenExpiresAt,
         authClient,
       },
     }
@@ -137,7 +136,8 @@ test('forced refresh while not token is not refreshable', async () => {
   const setAuthState = jest.fn() as jest.Mocked<
     Dispatch<SetStateAction<AuthState>>
   >;
-  const updateFromStorage = jest.fn() as any;
+  const setOAuthToken = jest.fn();
+  const setTokenExpiresAt = jest.fn();
   const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
   const netInfoState = {} as NetInfoState;
   const authClient = jest.mocked(
@@ -155,7 +155,8 @@ test('forced refresh while not token is not refreshable', async () => {
         authStorage,
         netInfoState,
         oauthToken: oldAccessToken,
-        updateFromStorage,
+        setOAuthToken,
+        setTokenExpiresAt,
         authClient,
       },
     }
@@ -194,7 +195,8 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
     new AuthClient(buildSimpleEndpointConfiguration('http://asdf.com/'))
   );
   const authStorage = new AuthStore('auth', 'http://asdf.com/');
-  const updateFromStorage = jest.fn() as any;
+  const setOAuthToken = jest.fn();
+  const setTokenExpiresAt = jest.fn();
   const { result, rerender: rerenderRefreshCallback } = renderHook<
     RefreshCallbackProps<any>,
     () => Promise<void>
@@ -212,7 +214,8 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
         refresh_token: 'ref',
         token_type: 'Bearer',
       },
-      updateFromStorage,
+      setOAuthToken,
+      setTokenExpiresAt,
       authClient,
     },
   });
@@ -243,7 +246,8 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
       refresh_token: 'ref',
       token_type: 'Bearer',
     },
-    updateFromStorage,
+    setOAuthToken,
+    setTokenExpiresAt,
     authClient,
   });
   rerenderNeedsEffect({
@@ -268,7 +272,8 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
       refresh_token: 'ref',
       token_type: 'Bearer',
     },
-    updateFromStorage,
+    setOAuthToken,
+    setTokenExpiresAt,
     authClient,
   });
   rerenderNeedsEffect({
@@ -294,7 +299,8 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
       refresh_token: 'ref',
       token_type: 'Bearer',
     },
-    updateFromStorage,
+    setOAuthToken,
+    setTokenExpiresAt,
     authClient,
   });
 
@@ -333,7 +339,8 @@ test('refreshing while refreshing', async () => {
   const netInfoState = {} as NetInfoState;
   const authClient = jest.fn() as unknown as jest.Mocked<AuthClient<any>>;
   const authStorage = jest.fn() as unknown as jest.Mocked<AuthStore>;
-  const updateFromStorage = jest.fn() as any;
+  const setOAuthToken = jest.fn();
+  const setTokenExpiresAt = jest.fn();
 
   const { result } = renderHook<RefreshCallbackProps<any>, () => Promise<void>>(
     (props) => useRefreshCallback(props),
@@ -351,7 +358,8 @@ test('refreshing while refreshing', async () => {
           refresh_token: 'ref',
           token_type: 'Bearer',
         },
-        updateFromStorage,
+        setOAuthToken,
+        setTokenExpiresAt,
         authClient,
       },
     }

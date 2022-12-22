@@ -1,4 +1,5 @@
 import React, { PropsWithChildren, ReactElement, useMemo, useRef, useState } from "react";
+import { useDeepState, useDateState } from '@trajano/react-hooks';
 import { AuthClient } from "../AuthClient";
 import { AuthContext } from "../AuthContext";
 import { AuthenticationClientError } from "../AuthenticationClientError";
@@ -39,11 +40,6 @@ type AuthContextProviderProps = PropsWithChildren<{
    */
   logAuthEventSize?: number;
 }>;
-
-export type TokenState = {
-  oauthToken: OAuthToken | null,
-  tokenExpiresAt: Date | null
-}
 
 /**
  * Auth provider starts at the INITIAL state in that state it will load up all the necessary data from the stores and set the other states up
@@ -91,12 +87,12 @@ export function AuthProvider<A = any>({
   /**
    * OAuth token state.
    */
-  const [oauthToken, setOAuthToken] = useState<OAuthToken | null>(null);
+  const [oauthToken, setOAuthToken] = useDeepState<OAuthToken | null>(null);
 
   /**
    * Token expires at state.
    */
-  const [tokenExpiresAt, setTokenExpiresAt] = useState<Date | null>(null);
+  const [tokenExpiresAt, setTokenExpiresAt] = useDateState(0);
 
   const {
     timeoutRef: tokenExpirationTimeoutRef,
@@ -134,40 +130,14 @@ export function AuthProvider<A = any>({
   }
 
   /**
-   *
-   * @deprecated
+   * Forces the state to pull from auth storage.  Primarily used for testing as the auth storage is not
+   * meant to be modified outside this context.
    */
-  async function updateFromStorage(): Promise<{ oauthToken: OAuthToken | null, tokenExpiresAt: Date | null }> {
-    const nextOauthToken = await authStorage.getOAuthToken()
-    setOAuthToken(nextOauthToken);
-    setTokenExpiresAt(await authStorage.getTokenExpiresAt());
-    return { oauthToken: nextOauthToken, tokenExpiresAt }
-  }
   async function forceCheckAuthStorage() {
-    setOAuthToken(await authStorage.getOAuthToken());
-    setTokenExpiresAt(await authStorage.getTokenExpiresAt());
-    // The following also triggers a state change which forces a rerender
-    pushAuthEvent({
-      type: "Refreshing",
-      authState,
-      reason: `force check auth storage ${oauthToken} ${tokenExpiresAt}`
-    })
-  }
-
-  /**
-   * Sets the auth state and performs a notification.  Since the notification triggers a state change using
-   * pushAuthEvent, it cannot be placed as a reducer function.
-   * @deprecated
-   */
-  function setAuthStateAndNotify({ next, event }: { next: AuthState, event: AuthEvent | AuthEvent[] }): void {
-
-    setAuthState(next);
-    if (Array.isArray(event)) {
-      event.forEach(notify);
-    } else {
-      notify(event);
-    }
-
+    const nextOauthToken = await authStorage.getOAuthToken();
+    const nextTokenExpiresAt = await authStorage.getTokenExpiresAt();
+    setOAuthToken(nextOauthToken);
+    setTokenExpiresAt(nextTokenExpiresAt);
   }
 
   async function login(authenticationCredentials: A): Promise<Response> {
@@ -177,30 +147,29 @@ export function AuthProvider<A = any>({
       const nextTokenExpiresAt = await authStorage.storeOAuthTokenAndGetExpiresAt(nextOauthToken);
       setOAuthToken(nextOauthToken);
       setTokenExpiresAt(nextTokenExpiresAt);
-      setAuthStateAndNotify({
-        next: AuthState.AUTHENTICATED,
-        event: [{
-          type: "LoggedIn",
-          reason: "Logged with credentials",
-          authState,
-          accessToken: nextOauthToken.access_token,
-          authorization: `Bearer ${nextOauthToken.access_token}`,
-          tokenExpiresAt: nextTokenExpiresAt
-        }, {
-          type: "Authenticated",
-          reason: "Login",
-          authState,
-          accessToken: nextOauthToken.access_token,
-          authorization: `Bearer ${nextOauthToken.access_token}`,
-          tokenExpiresAt: nextTokenExpiresAt
-        }]
+      setAuthState(AuthState.AUTHENTICATED);
+      notify({
+        type: "LoggedIn",
+        reason: "Logged with credentials",
+        authState,
+        accessToken: nextOauthToken.access_token,
+        authorization: `Bearer ${nextOauthToken.access_token}`,
+        tokenExpiresAt: nextTokenExpiresAt
+      })
+      notify({
+        type: "Authenticated",
+        reason: "Login",
+        authState,
+        accessToken: nextOauthToken.access_token,
+        authorization: `Bearer ${nextOauthToken.access_token}`,
+        tokenExpiresAt: nextTokenExpiresAt
       })
       return authenticationResponse;
     } catch (e: unknown) {
       if (e instanceof AuthenticationClientError) {
         await authStorage.clear();
         setOAuthToken(null);
-        setTokenExpiresAt(null);
+        setTokenExpiresAt(0);
       }
       throw e;
     }
@@ -224,12 +193,12 @@ export function AuthProvider<A = any>({
     } finally {
       await authStorage.clear();
       setOAuthToken(null);
-      setTokenExpiresAt(null);
-      setAuthStateAndNotify({
-        next: AuthState.UNAUTHENTICATED, event: {
-          type: "LoggedOut",
-          authState,
-        }
+      setTokenExpiresAt(0);
+      setAuthState(AuthState.UNAUTHENTICATED)
+      notify({
+        type: "LoggedOut",
+        authState,
+
       })
       notify({
         type: "Unauthenticated",
@@ -246,7 +215,8 @@ export function AuthProvider<A = any>({
     notify,
     oauthToken,
     authStorage,
-    updateFromStorage,
+    setOAuthToken,
+    setTokenExpiresAt,
     authClient,
     netInfoState,
     tokenRefreshable
@@ -269,26 +239,12 @@ export function AuthProvider<A = any>({
     tokenRefreshable,
     refresh,
   })
-
-  const accessToken = useMemo(() => oauthToken?.access_token ?? null, [
-    tokenExpirationTimeoutRef.current,
-    backendFailureTimeoutRef.current,
-    oauthToken?.access_token
-  ]);
-  const accessTokenExpired = useMemo(() => isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh), [
-    tokenExpirationTimeoutRef.current,
-    backendFailureTimeoutRef.current,
-    timeBeforeExpirationRefresh
-  ]);
-  const authorization = useMemo(() => (!accessTokenExpired && !!oauthToken) ? `Bearer ${accessToken}` : null, [accessTokenExpired, accessToken]);
-  const accessTokenExpiresOn = useMemo(() => tokenExpiresAt ?? new Date(0), [tokenExpirationTimeoutRef.current, tokenExpiresAt])
-
   const contextValue: IAuth = useMemo(() => ({
     authState,
-    authorization,
+    authorization: (!isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) && !!oauthToken) ? `Bearer ${oauthToken?.access_token}` : null,
     accessToken: oauthToken?.access_token ?? null,
     accessTokenExpired: isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh),
-    accessTokenExpiresOn,
+    accessTokenExpiresOn: tokenExpiresAt ?? new Date(0),
     baseUrl,
     oauthToken,
     lastCheckOn: new Date(),
@@ -308,9 +264,10 @@ export function AuthProvider<A = any>({
     oauthToken,
     tokenRefreshable,
     lastAuthEvents,
-    authorization,
     tokenExpiresAt?.getTime(),
-    endpointConfiguration
+    endpointConfiguration,
+    tokenExpirationTimeoutRef,
+    backendFailureTimeoutRef
   ])
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
