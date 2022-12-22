@@ -55,6 +55,7 @@ export type MainDrawerParamList = {
   JustScrollView: undefined;
   Environment: undefined;
   AsyncStorage: undefined;
+  SystemFonts: undefined;
   StackNavigatorScrollView: NavigatorScreenParams<MainDrawerStackNavigatorScrollViewParamList>;
 }
 

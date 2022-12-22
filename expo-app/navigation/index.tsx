@@ -10,7 +10,7 @@ import { NavigationContainer, NavigationState } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAsyncSetEffect } from '@trajano/react-hooks';
 import { AuthEvent, AuthState, useAuth } from '@trajano/spring-docker-auth-context';
-import { ComponentProps, useEffect, useState } from 'react';
+import { ComponentProps, useEffect, useMemo, useState } from 'react';
 import { Linking, Platform } from 'react-native';
 import { AuthenticatedProvider } from '../authenticated-context';
 import { DrawerNavigator } from '../screens/MainDrawer';
@@ -61,13 +61,14 @@ export default function Navigation() {
       }
     }, [ready]);
 
+  const onStateChange = useMemo(() => (state: NavigationState | undefined) => { AsyncStorage.setItem(PERSISTENCE_KEY, JSON.stringify(state)) }, []);
   useEffect(() => {
 
     return auth.subscribe(authEventHandler)
 
   }, [])
 
-  console.log("Render", AuthState[authState])
+  console.log("Render", AuthState[authState], initialState)
   const endpointConfiguration = auth.endpointConfiguration as AuthenticatedEndpointConfiguration;
   if (authState == AuthState.UNAUTHENTICATED) {
     return <NavigationContainer
@@ -87,7 +88,7 @@ export default function Navigation() {
         linking={LinkingConfiguration}
         initialState={initialState}
         theme={reactNavigationTheme}
-        onStateChange={(state) => { AsyncStorage.setItem(PERSISTENCE_KEY, JSON.stringify(state)) }}
+        onStateChange={onStateChange}
       >
         <RootNavigator />
       </NavigationContainer>

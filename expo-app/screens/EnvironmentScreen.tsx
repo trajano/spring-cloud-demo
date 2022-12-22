@@ -4,14 +4,14 @@ import { useDeepState } from '@trajano/react-hooks';
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import * as Localization from 'expo-localization';
+import { identity } from 'lodash';
 import { ReactElement, useCallback } from 'react';
-import { SectionList, SectionListData, SectionListProps, SectionListRenderItemInfo, Text as RNText } from 'react-native';
-import { View } from '../src/components';
+import { SectionList, SectionListData, SectionListProps, SectionListRenderItemInfo } from 'react-native';
 import { BlurView, Text } from '../src/lib/native-unstyled';
 
 const isHermes = () => !!((global as any)['HermesInternal']);
 export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string, unknown>>, any> {
-    const { manifest, manifest2, systemFonts, expoConfig, ...restOfConstants } = Constants;
+    const { manifest, manifest2, systemFonts: _systemFonts, expoConfig, ...restOfConstants } = Constants;
     const [sections, setSections] = useDeepState<SectionListData<any>[]>([
         { key: "@env", data: [{ BASE_URL, TEXT_TEST, isHermes }] },
         {
@@ -26,7 +26,7 @@ export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string
             key: "expo-constants.manifests", data: [
                 manifest as Record<string, unknown>,
                 manifest2 as Record<string, unknown>
-            ]
+            ].filter(identity)
         },
         {
             key: "expo-file-system",
@@ -43,85 +43,19 @@ export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string
             key: "expo-localization.Calendars",
             data: [],
         },
-        {
-            key: "System Fonts",
-            data: systemFonts
-                .filter(name => name.indexOf("-Bold") === -1)
-                .filter(name => name.indexOf("_Bold") === -1)
-                .filter(name => name.indexOf("_SemiBold") === -1)
-                .filter(name => name.indexOf("_Medium") === -1)
-                .filter(name => name.indexOf("-Italic") === -1)
-                .filter(name => name.indexOf("-Black") === -1)
-                .filter(name => name.indexOf("-Thin") === -1)
-                .filter(name => name.indexOf("-Semibold") === -1)
-                .filter(name => name.indexOf("-ExtraBold") === -1)
-                .filter(name => name.indexOf("-SemiBold") === -1)
-                .filter(name => name.indexOf("-Medium") === -1)
-                .filter(name => name.indexOf("-Regular") === -1)
-                .filter(name => name.indexOf("-Light") === -1)
-                .filter(name => name.indexOf("-Ultralight") === -1)
-                .filter(name => name.indexOf("-UltraBold") === -1),
-            renderItem: ({ item }: SectionListRenderItemInfo<string>) => (<View>
-                <RNText style={{ fontFamily: item, fontSize: 16, lineHeight: item === "Zapfino" ? undefined : 30 }}>{item}</RNText>
-            </View>)
-        },
     ]);
     async function computeSectionsWithPromises(): Promise<SectionListData<any>[]> {
-        return [
-            { key: "@env", data: [{ BASE_URL, TEXT_TEST, isHermes }] },
-            {
-                key: "expo-constants", data: [
-                    restOfConstants as Record<string, unknown>
-                ]
-            },
-            {
-                key: "expo-constants.expoConfig", data: [expoConfig as unknown as Record<string, unknown>]
-            },
-            {
-                key: "expo-constants.manifests", data: [
-                    manifest as Record<string, unknown>,
-                    manifest2 as Record<string, unknown>
-                ]
-            },
-            {
-                key: "expo-file-system",
-                data: [{
-                    cacheDirectory: FileSystem.cacheDirectory,
-                    documentDirectory: FileSystem.documentDirectory,
-                }]
-            },
-            {
-                key: "expo-localization.Locales",
-                data: await Promise.resolve(Localization.getLocales()),
-            },
-            {
-                key: "expo-localization.Calendars",
-                data: await Promise.resolve(Localization.getCalendars()),
-            },
-            {
-                key: "System Fonts",
-                data: systemFonts
-                    .filter(name => name.indexOf("-Bold") === -1)
-                    .filter(name => name.indexOf("_Bold") === -1)
-                    .filter(name => name.indexOf("_SemiBold") === -1)
-                    .filter(name => name.indexOf("_Medium") === -1)
-                    .filter(name => name.indexOf("-Italic") === -1)
-                    .filter(name => name.indexOf("-Black") === -1)
-                    .filter(name => name.indexOf("-Thin") === -1)
-                    .filter(name => name.indexOf("-Semibold") === -1)
-                    .filter(name => name.indexOf("-ExtraBold") === -1)
-                    .filter(name => name.indexOf("-SemiBold") === -1)
-                    .filter(name => name.indexOf("-Medium") === -1)
-                    .filter(name => name.indexOf("-Regular") === -1)
-                    .filter(name => name.indexOf("-Light") === -1)
-                    .filter(name => name.indexOf("-Ultralight") === -1)
-                    .filter(name => name.indexOf("-UltraBold") === -1),
-                renderItem: ({ item }: SectionListRenderItemInfo<string>) => (<View>
-                    <RNText style={{ fontFamily: item, fontSize: 16, lineHeight: item === "Zapfino" ? undefined : 30 }}>{item}</RNText>
-                </View>)
-            },
-        ];
+        const replacements: Record<string, any> = {
+            "expo-localization.Locales":
+                await Promise.resolve(Localization.getLocales()),
+            "expo-localization.Calendars":
+                await Promise.resolve(Localization.getCalendars()),
+        };
+        return sections.map(section => (section.key! in replacements) ? { key: section.key!, data: replacements[section.key!] } : section)
     }
+    const renderSectionHeader = useCallback(({ section }: { section: SectionListData<any, any> }) => <BlurView padding={16}><Text bold>{section.key}</Text></BlurView>, []);
+    const renderItem = useCallback(({ item }: SectionListRenderItemInfo<any>) => <Text>{JSON.stringify(item, null, 2)}</Text>, [])
+
     useFocusEffect(useCallback(() => {
         (async () => {
             setSections(await computeSectionsWithPromises())
@@ -129,7 +63,7 @@ export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string
     }, []));
     return <SectionList<any>
         sections={sections}
-        renderItem={({ item }) => <Text>{JSON.stringify(item, null, 2)}</Text>}
-        renderSectionHeader={({ section }) => <BlurView><Text>{section.key}</Text></BlurView>}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
     />
 }

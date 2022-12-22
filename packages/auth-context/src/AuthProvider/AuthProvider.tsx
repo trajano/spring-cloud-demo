@@ -248,7 +248,6 @@ export function AuthProvider<A = any>({
     baseUrl,
     oauthToken,
     lastCheckOn: new Date(),
-    nextCheckOn: null,
     tokenRefreshable,
     lastAuthEvents,
     endpointConfiguration,
@@ -264,7 +263,7 @@ export function AuthProvider<A = any>({
     oauthToken,
     tokenRefreshable,
     lastAuthEvents,
-    tokenExpiresAt?.getTime(),
+    tokenExpiresAt.getTime(),
     endpointConfiguration,
     tokenExpirationTimeoutRef,
     backendFailureTimeoutRef

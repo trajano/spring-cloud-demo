@@ -1,4 +1,9 @@
 import { replaceStyleWithNativeFont } from "./replaceStyleWithNativeFont";
+import Constants from "expo-constants";
+
+jest.mock("expo-constants", () => ({
+  systemFonts: ["SystemFont"],
+}));
 
 const loadedFonts = {
   "IBMPlexSans:100:normal": "IBMPlexSans_100Thin",
@@ -147,6 +152,26 @@ it("just italic should look up", () => {
   );
   expect(style).toStrictEqual({
     fontFamily: "IBMPlexSans_100Thin_Italic",
+    fontSize: 30,
+  });
+});
+
+it("unknown fonts should fall back gracefully", () => {
+  const style = replaceStyleWithNativeFont(
+    {
+      fontFamily: "SystemFont",
+      fontWeight: "100",
+      fontStyle: "italic",
+      fontSize: 30,
+    },
+    loadedFonts
+  );
+  expect(Constants.systemFonts).toBeTruthy();
+  expect(Constants.systemFonts.find((f) => f === "SystemFont")).toBeTruthy();
+  expect(style).toStrictEqual({
+    fontFamily: "SystemFont",
+    fontWeight: "100",
+    fontStyle: "italic",
     fontSize: 30,
   });
 });

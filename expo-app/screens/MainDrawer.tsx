@@ -7,6 +7,7 @@ import { StackNavigatorScrollView } from "./StackNavigatorScrollView";
 import { TabOne } from "./TabOne";
 import { EnvironmentScreen } from "./EnvironmentScreen";
 import { AsyncStorageScreen } from "./AsyncStorageScreen";
+import { SystemFontsScreen } from "./SystemFontsScreen";
 const Drawer = createDrawerNavigator<MainDrawerParamList>();
 export function DrawerNavigator() {
     const { width, height } = useWindowDimensions();
@@ -26,6 +27,10 @@ export function DrawerNavigator() {
         }} />
         <Drawer.Screen name="AsyncStorage" component={AsyncStorageScreen} options={{
             title: "Async Storage",
+            headerShown: true,
+        }} />
+        <Drawer.Screen name="SystemFonts" component={SystemFontsScreen} options={{
+            title: "System Fonts",
             headerShown: true,
         }} />
     </Drawer.Navigator>)

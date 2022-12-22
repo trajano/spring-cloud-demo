@@ -1,10 +1,10 @@
+import Constants from 'expo-constants';
 import * as Font from "expo-font";
 import { isEmpty, pickBy } from "lodash";
 import { TextStyle } from "react-native";
-function fontStylePredicate(value: any, key: string) {
-  return value && (key === "fontWeight" || key === "fontStyle" || key === "fontFamily");
+function fontAvailable(fontFamily: string): boolean {
+  return Font.isLoaded(fontFamily) || Constants.systemFonts.findIndex((f) => f === fontFamily) !== -1;
 }
-
 export function replaceStyleWithNativeFont({ fontFamily, fontWeight, fontStyle, ...rest }: TextStyle, fonts: Record<string, string>): TextStyle | undefined {
   if (!fontFamily && !fontWeight && !fontStyle) {
     return isEmpty(rest) ? undefined : rest;
@@ -26,9 +26,9 @@ export function replaceStyleWithNativeFont({ fontFamily, fontWeight, fontStyle, 
   } else if (fontWeight === "bold" && fontStyle === "italic" && fonts[`${fontFamily}:normal:normal`]) {
     // Allow for faux-bold fonts
     return { fontFamily: fonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", fontStyle: "italic", ...rest };
-  } else if (fontFamily && !Font.isLoaded(fontFamily)) {
-    return pickBy({ fontWeight, fontStyle, ...rest }, fontStylePredicate);
+  } else if (fontFamily && !fontAvailable(fontFamily)) {
+    return pickBy({ fontWeight, fontStyle, ...rest });
   } else {
-    return pickBy({ fontFamily, fontWeight, fontStyle, ...rest }, fontStylePredicate);
+    return pickBy({ fontFamily, fontWeight, fontStyle, ...rest });
   }
 }
