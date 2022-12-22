@@ -95,9 +95,11 @@ export interface IAuth<A = any> {
    */
   setEndpointConfiguration(next: EndpointConfiguration): void;
   /**
-   * Determine if the backend is reachable.
+   * Determine if the backend is reachable.  If not ideally no client calls should be made.
+   * This has no bearing on the current authentication state so it can be used on
+   * login screens to determine whether to show the login button.
    */
-  tokenRefreshable: boolean;
+  backendReachable: boolean;
   /**
    * When the last check for authentication state using timer effect was done.
    */

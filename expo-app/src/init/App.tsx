@@ -6,19 +6,18 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '../lib/native-unstyled/ThemeContext';
 
+import * as IBMPlexMono from "@expo-google-fonts/ibm-plex-mono";
 import * as IBMPlexSans from "@expo-google-fonts/ibm-plex-sans";
 import * as IslandMoments from "@expo-google-fonts/island-moments";
 import * as Lexend from "@expo-google-fonts/lexend";
 import * as NotoSans from "@expo-google-fonts/noto-sans";
 import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
-import { lazy, useEffect, useState, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { LogBox } from 'react-native';
 import { AuthenticatedEndpointConfiguration } from '../../navigation/login/types';
 import { LoadingScreen } from '../../screens/LoadingScreen';
 import { ActivityIndicator, View } from '../lib/native-unstyled';
 
-// import Navigation from '../../navigation';
-// import { TextTest } from '../../screens/TextTest';
 const TextTest = lazy(() => import('../../screens/TextTest'));
 const Navigation = lazy(() => import('../../navigation'))
 
@@ -40,9 +39,9 @@ export default function App() {
       <AuthProvider defaultEndpointConfiguration={defaultEndpointConfiguration}>
         <ThemeProvider
           defaultColorScheme='light'
-          fontModules={[NotoSans, IBMPlexSans, NotoSansMono, Lexend, IslandMoments]}
+          fontModules={[NotoSans, IBMPlexSans, NotoSansMono, Lexend, IBMPlexMono, IslandMoments]}
           textRoles={{
-            mono: { fontFamily: "NotoSansMono" },
+            mono: { fontFamily: "IBMPlexMono" },
             "sans-serif": { fontFamily: "Lexend" }
           }}
           initialAssets={[

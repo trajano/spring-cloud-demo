@@ -25,6 +25,7 @@
     "webpack-dev-server": "< 4"
   },
   "dependencies": {
+    "@expo-google-fonts/ibm-plex-mono": "^0.2.2",
     "@expo-google-fonts/ibm-plex-sans": "^0.2.2",
     "@expo-google-fonts/island-moments": "^0.2.2",
     "@expo-google-fonts/lexend": "^0.2.2",
@@ -92,6 +93,7 @@
     "@babel/core": "^7.19.3",
     "@expo/webpack-config": "^0.17.2",
     "@testing-library/react-native": "^11.5.0",
+    "@types/fbemitter": "^2.0.32",
     "@types/jest": "26",
     "@types/markdown-it": "^12.2.3",
     "@types/node-jose": "^1.1.10",

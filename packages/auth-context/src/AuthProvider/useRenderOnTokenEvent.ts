@@ -8,7 +8,7 @@ type RenderOnTokenEventState = {
   /**
    * Token is refreshable
    */
-  tokenRefreshable: boolean;
+  backendReachable: boolean;
   /**
    * Last time the token was checked.
    */
@@ -38,9 +38,10 @@ export function useRenderOnTokenEvent(
   const netInfoState = useNetInfoState(endpointConfiguration);
 
   /**
-   * Token is refreshable if the app is active, there's a connection and the backend is reachable.
+   * Backend is reachable if the app is active, there's a connection and the internet is reachable via
+   * connection to the backend.
    */
-  const tokenRefreshable = useMemo<boolean>(
+  const backendReachable = useMemo<boolean>(
     () =>
       appState === 'active' &&
       !!netInfoState.isConnected &&
@@ -49,7 +50,7 @@ export function useRenderOnTokenEvent(
   );
 
   return {
-    tokenRefreshable,
+    backendReachable,
     lastCheckTime: 0,
     netInfoState,
   };

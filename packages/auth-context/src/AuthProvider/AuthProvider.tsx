@@ -58,6 +58,10 @@ export function AuthProvider<A = any>({
   storagePrefix = "auth"
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
 
+  /**
+   * Last auth events.  Eventually this will be removed and placed with the app rather than the context.
+   * Kept for debugging.
+   */
   const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(logAuthEventFilterPredicate, logAuthEventSize);
   const [endpointConfiguration, setEndpointConfiguration] = useState(defaultEndpointConfiguration);
   const authClient = useMemo(() => new AuthClient<A>(endpointConfiguration), [endpointConfiguration]);
@@ -77,7 +81,7 @@ export function AuthProvider<A = any>({
 
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
 
-  const { tokenRefreshable, netInfoState } = useRenderOnTokenEvent(endpointConfiguration);
+  const { backendReachable, netInfoState } = useRenderOnTokenEvent(endpointConfiguration);
 
   /**
    * Authentication state.
@@ -219,7 +223,7 @@ export function AuthProvider<A = any>({
     setTokenExpiresAt,
     authClient,
     netInfoState,
-    tokenRefreshable
+    tokenRefreshable: backendReachable
   })
 
   useInitialAuthStateEffect({
@@ -236,7 +240,7 @@ export function AuthProvider<A = any>({
     authState,
     setAuthState,
     notify,
-    tokenRefreshable,
+    tokenRefreshable: backendReachable,
     refresh,
   })
 
@@ -249,7 +253,7 @@ export function AuthProvider<A = any>({
     baseUrl,
     oauthToken,
     lastCheckOn: new Date(),
-    tokenRefreshable,
+    backendReachable,
     lastAuthEvents,
     endpointConfiguration,
     forceCheckAuthStorage,
@@ -262,7 +266,7 @@ export function AuthProvider<A = any>({
     authState,
     baseUrl,
     oauthToken,
-    tokenRefreshable,
+    backendReachable,
     lastAuthEvents,
     tokenExpiresAt.getTime(),
     endpointConfiguration,

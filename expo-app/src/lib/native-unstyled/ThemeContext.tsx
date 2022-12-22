@@ -218,17 +218,20 @@ export function ThemeProvider({ children,
             return {};
         }
     }, [textRoles, fontModules])
-    const defaultTypography = useMemo(
-        () => ({ color: colors.default[0], backgroundColor: "transparent" }),
-        [colors.default[0]]);
-    return <ThemeContext.Provider value={{
+    const contextValue = useMemo(() => ({
         colorScheme,
         colors,
         reactNavigationTheme,
         setColorScheme,
-        defaultTypography,
+        defaultTypography: { color: colors.default[0], backgroundColor: "transparent" },
         typography
-    }}>
+    }), [
+        colorScheme,
+        colors,
+        reactNavigationTheme,
+        setColorScheme,
+        typography])
+    return <ThemeContext.Provider value={contextValue}>
         <FontsProvider fontModules={fontModules} onLoaded={() => { setFontsLoaded(true); }}>
             <I18nProvider translations={translations}>
                 <LoadingOrChildren

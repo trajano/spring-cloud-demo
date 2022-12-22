@@ -12,6 +12,7 @@ import { AuthEvent, AuthState, useAuth } from '@trajano/spring-docker-auth-conte
 import { ComponentProps, useEffect, useMemo, useState } from 'react';
 import { Linking, Platform } from 'react-native';
 import { AuthenticatedProvider } from '../authenticated-context';
+import { useExpoUpdateEffect } from '../hooks/useExpoUpdateEffect';
 import { DrawerNavigator } from '../screens/MainDrawer';
 import ModalScreen from '../screens/ModalScreen';
 import { NetworkLoggerTab } from '../screens/NetworkLoggerTab';
@@ -31,6 +32,8 @@ function cleanAuthEvent({ type, authState, accessToken, authorization, ...rest }
   });
 }
 export default function Navigation() {
+  useExpoUpdateEffect();
+
   const auth = useAuth();
   const { reactNavigationTheme } = useTheming();
   const [authNavigationState, setAuthNavigationState] = useState(auth.authState);

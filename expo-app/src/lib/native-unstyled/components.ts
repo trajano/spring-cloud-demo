@@ -24,6 +24,7 @@ import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import { withI18n } from "./withI18n";
 import { withReplacedWithNativeFonts } from "./withReplacedWithNativeFonts";
 import { withStyled } from "./withStyled";
+import { withTextRole } from "./withTextRole";
 
 export const ActivityIndicator = withStyled(RNActivityIndicator);
 export const FlatList = withStyled(RNFlatList);
@@ -48,8 +49,10 @@ export const LinearGradient = withStyled(ExpoLinearGradient);
  */
 export const TextInput = withStyled(
   withI18n(
-    withReplacedWithNativeFonts<TextInputProps, TextInputProps, RNTextInput>(
-      RNTextInput
+    withTextRole(
+      withReplacedWithNativeFonts<TextInputProps, TextInputProps, RNTextInput>(
+        RNTextInput
+      )
     ),
     {
       localizedMap: {
@@ -66,9 +69,14 @@ export const TextInput = withStyled(
  * This component type is not exposed outside as it is used internally only.
  */
 export const Text = withStyled(
-  withI18n(withReplacedWithNativeFonts<TextProps, TextProps, RNText>(RNText), {
-    _tIsChild: true,
-  })
+  withI18n(
+    withTextRole(
+      withReplacedWithNativeFonts<TextProps, TextProps, RNText>(RNText)
+    ),
+    {
+      _tIsChild: true,
+    }
+  )
 );
 
 export const View = withStyled(RNView);

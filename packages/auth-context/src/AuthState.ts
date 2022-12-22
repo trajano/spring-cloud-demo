@@ -1,7 +1,9 @@
 export enum AuthState {
   INITIAL,
   /**
-   * Authenticated means that the token is valid.
+   * Authenticated means that the token is valid.  Note the token is still valid even
+   * if the backend is not reachable, us {@link IAuth.backendReachable} to make the
+   * determination.
    */
   AUTHENTICATED,
   /**

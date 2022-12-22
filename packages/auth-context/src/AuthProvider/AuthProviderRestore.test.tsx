@@ -35,7 +35,7 @@ afterEach(() => {
 })
 
 function MyComponent({ notifications }: { notifications: () => void }) {
-  const { authState, login, accessTokenExpiresOn, accessToken, tokenRefreshable, subscribe } = useAuth();
+  const { authState, login, accessTokenExpiresOn, accessToken, backendReachable: tokenRefreshable, subscribe } = useAuth();
   const doLogin = useMemo(() => async function doLogin() {
     return login({ user: "test" });
   }, [])

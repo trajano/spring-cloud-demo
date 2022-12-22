@@ -1489,6 +1489,11 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
+"@expo-google-fonts/ibm-plex-mono@^0.2.2":
+  version "0.2.2"
+  resolved "https://registry.npmjs.org/@expo-google-fonts/ibm-plex-mono/-/ibm-plex-mono-0.2.2.tgz#385900f42d5e0a49752c4ea7226a644fd934f861"
+  integrity sha512-0soUjVbxRGJB/eu6YPpJiiipknhcDGrK3xzOArzBBFZAQaZGN3aSHBJuoqRn04tBDCF0+ku/6n3oITN9xCLxnw==
+
 "@expo-google-fonts/ibm-plex-sans@^0.2.2":
   version "0.2.2"
   resolved "https://registry.npmjs.org/@expo-google-fonts/ibm-plex-sans/-/ibm-plex-sans-0.2.2.tgz#d9de355a95a74334a01fc2360b3881c128de61cb"
@@ -4445,6 +4450,11 @@
     "@types/express-serve-static-core" "^4.17.31"
     "@types/qs" "*"
     "@types/serve-static" "*"
+
+"@types/fbemitter@^2.0.32":
+  version "2.0.32"
+  resolved "https://registry.npmjs.org/@types/fbemitter/-/fbemitter-2.0.32.tgz#8ed204da0f54e9c8eaec31b1eec91e25132d082c"
+  integrity sha512-Hwq28bBlbmfCgLnNJvjl5ssTrbZCTSblI4vqPpqZrbbEL8vn5l2UivxhlMYfUY7a4SR8UB6RKoLjOZfljqAa6g==
 
 "@types/glob@^7.1.1":
   version "7.2.0"

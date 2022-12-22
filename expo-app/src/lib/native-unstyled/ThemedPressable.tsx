@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef, useContext, createContext, useMemo } from 'react';
-import { GestureResponderEvent, Pressable, PressableProps, Animated } from 'react-native';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { Animated, GestureResponderEvent, Pressable, PressableProps } from 'react-native';
 import { useTheming } from './ThemeContext';
 import type { Color, ColorSwatch } from './Themes';
 type ThemedPressableProps = PressableProps & {

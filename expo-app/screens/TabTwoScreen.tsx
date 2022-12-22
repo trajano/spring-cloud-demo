@@ -8,6 +8,7 @@ import { Button, Keyboard, NativeScrollEvent, NativeSyntheticEvent, Platform, Sc
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView, Text, TextInput, useTheming, View } from '../src/lib/native-unstyled';
 import { Text as RNText } from 'react-native'
+import { useDebouncedDeepState } from '@trajano/react-hooks';
 
 export default function TabTwoScreen() {
   const { colorScheme } = useTheming()
@@ -15,7 +16,9 @@ export default function TabTwoScreen() {
   const safeAreaInsets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const scrollViewRef = useRef<RNScrollView>();
-  const [scrollInfo, setScrollInfo] = useState<NativeScrollEvent>();
+  const [scrollInfo, setScrollInfo] = useDebouncedDeepState<NativeScrollEvent>({
+
+  } as NativeScrollEvent, 100);
   const locale: Locale = useMemo(() => {
     let preferredLocales = Localization.getLocales();
     if (__DEV__) {

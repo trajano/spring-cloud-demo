@@ -20,5 +20,5 @@ export interface ITheme {
      * @param role text role.
      * @param size text role size.
      */
-    typography(role: string, size?: string): TextStyle;
+    typography(role?: string, size?: string): TextStyle;
 }
