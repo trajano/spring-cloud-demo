@@ -5,9 +5,9 @@ import { TextStyle } from "react-native";
 function fontAvailable(fontFamily: string): boolean {
   return Font.isLoaded(fontFamily) || Constants.systemFonts.findIndex((f) => f === fontFamily) !== -1;
 }
-export function replaceStyleWithNativeFont({ fontFamily, fontWeight, fontStyle, ...rest }: TextStyle, fonts: Record<string, string>): TextStyle | undefined {
+export function replaceStyleWithNativeFont({ fontFamily, fontWeight, fontStyle, ...rest }: TextStyle, fonts: Record<string, string>, defaultTextStyle: TextStyle): TextStyle | undefined {
   if (!fontFamily && !fontWeight && !fontStyle) {
-    return isEmpty(rest) ? undefined : rest;
+    return isEmpty(rest) ? defaultTextStyle : {...defaultTextStyle, ...rest};
   }
   const fontFamilyForKey = fonts[`${fontFamily}:${fontWeight ?? "400"}:${fontStyle ?? "normal"}`];
   if (fontFamilyForKey) {
@@ -27,8 +27,8 @@ export function replaceStyleWithNativeFont({ fontFamily, fontWeight, fontStyle, 
     // Allow for faux-bold fonts
     return { fontFamily: fonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", fontStyle: "italic", ...rest };
   } else if (fontFamily && !fontAvailable(fontFamily)) {
-    return pickBy({ fontWeight, fontStyle, ...rest });
+    return pickBy({ ...defaultTextStyle, fontWeight, fontStyle, ...rest });
   } else {
-    return pickBy({ fontFamily, fontWeight, fontStyle, ...rest });
+    return pickBy({ ...defaultTextStyle, fontFamily, fontWeight, fontStyle, ...rest });
   }
 }

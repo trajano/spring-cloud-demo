@@ -8,12 +8,14 @@ import { omit, identity } from 'lodash';
 import { ReactElement, useCallback } from 'react';
 import { Platform, SectionList, SectionListData, SectionListProps, SectionListRenderItemInfo } from 'react-native';
 import { BlurView, Text, View } from '../src/lib/native-unstyled';
+import * as SystemUI from 'expo-system-ui';
 
 const isHermes = () => !!((global as any)['HermesInternal']);
 export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string, unknown>>, any> {
     const { manifest, manifest2, systemFonts: _systemFonts, expoConfig, ...restOfConstants } = Constants;
     const [sections, setSections] = useDeepState<SectionListData<any>[]>([
         { key: "@env", data: [{ BASE_URL, TEXT_TEST, isHermes }] },
+        { key: "SystemUI.backgroundColor", data: [] },
         {
             key: "expo-constants", data: [
                 restOfConstants as Record<string, unknown>
@@ -57,6 +59,9 @@ export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string
                 await Promise.resolve(Localization.getLocales()),
             "expo-localization.Calendars":
                 await Promise.resolve(Localization.getCalendars()),
+            "SystemUI.backgroundColor": [{
+                backgroundColor: await SystemUI.getBackgroundColorAsync()
+            }]
         };
         return sections.map(section => (section.key! in replacements) ? { key: section.key!, data: replacements[section.key!] } : section)
     }

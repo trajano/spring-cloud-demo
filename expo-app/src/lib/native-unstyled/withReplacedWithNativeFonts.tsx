@@ -2,14 +2,16 @@ import { Children, cloneElement, ComponentType, forwardRef, NamedExoticComponent
 import { StyleProp, StyleSheet, TextStyle } from "react-native";
 import { useFonts } from "./Fonts";
 import { hocDisplayName } from './hocDisplayName';
+import { useTheming } from './ThemeContext';
 
 function useReplacedWithNativeFonts(style?: StyleProp<TextStyle>, inChildren?: ReactNode): {
     style?: StyleProp<TextStyle>,
     children?: ReactNode,
 } {
+    const { defaultTypography } = useTheming();
     const { replaceWithNativeFont } = useFonts();
     const flattenedStyle: TextStyle = StyleSheet.flatten(style) || {};
-    const replacedStyle = replaceWithNativeFont(flattenedStyle);
+    const replacedStyle = replaceWithNativeFont(flattenedStyle, defaultTypography);
     const children: typeof inChildren = Children.map(inChildren, (child) => {
         if (child === null) {
             return null;
@@ -20,7 +22,8 @@ function useReplacedWithNativeFonts(style?: StyleProp<TextStyle>, inChildren?: R
                     {
                         fontFamily: flattenedStyle.fontFamily,
                         fontWeight: flattenedStyle.fontWeight,
-                        fontStyle: flattenedStyle.fontStyle
+                        fontStyle: flattenedStyle.fontStyle,
+                        color: flattenedStyle.color
                     },
                     child.props.style
                 ]
@@ -38,6 +41,11 @@ function useReplacedWithNativeFonts(style?: StyleProp<TextStyle>, inChildren?: R
     };
 }
 
+/**
+ * This replaces the friendly font faces with the native font faces.  In addition this will also replacce the color with the default if not specified.
+ * @param Component component
+ * @returns 
+ */
 export function withReplacedWithNativeFonts<
     P extends Q,
     Q extends { style?: StyleProp<TextStyle>, children?: ReactNode },

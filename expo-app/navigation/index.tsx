@@ -35,11 +35,12 @@ export default function Navigation() {
   useExpoUpdateEffect();
 
   const auth = useAuth();
-  const { reactNavigationTheme } = useTheming();
+  const { reactNavigationTheme, defaultTypography } = useTheming();
   const [authNavigationState, setAuthNavigationState] = useState(auth.authState);
   const [ready, setReady] = useState(false);
   const [initialState, setInitialState] = useState<NavigationState>();
 
+  console.log({ defaultTypography })
   const authEventHandler = useCallback(function authEventHandler(event: AuthEvent) {
     console.log(cleanAuthEvent(event));
 

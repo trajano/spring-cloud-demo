@@ -55,7 +55,7 @@ export function SystemFontsScreen(): ReactElement<SectionListProps<string>, any>
         ...variantSuffixes
             .flatMap((suffix) => [fontFamily + "_" + suffix, fontFamily + "-" + suffix])
             .filter(f => Constants.systemFonts.findIndex((ff) => ff.toLowerCase() === f.toLowerCase()) !== -1)
-            .map(f => ({ fontFamily: f, specimen: specimen + " " + f }))
+            .map(f => ({ key: f, fontFamily: f, specimen: specimen + " " + f }))
         ]
     }
     const sections: SectionListData<FontSectionData>[] = Constants.systemFonts

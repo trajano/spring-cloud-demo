@@ -23,6 +23,28 @@ describe("replaceWithNativeFont", () => {
         expect(getByTestId("blah").props.style).toStrictEqual({ fontFamily: "something", fontWeight: "300" });
     });
 
+    it("should render fonts with default colors", () => {
+        function MyComponent() {
+            const { replaceWithNativeFont } = useFonts();
+            const style = replaceWithNativeFont({ fontFamily: "something", fontWeight: "300" }, { color: "pink" });
+            return <View testID="blah" style={style} />
+        }
+        const { getByTestId } = render(<FontsProvider><MyComponent /></FontsProvider>)
+        expect(getByTestId("blah").props.style).toStrictEqual({ color: "pink", fontFamily: "something", fontWeight: "300" });
+    });
+
+
+    it("should render fonts overriding default colors", () => {
+        function MyComponent() {
+            const { replaceWithNativeFont } = useFonts();
+            const style = replaceWithNativeFont({ fontFamily: "something", fontWeight: "300", color: "yellow" }, { color: "pink" });
+            return <View testID="blah" style={style} />
+        }
+        const { getByTestId } = render(<FontsProvider><MyComponent /></FontsProvider>)
+        expect(getByTestId("blah").props.style).toStrictEqual({ color: "yellow", fontFamily: "something", fontWeight: "300" });
+    });
+
+
     it("should render fonts provided", () => {
         const mockFont = {
             useFonts: jest.fn(),

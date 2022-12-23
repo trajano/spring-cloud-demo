@@ -1,5 +1,6 @@
 import { useMounted } from "@trajano/react-hooks";
 import * as Font from "expo-font";
+import { noop, omit } from "lodash";
 import {
   createContext,
   PropsWithChildren,
@@ -8,7 +9,6 @@ import {
   useContext,
   useEffect, useMemo, useState
 } from "react";
-import { identity, noop, omit, pick } from "lodash";
 import { StyleProp, TextStyle } from "react-native";
 import { replaceStyleWithNativeFont } from "./replaceStyleWithNativeFont";
 
@@ -30,7 +30,8 @@ type IFonts = {
    * @param flattenedStyle 
    */
   replaceWithNativeFont(
-    flattenedStyle: StyleProp<TextStyle>
+    flattenedStyle: StyleProp<TextStyle>,
+    defaultTextStyle?: Pick<TextStyle, "color">
   ): StyleProp<TextStyle> | undefined;
 };
 const FontsContext = createContext<IFonts>({
@@ -108,9 +109,9 @@ export function FontsProvider({
     [fontModules]);
   const isMounted = useMounted();
 
-  const replaceWithNativeFont = useCallback(function replaceWithNativeFont(style: TextStyle = {}): TextStyle | undefined {
+  const replaceWithNativeFont = useCallback(function replaceWithNativeFont(style: TextStyle = {}, defaultTextStyle: TextStyle = {}): TextStyle | undefined {
     if (loadedFonts.loaded) {
-      return replaceStyleWithNativeFont(style, loadedFonts.fonts);
+      return replaceStyleWithNativeFont(style, loadedFonts.fonts, defaultTextStyle);
     } else {
       // If the fonts are not loaded then the family has to be excluded.
       return omit(style, "fontFamily");
@@ -144,7 +145,8 @@ export function FontsProvider({
 
   }, [])
 
-  return <FontsContext.Provider value={{ loadedFonts: loadedFonts.fonts, loaded, total, replaceWithNativeFont }}>{children}</FontsContext.Provider>
+  const contextValue = useMemo<IFonts>(() => ({ loadedFonts: loadedFonts.fonts, loaded, total, replaceWithNativeFont }), [loadedFonts.fonts, loaded, total]);
+  return <FontsContext.Provider value={contextValue}>{children}</FontsContext.Provider>
 }
 export function useFonts() {
   return useContext(FontsContext);

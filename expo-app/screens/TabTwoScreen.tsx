@@ -11,7 +11,7 @@ import { Text as RNText } from 'react-native'
 import { useDebouncedDeepState } from '@trajano/react-hooks';
 
 export default function TabTwoScreen() {
-  const { colorScheme } = useTheming()
+  const { colorScheme, setColorScheme } = useTheming()
   const { authState } = useAuth();
   const safeAreaInsets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
@@ -26,7 +26,7 @@ export default function TabTwoScreen() {
     let preferredLocales = Localization.getLocales();
     if (__DEV__) {
       if (!Array.isArray(preferredLocales)) {
-        console.warn("getLocales() didn't return an array, it may be a promise when running in a debugger, defaulting to `enUS`")
+        // console.warn("getLocales() didn't return an array, it may be a promise when running in a debugger, defaulting to `enUS`")
         return dateFnsLocales.enUS;
       }
     }
@@ -90,6 +90,7 @@ export default function TabTwoScreen() {
       <View height={headerHeight} bg="yellow">
         <Text fg="primary:f" style={styles.title}>{now}</Text>
       </View>
+      <Button title={colorScheme === "light" ? "switch to dark" : "switch to light"} onPress={() => { setColorScheme(colorScheme === "light" ? "dark" : "light") }} />
       <Text>{scrollInfo?.contentOffset.x} {scrollInfo?.contentOffset.y}</Text>
       <Text>Hello {username} <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text></Text>
       <TextInput placeholder='Username' defaultValue={username} onChangeText={setUsername} width={300} onFocus={onFocus} backgroundColor="#DDDDFF" />

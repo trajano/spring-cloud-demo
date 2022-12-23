@@ -1,5 +1,6 @@
 import { ComponentType, forwardRef, NamedExoticComponent, PropsWithoutRef, ReactElement, Ref, RefAttributes } from 'react';
 import { TextProps } from 'react-native';
+import { hocDisplayName } from './hocDisplayName';
 import { useTheming } from './ThemeContext';
 
 /**
@@ -29,8 +30,6 @@ export function withTextRole<
             return <Component {...rest as any} style={[style, typographyStyle]} ref={ref} />
         }
     }
-    const displayName =
-        Component.displayName || Component.name || "AnonymousComponent";
-    useWrapped.displayName = displayName;
+    useWrapped.displayName = hocDisplayName("withTextRole", Component);
     return forwardRef(useWrapped);
 }
