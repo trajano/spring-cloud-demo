@@ -7,25 +7,25 @@ function fontAvailable(fontFamily: string): boolean {
 }
 export function replaceStyleWithNativeFont({ fontFamily, fontWeight, fontStyle, ...rest }: TextStyle, fonts: Record<string, string>, defaultTextStyle: TextStyle): TextStyle | undefined {
   if (!fontFamily && !fontWeight && !fontStyle) {
-    return isEmpty(rest) ? defaultTextStyle : {...defaultTextStyle, ...rest};
+    return isEmpty(rest) ? defaultTextStyle : { ...defaultTextStyle, ...rest };
   }
   const fontFamilyForKey = fonts[`${fontFamily}:${fontWeight ?? "400"}:${fontStyle ?? "normal"}`];
   if (fontFamilyForKey) {
-    return { fontFamily: fontFamilyForKey, ...rest };
+    return { ...defaultTextStyle, fontFamily: fontFamilyForKey, ...rest };
     // } else if (fontWeight === "bold" && fontStyle === "italic" && loadedFonts[`${fontFamily}:normal:italic`]) {
     //   // Allow for faux-italic fonts
     //   return { fontFamily: loadedFonts[`${fontFamily}:normal:normal`], fontWeight: "bold", fontStyle: "italic", ...rest };
   } else if (fontWeight === "bold" && fonts[`${fontFamily}:normal:${fontStyle}`]) {
     // Allow for faux-bold fonts
-    return { fontFamily: fonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", ...rest };
+    return { ...defaultTextStyle, fontFamily: fonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", ...rest };
 
   } else if (fontStyle === "italic" && fonts[`${fontFamily}:${fontWeight}:normal`]) {
     // Allow for faux-italic fonts
-    return { fontFamily: fonts[`${fontFamily}:${fontWeight}:normal`], fontStyle: "italic", ...rest };
+    return { ...defaultTextStyle, fontFamily: fonts[`${fontFamily}:${fontWeight}:normal`], fontStyle: "italic", ...rest };
 
   } else if (fontWeight === "bold" && fontStyle === "italic" && fonts[`${fontFamily}:normal:normal`]) {
     // Allow for faux-bold fonts
-    return { fontFamily: fonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", fontStyle: "italic", ...rest };
+    return { ...defaultTextStyle, fontFamily: fonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", fontStyle: "italic", ...rest };
   } else if (fontFamily && !fontAvailable(fontFamily)) {
     return pickBy({ ...defaultTextStyle, fontWeight, fontStyle, ...rest });
   } else {
