@@ -64,7 +64,7 @@ export interface IAuth<A = any> {
    * return an arbitrary time value in the past if the access token
    * or expiration is not available.
    */
-  accessTokenExpiresOn: Date;
+  tokenExpiresAt: Date;
   /**
    * Convenience to get the Authorization header value.  Unlike
    * accessToken, this becomes `null` when the token is deemed
@@ -90,11 +90,6 @@ export interface IAuth<A = any> {
    */
   endpointConfiguration: EndpointConfiguration;
   /**
-   * Sets the endpoint configuration for the context.  This allows switching between backends.
-   * @param next next endpoint configuration.
-   */
-  setEndpointConfiguration(next: EndpointConfiguration): void;
-  /**
    * Determine if the backend is reachable.  If not ideally no client calls should be made.
    * This has no bearing on the current authentication state so it can be used on
    * login screens to determine whether to show the login button.
@@ -104,6 +99,12 @@ export interface IAuth<A = any> {
    * When the last check for authentication state using timer effect was done.
    */
   lastCheckAt: Date;
+
+  /**
+   * Sets the endpoint configuration for the context.  This allows switching between backends.
+   * @param next next endpoint configuration.
+   */
+  setEndpointConfiguration(next: EndpointConfiguration): void;
   /**
    * Force check of the auth storage data.  This is primarily used for testing purposes as the
    * data is not normally modified outside the context.

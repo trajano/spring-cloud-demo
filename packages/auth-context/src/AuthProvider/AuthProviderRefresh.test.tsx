@@ -30,7 +30,7 @@ afterEach(() => {
 })
 
 function MyComponent({ notifications }: { notifications: () => void }) {
-  const { authState, loginAsync: login, accessTokenExpiresOn, accessToken, authorization, backendReachable: tokenRefreshable, subscribe } = useAuth();
+  const { authState, loginAsync: login, tokenExpiresAt: accessTokenExpiresOn, accessToken, authorization, backendReachable: tokenRefreshable, subscribe } = useAuth();
   useEffect(() => subscribe(notifications), []);
   const doLogin = useCallback(async function doLogin() {
     return login({ user: "test" });

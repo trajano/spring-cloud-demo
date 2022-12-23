@@ -13,7 +13,7 @@ export const AuthContext = createContext<IAuth>({
   forceCheckAuthStorageAsync: () => Promise.resolve(),
   accessToken: null,
   accessTokenExpired: true,
-  accessTokenExpiresOn: new Date(0),
+  tokenExpiresAt: new Date(0),
   oauthToken: null,
   authorization: null,
   authState: AuthState.INITIAL,
