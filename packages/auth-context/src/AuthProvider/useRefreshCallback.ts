@@ -81,7 +81,7 @@ export function useRefreshCallback<T>({
             oauthToken.refresh_token
           );
           const nextTokenExpiresAt =
-            await authStorage.storeOAuthTokenAndGetExpiresAt(
+            await authStorage.storeOAuthTokenAndGetExpiresAtAsync(
               refreshedOAuthToken
             );
           setOAuthToken(refreshedOAuthToken);
@@ -97,7 +97,7 @@ export function useRefreshCallback<T>({
           });
         } catch (e: unknown) {
           if (e instanceof AuthenticationClientError && e.isUnauthorized()) {
-            await authStorage.clear();
+            await authStorage.clearAsync();
             setOAuthToken(null);
             setTokenExpiresAt(0);
             setAuthState(AuthState.UNAUTHENTICATED);

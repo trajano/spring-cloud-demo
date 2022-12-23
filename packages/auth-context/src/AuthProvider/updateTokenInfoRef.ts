@@ -11,7 +11,7 @@ export async function updateTokenInfoRef(
   tokenExpiresAtRef: MutableRefObject<Date | null>
 ): Promise<void> {
   oauthTokenRef.current =
-    (await authStorage.getOAuthToken()) ?? oauthTokenRef.current;
+    (await authStorage.getOAuthTokenAsync()) ?? oauthTokenRef.current;
   tokenExpiresAtRef.current =
-    (await authStorage.getTokenExpiresAt()) ?? tokenExpiresAtRef.current;
+    (await authStorage.getTokenExpiresAtAsync()) ?? tokenExpiresAtRef.current;
 }

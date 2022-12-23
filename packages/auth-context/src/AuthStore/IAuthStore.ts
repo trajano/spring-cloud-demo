@@ -9,24 +9,24 @@ export interface IAuthStore {
    * This is exposed so if we have to do "background fetch".
    * @returns access token if available `null` otherwise.
    */
-  getAccessToken(): Promise<string | null>;
+  getAccessTokenAsync(): Promise<string | null>;
   /**
    * Obtains the full OAuth token provide if it is available.  This does not check expiration.
    * @returns token if available `null` otherwise.
    */
-  getOAuthToken(): Promise<OAuthToken | null>;
+  getOAuthTokenAsync(): Promise<OAuthToken | null>;
   /**
    *
    * @param oauthToken OAuth token to store.  This token will be validated for structure and will throw an error if it is not valid.
    * @returns when the token will expire
    */
-  storeOAuthTokenAndGetExpiresAt(oauthToken: OAuthToken): Promise<Date>;
+  storeOAuthTokenAndGetExpiresAtAsync(oauthToken: OAuthToken): Promise<Date>;
   /**
    * Obtains the instant when the token will expire.  This will never return null, but may return epoch time.
    */
-  getTokenExpiresAt(): Promise<Date>;
+  getTokenExpiresAtAsync(): Promise<Date>;
   /**
    * Clears the token data.
    */
-  clear(): Promise<void>;
+  clearAsync(): Promise<void>;
 }

@@ -34,8 +34,8 @@ export function useInitialAuthStateEffect({
         );
       }
     }
-    const nextOAuthToken = await authStorage.getOAuthToken();
-    const nextTokenExpiresAt = await authStorage.getTokenExpiresAt();
+    const nextOAuthToken = await authStorage.getOAuthTokenAsync();
+    const nextTokenExpiresAt = await authStorage.getTokenExpiresAtAsync();
 
     if (!nextOAuthToken || !nextTokenExpiresAt) {
       // no token so unauthenticated

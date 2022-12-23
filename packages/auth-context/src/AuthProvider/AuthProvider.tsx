@@ -136,8 +136,8 @@ export function AuthProvider<A = any>({
    * meant to be modified outside this context.
    */
   async function forceCheckAuthStorageAsync() {
-    const nextOauthToken = await authStorage.getOAuthToken();
-    const nextTokenExpiresAt = await authStorage.getTokenExpiresAt();
+    const nextOauthToken = await authStorage.getOAuthTokenAsync();
+    const nextTokenExpiresAt = await authStorage.getTokenExpiresAtAsync();
     setOAuthToken(nextOauthToken);
     setTokenExpiresAt(nextTokenExpiresAt);
   }
@@ -146,7 +146,7 @@ export function AuthProvider<A = any>({
 
     try {
       const [nextOauthToken, authenticationResponse] = await authClient.authenticate(authenticationCredentials);
-      const nextTokenExpiresAt = await authStorage.storeOAuthTokenAndGetExpiresAt(nextOauthToken);
+      const nextTokenExpiresAt = await authStorage.storeOAuthTokenAndGetExpiresAtAsync(nextOauthToken);
       setOAuthToken(nextOauthToken);
       setTokenExpiresAt(nextTokenExpiresAt);
       setAuthState(AuthState.AUTHENTICATED);
@@ -169,7 +169,7 @@ export function AuthProvider<A = any>({
       return authenticationResponse;
     } catch (e: unknown) {
       if (e instanceof AuthenticationClientError) {
-        await authStorage.clear();
+        await authStorage.clearAsync();
         setOAuthToken(null);
         setTokenExpiresAt(0);
       }
@@ -193,7 +193,7 @@ export function AuthProvider<A = any>({
         throw e;
       }
     } finally {
-      await authStorage.clear();
+      await authStorage.clearAsync();
       setOAuthToken(null);
       setTokenExpiresAt(0);
       setAuthState(AuthState.UNAUTHENTICATED)
