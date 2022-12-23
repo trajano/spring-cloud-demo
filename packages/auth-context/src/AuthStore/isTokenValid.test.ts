@@ -1,4 +1,4 @@
-import type { OAuthToken } from 'src/OAuthToken';
+import type { OAuthToken } from '../OAuthToken';
 import { isTokenValid } from './isTokenValid';
 
 it('should work with valid', () => {

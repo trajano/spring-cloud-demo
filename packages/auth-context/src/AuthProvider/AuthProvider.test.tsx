@@ -13,7 +13,6 @@ import { useAuth } from '../useAuth';
 import { AuthProvider } from './AuthProvider';
 let fetchConfigResponse: (new () => Response) | undefined;
 beforeEach(() => {
-  jest.useFakeTimers({ advanceTimers: true });
   fetchConfigResponse = fetchMock.config.Response;
   AppState.currentState = "active";
   AsyncStorage.clear();
@@ -22,7 +21,6 @@ afterEach(cleanup);
 afterEach(() => {
   fetchMock.mockReset();
   fetchMock.config.Response = fetchConfigResponse;
-  jest.useRealTimers();
   AppState.currentState = 'unknown'
 })
 
