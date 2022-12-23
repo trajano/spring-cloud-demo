@@ -1,9 +1,9 @@
 import type { OAuthToken } from '../OAuthToken';
-import { isTokenValid } from './isTokenValid';
+import { isValidOAuthToken } from './isValidOAuthToken';
 
 it('should work with valid', () => {
   expect(
-    isTokenValid({
+    isValidOAuthToken({
       access_token: 'abc',
       refresh_token: '123',
       token_type: 'Bearer',
@@ -14,7 +14,7 @@ it('should work with valid', () => {
 
 it('should work with valid containing extra data', () => {
   expect(
-    isTokenValid({
+    isValidOAuthToken({
       access_token: 'abc',
       refresh_token: '123',
       token_type: 'Bearer',
@@ -26,7 +26,7 @@ it('should work with valid containing extra data', () => {
 
 it('should not work with empty token data', () => {
   expect(
-    isTokenValid({
+    isValidOAuthToken({
       access_token: '',
       refresh_token: '',
       token_type: 'Bearer',
@@ -37,7 +37,7 @@ it('should not work with empty token data', () => {
 });
 it('should not work with missing data', () => {
   expect(
-    isTokenValid({
+    isValidOAuthToken({
       refresh_token: 'abc',
       token_type: 'Bearer',
       expires_in: 444,
@@ -47,9 +47,9 @@ it('should not work with missing data', () => {
 });
 
 it('should not work with empty string', () => {
-  expect(isTokenValid('' as unknown as OAuthToken)).toBeFalsy();
+  expect(isValidOAuthToken('' as unknown as OAuthToken)).toBeFalsy();
 });
 
 it('should not work with null', () => {
-  expect(isTokenValid(null as unknown as OAuthToken)).toBeFalsy();
+  expect(isValidOAuthToken(null as unknown as OAuthToken)).toBeFalsy();
 });

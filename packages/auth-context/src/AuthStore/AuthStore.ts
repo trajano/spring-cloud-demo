@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { add, isBefore, parseISO, subMilliseconds } from 'date-fns';
-import type { IAuthStore } from './IAuthStore';
 import type { OAuthToken } from '../OAuthToken';
-import { isTokenValid } from './isTokenValid';
+import type { IAuthStore } from './IAuthStore';
+import { isValidOAuthToken as isValidOAuthToken } from './isValidOAuthToken';
 export class AuthStore implements IAuthStore {
   /**
    * Storage prefix with the trailing `.`
@@ -44,8 +44,10 @@ export class AuthStore implements IAuthStore {
    * @param oauthToken OAuth token to store.  This token will be validated for structure and will throw an error if it is not valid.
    * @returns when the token will expire
    */
-  async storeOAuthTokenAndGetExpiresAtAsync(oauthToken: OAuthToken): Promise<Date> {
-    if (!isTokenValid(oauthToken)) {
+  async storeOAuthTokenAndGetExpiresAtAsync(
+    oauthToken: OAuthToken
+  ): Promise<Date> {
+    if (!isValidOAuthToken(oauthToken)) {
       throw new Error(`Token ${JSON.stringify(oauthToken)} is not valid`);
     }
     await AsyncStorage.setItem(
