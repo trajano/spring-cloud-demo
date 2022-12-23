@@ -39,31 +39,31 @@ export function useTokenExpirationTimeoutEffect({
 }: TokenExpirationTimeoutEffectProps): TokenExpirationTimeoutState {
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => {
-    if (authState === AuthState.AUTHENTICATED) {
-      function updateStateOnTimeout() {
-        if (!tokenExpiresAt) {
-          return;
-        }
-        if (!timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-          timeoutRef.current = undefined;
-        }
-        if (isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh)) {
-          setAuthState(AuthState.NEEDS_REFRESH);
-          notify({
-            type: 'TokenExpiration',
-            authState,
-            reason: `Token has expires on ${tokenExpiresAt?.toISOString()} is near or is expired on ${new Date().toISOString()} `,
-          });
-        } else {
-          const ms = Math.min(
-            maxTimeoutForRefreshCheck,
-            tokenExpiresAt.getTime() - Date.now() - timeBeforeExpirationRefresh
-          );
-
-          timeoutRef.current = setTimeout(updateStateOnTimeout, ms);
-        }
+    function updateStateOnTimeout() {
+      if (!tokenExpiresAt) {
+        return;
       }
+      if (!timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = undefined;
+      }
+      if (isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh)) {
+        setAuthState(AuthState.NEEDS_REFRESH);
+        notify({
+          type: 'TokenExpiration',
+          authState,
+          reason: `Token has expires on ${tokenExpiresAt?.toISOString()} is near or is expired on ${new Date().toISOString()} `,
+        });
+      } else {
+        const ms = Math.min(
+          maxTimeoutForRefreshCheck,
+          tokenExpiresAt.getTime() - Date.now() - timeBeforeExpirationRefresh
+        );
+
+        timeoutRef.current = setTimeout(updateStateOnTimeout, ms);
+      }
+    }
+    if (authState === AuthState.AUTHENTICATED) {
       notify({
         type: 'CheckRefresh',
         authState,

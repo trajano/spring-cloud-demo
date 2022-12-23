@@ -16,5 +16,6 @@ export type { LoadingComponentProps } from "./LoadingComponentProps";
 export { ThemeProvider, useColors, useTheming } from "./ThemeContext";
 export { useFonts } from "./Fonts";
 export * from "./components";
+export { StatusBar } from "./StatusBar";
 export type { StyleProps } from "./StyleProps";
 export { useRefreshControl } from "./useRefreshControl";

@@ -57,12 +57,12 @@ export default <typeof NetInfo>{
  * Sets the connection state and fires all the listeners
  * @param nextState
  */
-export function setConnectionState(nextState: NetInfoState) {
+export function setConnectionState(nextState: NetInfoState): void {
   currentStateMock.mockImplementation(() => nextState);
   listeners.forEach((listener) => listener(nextState));
 }
 
-export function resetConnectionState() {
+export function resetConnectionState(): void {
   currentStateMock.mockImplementation(() => connectedState);
   listeners = [];
 }

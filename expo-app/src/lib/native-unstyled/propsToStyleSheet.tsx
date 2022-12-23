@@ -1,9 +1,13 @@
-import { isEmpty, memoize, pick, omit } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import memoize from 'lodash/memoize';
+import omit from 'lodash/omit';
+import pick from 'lodash/pick';
+import pickBy from 'lodash/pickBy';
 import * as RN from "react-native";
 import { StyleProp } from "react-native";
-import { ColorSchemeColors } from './Themes';
 import { lookupColor } from '../../components/lookupColor';
 import { StyleProps } from './StyleProps';
+import { ColorSchemeColors } from './Themes';
 
 /**
  * Style prop keys.  Its a mapping from a prop key to the style prop.
@@ -316,7 +320,7 @@ function doPropsToStyleSheet(props: Omit<StyleProps, "role" | "size">, colorSche
         accumulatedStyle["fontStyle"] = "italic";
     }
 
-    return isEmpty(accumulatedStyle) ? undefined : accumulatedStyle;
+    return isEmpty(accumulatedStyle) ? undefined : pickBy(accumulatedStyle);
 }
 
 export const propsToStyleSheet = memoize(doPropsToStyleSheet, ((props, colorSchemeColors) => JSON.stringify([pick(props, stylePropKeys), colorSchemeColors])));

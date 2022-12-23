@@ -32,17 +32,21 @@ export const Image = withStyled(RNImage);
 export const Modal = withStyled(RNModal);
 export const Pressable = withStyled(RNPressable);
 export const RefreshControl = withStyled(RNRefreshControl);
-export const ScrollView = withStyled(RNScrollView);
-export const SectionList = withStyled(RNSectionList);
+export const ScrollView = withStyled(withReplacedWithNativeFonts(RNScrollView));
+export const SectionList = withStyled(
+  withReplacedWithNativeFonts(RNSectionList)
+);
 
 /**
  * Expo BlurView
  */
-export const BlurView = withStyled(ExpoBlurView);
+export const BlurView = withStyled(withReplacedWithNativeFonts(ExpoBlurView));
 /**
  * Expo LinearGradient
  */
-export const LinearGradient = withStyled(ExpoLinearGradient);
+export const LinearGradient = withStyled(
+  withReplacedWithNativeFonts(ExpoLinearGradient)
+);
 
 /**
  * TextInput
@@ -79,4 +83,4 @@ export const Text = withStyled(
   )
 );
 
-export const View = withStyled(RNView);
+export const View = withStyled(withReplacedWithNativeFonts(RNView));

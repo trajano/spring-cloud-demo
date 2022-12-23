@@ -18,7 +18,7 @@ import ModalScreen from '../screens/ModalScreen';
 import { NetworkLoggerTab } from '../screens/NetworkLoggerTab';
 import NotFoundScreen from '../screens/NotFoundScreen';
 import { TextTab } from '../screens/TextTab';
-import { useTheming } from '../src/lib/native-unstyled';
+import { ActivityIndicator, useTheming } from '../src/lib/native-unstyled';
 import { RootStackParamList, RootTabParamList } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
 import { LoginNavigator } from './login/LoginNavigator';
@@ -88,7 +88,9 @@ export default function Navigation() {
       theme={reactNavigationTheme}>
       <LoginNavigator />
     </NavigationContainer>
+  } else if (authNavigationState == AuthState.AUTHENTICATED && !ready) {
 
+    return <ActivityIndicator />
   } else if (authNavigationState == AuthState.AUTHENTICATED && ready) {
     return <AuthenticatedProvider
       whoAmIEndpoint={endpointConfiguration.whoamiEndpoint}

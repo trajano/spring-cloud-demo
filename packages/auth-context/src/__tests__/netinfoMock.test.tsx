@@ -1,10 +1,7 @@
 import NetInfo, {
-  NetInfoStateType, setConnectionState, resetConnectionState, NetInfoState
+  NetInfoStateType, NetInfoState
 } from '@react-native-community/netinfo';
-declare module '@react-native-community/netinfo' {
-  export function resetConnectionState(): void;
-  export function setConnectionState(next: NetInfoState): void;
-}
+import { setConnectionState, resetConnectionState } from '../__mocks__/@react-native-community/netinfo'
 it("work closely to the real thing", async () => {
   const c = await NetInfo.fetch();
   expect(c.isInternetReachable).toBeTruthy();

@@ -1,6 +1,7 @@
 import { useMounted } from "@trajano/react-hooks";
 import * as Font from "expo-font";
-import { noop, omit } from "lodash";
+import noop from 'lodash/noop';
+import omit from "lodash/omit";
 import {
   createContext,
   PropsWithChildren,

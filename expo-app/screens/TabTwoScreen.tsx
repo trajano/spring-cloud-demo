@@ -1,16 +1,18 @@
 import { useHeaderHeight } from '@react-navigation/elements';
+import { useFocusEffect } from '@react-navigation/native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useDebouncedDeepState } from '@trajano/react-hooks';
 import { AuthState, useAuth } from '@trajano/spring-docker-auth-context';
 import { format, Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { Button, Keyboard, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView as RNScrollView, StyleSheet, Text as RNText, TextInputFocusEventData } from 'react-native';
+import { Alert, Button, Keyboard, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView as RNScrollView, StyleSheet, Text as RNText, TextInputFocusEventData } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView, Text, TextInput, useTheming, View } from '../src/lib/native-unstyled';
 
-export default function TabTwoScreen() {
-  const { colorScheme, setColorScheme } = useTheming()
+export default function TabTwoScreen({ navigation }: NativeStackScreenProps<any>) {
+  const { colorScheme, setColorScheme, defaultTypography } = useTheming()
   const { authState } = useAuth();
   const safeAreaInsets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
@@ -77,6 +79,11 @@ export default function TabTwoScreen() {
     scrollViewRef.current?.scrollTo({ y: 10, animated: true });
   }, [])
 
+  useFocusEffect(useCallback(() => {
+    navigation.setOptions({
+      title: JSON.stringify(defaultTypography)
+    })
+  }, []))
 
   return (
     <ScrollView ref={scrollViewRef}
@@ -101,6 +108,7 @@ export default function TabTwoScreen() {
       </View>
       <Button title='scroll' onPress={() => scrollViewRef.current?.scrollTo({ y: 30, animated: true })} />
       <Button title='clear' onPress={() => logKeyboardEvent({ eventName: "clear" })} />
+      <Button title='show alert' onPress={() => Alert.alert("Hello", "world")} />
       {keyboardLog.map((entry) => <Text key={entry.key}>{entry.name} <Text>{JSON.stringify(entry.event)}</Text></Text>)}
       <Text style={{ fontFamily: "IBMPlexSans", fontSize: 30 }}>IBMPlexSans <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text> {colorScheme}</Text>
       <Text style={{ fontFamily: "Lexend", fontSize: 20 }}>Lexend has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text> </Text></Text>

@@ -2,7 +2,6 @@ import { BASE_URL, TEXT_TEST } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthProvider, buildSimpleEndpointConfiguration } from '@trajano/spring-docker-auth-context';
 import 'expo-dev-client';
-import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '../lib/native-unstyled/ThemeContext';
 
@@ -16,7 +15,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { LogBox } from 'react-native';
 import { AuthenticatedEndpointConfiguration } from '../../navigation/login/types';
 import { LoadingScreen } from '../../screens/LoadingScreen';
-import { ActivityIndicator, View } from '../lib/native-unstyled';
+import { ActivityIndicator, StatusBar, View } from '../lib/native-unstyled';
 import { deactivateKeepAwake } from 'expo-keep-awake';
 import { AppProvider } from '../app-context';
 
