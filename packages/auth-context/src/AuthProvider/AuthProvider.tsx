@@ -5,7 +5,7 @@ import { AuthContext } from "../AuthContext";
 import { AuthenticationClientError } from "../AuthenticationClientError";
 import type { AuthEvent } from "../AuthEvent";
 import { AuthState } from "../AuthState";
-import { AuthStore } from "../AuthStore";
+import { AuthStore, IAuthStore } from "../AuthStore";
 import type { EndpointConfiguration } from "../EndpointConfiguration";
 import type { IAuth } from "../IAuth";
 import type { OAuthToken } from "../OAuthToken";
@@ -23,15 +23,17 @@ type AuthContextProviderProps = PropsWithChildren<{
    */
   defaultEndpointConfiguration: EndpointConfiguration
   /**
-   * AsyncStorage prefix used to store the authentication data.
+   * AsyncStorage prefix used to store the authentication data. Applicable only to the default auth store.
    */
   storagePrefix?: string,
   /**
    * Time in milliseconds to consider refreshing the access token.  Defaults to 10 seconds.
    */
-  timeBeforeExpirationRefresh?: number
-
-
+  timeBeforeExpirationRefresh?: number,
+  /**
+   * Alternative auth storage.
+   */
+  authStorage?: IAuthStore;
 }>;
 
 /**
@@ -46,7 +48,8 @@ export function AuthProvider<A = any>({
   defaultEndpointConfiguration,
   children,
   timeBeforeExpirationRefresh = 10000,
-  storagePrefix = "auth"
+  storagePrefix = "auth",
+  authStorage: inAuthStorage
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
 
   const [endpointConfiguration, setEndpointConfiguration] = useState(defaultEndpointConfiguration);
@@ -63,7 +66,11 @@ export function AuthProvider<A = any>({
     },
     [endpointConfiguration.baseUrl]
   );
-  const authStorage = useMemo(() => new AuthStore(storagePrefix, endpointConfiguration.baseUrl), [endpointConfiguration.baseUrl]);
+
+  /**
+   * Auth storage.  If inAuthStorage is provided it will use that otherwise it will create a new one.
+   */
+  const authStorage = useMemo(() => inAuthStorage ?? new AuthStore(storagePrefix, endpointConfiguration.baseUrl), [endpointConfiguration.baseUrl, inAuthStorage]);
 
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
 
@@ -120,6 +127,7 @@ export function AuthProvider<A = any>({
    * will render these anyway and we're not optimizing from the return value either.
    */
   function notify(event: AuthEvent) {
+    setLastCheckAt(Date.now())
     subscribersRef.current.forEach((fn) => fn(event));
   }
 
@@ -242,7 +250,7 @@ export function AuthProvider<A = any>({
     accessTokenExpiresOn: tokenExpiresAt ?? new Date(0),
     baseUrl,
     oauthToken,
-    lastCheckOn: lastCheckAt,
+    lastCheckAt,
     backendReachable,
     endpointConfiguration,
     forceCheckAuthStorageAsync,
@@ -255,6 +263,7 @@ export function AuthProvider<A = any>({
     authState,
     baseUrl,
     oauthToken,
+    lastCheckAt,
     backendReachable,
     tokenExpiresAt.getTime(),
     endpointConfiguration,

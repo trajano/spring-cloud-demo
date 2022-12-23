@@ -4,7 +4,7 @@ import type { AuthClient } from '../AuthClient';
 import { AuthenticationClientError } from '../AuthenticationClientError';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
-import type { AuthStore } from '../AuthStore';
+import type { IAuthStore } from '../AuthStore';
 import type { OAuthToken } from '../OAuthToken';
 
 /**
@@ -14,7 +14,7 @@ export type RefreshCallbackProps<T> = {
   authState: AuthState;
   setAuthState: Dispatch<SetStateAction<AuthState>>;
   notify: (event: AuthEvent) => void;
-  authStorage: AuthStore;
+  authStorage: IAuthStore;
   authClient: AuthClient<T>;
   /**
    * Indicates that the token is refreshable from the device.

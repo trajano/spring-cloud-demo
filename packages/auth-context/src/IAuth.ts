@@ -103,7 +103,7 @@ export interface IAuth<A = any> {
   /**
    * When the last check for authentication state using timer effect was done.
    */
-  lastCheckOn: Date;
+  lastCheckAt: Date;
   /**
    * Force check of the auth storage data.  This is primarily used for testing purposes as the
    * data is not normally modified outside the context.

@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useCallback, useEffect } from 'react';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
-import type { AuthStore } from '../AuthStore';
+import type { IAuthStore } from '../AuthStore';
 import type { OAuthToken } from '../OAuthToken';
 import { isTokenExpired } from './isTokenExpired';
 
@@ -12,7 +12,7 @@ export type InitialAuthStateProps = {
   authState: AuthState;
   setAuthState: Dispatch<SetStateAction<AuthState>>;
   notify: (event: AuthEvent) => void;
-  authStorage: AuthStore;
+  authStorage: IAuthStore;
   timeBeforeExpirationRefresh: number;
   setOAuthToken: Dispatch<OAuthToken | null>;
   setTokenExpiresAt: Dispatch<Date | number>;

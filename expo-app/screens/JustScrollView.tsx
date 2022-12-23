@@ -12,7 +12,7 @@ import { AuthenticatedEndpointConfiguration } from '../navigation/login/types';
 import { Text, useRefreshControl } from '../src/lib/native-unstyled';
 export function JustScrollView() {
     const safeAreaInsets = useSafeAreaInsets();
-    const { accessToken, accessTokenExpiresOn, authState, refreshAsync, endpointConfiguration, lastCheckOn, forceCheckAuthStorageAsync, backendReachable, accessTokenExpired, baseUrl } = useAuth();
+    const { accessToken, accessTokenExpiresOn, authState, refreshAsync, endpointConfiguration, lastCheckAt, forceCheckAuthStorageAsync, backendReachable, accessTokenExpired, baseUrl } = useAuth();
     const [timeRemaining, setTimeRemaining] = useState<number>(millisecondsToSeconds(accessTokenExpiresOn.getTime() - Date.now()))
     const timerRef = useRef<ReturnType<typeof setTimeout>>();
     const refreshControl = useRefreshControl(async () => {
@@ -55,7 +55,7 @@ export function JustScrollView() {
     >
         <Text backgroundColor={accessTokenBackgroundColor}>Access token <Text role="mono">{accessToken?.slice(-5)}</Text> expires on <Text fontWeight="bold">{formatISO(accessTokenExpiresOn, { representation: "time" })}</Text></Text>
         <Text>Time remaining <Text fontWeight="bold">{timeRemaining} seconds</Text></Text>
-        <Text style={{ fontFamily: 'NotoSansMono', fontSize: 16 }}>Last check <Text bold>{formatISO(lastCheckOn, { representation: "time" })}</Text></Text>
+        <Text style={{ fontFamily: 'NotoSansMono', fontSize: 16 }}>Last check <Text bold>{formatISO(lastCheckAt, { representation: "time" })}</Text></Text>
         <Text backgroundColor={backendReachable ? undefined : "red"}>{backendReachable ? `${baseUrl} reachable` : `${baseUrl} NOT REACHABLE`}</Text>
         <Text fontFamily='Lexend'>AuthState <Text fontFamily='Noto' fontWeight="bold">{AuthState[authState]}</Text></Text>
 
