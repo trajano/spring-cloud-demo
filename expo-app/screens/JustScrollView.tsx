@@ -78,7 +78,7 @@ export function JustScrollView() {
 
             elevation: 5,
         }}>
-            <Text color="black">{whoamiJson.substring(0, 1000)}</Text>
+            <Text>{whoamiJson.substring(0, 1000)}</Text>
         </View>
     </Animated.ScrollView>
 }

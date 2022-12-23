@@ -1,14 +1,13 @@
 import { useHeaderHeight } from '@react-navigation/elements';
+import { useDebouncedDeepState } from '@trajano/react-hooks';
 import { AuthState, useAuth } from '@trajano/spring-docker-auth-context';
 import { format, Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { Button, Keyboard, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView as RNScrollView, StyleSheet, TextInputFocusEventData } from 'react-native';
+import { Button, Keyboard, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView as RNScrollView, StyleSheet, Text as RNText, TextInputFocusEventData } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView, Text, TextInput, useTheming, View } from '../src/lib/native-unstyled';
-import { Text as RNText } from 'react-native'
-import { useDebouncedDeepState } from '@trajano/react-hooks';
 
 export default function TabTwoScreen() {
   const { colorScheme, setColorScheme } = useTheming()

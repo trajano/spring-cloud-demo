@@ -33,7 +33,7 @@ export function I18nProvider({ children, defaultLocale, translations = {}, i18nO
                 i18n.locale = defaultLocale;
             } else {
                 let preferredLocales = getLocales();
-                if (__DEV__)  {
+                if (__DEV__) {
                     if (!Array.isArray(preferredLocales)) {
                         console.warn("getLocales() didn't return an array, it may be a promise when running in a debugger, defaulting to `en`")
                         i18n.locale = "en";
@@ -45,7 +45,8 @@ export function I18nProvider({ children, defaultLocale, translations = {}, i18nO
         },
         [translations]);
     const setLocale = useCallback((nextLocale: string) => { i18n.locale = nextLocale; }, [i18n])
-    return <I18nContext.Provider value={{ t, setLocale }}>{children}</I18nContext.Provider>
+    const contextValue = useMemo(() => ({ t, setLocale }), [t, setLocale])
+    return <I18nContext.Provider value={contextValue}>{children}</I18nContext.Provider>
 }
 export function useI18n() {
     return useContext(I18nContext);

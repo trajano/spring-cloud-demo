@@ -34,9 +34,9 @@ const variantSuffixes = [
 ]
 const SectionHeader = memo(({ fontFamily }: { fontFamily: string }) => <BlurView
     padding={16} justifyContent="center"><Text fontFamily={fontFamily} fontSize={20}>{fontFamily}</Text></BlurView>)
-const SpecimentView = memo(({ fontFamily, specimen }: { fontFamily: string, specimen: string }) =>
+const SpecimenView = memo(({ fontFamily, specimen }: { fontFamily: string, specimen: string }) =>
     <View
-        flex={1} padding={16} backgroundColor="#f0f0e0"><Text fontFamily={fontFamily}>{specimen}</Text></View>)
+        flex={1} padding={16} backgroundColor="#f0f0e0" color="black"><Text fontFamily={fontFamily}>{specimen}</Text></View>)
 
 /**
  * 
@@ -65,7 +65,7 @@ export function SystemFontsScreen(): ReactElement<SectionListProps<string>, any>
         }));
 
     const renderSectionHeader = useCallback(({ section }: { section: SectionListData<any, any> }) => <SectionHeader fontFamily={section.key} />, [sections]);
-    const renderItem = useCallback(({ item }: SectionListRenderItemInfo<FontSectionData>) => <SpecimentView fontFamily={item.fontFamily} specimen={item.specimen} />, [sections])
+    const renderItem = useCallback(({ item }: SectionListRenderItemInfo<FontSectionData>) => <SpecimenView fontFamily={item.fontFamily} specimen={item.specimen} />, [sections])
 
     return <SectionList<FontSectionData>
         sections={sections}
