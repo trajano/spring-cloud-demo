@@ -185,7 +185,7 @@ export function ThemeProvider({ children,
                 // We might want to provide this error information to an error reporting service
                 console.warn(e);
             } finally {
-                SplashScreen.hideAsync();
+                SplashScreen.hideAsync().catch(e => console.error("hideAsync failed", e))
             }
             return { nextInitialAssetsLoaded: true, nextColorScheme };
         },

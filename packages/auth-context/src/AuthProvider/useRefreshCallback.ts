@@ -122,6 +122,7 @@ export function useRefreshCallback<T>({
               netInfoState,
             });
           } else {
+            console.error("unexpected exception ", e)
             throw e;
           }
         }

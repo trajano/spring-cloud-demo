@@ -120,7 +120,6 @@ export function AuthProvider<A = any>({
    * will render these anyway and we're not optimizing from the return value either.
    */
   function notify(event: AuthEvent) {
-    setLastCheckAt(Date.now());
     subscribersRef.current.forEach((fn) => fn(event));
   }
 
@@ -257,11 +256,10 @@ export function AuthProvider<A = any>({
     baseUrl,
     oauthToken,
     backendReachable,
-    lastCheckAt,
     tokenExpiresAt.getTime(),
     endpointConfiguration,
-    tokenExpirationTimeoutRef,
-    backendFailureTimeoutRef
+    tokenExpirationTimeoutRef.current,
+    backendFailureTimeoutRef.current
   ])
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
