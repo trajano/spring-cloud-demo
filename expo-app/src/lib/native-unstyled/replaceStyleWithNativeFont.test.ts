@@ -33,7 +33,8 @@ it("full style", () => {
       fontWeight: "400",
       fontStyle: "normal",
     },
-    loadedFonts
+    loadedFonts,
+    {}
   );
   expect(style).toStrictEqual({ fontFamily: "IBMPlexSans_400Regular" });
 });
@@ -44,7 +45,8 @@ it("no style", () => {
       fontFamily: "IBMPlexSans",
       fontWeight: "400",
     },
-    loadedFonts
+    loadedFonts,
+    {}
   );
   expect(style).toStrictEqual({ fontFamily: "IBMPlexSans_400Regular" });
 });
@@ -54,7 +56,8 @@ it("no font", () => {
       backgroundColor: "red",
       flex: 1,
     },
-    loadedFonts
+    loadedFonts,
+    {}
   );
   expect(style).toStrictEqual({
     backgroundColor: "red",
@@ -71,7 +74,8 @@ it("preserve other styles", () => {
       fontSize: 30,
       aspectRatio: 32.23,
     },
-    loadedFonts
+    loadedFonts,
+    {}
   );
   expect(style).toStrictEqual({
     fontFamily: "IBMPlexSans_400Regular",
@@ -86,7 +90,8 @@ it("just font face", () => {
       fontFamily: "IBMPlexSans",
       fontSize: 30,
     },
-    loadedFonts
+    loadedFonts,
+    {}
   );
   expect(style).toStrictEqual({
     fontFamily: "IBMPlexSans_400Regular",
@@ -101,7 +106,8 @@ it("just bold should look up", () => {
       fontWeight: "bold",
       fontSize: 30,
     },
-    loadedFonts
+    loadedFonts,
+    {}
   );
   expect(style).toStrictEqual({
     fontFamily: "IBMPlexSans_700Bold",
@@ -117,7 +123,8 @@ it("just bold and italic should look up", () => {
       fontStyle: "italic",
       fontSize: 30,
     },
-    loadedFonts
+    loadedFonts,
+    {}
   );
   expect(style).toStrictEqual({
     fontFamily: "IBMPlexSans_700Bold_Italic",
@@ -132,7 +139,8 @@ it("just italic should look up", () => {
       fontStyle: "italic",
       fontSize: 30,
     },
-    loadedFonts
+    loadedFonts,
+    {}
   );
   expect(style).toStrictEqual({
     fontFamily: "IBMPlexSans_400Regular_Italic",
@@ -148,7 +156,8 @@ it("just italic should look up", () => {
       fontStyle: "italic",
       fontSize: 30,
     },
-    loadedFonts
+    loadedFonts,
+    {}
   );
   expect(style).toStrictEqual({
     fontFamily: "IBMPlexSans_100Thin_Italic",
@@ -164,7 +173,8 @@ it("unknown fonts should fall back gracefully", () => {
       fontStyle: "italic",
       fontSize: 30,
     },
-    loadedFonts
+    loadedFonts,
+    {}
   );
   expect(Constants.systemFonts).toBeTruthy();
   expect(Constants.systemFonts.find((f) => f === "SystemFont")).toBeTruthy();

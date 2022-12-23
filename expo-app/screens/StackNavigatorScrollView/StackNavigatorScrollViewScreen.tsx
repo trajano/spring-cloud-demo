@@ -1,11 +1,11 @@
 
-import { useAuth } from '@trajano/spring-docker-auth-context';
 import { formatISO } from 'date-fns';
 import { Animated } from 'react-native';
-import { Text, View } from '../../src/components';
+import { useApp } from '../../src/app-context';
+import { Text, View } from '../../src/lib/native-unstyled';
 
 export function StackNavigatorScrollViewScreen() {
-    const { lastAuthEvents } = useAuth();
+    const { lastAuthEvents } = useApp();
     return <Animated.ScrollView
         contentInsetAdjustmentBehavior="automatic"
     >

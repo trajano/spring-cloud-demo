@@ -20,5 +20,4 @@ export const AuthContext = createContext<IAuth>({
   baseUrl: new URL("http://undefined"),
   backendReachable: false,
   lastCheckOn: new Date(),
-  lastAuthEvents: []
 });

@@ -106,7 +106,3 @@ export type AuthEvent =
   | RefreshingEvent
   | TokenExpirationEvent
   | UnauthenticatedEvent;
-export type LoggedAuthEvent = AuthEvent & {
-  key: string;
-  on: Date;
-};

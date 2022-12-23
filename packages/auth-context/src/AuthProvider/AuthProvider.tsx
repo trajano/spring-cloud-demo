@@ -9,7 +9,6 @@ import { AuthStore } from "../AuthStore";
 import type { EndpointConfiguration } from "../EndpointConfiguration";
 import type { IAuth } from "../IAuth";
 import type { OAuthToken } from "../OAuthToken";
-import { useLastAuthEvents } from '../useLastAuthEvents';
 import { isTokenExpired } from "./isTokenExpired";
 import { useBackendFailureTimeoutEffect } from "./useBackendFailureTimeoutEffect";
 import { useInitialAuthStateEffect } from "./useInitialAuthStateEffect";
@@ -31,14 +30,8 @@ type AuthContextProviderProps = PropsWithChildren<{
    * Time in milliseconds to consider refreshing the access token.  Defaults to 10 seconds.
    */
   timeBeforeExpirationRefresh?: number
-  /**
-   * Predicate to determine whether to log the event.  Defaults to accept all except `Connection` and `CheckRefresh` which are polling events.
-   */
-  logAuthEventFilterPredicate?: (event: AuthEvent) => boolean;
-  /**
-   * Size of the auth event log.  Defaults to 50
-   */
-  logAuthEventSize?: number;
+
+
 }>;
 
 /**
@@ -52,17 +45,10 @@ type AuthContextProviderProps = PropsWithChildren<{
 export function AuthProvider<A = any>({
   defaultEndpointConfiguration,
   children,
-  logAuthEventFilterPredicate = (event: AuthEvent) => event.type !== "Connection" && event.type !== "CheckRefresh",
-  logAuthEventSize = 50,
   timeBeforeExpirationRefresh = 10000,
   storagePrefix = "auth"
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
 
-  /**
-   * Last auth events.  Eventually this will be removed and placed with the app rather than the context.
-   * Kept for debugging.
-   */
-  const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(logAuthEventFilterPredicate, logAuthEventSize);
   const [endpointConfiguration, setEndpointConfiguration] = useState(defaultEndpointConfiguration);
   const authClient = useMemo(() => new AuthClient<A>(endpointConfiguration), [endpointConfiguration]);
   const baseUrl = useMemo(
@@ -129,7 +115,6 @@ export function AuthProvider<A = any>({
    * will render these anyway and we're not optimizing from the return value either.
    */
   function notify(event: AuthEvent) {
-    pushAuthEvent(event);
     subscribersRef.current.forEach((fn) => fn(event));
   }
 
@@ -254,7 +239,6 @@ export function AuthProvider<A = any>({
     oauthToken,
     lastCheckOn: new Date(),
     backendReachable,
-    lastAuthEvents,
     endpointConfiguration,
     forceCheckAuthStorageAsync,
     setEndpointConfiguration,
@@ -267,7 +251,6 @@ export function AuthProvider<A = any>({
     baseUrl,
     oauthToken,
     backendReachable,
-    lastAuthEvents,
     tokenExpiresAt.getTime(),
     endpointConfiguration,
     tokenExpirationTimeoutRef,

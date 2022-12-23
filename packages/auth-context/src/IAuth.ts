@@ -1,4 +1,4 @@
-import type { AuthEvent, LoggedAuthEvent } from './AuthEvent';
+import type { AuthEvent } from './AuthEvent';
 import type { AuthState } from './AuthState';
 import type { EndpointConfiguration } from './EndpointConfiguration';
 import type { OAuthToken } from './OAuthToken';
@@ -109,10 +109,4 @@ export interface IAuth<A = any> {
    * data is not normally modified outside the context.
    */
   forceCheckAuthStorageAsync(): Promise<void>;
-  /**
-   * Last auth events.  The most recent one will be the first element.
-   * This is primarily used to diagnose issues where the token becomes invalidated
-   * and the user was forcefully logged out.
-   */
-  lastAuthEvents: LoggedAuthEvent[];
 }

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import '@testing-library/jest-native/extend-expect';
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
 import fetchMock from 'fetch-mock';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { AppState, Pressable, Text } from 'react-native';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
