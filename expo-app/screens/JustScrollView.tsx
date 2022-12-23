@@ -12,7 +12,18 @@ import { AuthenticatedEndpointConfiguration } from '../navigation/login/types';
 import { Text, useRefreshControl } from '../src/lib/native-unstyled';
 export function JustScrollView() {
     const safeAreaInsets = useSafeAreaInsets();
-    const { accessToken, tokenExpiresAt, authState, refreshAsync, endpointConfiguration, lastCheckAt, forceCheckAuthStorageAsync, backendReachable, accessTokenExpired, baseUrl } = useAuth();
+    const {
+        accessToken,
+        accessTokenExpired,
+        authState,
+        backendReachable,
+        baseUrl,
+        endpointConfiguration,
+        forceCheckAuthStorageAsync,
+        lastCheckAt,
+        refreshAsync,
+        tokenExpiresAt,
+    } = useAuth();
     const [timeRemaining, setTimeRemaining] = useState<number>(millisecondsToSeconds(tokenExpiresAt.getTime() - Date.now()))
     const timerRef = useRef<ReturnType<typeof setTimeout>>();
     const refreshControl = useRefreshControl(async () => {
