@@ -84,6 +84,11 @@ export function AuthProvider<A = any>({
    */
   const [tokenExpiresAt, setTokenExpiresAt] = useDateState(0);
 
+  /**
+   * Last check state
+   */
+  const [lastCheckAt, setLastCheckAt] = useDateState(Date.now());
+
   const {
     timeoutRef: tokenExpirationTimeoutRef,
   } = useTokenExpirationTimeoutEffect({
@@ -115,6 +120,7 @@ export function AuthProvider<A = any>({
    * will render these anyway and we're not optimizing from the return value either.
    */
   function notify(event: AuthEvent) {
+    setLastCheckAt(Date.now());
     subscribersRef.current.forEach((fn) => fn(event));
   }
 
@@ -237,7 +243,7 @@ export function AuthProvider<A = any>({
     accessTokenExpiresOn: tokenExpiresAt ?? new Date(0),
     baseUrl,
     oauthToken,
-    lastCheckOn: new Date(),
+    lastCheckOn: lastCheckAt,
     backendReachable,
     endpointConfiguration,
     forceCheckAuthStorageAsync,
@@ -251,6 +257,7 @@ export function AuthProvider<A = any>({
     baseUrl,
     oauthToken,
     backendReachable,
+    lastCheckAt,
     tokenExpiresAt.getTime(),
     endpointConfiguration,
     tokenExpirationTimeoutRef,

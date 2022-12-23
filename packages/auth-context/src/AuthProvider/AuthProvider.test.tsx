@@ -78,7 +78,7 @@ describe("with component", () => {
     fetchMock.get("http://asdf.com/ping", { body: { ok: true } })
       .post("http://asdf.com/auth", { body: freshAccessToken })
       .post("http://asdf.com/logout", { body: { ok: true } });
-    const { getByTestId } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent
+    const { getByTestId, unmount } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent
       onRender={onRender}
       notifications={notifications}
     /></AuthProvider>)
@@ -100,6 +100,7 @@ describe("with component", () => {
     expect(notifications).toBeCalledWith(expect.objectContaining({ type: "Unauthenticated" } as Partial<AuthEvent>))
     await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
     expect(await AsyncStorage.getAllKeys()).toHaveLength(0)
+    unmount();
   });
 
   it("force Auth Storage check", async () => {
@@ -109,7 +110,7 @@ describe("with component", () => {
     fetchMock.get("http://asdf.com/ping", { body: { ok: true } })
       .post("http://asdf.com/auth", { body: freshAccessToken })
       .post("http://asdf.com/logout", { body: { ok: true } });
-    const { getByTestId } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent
+    const { getByTestId, unmount } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent
       onRender={onRender}
       notifications={notifications}
     /></AuthProvider>)
@@ -131,6 +132,8 @@ describe("with component", () => {
     expect(getByTestId("authState")).toHaveTextContent("AUTHENTICATED");
 
     expect(onRender).toHaveBeenCalledTimes(0);
+    unmount();
+
   });
 
   it("Failed login", async () => {
@@ -204,7 +207,7 @@ describe("with component", () => {
     const freshAccessToken: OAuthToken = { access_token: "freshAccessToken", refresh_token: "RefreshToken", token_type: "Bearer", expires_in: 600 };
     fetchMock.get("http://asdf.com/ping", { body: { ok: true } })
       .post("http://asdf.com/auth", { body: freshAccessToken })
-    const { getByTestId } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
+    const { getByTestId, unmount } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
 
     await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
     act(() => { fireEvent.press(getByTestId("login")) });
@@ -226,6 +229,7 @@ describe("with component", () => {
     expect(notifications).toBeCalledWith(expect.objectContaining({ type: "Unauthenticated" } as Partial<AuthEvent>))
     await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
     expect(await AsyncStorage.getAllKeys()).toHaveLength(0)
+    unmount();
   });
 
   it("just logout without login", async () => {
@@ -235,7 +239,7 @@ describe("with component", () => {
     fetchMock.get("http://asdf.com/ping", { body: { ok: true } })
       .post("http://asdf.com/auth", { body: freshAccessToken })
       .post("http://asdf.com/logout", Response.error());
-    const { getByTestId } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
+    const { getByTestId, unmount } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
 
     await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
     act(() => { fireEvent.press(getByTestId("logout")) });
@@ -243,6 +247,7 @@ describe("with component", () => {
     expect(notifications).toBeCalledWith(expect.objectContaining({ type: "Unauthenticated" } as Partial<AuthEvent>))
     await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
     expect(await AsyncStorage.getAllKeys()).toHaveLength(0)
+    unmount();
   });
 
 });
