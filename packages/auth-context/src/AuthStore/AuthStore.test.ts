@@ -1,10 +1,10 @@
 import type { OAuthToken } from '../OAuthToken';
 import { AuthStore } from './AuthStore';
-beforeEach(() => {
-  jest.useFakeTimers({ advanceTimers: true });
+afterEach(() => {
+  jest.useRealTimers();
 });
-
 it('should construct and store', async () => {
+  jest.useFakeTimers({ advanceTimers: true });
   const authStorage = new AuthStore('myKey', 'https://trajano.net');
   await authStorage.storeOAuthTokenAndGetExpiresAt({
     access_token: 'abc',
@@ -29,7 +29,7 @@ it('should construct and store', async () => {
 
   jest.advanceTimersByTime(423 * 1000 - 1);
   expect(await authStorage.isExpired()).toBe(false);
-  expect(await authStorage.getAccessToken()).toBe("abc");
+  expect(await authStorage.getAccessToken()).toBe('abc');
   jest.advanceTimersByTime(1);
   expect(await authStorage.getAccessToken()).toBeNull();
   expect(await authStorage.isExpired()).toBe(true);
@@ -75,7 +75,4 @@ it('should be expired if there is no data', async () => {
   expect(await authStorage.isExpired()).toBe(true);
   expect(await authStorage.getAccessToken()).toBe(null);
   expect((await authStorage.getTokenExpiresAt()).getTime()).toBe(0);
-});
-afterEach(() => {
-  jest.useRealTimers();
 });

@@ -36,7 +36,7 @@ const SectionHeader = memo(({ fontFamily }: { fontFamily: string }) => <BlurView
     padding={16} justifyContent="center"><Text fontFamily={fontFamily} fontSize={20}>{fontFamily}</Text></BlurView>)
 const SpecimenView = memo(({ fontFamily, specimen }: { fontFamily: string, specimen: string }) =>
     <View
-        flex={1} padding={16} backgroundColor="#f0f0e0" color="black"><Text fontFamily={fontFamily}>{specimen}</Text></View>)
+        flex={1} padding={16} backgroundColor="#f0f0e0"><Text fontFamily={fontFamily} color="black">{specimen}</Text></View>)
 
 /**
  * 

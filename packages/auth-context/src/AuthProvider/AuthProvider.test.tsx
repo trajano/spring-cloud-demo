@@ -250,4 +250,21 @@ describe("with component", () => {
     unmount();
   });
 
+  it("just logout without login with no error", async () => {
+    const notifications = jest.fn() as jest.Mock<() => void>;
+    const freshAccessToken: OAuthToken = { access_token: "freshAccessToken", refresh_token: "RefreshToken", token_type: "Bearer", expires_in: 600 };
+    fetchMock.get("http://asdf.com/ping", { body: { ok: true } })
+      .post("http://asdf.com/auth", { body: freshAccessToken })
+      .post("http://asdf.com/logout", { body: { ok: true } });
+    const { getByTestId, unmount } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
+
+    await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
+    act(() => { fireEvent.press(getByTestId("logout")) });
+    await waitFor(() => expect(notifications).toBeCalledWith(expect.objectContaining({ type: "LoggedOut" } as Partial<AuthEvent>)))
+    expect(notifications).toBeCalledWith(expect.objectContaining({ type: "Unauthenticated" } as Partial<AuthEvent>))
+    await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
+    expect(await AsyncStorage.getAllKeys()).toHaveLength(0)
+    unmount();
+  });
+
 });
