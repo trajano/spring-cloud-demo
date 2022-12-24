@@ -4,5 +4,6 @@ export const AuthenticatedContext = createContext<IAuthenticated>({
     internalState: [],
     username: "",
     verified: false,
-    whoami: () => Promise.resolve({})
+    dbLoaded: false,
+    whoami: () => Promise.resolve({}),
 })

@@ -31,8 +31,8 @@ export function TextTest() {
         <View testID="animatedOne" style={{ backgroundColor: "red" }}>
             <Animated.Text>USTextOne</Animated.Text>
         </View>
-        <HocView testID="hocOne" backgroundColor="yellow" color="blue">
-            <Text ref={textRef}>{username || "not set"}</Text>
+        <HocView testID="hocOne" backgroundColor="yellow">
+            <Text ref={textRef} color="blue">{username || "not set"}</Text>
         </HocView>
         <View testID="usTextOne">
             <Text>USTextOne</Text>

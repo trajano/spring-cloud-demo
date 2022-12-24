@@ -8,13 +8,11 @@ import * as dateFnsLocales from 'date-fns/locale';
 import * as Localization from 'expo-localization';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { Alert, Button, Keyboard, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView as RNScrollView, StyleSheet, Text as RNText, TextInputFocusEventData } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView, Text, TextInput, useTheming, View } from '../src/lib/native-unstyled';
 
 export default function TabTwoScreen({ navigation }: NativeStackScreenProps<any>) {
   const { colorScheme, setColorScheme, defaultTypography } = useTheming()
   const { authState } = useAuth();
-  const safeAreaInsets = useSafeAreaInsets();
   const headerHeight = useHeaderHeight();
   const scrollViewRef = useRef<RNScrollView>();
   const [scrollInfo, setScrollInfo] = useDebouncedDeepState<NativeScrollEvent>({

@@ -4,7 +4,7 @@ import { useAuth } from '@trajano/spring-docker-auth-context';
 import { useCallback, useMemo, useState } from 'react';
 import { Button, StyleSheet } from 'react-native';
 import { useAuthenticated } from '../authenticated-context';
-import { Text, View } from '../src/components';
+import { Text, View } from '../src/lib/native-unstyled';
 export default function TabOneScreen() {
   const { logoutAsync, refreshAsync, accessToken, oauthToken, baseUrl } = useAuth();
   const { claims, internalState } = useAuthenticated();

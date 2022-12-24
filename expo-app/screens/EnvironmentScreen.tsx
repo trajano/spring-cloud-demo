@@ -4,19 +4,23 @@ import { useDeepState } from '@trajano/react-hooks';
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import * as Localization from 'expo-localization';
-import omit from 'lodash/omit';
-import identity from 'lodash/identity';
-import { ReactElement, useCallback } from 'react';
-import { Platform, SectionList, SectionListData, SectionListProps, SectionListRenderItemInfo } from 'react-native';
-import { BlurView, Text, View } from '../src/lib/native-unstyled';
 import * as SystemUI from 'expo-system-ui';
+import identity from 'lodash/identity';
+import omit from 'lodash/omit';
+import { ReactElement, useCallback } from 'react';
+import { Platform, SectionList, SectionListData, SectionListProps, SectionListRenderItemInfo, useColorScheme } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView, Text, View } from '../src/lib/native-unstyled';
 
 const isHermes = () => !!((global as any)['HermesInternal']);
 const isRemoteDebug = () => !((global as any)['nativeCallSyncHook']);
 export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string, unknown>>, any> {
     const { manifest, manifest2, systemFonts: _systemFonts, expoConfig, ...restOfConstants } = Constants;
+    const systemColorScheme = useColorScheme();
+    const safeAreaInsets = useSafeAreaInsets();
+
     const [sections, setSections] = useDeepState<SectionListData<any>[]>([
-        { key: "@env", data: [{ BASE_URL, TEXT_TEST, hermes: isHermes(), remoteDebug: isRemoteDebug() }] },
+        { key: "@env", data: [{ BASE_URL, TEXT_TEST, hermes: isHermes(), remoteDebug: isRemoteDebug(), systemColorScheme, safeAreaInsets }] },
         { key: "SystemUI.backgroundColor", data: [] },
         {
             key: "expo-constants", data: [
@@ -44,6 +48,8 @@ export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string
             data: [{
                 cacheDirectory: FileSystem.cacheDirectory,
                 documentDirectory: FileSystem.documentDirectory,
+                bundleDirectory: FileSystem.bundleDirectory,
+                bundledAssets: FileSystem.bundledAssets,
             }]
         },
         {
