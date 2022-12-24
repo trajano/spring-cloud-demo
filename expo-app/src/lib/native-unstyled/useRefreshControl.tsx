@@ -3,7 +3,6 @@ import { RefreshControlProps } from 'react-native';
 
 import { RefreshControl } from './components';
 import { StyledProps } from './StyledProps';
-import type { StyleProps } from './StyleProps';
 /**
  * This is a hook that provides a simplified API for common operations on RefreshControl.
  */

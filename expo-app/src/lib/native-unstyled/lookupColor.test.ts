@@ -1,4 +1,4 @@
-import { defaultLightColorSchemeColors } from "../lib/native-unstyled/defaultLightColorSchemeColors";
+import { defaultLightColorSchemeColors } from "./defaultLightColorSchemeColors";
 import { lookupColor } from "./lookupColor";
 describe("lookupColor", () => {
   it("should lookup by layer", () => {

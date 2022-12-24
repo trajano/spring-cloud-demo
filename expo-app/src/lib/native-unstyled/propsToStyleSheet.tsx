@@ -5,7 +5,7 @@ import pick from 'lodash/pick';
 import pickBy from 'lodash/pickBy';
 import * as RN from "react-native";
 import { StyleProp } from "react-native";
-import { lookupColor } from '../../components/lookupColor';
+import { lookupColor } from './lookupColor';
 import { StyleProps } from './StyleProps';
 import { ColorSchemeColors } from './Themes';
 

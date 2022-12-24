@@ -1,7 +1,7 @@
 import { FlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import { useMounted } from '@trajano/react-hooks';
 import { useAuth } from '@trajano/spring-docker-auth-context';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Button, StyleSheet } from 'react-native';
 import { useAuthenticated } from '../authenticated-context';
 import { Text, View } from '../src/lib/native-unstyled';

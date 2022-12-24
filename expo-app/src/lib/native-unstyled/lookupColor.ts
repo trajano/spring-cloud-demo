@@ -1,5 +1,5 @@
 import * as RN from "react-native";
-import { ColorSchemeColors } from "../lib/native-unstyled/Themes";
+import { ColorSchemeColors } from "./Themes";
 
 function lookupLayerColor(
   requestedLayerColor: string,
