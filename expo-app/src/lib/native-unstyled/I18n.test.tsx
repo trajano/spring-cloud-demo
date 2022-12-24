@@ -6,19 +6,19 @@ import { FontsProvider } from './Fonts';
 
 it("should i18n Text with no context", () => {
 
-    const { getByTestId } = render(<Text _t="key" testID="eval" _tp={{ prop: "val", prop2: "val" }} />)
+    const { getByTestId, unmount } = render(<Text _t="key" testID="eval" _tp={{ prop: "val", prop2: "val" }} />)
     expect(getByTestId("eval").children).toHaveLength(0);
-
+    unmount();
 })
 
 it("should i18n Text", () => {
 
-    const { getByTestId } = render((
+    const { getByTestId, unmount } = render((
         <I18nProvider translations={{ "en": { key: "hello" } }}>
             <Text testID="eval" _t="key" _tp={{ prop: "val", prop2: "val" }} />
         </I18nProvider>))
     expect(getByTestId("eval").children).toStrictEqual(["hello"]);
-
+    unmount();
 })
 
 it("should i18n Text and preseve other styles", () => {
@@ -42,7 +42,7 @@ it("should i18n Text and preseve other styles", () => {
         IBMPlexSans_700Bold_Italic: 14
 
     }
-    const { getByTestId, toJSON } = render((
+    const { getByTestId, toJSON, unmount } = render((
         <FontsProvider fontModules={[mockFont]}><I18nProvider translations={{ "en": { key: "hello" } }}>
             <Text testID="eval" _t="key" _tp={{ prop: "val", prop2: "val" }} backgroundColor="red" />
         </I18nProvider></FontsProvider>))
@@ -50,7 +50,7 @@ it("should i18n Text and preseve other styles", () => {
 
     expect(getByTestId("eval").children).toStrictEqual(["hello"]);
     expect(toJSON()).toStrictEqual(toExpectedJson());
-
+    unmount();
 })
 
 it("should i18n Text and preseve other styles and remap font", async () => {
@@ -74,7 +74,7 @@ it("should i18n Text and preseve other styles and remap font", async () => {
         IBMPlexSans_700Bold_Italic: 14
 
     }
-    const { getByTestId, toJSON } = render((
+    const { getByTestId, toJSON, unmount } = render((
         <FontsProvider fontModules={[mockFont]}><I18nProvider translations={{ "en": { key: "hello" } }}>
             <Text testID="eval" _t="key" _tp={{ prop: "val", prop2: "val" }} backgroundColor="red" fontFamily="IBMPlexSans" />
         </I18nProvider></FontsProvider>))
@@ -82,5 +82,5 @@ it("should i18n Text and preseve other styles and remap font", async () => {
 
     expect(getByTestId("eval").children).toStrictEqual(["hello"]);
     await waitFor(() => expect(toJSON()).toStrictEqual(toExpectedJson()));
-
+    unmount();
 })
