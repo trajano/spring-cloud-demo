@@ -1,3 +1,4 @@
+import isEmpty from 'lodash/isEmpty';
 import { ComponentType, forwardRef, NamedExoticComponent, PropsWithoutRef, ReactElement, Ref, RefAttributes } from 'react';
 import { TextProps } from 'react-native';
 import { hocDisplayName } from './hocDisplayName';
@@ -24,10 +25,17 @@ export function withTextRole<
     function useWrapped({ role, typeScale, style, ...rest }: P, ref: Ref<T>): ReactElement<Q> {
         const { typography } = useTheming()
         const typographyStyle = typography(role, typeScale);
-        if (Object.keys(typographyStyle).length === 0) {
-            return <Component {...rest as any} style={style} ref={ref} />
+        const styleAvailable = !isEmpty(style);
+        const styleFromAvailable = !isEmpty(typographyStyle);
+
+        if (styleAvailable && styleFromAvailable) {
+            return <Component {...rest as any} style={[style, typographyStyle]} ref={ref} />;
+        } else if (styleAvailable && !styleFromAvailable) {
+            return <Component {...rest as any} style={style} ref={ref} />;
+        } else if (!styleAvailable && styleFromAvailable) {
+            return <Component {...rest as any} style={typographyStyle} ref={ref} />;
         } else {
-            return <Component {...rest as any} style={[style, typographyStyle]} ref={ref} />
+            return <Component {...rest as any} ref={ref} />;
         }
     }
     useWrapped.displayName = hocDisplayName("withTextRole", Component);

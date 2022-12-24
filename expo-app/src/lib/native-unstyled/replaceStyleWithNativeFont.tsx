@@ -14,9 +14,6 @@ export function replaceStyleWithNativeFont({ fontFamily, fontWeight, fontStyle, 
     const fontFamilyForKey = fonts[`${fontFamily}:${fontWeight ?? "400"}:${fontStyle ?? "normal"}`];
     if (fontFamilyForKey) {
       ret = { ...defaultTextStyle, fontFamily: fontFamilyForKey, ...rest };
-      // } else if (fontWeight === "bold" && fontStyle === "italic" && loadedFonts[`${fontFamily}:normal:italic`]) {
-      //   // Allow for faux-italic fonts
-      //   return { fontFamily: loadedFonts[`${fontFamily}:normal:normal`], fontWeight: "bold", fontStyle: "italic", ...rest };
     } else if (fontWeight === "bold" && fonts[`${fontFamily}:normal:${fontStyle}`]) {
       // Allow for faux-bold fonts
       ret = { ...defaultTextStyle, fontFamily: fonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", ...rest };
@@ -26,8 +23,8 @@ export function replaceStyleWithNativeFont({ fontFamily, fontWeight, fontStyle, 
       ret = { ...defaultTextStyle, fontFamily: fonts[`${fontFamily}:${fontWeight}:normal`], fontStyle: "italic", ...rest };
 
     } else if (fontWeight === "bold" && fontStyle === "italic" && fonts[`${fontFamily}:normal:normal`]) {
-      // Allow for faux-bold fonts
-      ret = { ...defaultTextStyle, fontFamily: fonts[`${fontFamily}:normal:${fontStyle}`], fontWeight: "bold", fontStyle: "italic", ...rest };
+      // Allow for faux-bold-italic fonts
+      ret = { ...defaultTextStyle, fontFamily: fonts[`${fontFamily}:normal:normal`], fontWeight: "bold", fontStyle: "italic", ...rest };
     } else if (fontFamily && !fontAvailable(fontFamily)) {
       ret = ({ ...defaultTextStyle, fontWeight, fontStyle, ...rest });
     } else {

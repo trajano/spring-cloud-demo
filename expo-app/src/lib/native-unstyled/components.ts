@@ -23,7 +23,7 @@ import { BlurView as ExpoBlurView } from "expo-blur";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import { withI18n } from "./withI18n";
 import { withReplacedWithNativeFonts } from "./withReplacedWithNativeFonts";
-import { withStyled } from "./withStyled";
+import { withStyled, withStyledText } from "./withStyled";
 import { withTextRole } from "./withTextRole";
 
 export const ActivityIndicator = withStyled(RNActivityIndicator);
@@ -32,7 +32,7 @@ export const Image = withStyled(RNImage);
 export const Modal = withStyled(RNModal);
 export const Pressable = withStyled(RNPressable);
 export const RefreshControl = withStyled(RNRefreshControl);
-export const ScrollView = withStyled(withReplacedWithNativeFonts(RNScrollView));
+export const ScrollView = withStyled(RNScrollView);
 export const SectionList = withStyled(
   withReplacedWithNativeFonts(RNSectionList)
 );
@@ -40,18 +40,16 @@ export const SectionList = withStyled(
 /**
  * Expo BlurView
  */
-export const BlurView = withStyled(withReplacedWithNativeFonts(ExpoBlurView));
+export const BlurView = withStyled(ExpoBlurView);
 /**
  * Expo LinearGradient
  */
-export const LinearGradient = withStyled(
-  withReplacedWithNativeFonts(ExpoLinearGradient)
-);
+export const LinearGradient = withStyled(ExpoLinearGradient);
 
 /**
  * TextInput
  */
-export const TextInput = withStyled(
+export const TextInput = withStyledText(
   withI18n(
     withTextRole(
       withReplacedWithNativeFonts<TextInputProps, TextInputProps, RNTextInput>(
@@ -72,7 +70,7 @@ export const TextInput = withStyled(
  * This is a non-animated version of Text.  Primarily used for Markdown to Text components.
  * This component type is not exposed outside as it is used internally only.
  */
-export const Text = withStyled(
+export const Text = withStyledText(
   withI18n(
     withTextRole(
       withReplacedWithNativeFonts<TextProps, TextProps, RNText>(RNText)
@@ -83,4 +81,4 @@ export const Text = withStyled(
   )
 );
 
-export const View = withStyled(withReplacedWithNativeFonts(RNView));
+export const View = withStyled(RNView);

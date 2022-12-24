@@ -12,10 +12,11 @@ import { BlurView, Text, View } from '../src/lib/native-unstyled';
 import * as SystemUI from 'expo-system-ui';
 
 const isHermes = () => !!((global as any)['HermesInternal']);
+const isRemoteDebug = () => !((global as any)['nativeCallSyncHook']);
 export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string, unknown>>, any> {
     const { manifest, manifest2, systemFonts: _systemFonts, expoConfig, ...restOfConstants } = Constants;
     const [sections, setSections] = useDeepState<SectionListData<any>[]>([
-        { key: "@env", data: [{ BASE_URL, TEXT_TEST, isHermes }] },
+        { key: "@env", data: [{ BASE_URL, TEXT_TEST, hermes: isHermes(), remoteDebug: isRemoteDebug() }] },
         { key: "SystemUI.backgroundColor", data: [] },
         {
             key: "expo-constants", data: [

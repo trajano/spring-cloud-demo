@@ -35,7 +35,6 @@ export function I18nProvider({ children, defaultLocale, translations = {}, i18nO
                 let preferredLocales = getLocales();
                 if (__DEV__) {
                     if (!Array.isArray(preferredLocales)) {
-                        console.warn("getLocales() didn't return an array, it may be a promise when running in a debugger, defaulting to `en`")
                         i18n.locale = "en";
                         return;
                     }

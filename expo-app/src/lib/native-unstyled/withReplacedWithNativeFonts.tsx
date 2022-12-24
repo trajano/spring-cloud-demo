@@ -1,3 +1,4 @@
+import { pickBy } from 'lodash';
 import { Children, cloneElement, ComponentType, forwardRef, NamedExoticComponent, PropsWithoutRef, ReactElement, ReactNode, Ref, RefAttributes } from 'react';
 import { StyleProp, StyleSheet, TextStyle } from "react-native";
 import { useFonts } from "./Fonts";
@@ -10,7 +11,7 @@ function useReplacedWithNativeFonts(style?: StyleProp<TextStyle>, inChildren?: R
 } {
     const { defaultTypography } = useTheming();
     const { replaceWithNativeFont } = useFonts();
-    const flattenedStyle: TextStyle = StyleSheet.flatten(style) || {};
+    const flattenedStyle: TextStyle = style ? (StyleSheet.flatten(style) || {}) : {};
     const replacedStyle = replaceWithNativeFont(flattenedStyle, defaultTypography);
     const children: typeof inChildren = Children.map(inChildren, (child) => {
         if (child === null) {
@@ -19,12 +20,12 @@ function useReplacedWithNativeFonts(style?: StyleProp<TextStyle>, inChildren?: R
         else if (typeof child === "object" && 'props' in child) {
             const clone = cloneElement(child as ReactElement, {
                 style: [
-                    {
+                    pickBy({
                         fontFamily: flattenedStyle.fontFamily,
                         fontWeight: flattenedStyle.fontWeight,
                         fontStyle: flattenedStyle.fontStyle,
                         color: flattenedStyle.color
-                    },
+                    }),
                     child.props.style
                 ]
             });
@@ -56,7 +57,8 @@ export function withReplacedWithNativeFonts<
         const { style, children } = useReplacedWithNativeFonts(inStyle, inChildren)
         return (<Component
             {...rest as unknown as Q}
-            style={style}>
+            style={style}
+            ref={ref}>
             {children}
         </Component>);
 

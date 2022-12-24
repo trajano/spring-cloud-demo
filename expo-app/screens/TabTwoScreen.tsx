@@ -77,13 +77,17 @@ export default function TabTwoScreen({ navigation }: NativeStackScreenProps<any>
   const onFocus = useCallback((e: NativeSyntheticEvent<TextInputFocusEventData>) => {
     console.log({ onFocus: e })
     scrollViewRef.current?.scrollTo({ y: 10, animated: true });
+  }, [scrollViewRef.current])
+
+  const handleScrollButton = useCallback(() => {
+    scrollViewRef.current?.scrollTo({ y: 30, animated: true });
   }, [])
 
   useFocusEffect(useCallback(() => {
     navigation.setOptions({
       title: JSON.stringify(defaultTypography)
     })
-  }, []))
+  }, [defaultTypography]))
 
   return (
     <ScrollView ref={scrollViewRef}
@@ -103,12 +107,12 @@ export default function TabTwoScreen({ navigation }: NativeStackScreenProps<any>
       <Text fg="blue">{AuthState[authState]}</Text>
       <Text>{scrollInfo?.contentOffset.x} {scrollInfo?.contentOffset.y}</Text>
       <Text>{JSON.stringify(scrollInfo, null, 2)}</Text>
-      <View height={headerHeight} width={100} bg="red" fg="yellow" alignItems='center' justifyContent='center'>
+      <View height={headerHeight} width={100} bg="red" alignItems='center' justifyContent='center'>
         <Text fg="yellow" >{headerHeight}</Text>
       </View>
-      <Button title='scroll' onPress={() => scrollViewRef.current?.scrollTo({ y: 30, animated: true })} />
+      <Button title='scroll' onPress={handleScrollButton} />
       <Button title='clear' onPress={() => logKeyboardEvent({ eventName: "clear" })} />
-      <Button title='show alert' onPress={() => Alert.alert("Hello", "world")} />
+      <Button title='show alert' onPress={() => Alert.alert("Hello", "world", [{ text: "OK Button", onPress: () => { console.log("pressed alert") } }])} />
       {keyboardLog.map((entry) => <Text key={entry.key}>{entry.name} <Text>{JSON.stringify(entry.event)}</Text></Text>)}
       <Text style={{ fontFamily: "IBMPlexSans", fontSize: 30 }}>IBMPlexSans <Text style={{ fontWeight: "bold" }}>bold</Text> <Text style={{ fontStyle: "italic" }}>italic</Text> {colorScheme}</Text>
       <Text style={{ fontFamily: "Lexend", fontSize: 20 }}>Lexend has no <Text style={{ fontStyle: "italic" }}>italic <Text style={{ fontWeight: "bold" }}>bold</Text> </Text></Text>

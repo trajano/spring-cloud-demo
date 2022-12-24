@@ -41,6 +41,7 @@ export function useDb(databaseName: string): DbState {
   } else {
     return {
       loaded: false,
+      db: undefined,
     };
   }
 }

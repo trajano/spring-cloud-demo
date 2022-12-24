@@ -7,7 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { Dict } from 'i18n-js';
 import { ComponentType, createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ColorSchemeName, useColorScheme } from 'react-native';
-import { defaultColorSchemes } from "./defaultColorSchemes";
+import { defaultColorSchemes as defaultColorSchemeColors } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from './defaultLightColorSchemeColors';
 import { FontsProvider, useFonts } from "./Fonts";
 import { I18nProvider } from './I18n';
@@ -26,7 +26,14 @@ const ThemeContext = createContext<ITheme>({
 })
 type Loader = () => Promise<void>
 export type ThemeProviderProps = {
-    colorSchemes?: ColorSchemes,
+    colorSchemeColors?: ColorSchemes,
+    /**
+     * Color scheme to use.  If not present it will use the system if not available it will use the default.
+     */
+    colorScheme?: NonNullable<ColorSchemeName>,
+    /**
+     * Color scheme to use as a fallback in case it couldn't be determined from the system.
+     */
     defaultColorScheme: NonNullable<ColorSchemeName>,
     /**
      * expo-font module assets to load up.
@@ -151,6 +158,7 @@ function LoadingOrChildren({ children, colorScheme, initialAssetsLoaded, fontsLo
 
 export function ThemeProvider({ children,
     defaultColorScheme = "light",
+    colorScheme: inColorScheme,
     fontModules = [],
     initialAssets = [],
     additionalAssets = [],
@@ -158,10 +166,11 @@ export function ThemeProvider({ children,
     minimumShowLoadingTime = 0,
     translations = {},
     LoadingComponent,
-    colorSchemes = defaultColorSchemes,
+    colorSchemeColors = defaultColorSchemeColors,
     getColorScheme }: ThemeProviderProps) {
     const systemColorScheme = useColorScheme();
-    const [colorScheme, setColorScheme] = useState(systemColorScheme ?? defaultColorScheme);
+    console.log({ systemColorScheme })
+    const [colorScheme, setColorScheme] = useState(inColorScheme ?? systemColorScheme ?? defaultColorScheme);
     const [initialAssetsLoaded, setInitialAssetsLoaded] = useState(false);
     const [fontsLoaded, setFontsLoaded] = useState(false);
 
@@ -194,7 +203,7 @@ export function ThemeProvider({ children,
             setColorScheme(nextColorScheme);
         },
         []);
-    const colors = useMemo(() => colorSchemes[colorScheme], [colorSchemes, colorScheme])
+    const colors = useMemo(() => colorSchemeColors[colorScheme], [colorSchemeColors, colorScheme])
     const reactNavigationTheme: ReactNavigationTheme = useMemo(() => ({
         dark: colorScheme === "dark",
         colors: {
@@ -223,7 +232,7 @@ export function ThemeProvider({ children,
         colors,
         reactNavigationTheme,
         setColorScheme,
-        defaultTypography: { color: colors.default[0], backgroundColor: "transparent" },
+        defaultTypography: { color: colors.default[0] },
         typography
     }), [
         colorScheme,
@@ -234,6 +243,7 @@ export function ThemeProvider({ children,
     return <ThemeContext.Provider value={contextValue}>
         <FontsProvider fontModules={fontModules} onLoaded={() => { setFontsLoaded(true); }}>
             <I18nProvider translations={translations}>
+                {/* TODO move this outside of native-unstyled */}
                 <LoadingOrChildren
                     colorScheme={colorScheme}
                     LoadingComponent={LoadingComponent}
