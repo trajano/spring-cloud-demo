@@ -1,3 +1,4 @@
+import * as SQLite from "expo-sqlite";
 import { JwtClaims } from "./JwtClaims";
 
 export interface IAuthenticated {
@@ -9,6 +10,8 @@ export interface IAuthenticated {
   username: string;
   verified: boolean;
   claims?: JwtClaims;
+  dbLoaded: boolean;
+  db?: SQLite.Database;
   /**
    * This invokes the whoami endpoint
    */

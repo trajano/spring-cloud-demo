@@ -1,10 +1,12 @@
 import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
 import { useAuth } from "@trajano/spring-docker-auth-context";
-import { PropsWithChildren, useEffect, useCallback, useMemo, useReducer, useRef, useState } from "react";
+import { PropsWithChildren, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import EventSource from "react-native-sse";
+import { IAuthenticated } from "./IAuthenticated";
 import { AuthenticatedContext } from "./IAuthenticatedContext";
 import { JwtClaims } from "./JwtClaims";
 import { jwtVerify } from "./jwtVerify";
+import { useDb } from "./useDb";
 //import '@reduxjs/toolkit';
 // import { legacy_createStore as createStore } from "redux";
 // export const store = createStore((state = 0, action) => state);
@@ -36,6 +38,8 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
     const verified = useMemo(() => !!claims, [claims]);
 
     const eventStream = useRef<EventSource<string>>();
+
+    const { loaded: dbLoaded, db } = useDb("mydb");
 
     const [internalState, updateInternalStateFromServerSentEvent] = useReducer((state: string[], nextEvent: string) => { return [...state, nextEvent].slice(-5) }, [])
     useAsyncSetEffect(
@@ -95,13 +99,23 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
             return r.json();
         }, [accessToken, authorization]);
 
-    return (<AuthenticatedContext.Provider value={{
+    const contextValue = useMemo<IAuthenticated>(() => ({
         internalState,
         username,
         verified,
         whoami,
-        claims
-    }}>
+        claims,
+        dbLoaded,
+        db
+    }), [internalState,
+        username,
+        verified,
+        whoami,
+        claims,
+        dbLoaded,
+        db
+    ])
+    return (<AuthenticatedContext.Provider value={contextValue}>
         {children}
     </AuthenticatedContext.Provider>);
 }
