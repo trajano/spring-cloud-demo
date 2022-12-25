@@ -87,7 +87,7 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
     const whoami = useCallback(
         async function whoami() {
             console.log({ whoamiCall: accessToken?.slice(-5) })
-            const r = await fetch(baseUrl.href + whoAmIEndpoint, {
+            const r = await fetch(baseUrl + whoAmIEndpoint, {
                 headers: {
                     authorization: authorization!,
                     "content-type": "application/json",
