@@ -1,4 +1,5 @@
 import { Dispatch, RefObject, SetStateAction, useEffect, useRef } from 'react';
+
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 

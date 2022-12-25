@@ -38,7 +38,7 @@ export function useRefreshCallback<T>({
   authClient,
   setOAuthToken,
   setTokenExpiresAt,
-  backendReachable: tokenRefreshable,
+  backendReachable,
   netInfoState,
 }: RefreshCallbackProps<T>): () => Promise<void> {
   async function refresh() {
@@ -66,7 +66,7 @@ export function useRefreshCallback<T>({
           authState,
           reason: 'Token data was lost while refreshing',
         });
-      } else if (!tokenRefreshable) {
+      } else if (!backendReachable) {
         // refresh was attempted when the backend is not available.  This may occur when refresh is forced.
         setAuthState(AuthState.BACKEND_INACCESSIBLE);
         notify({
@@ -121,7 +121,7 @@ export function useRefreshCallback<T>({
               netInfoState,
             });
           } else {
-            console.error("unexpected exception ", e)
+            console.error('unexpected exception ', e);
             throw e;
           }
         }

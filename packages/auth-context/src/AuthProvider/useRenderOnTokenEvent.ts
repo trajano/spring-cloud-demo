@@ -6,7 +6,7 @@ import { useNetInfoState } from '../useNetInfoState';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import { isTokenExpired } from './isTokenExpired';
-import type { OAuthToken } from 'src/OAuthToken';
+import type { OAuthToken } from '../OAuthToken';
 
 /**
  * @testonly
