@@ -29,9 +29,8 @@ type AuthenticatedProviderProps = PropsWithChildren<{
     issuer: string,
     verifyClaims?: boolean,
     whoAmIEndpoint?: string,
-    updateEvents: UpdateEvent[]
 }>;
-export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoami/", verifyClaims = true, updateEvents, children }: AuthenticatedProviderProps) {
+export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoami/", verifyClaims = true, children }: AuthenticatedProviderProps) {
 
     const { baseUrl, accessToken, authorization } = useAuth();
     const [claims, setClaims] = useState<JwtClaims>();
@@ -43,7 +42,7 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
 
     const { loaded: dbLoaded, db } = useDb("mydb");
 
-    const [internalState, updateInternalStateFromServerSentEvent] = useReducer((state: string[], nextEvent: string) => { return [...state, nextEvent].slice(-5) }, updateEvents.map(e => JSON.stringify(e)))
+    const [internalState, updateInternalStateFromServerSentEvent] = useReducer((state: string[], nextEvent: string) => { return [...state, nextEvent].slice(-5) }, [])
     useAsyncSetEffect(
         async function verifyToken() {
             if (!verifyClaims) {

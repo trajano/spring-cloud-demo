@@ -20,6 +20,7 @@ import { deactivateKeepAwake } from 'expo-keep-awake';
 import { AppProvider } from '../app-context';
 import { startNetworkLogging } from 'react-native-network-logger';
 import Constants from 'expo-constants';
+import { useExpoUpdateEffect } from '../../hooks/useExpoUpdateEffect';
 
 const TextTest = lazy(() => import('../../screens/TextTest'));
 const Navigation = lazy(() => import('../../navigation'))
@@ -27,6 +28,7 @@ const Navigation = lazy(() => import('../../navigation'))
 LogBox.ignoreLogs([/^Could not find Fiber with id/]);
 function SuspenseView() { return <View flex={1} justifyContent="center" alignItems='center'><ActivityIndicator size='large' /></View> }
 export default function App() {
+  useExpoUpdateEffect();
   const [defaultEndpointConfiguration, setDefaultEndpointConfiguration] = useState<AuthenticatedEndpointConfiguration>(buildSimpleEndpointConfiguration(BASE_URL ?? "https://api.trajano.net/"));
 
   useEffect(() => {

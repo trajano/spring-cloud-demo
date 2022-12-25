@@ -2,16 +2,6 @@ import { BASE_URL, TEXT_TEST } from '@env';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDeepState } from '@trajano/react-hooks';
 import Constants from 'expo-constants';
-import {
-    channel,
-    createdAt,
-    isEmbeddedLaunch,
-    isEmergencyLaunch,
-    manifest as updateManifest,
-    releaseChannel,
-    runtimeVersion,
-    updateId,
-} from "expo-updates";
 
 import * as FileSystem from 'expo-file-system';
 import * as Localization from 'expo-localization';
@@ -58,23 +48,6 @@ export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string
             key: "expo-constants", data: [
                 restOfConstants as Record<string, unknown>
             ]
-        },
-        {
-            key: "expo-update", data: [
-                {
-                    channel,
-                    createdAt,
-                    isEmbeddedLaunch,
-                    isEmergencyLaunch,
-                    manifest: omit(updateManifest, "assets"),
-                    releaseChannel,
-                    runtimeVersion,
-                    updateId,
-                }
-            ]
-        },
-        {
-            key: "expo-update.manifest.assets", data: updateManifest?.assets ?? []
         },
         {
             key: "expo-constants.expoConfig", data: [
@@ -128,7 +101,7 @@ export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string
                 await Promise.resolve(Localization.getCalendars()),
             "SystemUI.backgroundColor": [{
                 backgroundColor: await SystemUI.getBackgroundColorAsync()
-            }]
+            }],
         };
         return sections.map(section => (section.key! in replacements) ? { key: section.key!, data: replacements[section.key!] } : section)
     }

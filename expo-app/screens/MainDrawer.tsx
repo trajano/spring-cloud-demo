@@ -8,6 +8,7 @@ import { TabOne } from "./TabOne";
 import { EnvironmentScreen } from "./EnvironmentScreen";
 import { AsyncStorageScreen } from "./AsyncStorageScreen";
 import { SystemFontsScreen } from "./SystemFontsScreen";
+import { ExpoUpdateScreen } from "./ExpoUpdateScreen";
 const Drawer = createDrawerNavigator<MainDrawerParamList>();
 export function DrawerNavigator() {
     const { width, height } = useWindowDimensions();
@@ -23,6 +24,10 @@ export function DrawerNavigator() {
         }} />
         <Drawer.Screen name="Environment" component={EnvironmentScreen} options={{
             title: "Environment",
+            headerShown: true,
+        }} />
+        <Drawer.Screen name="ExpoUpdate" component={ExpoUpdateScreen} options={{
+            title: "Expo Update",
             headerShown: true,
         }} />
         <Drawer.Screen name="AsyncStorage" component={AsyncStorageScreen} options={{

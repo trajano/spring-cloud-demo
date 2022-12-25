@@ -1,7 +1,5 @@
 import {
-  addListener,
-  checkForUpdateAsync,
-  reloadAsync,
+  addListener, reloadAsync,
   UpdateEvent,
   UpdateEventType
 } from "expo-updates";
@@ -37,9 +35,6 @@ export function useExpoUpdateEffect() {
 
   useEffect(() => {
     const sub = addListener(checkForUpdate);
-    if (!__DEV__) {
-      checkForUpdateAsync().catch((err) => console.error(err));
-    }
     return () => sub.remove();
   }, []);
 }
