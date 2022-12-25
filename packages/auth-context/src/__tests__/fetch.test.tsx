@@ -62,6 +62,12 @@ describe("http", () => {
     const response = await fetch("https://trajano.net/bad-request");
     expect(response.status).toBe(0);
   });
+  it("should work with global.Response.error()", async () => {
+    fetchMock.config.Response = global.Response;
+    fetchMock.mock("https://trajano.net/bad-request", global.Response.error());
+    const response = await fetch("https://trajano.net/bad-request");
+    expect(response.status).toBe(0);
+  });
   it("Response.error type check", async () => {
     fetchMock.config.Response = Response;
     expect(Response.error() instanceof Response).toBe(true);

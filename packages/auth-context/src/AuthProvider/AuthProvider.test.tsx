@@ -3,8 +3,9 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import '@testing-library/jest-native/extend-expect';
-import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import fetchMock from 'fetch-mock-jest';
+import { noop } from "lodash";
 import React, { useCallback, useEffect, useState } from 'react';
 import { AppState, Pressable, Text } from 'react-native';
 import { AuthenticationClientError } from '../AuthenticationClientError';
@@ -66,10 +67,11 @@ describe("with component", () => {
   it("UNAUTHENTICATED", async () => {
     const notifications = jest.fn() as jest.Mock<() => void>;
     fetchMock.get("http://asdf.com/ping", { ok: true })
-    const { getByTestId } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
-    expect(getByTestId("authState")).toHaveTextContent("INITIAL");
-    await waitFor(() => expect(getByTestId("tokenRefreshable")).toHaveTextContent("tokenRefreshable"));
-    await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
+    const { unmount } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
+    expect(screen.getByTestId("authState")).toHaveTextContent("INITIAL");
+    await waitFor(() => expect(screen.getByTestId("tokenRefreshable")).toHaveTextContent("tokenRefreshable"));
+    await waitFor(() => expect(screen.getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
+    unmount();
   });
 
   it("login logout", async () => {
@@ -144,7 +146,7 @@ describe("with component", () => {
       .get("http://asdf.com/ping", { body: { ok: true } })
       .post("http://asdf.com/auth", { status: 401, body: { error: "authentication_failure" } });
 
-    const { getByTestId } = render(
+    const { getByTestId, unmount } = render(
       <AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}>
         <MyComponent notifications={notifications} onLoginFailure={onLoginFailure} />
       </AuthProvider>)
@@ -160,7 +162,7 @@ describe("with component", () => {
     const failedCall = onLoginFailure.mock.calls[0][0];
     expect(failedCall instanceof AuthenticationClientError).toBeTruthy();
     expect(failedCall instanceof AuthenticationClientError && failedCall.isUnauthorized()).toBeTruthy();
-
+    unmount();
   });
 
 
@@ -171,7 +173,7 @@ describe("with component", () => {
       .get("http://asdf.com/ping", { body: { ok: true } })
       .post("http://asdf.com/auth", { status: 500, body: { error: "server_error" } });
 
-    const { getByTestId } = render(
+    const { getByTestId, unmount } = render(
       <AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}>
         <MyComponent notifications={notifications} onLoginFailure={onLoginFailure} />
       </AuthProvider>)
@@ -187,19 +189,22 @@ describe("with component", () => {
     const failedCall = onLoginFailure.mock.calls[0][0];
     expect(failedCall instanceof AuthenticationClientError).toBeTruthy();
     expect(failedCall instanceof AuthenticationClientError && failedCall.isUnauthorized()).toBeFalsy();
-
+    unmount();
   });
 
 
   it("Invalid base URL", async () => {
     const notifications = jest.fn() as jest.Mock<() => void>;
     fetchMock.get("http://asdf.com/ping", { ok: true })
+    let iUnmount: () => void = noop;
     try {
-      render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com")}><MyComponent notifications={notifications} /></AuthProvider>);
+      const { unmount } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com")}><MyComponent notifications={notifications} /></AuthProvider>);
+      iUnmount = unmount
       fail("should not get here")
     } catch (e) {
       expect(e).toStrictEqual(new Error("baseUrl=http://asdf.com should end with a '/'"))
     }
+    iUnmount && iUnmount();
 
   });
 
@@ -222,11 +227,7 @@ describe("with component", () => {
     // give at least a second of slack
     expect(tokenExpiresAt.getTime()).toBeGreaterThanOrEqual(Date.now() + 600000 - 1000)
 
-    fetchMock.post("http://asdf.com/logout", {
-      ok: false,
-      status: 0,
-      type: "error"
-    });
+    fetchMock.post("http://asdf.com/logout", { body: "safely ignore me", status: 500 });
 
     act(() => { fireEvent.press(getByTestId("logout")) });
     await waitFor(() => expect(notifications).toBeCalledWith(expect.objectContaining({ type: "LoggedOut" } as Partial<AuthEvent>)))
@@ -272,6 +273,26 @@ describe("with component", () => {
     await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
     expect(await AsyncStorage.getAllKeys()).toHaveLength(0)
     unmount();
+  });
+
+  it("just logout without login with error", async () => {
+    const notifications = jest.fn() as jest.Mock<() => void>;
+    const freshAccessToken: OAuthToken = { access_token: "freshAccessToken", refresh_token: "RefreshToken", token_type: "Bearer", expires_in: 600 };
+    fetchMock.get("http://asdf.com/ping", { body: { ok: true } })
+      .post("http://asdf.com/auth", { body: freshAccessToken })
+      .post("http://asdf.com/logout", { body: "safely ignore me", status: 500 });
+    const { unmount } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
+
+    await waitFor(() => expect(screen.getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
+    act(() => { fireEvent.press(screen.getByTestId("logout")) });
+    await waitFor(() => expect(notifications).toBeCalledWith(expect.objectContaining({ type: "LoggedOut" } as Partial<AuthEvent>)))
+    expect(notifications).toBeCalledWith(expect.objectContaining({ type: "Unauthenticated" } as Partial<AuthEvent>))
+    await waitFor(() => expect(screen.getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));
+    expect(await AsyncStorage.getAllKeys()).toHaveLength(0)
+    unmount();
+
+    expect((await fetch("http://asdf.com/logout", { method: "post" })).status).toBe(500);
+    expect((await fetch("http://asdf.com/logout", { method: "post" })).ok).toBe(false);
   });
 
 });

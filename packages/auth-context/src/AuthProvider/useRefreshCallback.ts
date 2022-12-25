@@ -112,7 +112,6 @@ export function useRefreshCallback<T>({
             !e.isUnauthorized()
           ) {
             // at this point there is an error but it's not something caused by the user so don't clear off the token
-            //    lastBackendFailureAttemptRef.current = lastCheckTime;
             setAuthState(AuthState.BACKEND_FAILURE);
             notify({
               type: 'TokenExpiration',

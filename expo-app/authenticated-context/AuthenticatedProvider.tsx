@@ -65,7 +65,7 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
         // log.warn({ verified, username })
         if (verified && username) {
 
-            eventStream.current = new EventSource<string>(new URL("/grpc/Echo/echoStream", baseUrl.href), {
+            eventStream.current = new EventSource<string>(new URL("/grpc/Echo/echoStream", baseUrl), {
                 headers: {
                     authorization: `Bearer ${accessToken}`,
                     "content-type": "application/json",

@@ -8,7 +8,10 @@ import { AuthState } from '../AuthState';
 import { isTokenExpired } from './isTokenExpired';
 import type { OAuthToken } from 'src/OAuthToken';
 
-type RenderOnTokenEventProps = {
+/**
+ * @testonly
+ */
+export type RenderOnTokenEventProps = {
   authState: AuthState;
   setAuthState: Dispatch<AuthState>;
   notify: (event: AuthEvent) => void;
@@ -17,7 +20,10 @@ type RenderOnTokenEventProps = {
   timeBeforeExpirationRefresh: number;
   endpointConfiguration: EndpointConfiguration;
 };
-type RenderOnTokenEventState = {
+/**
+ * @testonly
+ */
+export type RenderOnTokenEventState = {
   /**
    * Token is refreshable
    */

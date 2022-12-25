@@ -27,6 +27,7 @@ export function useInitialAuthStateEffect({
   setTokenExpiresAt,
 }: InitialAuthStateProps) {
   const setInitialAuthState = useCallback(async () => {
+    /* istanbul ignore next */
     if (__DEV__) {
       if (authState !== AuthState.INITIAL) {
         throw Error(
