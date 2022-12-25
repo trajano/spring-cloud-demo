@@ -1,10 +1,11 @@
-import { useEffect } from "react";
 import {
-  UpdateEventType,
-  UpdateEvent,
   addListener,
+  checkForUpdateAsync,
   reloadAsync,
+  UpdateEvent,
+  UpdateEventType
 } from "expo-updates";
+import { useEffect } from "react";
 import { Alert } from "react-native";
 
 /**
@@ -35,9 +36,10 @@ export function useExpoUpdateEffect() {
   }
 
   useEffect(() => {
+    const sub = addListener(checkForUpdate);
     if (!__DEV__) {
-      const sub = addListener(checkForUpdate);
-      return () => sub.remove();
+      checkForUpdateAsync().catch((err) => console.error(err));
     }
+    return () => sub.remove();
   }, []);
 }

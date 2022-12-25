@@ -1,5 +1,6 @@
 import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
 import { useAuth } from "@trajano/spring-docker-auth-context";
+import { UpdateEvent } from "expo-updates";
 import { PropsWithChildren, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import EventSource from "react-native-sse";
 import { IAuthenticated } from "./IAuthenticated";
@@ -27,9 +28,10 @@ type AuthenticatedProviderProps = PropsWithChildren<{
     clientId: string,
     issuer: string,
     verifyClaims?: boolean,
-    whoAmIEndpoint?: string
+    whoAmIEndpoint?: string,
+    updateEvents: UpdateEvent[]
 }>;
-export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoami/", verifyClaims = true, children }: AuthenticatedProviderProps) {
+export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoami/", verifyClaims = true, updateEvents, children }: AuthenticatedProviderProps) {
 
     const { baseUrl, accessToken, authorization } = useAuth();
     const [claims, setClaims] = useState<JwtClaims>();
@@ -41,7 +43,7 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
 
     const { loaded: dbLoaded, db } = useDb("mydb");
 
-    const [internalState, updateInternalStateFromServerSentEvent] = useReducer((state: string[], nextEvent: string) => { return [...state, nextEvent].slice(-5) }, [])
+    const [internalState, updateInternalStateFromServerSentEvent] = useReducer((state: string[], nextEvent: string) => { return [...state, nextEvent].slice(-5) }, updateEvents.map(e => JSON.stringify(e)))
     useAsyncSetEffect(
         async function verifyToken() {
             if (!verifyClaims) {

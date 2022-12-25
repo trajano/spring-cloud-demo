@@ -43,7 +43,6 @@ export default function App() {
             ignoredHosts = [r[4].split(":")[0]];
           }
         }
-        console.log({ ignoredHosts });
       } catch (e: unknown) {
         console.log(e);
       }

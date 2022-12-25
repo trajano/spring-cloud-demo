@@ -2,6 +2,17 @@ import { BASE_URL, TEXT_TEST } from '@env';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDeepState } from '@trajano/react-hooks';
 import Constants from 'expo-constants';
+import {
+    channel,
+    createdAt,
+    isEmbeddedLaunch,
+    isEmergencyLaunch,
+    manifest as updateManifest,
+    releaseChannel,
+    runtimeVersion,
+    updateId,
+} from "expo-updates";
+
 import * as FileSystem from 'expo-file-system';
 import * as Localization from 'expo-localization';
 import * as SystemUI from 'expo-system-ui';
@@ -13,6 +24,13 @@ import { BlurView, Text, View } from '../src/lib/native-unstyled';
 
 const isHermes = () => !!((global as any)['HermesInternal']);
 const isRemoteDebug = () => !((global as any)['nativeCallSyncHook']);
+function tokenReplacer(this: any, key: string, value: any): any {
+    if ((key === "key" || key === "hash") && typeof value === "string") {
+        return "…" + value.slice(-5);
+    } else {
+        return value;
+    }
+}
 export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string, unknown>>, any> {
     const { manifest, manifest2, systemFonts: _systemFonts, expoConfig, ...restOfConstants } = Constants;
     const systemColorScheme = useColorScheme();
@@ -40,6 +58,23 @@ export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string
             key: "expo-constants", data: [
                 restOfConstants as Record<string, unknown>
             ]
+        },
+        {
+            key: "expo-update", data: [
+                {
+                    channel,
+                    createdAt,
+                    isEmbeddedLaunch,
+                    isEmergencyLaunch,
+                    manifest: omit(updateManifest, "assets"),
+                    releaseChannel,
+                    runtimeVersion,
+                    updateId,
+                }
+            ]
+        },
+        {
+            key: "expo-update.manifest.assets", data: updateManifest?.assets ?? []
         },
         {
             key: "expo-constants.expoConfig", data: [
@@ -98,7 +133,7 @@ export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string
         return sections.map(section => (section.key! in replacements) ? { key: section.key!, data: replacements[section.key!] } : section)
     }
     const renderSectionHeader = useCallback(({ section }: { section: SectionListData<any, any> }) => <BlurView intensity={90} padding={16}><Text bold>{section.key}</Text></BlurView>, [sections]);
-    const renderItem = useCallback(({ item }: SectionListRenderItemInfo<any>) => <View padding={16} backgroundColor="black"><Text color="silver">{JSON.stringify(item, null, 2)}</Text></View>, [sections])
+    const renderItem = useCallback(({ item }: SectionListRenderItemInfo<any>) => <View padding={16} backgroundColor="black"><Text color="silver">{JSON.stringify(item, tokenReplacer, 2)}</Text></View>, [sections])
 
     useFocusEffect(useCallback(() => {
         (async () => {
