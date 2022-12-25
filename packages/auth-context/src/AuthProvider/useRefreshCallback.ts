@@ -19,7 +19,7 @@ export type RefreshCallbackProps<T> = {
   /**
    * Indicates that the token is refreshable from the device.
    */
-  tokenRefreshable: boolean;
+  backendReachable: boolean;
   netInfoState: NetInfoState;
   oauthToken: OAuthToken | null;
   setOAuthToken: Dispatch<OAuthToken | null>;
@@ -38,7 +38,7 @@ export function useRefreshCallback<T>({
   authClient,
   setOAuthToken,
   setTokenExpiresAt,
-  tokenRefreshable,
+  backendReachable: tokenRefreshable,
   netInfoState,
 }: RefreshCallbackProps<T>): () => Promise<void> {
   async function refresh() {

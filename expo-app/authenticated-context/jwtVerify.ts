@@ -12,7 +12,7 @@ import { JwtClaims } from "./JwtClaims";
  */
 export async function jwtVerify<P extends JwtClaims>(
   accessToken: string | null,
-  jwksUrl: URL,
+  jwksUrl: string,
   issuer: string,
   clientId: string
 ): Promise<P> {
@@ -27,7 +27,7 @@ export async function jwtVerify<P extends JwtClaims>(
   try {
     const decodedCompressed = base64url.toBuffer(accessToken);
     const jwt = pako.inflate(decodedCompressed, { to: "string" });
-    const jwksFetch = await fetch(jwksUrl.toString());
+    const jwksFetch = await fetch(jwksUrl);
     const jwksJson = await jwksFetch.json();
     const jwks = await jose.JWK.asKeyStore(jwksJson);
     const jwsResult = await jose.JWS.createVerify(jwks, {

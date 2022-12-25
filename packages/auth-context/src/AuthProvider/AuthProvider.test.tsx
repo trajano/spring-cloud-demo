@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import '@testing-library/jest-native/extend-expect';
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react-native';
@@ -219,8 +222,11 @@ describe("with component", () => {
     // give at least a second of slack
     expect(tokenExpiresAt.getTime()).toBeGreaterThanOrEqual(Date.now() + 600000 - 1000)
 
-    fetchMock.config.Response = Response;
-    fetchMock.post("http://asdf.com/logout", Response.error());
+    fetchMock.post("http://asdf.com/logout", {
+      ok: false,
+      status: 0,
+      type: "error"
+    });
 
     act(() => { fireEvent.press(getByTestId("logout")) });
     await waitFor(() => expect(notifications).toBeCalledWith(expect.objectContaining({ type: "LoggedOut" } as Partial<AuthEvent>)))
@@ -231,12 +237,15 @@ describe("with component", () => {
   });
 
   it("just logout without login", async () => {
-    fetchMock.config.Response = Response;
     const notifications = jest.fn() as jest.Mock<() => void>;
     const freshAccessToken: OAuthToken = { access_token: "freshAccessToken", refresh_token: "RefreshToken", token_type: "Bearer", expires_in: 600 };
     fetchMock.get("http://asdf.com/ping", { body: { ok: true } })
       .post("http://asdf.com/auth", { body: freshAccessToken })
-      .post("http://asdf.com/logout", Response.error());
+      .post("http://asdf.com/logout", {
+        ok: false,
+        status: 0,
+        type: "error",
+      });
     const { getByTestId, unmount } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
 
     await waitFor(() => expect(getByTestId("authState")).toHaveTextContent("UNAUTHENTICATED"));

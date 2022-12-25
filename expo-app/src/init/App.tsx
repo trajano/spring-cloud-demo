@@ -18,6 +18,8 @@ import { LoadingScreen } from '../../screens/LoadingScreen';
 import { ActivityIndicator, StatusBar, View } from '../lib/native-unstyled';
 import { deactivateKeepAwake } from 'expo-keep-awake';
 import { AppProvider } from '../app-context';
+import { startNetworkLogging } from 'react-native-network-logger';
+import Constants from 'expo-constants';
 
 const TextTest = lazy(() => import('../../screens/TextTest'));
 const Navigation = lazy(() => import('../../navigation'))
@@ -27,6 +29,28 @@ function SuspenseView() { return <View flex={1} justifyContent="center" alignIte
 export default function App() {
   const [defaultEndpointConfiguration, setDefaultEndpointConfiguration] = useState<AuthenticatedEndpointConfiguration>(buildSimpleEndpointConfiguration(BASE_URL ?? "https://api.trajano.net/"));
 
+  useEffect(() => {
+    let ignoredHosts: string[] = [];
+    if (__DEV__) {
+      try {
+        const launchHostUrlString = Constants.manifest2?.launchAsset?.url;
+        if (launchHostUrlString) {
+          const r =
+            /^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/.exec(
+              launchHostUrlString
+            );
+          if (r && r[4] && r[4].split(":")[0]) {
+            ignoredHosts = [r[4].split(":")[0]];
+          }
+        }
+        console.log({ ignoredHosts });
+      } catch (e: unknown) {
+        console.log(e);
+      }
+    }
+    startNetworkLogging({ ignoredHosts });
+
+  }, [])
   useEffect(() => {
     (async function () {
       let configuration = await AsyncStorage.getItem("ENDPOINT_CONFIGURATION");

@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import fetchMock from 'fetch-mock-jest';
 describe("http", () => {
   let fetchConfigResponse: (new () => Response) | undefined;

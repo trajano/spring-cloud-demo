@@ -82,9 +82,10 @@ export interface IAuth<A = any> {
    */
   authState: AuthState;
   /**
-   * Base URL as a URL.
+   * Base URL as a string.  https://github.com/facebook/react-native/blob/main/Libraries/Blob/URL.js
+   * does not implement all of the URL spec so it's best to avoid it for now.
    */
-  baseUrl: URL;
+  baseUrl: string;
   /**
    * Current endpoint configuration.
    */

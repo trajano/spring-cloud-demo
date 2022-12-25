@@ -174,16 +174,18 @@ it("Restore saved expired but error refresh response", async () => {
   expect(await authStore.isExpired()).toBeTruthy();
 
   const notifications = jest.fn() as jest.Mock<() => void>;
-  fetchMock.config.Response = Response;
   fetchMock
     .get("http://asdf.com/ping", { body: { ok: true } })
-    .post("http://asdf.com/refresh", () => Promise.resolve(Response.error()))
+    .post("http://asdf.com/refresh", {
+      // a value of `0` does not work and resolves to 200
+      status: 1,
+    })
   const { getByTestId, unmount } = render(<AuthProvider defaultEndpointConfiguration={buildSimpleEndpointConfiguration("http://asdf.com/")}><MyComponent notifications={notifications} /></AuthProvider>)
   expect(getByTestId("hello")).toHaveTextContent("INITIAL")
 
   await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "TokenExpiration" } as Partial<AuthEvent>)))
   await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "Refreshing" } as Partial<AuthEvent>)))
-  await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "TokenExpiration", reason: "HTTP Error 0" } as Partial<AuthEvent>)))
+  await waitFor(() => expect(notifications).toHaveBeenCalledWith(expect.objectContaining({ type: "TokenExpiration", reason: "HTTP Error 1" } as Partial<AuthEvent>)))
   expect(jest.getTimerCount()).toBe(1)
   await waitFor(() => expect(getByTestId("hello")).toHaveTextContent("BACKEND_FAILURE"));
 

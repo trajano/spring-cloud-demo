@@ -5,10 +5,9 @@ import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import * as Localization from 'expo-localization';
 import * as SystemUI from 'expo-system-ui';
-import identity from 'lodash/identity';
 import omit from 'lodash/omit';
 import { ReactElement, useCallback } from 'react';
-import { Platform, SectionList, SectionListData, SectionListProps, SectionListRenderItemInfo, useColorScheme } from 'react-native';
+import { PixelRatio, Platform, SectionList, SectionListData, SectionListProps, SectionListRenderItemInfo, useColorScheme, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView, Text, View } from '../src/lib/native-unstyled';
 
@@ -18,9 +17,24 @@ export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string
     const { manifest, manifest2, systemFonts: _systemFonts, expoConfig, ...restOfConstants } = Constants;
     const systemColorScheme = useColorScheme();
     const safeAreaInsets = useSafeAreaInsets();
+    const windowDimensions = useWindowDimensions();
 
     const [sections, setSections] = useDeepState<SectionListData<any>[]>([
-        { key: "@env", data: [{ BASE_URL, TEXT_TEST, hermes: isHermes(), remoteDebug: isRemoteDebug(), systemColorScheme, safeAreaInsets }] },
+        {
+            key: "@env", data: [{
+                BASE_URL,
+                TEXT_TEST,
+                hermes: isHermes(),
+                remoteDebug: isRemoteDebug(),
+                systemColorScheme,
+                safeAreaInsets,
+                PixelRatio: PixelRatio.get(),
+                PixelRatio_fontScale: PixelRatio.getFontScale(),
+            },
+            process.env,
+                windowDimensions
+            ]
+        },
         { key: "SystemUI.backgroundColor", data: [] },
         {
             key: "expo-constants", data: [
@@ -38,10 +52,20 @@ export function EnvironmentScreen(): ReactElement<SectionListProps<Record<string
             ]
         },
         {
-            key: "expo-constants.manifests", data: [
-                manifest as Record<string, unknown>,
-                manifest2 as Record<string, unknown>
-            ].filter(identity)
+            key: manifest ? "expo-constants.manifest" : "expo-constants.manifest2", data: [
+                manifest ? manifest as Record<string, unknown> : omit(manifest2 as Record<string, unknown>, "launchAsset", "assets")
+            ]
+        },
+        {
+            key: "expo-constants.manifest2.launchAsset", data: [manifest2?.launchAsset]
+        },
+        {
+            key: "expo-constants.manifest2.assets", data: manifest2?.assets ?? []
+        },
+        {
+            key: "expo-constants.manifest2." + Platform.OS, data: [
+                (manifest2 as unknown as Record<string, unknown>)[Platform.OS]
+            ]
         },
         {
             key: "expo-file-system",

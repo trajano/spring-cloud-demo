@@ -169,7 +169,6 @@ export function ThemeProvider({ children,
     colorSchemeColors = defaultColorSchemeColors,
     getColorScheme }: ThemeProviderProps) {
     const systemColorScheme = useColorScheme();
-    console.log({ systemColorScheme })
     const [colorScheme, setColorScheme] = useState(inColorScheme ?? systemColorScheme ?? defaultColorScheme);
     const [initialAssetsLoaded, setInitialAssetsLoaded] = useState(false);
     const [fontsLoaded, setFontsLoaded] = useState(false);

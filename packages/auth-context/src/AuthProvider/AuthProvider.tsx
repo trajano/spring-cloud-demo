@@ -54,18 +54,6 @@ export function AuthProvider<A = any>({
 
   const [endpointConfiguration, setEndpointConfiguration] = useState(defaultEndpointConfiguration);
   const authClient = useMemo(() => new AuthClient<A>(endpointConfiguration), [endpointConfiguration]);
-  const baseUrl = useMemo(
-    () => {
-      /* istanbul ignore next */
-      if (__DEV__) {
-        if (endpointConfiguration.baseUrl.substring(endpointConfiguration.baseUrl.length - 1) !== '/') {
-          throw new Error(`base URL ${endpointConfiguration.baseUrl} should end with a '/'`)
-        }
-      }
-      return new URL(endpointConfiguration.baseUrl);
-    },
-    [endpointConfiguration.baseUrl]
-  );
 
   /**
    * Auth storage.  If inAuthStorage is provided it will use that otherwise it will create a new one.
@@ -73,8 +61,6 @@ export function AuthProvider<A = any>({
   const authStorage = useMemo(() => inAuthStorage ?? new AuthStore(storagePrefix, endpointConfiguration.baseUrl), [endpointConfiguration.baseUrl, inAuthStorage]);
 
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
-
-  const { backendReachable, netInfoState } = useRenderOnTokenEvent(endpointConfiguration);
 
   /**
    * Authentication state.
@@ -95,6 +81,16 @@ export function AuthProvider<A = any>({
    * Last check state
    */
   const [lastCheckAt, setLastCheckAt] = useDateState(Date.now());
+
+  const { backendReachable, netInfoState } = useRenderOnTokenEvent({
+    authState,
+    setAuthState,
+    notify,
+    oauthToken,
+    tokenExpiresAt,
+    timeBeforeExpirationRefresh,
+    endpointConfiguration,
+  });
 
   const {
     timeoutRef: tokenExpirationTimeoutRef,
@@ -221,7 +217,7 @@ export function AuthProvider<A = any>({
     setTokenExpiresAt,
     authClient,
     netInfoState,
-    tokenRefreshable: backendReachable
+    backendReachable
   })
 
   useInitialAuthStateEffect({
@@ -248,7 +244,7 @@ export function AuthProvider<A = any>({
     authorization: (!isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) && !!oauthToken) ? `Bearer ${oauthToken?.access_token}` : null,
     authState,
     backendReachable,
-    baseUrl,
+    baseUrl: endpointConfiguration.baseUrl,
     endpointConfiguration,
     lastCheckAt,
     oauthToken,
@@ -261,7 +257,6 @@ export function AuthProvider<A = any>({
     subscribe,
   }), [
     authState,
-    baseUrl,
     oauthToken,
     lastCheckAt,
     backendReachable,
