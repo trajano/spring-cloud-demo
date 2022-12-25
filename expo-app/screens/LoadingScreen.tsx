@@ -44,6 +44,10 @@ export function LoadingScreen({ loadedAssets, totalAssets, additionalResourceUpd
       }
     })
     if (additionalResourceUpdate) {
+      if (fromTimeout === 1 && fromExpoUpdate === 0) {
+        // timeout guards against the check for update async going awry
+        setFromExpoUpdate(1);
+      }
       if (authState !== AuthState.INITIAL) {
         additionalResourceUpdate(1 + fromTimeout + fromAnimationFinish + fromExpoUpdate, 4);
       } else {
