@@ -20,7 +20,7 @@ import {
 
 jest.mock('./useAppStateWithNetInfoRefresh');
 jest.mock('../useNetInfoState');
-it('should not get stuck on refreshing state when authenticated', () => {
+it.skip('should not get stuck on refreshing state when authenticated', () => {
   const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
   const setAuthState = jest.fn() as jest.Mocked<
     Dispatch<SetStateAction<AuthState>>
@@ -56,7 +56,7 @@ it('should not get stuck on refreshing state when authenticated', () => {
   expect(setAuthState).toBeCalledWith(AuthState.AUTHENTICATED);
 });
 
-it('should not get stuck on refreshing state when expired', () => {
+it.skip('should not get stuck on refreshing state when expired', () => {
   const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
   const setAuthState = jest.fn() as jest.Mocked<
     Dispatch<SetStateAction<AuthState>>

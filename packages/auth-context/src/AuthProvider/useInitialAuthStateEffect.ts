@@ -72,10 +72,18 @@ export function useInitialAuthStateEffect({
         reason: 'expired token restored from storage on intial state',
       });
     }
-  }, []);
+  }, [
+    authState,
+    authStorage,
+    notify,
+    setAuthState,
+    setOAuthToken,
+    setTokenExpiresAt,
+    timeBeforeExpirationRefresh,
+  ]);
   useEffect(() => {
     if (authState === AuthState.INITIAL) {
       setInitialAuthState();
     }
-  }, [authState]);
+  }, [authState, setInitialAuthState]);
 }

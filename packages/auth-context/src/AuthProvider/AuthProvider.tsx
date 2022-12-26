@@ -2,10 +2,14 @@ import { useDateState, useDeepState } from '@trajano/react-hooks';
 import React, {
   PropsWithChildren,
   ReactElement,
+  useCallback,
+  useEffect,
   useMemo,
+  useReducer,
   useRef,
   useState,
 } from 'react';
+import { AppState } from 'react-native';
 import { AuthClient } from '../AuthClient';
 import { AuthContext } from '../AuthContext';
 import { AuthenticationClientError } from '../AuthenticationClientError';
@@ -15,7 +19,9 @@ import { AuthStore, IAuthStore } from '../AuthStore';
 import type { EndpointConfiguration } from '../EndpointConfiguration';
 import type { IAuth } from '../IAuth';
 import type { OAuthToken } from '../OAuthToken';
+import { initialAuthEventReducer } from './initialAuthEventReducer';
 import { isTokenExpired } from './isTokenExpired';
+import { useAppStateRefreshingEffect } from './useAppStateRefreshingEffect';
 import { useBackendFailureTimeoutEffect } from './useBackendFailureTimeoutEffect';
 import { useInitialAuthStateEffect } from './useInitialAuthStateEffect';
 import { useNeedsRefreshEffect } from './useNeedsRefreshEffect';
@@ -40,6 +46,7 @@ type AuthContextProviderProps = PropsWithChildren<{
    * Alternative auth storage.
    */
   authStorage?: IAuthStore;
+  onRefreshError?: (reason: unknown) => void;
 }>;
 
 /**
@@ -55,6 +62,7 @@ export function AuthProvider<A = any>({
   children,
   timeBeforeExpirationRefresh = 10000,
   storagePrefix = 'auth',
+  onRefreshError: inOnRefreshError,
   authStorage: inAuthStorage,
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
   const [endpointConfiguration, setEndpointConfiguration] = useState(
@@ -65,6 +73,11 @@ export function AuthProvider<A = any>({
     [endpointConfiguration]
   );
 
+  const onRefreshError = useCallback(
+    (reason: unknown) =>
+      inOnRefreshError ? inOnRefreshError(reason) : console.error(reason),
+    [inOnRefreshError]
+  );
   /**
    * Auth storage.  If inAuthStorage is provided it will use that otherwise it will create a new one.
    */
@@ -72,7 +85,7 @@ export function AuthProvider<A = any>({
     () =>
       inAuthStorage ??
       new AuthStore(storagePrefix, endpointConfiguration.baseUrl),
-    [endpointConfiguration.baseUrl, inAuthStorage]
+    [endpointConfiguration.baseUrl, inAuthStorage, storagePrefix]
   );
 
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
@@ -93,9 +106,23 @@ export function AuthProvider<A = any>({
   const [tokenExpiresAt, setTokenExpiresAt] = useDateState(0);
 
   /**
-   * Last check state
+   * Last auth events.  Eventually this will be removed and placed with the app rather than the context.
+   * Kept for debugging.
    */
-  const [lastCheckAt, setLastCheckAt] = useDateState(Date.now());
+  const [initialAuthEvents, pushAuthEvent] = useReducer(
+    initialAuthEventReducer,
+    []
+  );
+
+  /**
+   * Notifies subscribers.  There's a specific handler if it is "Unauthenticated" that the provider handles.
+   * These and other functions are not wrapped in useCallback because when any of the state changes it
+   * will render these anyway and we're not optimizing from the return value either.
+   */
+  const notify = useCallback(function notify(event: AuthEvent) {
+    pushAuthEvent(event);
+    subscribersRef.current.forEach((fn) => fn(event));
+  }, []);
 
   const { backendReachable, netInfoState } = useRenderOnTokenEvent({
     authState,
@@ -107,23 +134,21 @@ export function AuthProvider<A = any>({
     endpointConfiguration,
   });
 
-  const { timeoutRef: tokenExpirationTimeoutRef } =
-    useTokenExpirationTimeoutEffect({
-      authState,
-      setAuthState,
-      maxTimeoutForRefreshCheck: 60000,
-      timeBeforeExpirationRefresh,
-      tokenExpiresAt,
-      notify,
-    });
+  const { timeout: tokenExpirationTimeout } = useTokenExpirationTimeoutEffect({
+    authState,
+    setAuthState,
+    maxTimeoutForRefreshCheck: 60000,
+    timeBeforeExpirationRefresh,
+    tokenExpiresAt,
+    notify,
+  });
 
-  const { timeoutRef: backendFailureTimeoutRef } =
-    useBackendFailureTimeoutEffect({
-      authState,
-      setAuthState,
-      notify,
-      backendFailureTimeout: 60000,
-    });
+  const { timeout: backendFailureTimeout } = useBackendFailureTimeoutEffect({
+    authState,
+    setAuthState,
+    notify,
+    backendFailureTimeout: 60000,
+  });
 
   function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
@@ -131,16 +156,6 @@ export function AuthProvider<A = any>({
       (subscribersRef.current = subscribersRef.current.filter(
         (subscription) => !Object.is(subscription, fn)
       ));
-  }
-
-  /**
-   * Notifies subscribers.  There's a specific handler if it is "Unauthenticated" that the provider handles.
-   * These and other functions are not wrapped in useCallback because when any of the state changes it
-   * will render these anyway and we're not optimizing from the return value either.
-   */
-  function notify(event: AuthEvent) {
-    setLastCheckAt(Date.now());
-    subscribersRef.current.forEach((fn) => fn(event));
   }
 
   /**
@@ -157,7 +172,7 @@ export function AuthProvider<A = any>({
   async function loginAsync(authenticationCredentials: A): Promise<Response> {
     try {
       const [nextOauthToken, authenticationResponse] =
-        await authClient.authenticate(authenticationCredentials);
+        await authClient.authenticateAsync(authenticationCredentials);
       const nextTokenExpiresAt =
         await authStorage.storeOAuthTokenAndGetExpiresAtAsync(nextOauthToken);
       setOAuthToken(nextOauthToken);
@@ -198,7 +213,7 @@ export function AuthProvider<A = any>({
       if (!oauthToken) {
         return;
       }
-      await authClient.revoke(oauthToken.refresh_token);
+      await authClient.revokeAsync(oauthToken.refresh_token);
     } catch (e: unknown) {
       if (!(e instanceof AuthenticationClientError)) {
         throw e;
@@ -233,6 +248,28 @@ export function AuthProvider<A = any>({
     backendReachable,
   });
 
+  useEffect(() => {
+    const appStateSubscription = AppState.addEventListener(
+      'change',
+      (nextAppState) => {
+        if (nextAppState === 'active' && authState === AuthState.REFRESHING) {
+          setAuthState(AuthState.NEEDS_REFRESH);
+          notify({
+            type: 'CheckRefresh',
+            authState,
+            reason:
+              'AuthState === REFRESHING but state just switched to Active, forcing recheck',
+            backendReachable,
+            tokenExpiresAt,
+          });
+        }
+      }
+    );
+    return () => {
+      appStateSubscription.remove();
+    };
+  }, [authState, setAuthState, notify, backendReachable, tokenExpiresAt]);
+
   useInitialAuthStateEffect({
     authState,
     setAuthState,
@@ -247,10 +284,23 @@ export function AuthProvider<A = any>({
     authState,
     setAuthState,
     notify,
-    tokenRefreshable: backendReachable,
+    backendReachable: backendReachable,
     refreshAsync,
+    onRefreshError,
   });
 
+  useAppStateRefreshingEffect({
+    authState,
+    setAuthState,
+    notify,
+    oauthToken,
+    tokenExpiresAt,
+    backendReachable,
+    timeBeforeExpirationRefresh,
+  });
+
+  // Temporarily disable react-hooks/exhaustive-deps since we want the timeouts to trigger.
+  /* eslint-disable react-hooks/exhaustive-deps */
   const contextValue: IAuth = useMemo(
     () => ({
       accessToken: oauthToken?.access_token ?? null,
@@ -267,9 +317,10 @@ export function AuthProvider<A = any>({
       backendReachable,
       baseUrl: endpointConfiguration.baseUrl,
       endpointConfiguration,
-      lastCheckAt,
+      lastCheckAt: new Date(),
       oauthToken,
       tokenExpiresAt,
+      initialAuthEvents,
       forceCheckAuthStorageAsync,
       loginAsync,
       logoutAsync,
@@ -280,14 +331,22 @@ export function AuthProvider<A = any>({
     [
       authState,
       oauthToken,
-      lastCheckAt,
       backendReachable,
-      tokenExpiresAt.getTime(),
+      tokenExpiresAt,
       endpointConfiguration,
-      tokenExpirationTimeoutRef.current,
-      backendFailureTimeoutRef.current,
+      tokenExpirationTimeout,
+      backendFailureTimeout,
+      initialAuthEvents,
+      timeBeforeExpirationRefresh,
+      forceCheckAuthStorageAsync,
+      loginAsync,
+      logoutAsync,
+      refreshAsync,
+      setEndpointConfiguration,
+      subscribe,
     ]
   );
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>

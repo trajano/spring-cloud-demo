@@ -25,7 +25,8 @@ test('happy path from intial to authenticated to needs refresh then back to auth
   jest.setSystemTime(specimenTime);
 
   const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
-  const refresh = jest.fn(async () => {
+  const onRefreshError = jest.fn();
+  const refreshAsync = jest.fn(async () => {
     setAuthState(AuthState.AUTHENTICATED);
     return Promise.resolve();
   }) as jest.Mocked<() => Promise<void>>;
@@ -53,8 +54,9 @@ test('happy path from intial to authenticated to needs refresh then back to auth
     initialProps: {
       authState: AuthState.INITIAL,
       setAuthState,
-      tokenRefreshable: true,
-      refreshAsync: refresh,
+      backendReachable: true,
+      onRefreshError,
+      refreshAsync,
       notify,
     },
   });
@@ -77,8 +79,9 @@ test('happy path from intial to authenticated to needs refresh then back to auth
   rerenderNeedsRefresh({
     authState: AuthState.AUTHENTICATED,
     setAuthState,
-    tokenRefreshable: true,
-    refreshAsync: refresh,
+    onRefreshError,
+    backendReachable: true,
+    refreshAsync,
     notify,
   });
 
@@ -104,17 +107,18 @@ test('happy path from intial to authenticated to needs refresh then back to auth
   rerenderNeedsRefresh({
     authState: AuthState.NEEDS_REFRESH,
     setAuthState,
-    tokenRefreshable: true,
-    refreshAsync: refresh,
+    onRefreshError,
+    backendReachable: true,
+    refreshAsync,
     notify,
   });
   jest.advanceTimersByTime(60000);
-  expect(setAuthState).toBeCalledTimes(4);
+  expect(setAuthState).toBeCalledTimes(3);
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:03:50.000Z'));
 
   // update to new value
   tokenExpiresAt = new Date('2025-01-01T03:05:00Z');
-  expect(setAuthState).toBeCalledTimes(4);
+  expect(setAuthState).toBeCalledTimes(3);
   rerenderTokenExpirationTimeout({
     authState: AuthState.AUTHENTICATED,
     setAuthState,
@@ -127,11 +131,11 @@ test('happy path from intial to authenticated to needs refresh then back to auth
   expect(jest.getTimerCount()).toBe(1);
   jest.advanceTimersByTime(10000);
   jest.advanceTimersByTime(49999);
-  expect(setAuthState).toBeCalledTimes(4);
+  expect(setAuthState).toBeCalledTimes(3);
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:04:49.999Z'));
   act(() => jest.advanceTimersByTime(1));
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:04:50.000Z'));
-  expect(setAuthState).toBeCalledTimes(5);
+  expect(setAuthState).toBeCalledTimes(4);
   expect(setAuthState).toHaveBeenLastCalledWith(AuthState.NEEDS_REFRESH);
   expect(jest.getTimerCount()).toBe(0);
 });

@@ -1,6 +1,5 @@
-import { BASE_URL, TEXT_TEST } from '@env';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthProvider, buildSimpleEndpointConfiguration } from '@trajano/spring-docker-auth-context';
+import { TEXT_TEST } from '@env';
+import { AuthProvider } from '@trajano/spring-docker-auth-context';
 import 'expo-dev-client';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '../lib/native-unstyled/ThemeContext';
@@ -11,16 +10,14 @@ import * as IslandMoments from "@expo-google-fonts/island-moments";
 import * as Lexend from "@expo-google-fonts/lexend";
 import * as NotoSans from "@expo-google-fonts/noto-sans";
 import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { deactivateKeepAwake, ExpoKeepAwakeTag } from 'expo-keep-awake';
+import { lazy, Suspense, useEffect } from 'react';
 import { LogBox } from 'react-native';
-import { AuthenticatedEndpointConfiguration } from '../../navigation/login/types';
-import { LoadingScreen } from '../../screens/LoadingScreen';
-import { ActivityIndicator, StatusBar, View } from '../lib/native-unstyled';
-import { deactivateKeepAwake } from 'expo-keep-awake';
-import { AppProvider } from '../app-context';
-import { startNetworkLogging } from 'react-native-network-logger';
-import Constants from 'expo-constants';
 import { useExpoUpdateEffect } from '../../hooks/useExpoUpdateEffect';
+import { LoadingScreen } from '../../screens/LoadingScreen';
+import { AppProvider } from '../app-context';
+import { ActivityIndicator, StatusBar, View } from '../lib/native-unstyled';
+import { useStoredEndpointConfigurationEffect } from './useStoredEndpointConfigurationEffect';
 
 const TextTest = lazy(() => import('../../screens/TextTest'));
 const Navigation = lazy(() => import('../../navigation'))
@@ -29,38 +26,11 @@ LogBox.ignoreLogs([/^Could not find Fiber with id/]);
 function SuspenseView() { return <View flex={1} justifyContent="center" alignItems='center'><ActivityIndicator size='large' /></View> }
 export default function App() {
   useExpoUpdateEffect();
-  const [defaultEndpointConfiguration, setDefaultEndpointConfiguration] = useState<AuthenticatedEndpointConfiguration>(buildSimpleEndpointConfiguration(BASE_URL ?? "https://api.trajano.net/"));
-
+  const defaultEndpointConfiguration = useStoredEndpointConfigurationEffect();
   useEffect(() => {
-    let ignoredHosts: string[] = [];
-    if (__DEV__) {
-      try {
-        const launchHostUrlString = Constants.manifest2?.launchAsset?.url;
-        if (launchHostUrlString) {
-          const r =
-            /^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/.exec(
-              launchHostUrlString
-            );
-          if (r && r[4] && r[4].split(":")[0]) {
-            ignoredHosts = [r[4].split(":")[0]];
-          }
-        }
-      } catch (e: unknown) {
-        console.log(e);
-      }
-    }
-    startNetworkLogging({ ignoredHosts });
-
-  }, [])
-  useEffect(() => {
-    (async function () {
-      let configuration = await AsyncStorage.getItem("ENDPOINT_CONFIGURATION");
-      if (configuration) {
-        setDefaultEndpointConfiguration(JSON.parse(configuration));
-      }
-    })();
-    deactivateKeepAwake();
+    deactivateKeepAwake(ExpoKeepAwakeTag);
   }, []);
+
   return (
     <SafeAreaProvider>
       <AuthProvider defaultEndpointConfiguration={defaultEndpointConfiguration}>

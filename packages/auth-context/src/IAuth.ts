@@ -100,7 +100,12 @@ export interface IAuth<A = any> {
    * When the last check for authentication state using timer effect was done.
    */
   lastCheckAt: Date;
-
+  /**
+   * Authentication events that occured while the authstate was {@link AuthState.INITIAL}.
+   * This is provided as the {@link IAuth.subscribe} may not have been called yet to
+   * capture the logs.
+   */
+  initialAuthEvents: AuthEvent[];
   /**
    * Sets the endpoint configuration for the context.  This allows switching between backends.
    * @param next next endpoint configuration.

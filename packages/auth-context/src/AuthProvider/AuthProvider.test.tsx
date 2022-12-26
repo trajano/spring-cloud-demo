@@ -74,10 +74,10 @@ describe('with component', () => {
           onLoginFailure && onLoginFailure(e);
         }
       },
-      [loginAsync]
+      [loginAsync, onLoginFailure]
     );
     const handleLogout = useCallback(() => logoutAsync(), [logoutAsync]);
-    useEffect(() => subscribe(notifications), []);
+    useEffect(() => subscribe(notifications), [notifications, subscribe]);
     onRender && onRender();
     return (
       <>

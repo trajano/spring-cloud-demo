@@ -46,6 +46,9 @@ type LoggedInEvent = CommonAuthEvent & {
 type CheckRefreshEvent = CommonAuthEvent & {
   type: 'CheckRefresh';
   lastCheckTime?: Date;
+  /**
+   * @deprecated backendReachable
+   */
   tokenRefreshable?: boolean;
   tokenExpired?: boolean;
   tokenExpiresAt?: Date | null;
@@ -78,6 +81,7 @@ type TokenExpirationEvent = CommonAuthEvent & {
    * Net info state.
    */
   netInfoState?: NetInfoState;
+  error?: Error;
 };
 /**
  * This gets fired when there is a transition from authenticated to unauthenticated.  Or when the initial

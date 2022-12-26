@@ -4,9 +4,9 @@ import type { EndpointConfiguration } from './EndpointConfiguration';
 import type { OAuthToken } from './OAuthToken';
 
 export interface IAuthClient<A = any> {
-  authenticate(authenticationRequest: A): Promise<[OAuthToken, Response]>;
-  refresh(refreshToken: string): Promise<OAuthToken>;
-  revoke(refreshToken: string): Promise<void>;
+  authenticateAsync(authenticationRequest: A): Promise<[OAuthToken, Response]>;
+  refreshAsync(refreshToken: string): Promise<OAuthToken>;
+  revokeAsync(refreshToken: string): Promise<void>;
 }
 export class AuthClient<A = any> implements IAuthClient<A> {
   /**
@@ -43,10 +43,10 @@ export class AuthClient<A = any> implements IAuthClient<A> {
    * This also handles the responsibility of assembling the client error.
    * @param response response
    */
-  private async resolveJson(response: Response): Promise<A> {
+  private async resolveJson<X>(response: Response): Promise<X> {
     const responseBody = await response.text();
     try {
-      return JSON.parse(responseBody) as A;
+      return JSON.parse(responseBody) as X;
     } catch (e) {
       throw new AuthenticationClientError(
         response,
@@ -62,7 +62,7 @@ export class AuthClient<A = any> implements IAuthClient<A> {
    * @returns [ OAuthToken, Response ]
    * @throws AuthenticationClientError
    */
-  public async authenticate(
+  public async authenticateAsync(
     authenticationRequest: A
   ): Promise<[OAuthToken, Response]> {
     const response = await fetch(this.authorizationEndpoint, {
@@ -77,10 +77,10 @@ export class AuthClient<A = any> implements IAuthClient<A> {
     if (!response.ok) {
       throw new AuthenticationClientError(response, await response.text());
     }
-    return [await this.resolveJson(response), response];
+    return [await this.resolveJson<OAuthToken>(response), response];
   }
 
-  public async refresh(refreshToken: string): Promise<OAuthToken> {
+  public async refreshAsync(refreshToken: string): Promise<OAuthToken> {
     const response = await fetch(this.refreshEndpoint, {
       method: 'POST',
       headers: {
@@ -96,10 +96,10 @@ export class AuthClient<A = any> implements IAuthClient<A> {
     if (!response.ok) {
       throw new AuthenticationClientError(response, await response.text());
     }
-    return this.resolveJson(response);
+    return this.resolveJson<OAuthToken>(response);
   }
 
-  public async revoke(refreshToken: string) {
+  public async revokeAsync(refreshToken: string) {
     const response = await fetch(this.revocationEndpoint, {
       method: 'POST',
       headers: {

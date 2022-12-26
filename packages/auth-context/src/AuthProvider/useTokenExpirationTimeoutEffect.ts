@@ -1,4 +1,4 @@
-import { Dispatch, RefObject, SetStateAction, useEffect, useRef } from 'react';
+import { Dispatch, SetStateAction, useEffect, useRef } from 'react';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import { isTokenExpired } from './isTokenExpired';
@@ -18,11 +18,7 @@ export type TokenExpirationTimeoutEffectProps = {
  * @testonly
  */
 export type TokenExpirationTimeoutState = {
-  timeoutRef: RefObject<ReturnType<typeof setTimeout>>;
-  // will likely remove in the future, but keeping it here for debugging
-  lastCheckAt?: Date;
-  // will likely remove in the future, but keeping it here for debugging
-  nextCheckAt?: Date | null;
+  timeout: ReturnType<typeof setTimeout> | undefined;
 };
 /**
  * This sets up a timeout on AUTHENTICATED state that cycles every `maxTimeoutForRefreshCheck` ms or
@@ -87,6 +83,6 @@ export function useTokenExpirationTimeoutEffect({
     timeBeforeExpirationRefresh,
   ]);
   return {
-    timeoutRef: timeoutRef as RefObject<ReturnType<typeof setTimeout>>,
+    timeout: timeoutRef.current,
   };
 }

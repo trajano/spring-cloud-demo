@@ -68,7 +68,7 @@ test('mostly mocked', async () => {
   expect(setAuthState).toBeCalledTimes(0);
   let refresh = result.current;
 
-  authClient.refresh.mockResolvedValueOnce({
+  authClient.refreshAsync.mockResolvedValueOnce({
     access_token: 'newAccessToken',
     refresh_token: 'newRefreshToken',
     token_type: 'Bearer',
@@ -197,6 +197,7 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
   const authStorage = new AuthStore('auth', 'http://asdf.com/');
   const setOAuthToken = jest.fn();
   const setTokenExpiresAt = jest.fn();
+  const onRefreshError = jest.fn();
   const { result, rerender: rerenderRefreshCallback } = renderHook<
     RefreshCallbackProps<any>,
     () => Promise<void>
@@ -226,8 +227,9 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
     initialProps: {
       authState: AuthState.NEEDS_REFRESH,
       setAuthState,
-      tokenRefreshable: false,
+      backendReachable: false,
       notify,
+      onRefreshError,
       refreshAsync: result.current,
     },
   });
@@ -253,8 +255,9 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
   rerenderNeedsEffect({
     authState: AuthState.BACKEND_INACCESSIBLE,
     setAuthState,
-    tokenRefreshable: false,
+    backendReachable: false,
     notify,
+    onRefreshError,
     refreshAsync: result.current,
   });
 
@@ -279,8 +282,9 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
   rerenderNeedsEffect({
     authState: AuthState.BACKEND_INACCESSIBLE,
     setAuthState,
-    tokenRefreshable: true,
+    backendReachable: true,
     notify,
+    onRefreshError,
     refreshAsync: result.current,
   });
 
@@ -305,7 +309,7 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
   });
 
   // prep the response because the next effect will trigger
-  authClient.refresh.mockResolvedValueOnce({
+  authClient.refreshAsync.mockResolvedValueOnce({
     access_token: 'newAccessToken',
     refresh_token: 'newRefreshToken',
     token_type: 'Bearer',
@@ -318,60 +322,17 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
     rerenderNeedsEffect({
       authState: AuthState.NEEDS_REFRESH,
       setAuthState,
-      tokenRefreshable: true,
+      backendReachable: true,
       notify,
+      onRefreshError,
       refreshAsync: result.current,
     })
   );
 
   expect(setAuthState).toHaveBeenLastCalledWith(AuthState.REFRESHING);
-  await waitFor(() => expect(authClient.refresh).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect(authClient.refreshAsync).toHaveBeenCalledTimes(1));
   await waitFor(() =>
     expect(setAuthState).toHaveBeenLastCalledWith(AuthState.AUTHENTICATED)
   );
-});
-
-test('refreshing while refreshing', async () => {
-  const setAuthState = jest.fn() as jest.Mocked<
-    Dispatch<SetStateAction<AuthState>>
-  >;
-  const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
-  const netInfoState = {} as NetInfoState;
-  const authClient = jest.fn() as unknown as jest.Mocked<AuthClient<any>>;
-  const authStorage = jest.fn() as unknown as jest.Mocked<AuthStore>;
-  const setOAuthToken = jest.fn();
-  const setTokenExpiresAt = jest.fn();
-
-  const { result } = renderHook<RefreshCallbackProps<any>, () => Promise<void>>(
-    (props) => useRefreshCallback(props),
-    {
-      initialProps: {
-        authState: AuthState.REFRESHING,
-        setAuthState,
-        notify,
-        backendReachable: true,
-        authStorage,
-        netInfoState,
-        oauthToken: {
-          access_token: 'old',
-          expires_in: 23,
-          refresh_token: 'ref',
-          token_type: 'Bearer',
-        },
-        setOAuthToken,
-        setTokenExpiresAt,
-        authClient,
-      },
-    }
-  );
-  expect(setAuthState).toBeCalledTimes(0);
-  expect(notify).toBeCalledTimes(0);
-  let refresh = result.current;
-  await refresh();
-  expect(notify).toBeCalledTimes(1);
-  expect(notify).toBeCalledWith({
-    type: 'Refreshing',
-    reason: 'Already in progress',
-    authState: AuthState.REFRESHING,
-  });
+  expect(onRefreshError).toBeCalledTimes(0);
 });

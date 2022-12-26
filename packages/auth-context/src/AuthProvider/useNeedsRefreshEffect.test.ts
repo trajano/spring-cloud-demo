@@ -11,6 +11,7 @@ test('happy path with one cycle and updating all the way to needs refresh', () =
   const setAuthState = jest.fn() as jest.Mocked<
     Dispatch<SetStateAction<AuthState>>
   >;
+  const onRefreshError = jest.fn();
   const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
   const refresh = jest.fn(async () => {
     setAuthState(AuthState.AUTHENTICATED);
@@ -23,19 +24,19 @@ test('happy path with one cycle and updating all the way to needs refresh', () =
       initialProps: {
         authState: AuthState.NEEDS_REFRESH,
         setAuthState,
-        tokenRefreshable: true,
+        backendReachable: true,
         notify,
+        onRefreshError,
         refreshAsync: refresh,
       },
     }
   );
-  expect(setAuthState).toBeCalledTimes(2);
-  expect(setAuthState).toHaveBeenNthCalledWith(1, AuthState.REFRESHING);
-  expect(setAuthState).toHaveBeenNthCalledWith(2, AuthState.AUTHENTICATED);
+  expect(setAuthState).toHaveBeenLastCalledWith(AuthState.AUTHENTICATED);
   expect(refresh).toBeCalledTimes(1);
 });
 
 test('backend not accessible', () => {
+  const onRefreshError = jest.fn();
   const setAuthState = jest.fn() as jest.Mocked<
     Dispatch<SetStateAction<AuthState>>
   >;
@@ -51,7 +52,8 @@ test('backend not accessible', () => {
       initialProps: {
         authState: AuthState.NEEDS_REFRESH,
         setAuthState,
-        tokenRefreshable: false,
+        backendReachable: false,
+        onRefreshError,
         refreshAsync: refresh,
         notify,
       },
@@ -65,11 +67,12 @@ test('backend not accessible', () => {
   expect(refresh).toBeCalledTimes(0);
 });
 
-test('backend not accessible', () => {
+test('backend not accessible #2', () => {
   const setAuthState = jest.fn() as jest.Mocked<
     Dispatch<SetStateAction<AuthState>>
   >;
   const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
+  const onRefreshError = jest.fn();
   const refresh = jest.fn(async () => {
     setAuthState(AuthState.AUTHENTICATED);
     return Promise.resolve();
@@ -81,7 +84,8 @@ test('backend not accessible', () => {
       initialProps: {
         authState: AuthState.NEEDS_REFRESH,
         setAuthState,
-        tokenRefreshable: false,
+        onRefreshError,
+        backendReachable: false,
         refreshAsync: refresh,
         notify,
       },

@@ -1,4 +1,4 @@
-import { Dispatch, RefObject, SetStateAction, useEffect, useRef } from 'react';
+import { Dispatch, SetStateAction, useEffect, useRef } from 'react';
 
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
@@ -19,7 +19,7 @@ export type BackendFailureTimeoutProps = {
  * @testonly
  */
 export type BackendFailureTimeoutState = {
-  timeoutRef: RefObject<ReturnType<typeof setTimeout>>;
+  timeout: ReturnType<typeof setTimeout> | undefined;
 };
 /**
  * This sets up a timeout on BACKEND_FAILURE state that sets the state to NEEDS_REFRESH after
@@ -34,10 +34,16 @@ export function useBackendFailureTimeoutEffect({
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => {
     if (authState === AuthState.BACKEND_FAILURE) {
+      notify({
+        type: 'CheckRefresh',
+        authState,
+        reason: 'timeout for backend failure retry set',
+      });
       if (!timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = undefined;
       }
+      timeoutRef.current = undefined;
       timeoutRef.current = setTimeout(() => {
         setAuthState(AuthState.NEEDS_REFRESH);
         notify({
@@ -50,10 +56,15 @@ export function useBackendFailureTimeoutEffect({
     }
     return () => {
       if (timeoutRef.current) {
+        notify({
+          type: 'CheckRefresh',
+          authState,
+          reason: `timeout for backend failure being cleared`,
+        });
         clearTimeout(timeoutRef.current);
         timeoutRef.current = undefined;
       }
     };
-  }, [authState, backendFailureTimeout]);
-  return { timeoutRef: timeoutRef as RefObject<ReturnType<typeof setTimeout>> };
+  }, [authState, setAuthState, notify, backendFailureTimeout]);
+  return { timeout: timeoutRef.current };
 }

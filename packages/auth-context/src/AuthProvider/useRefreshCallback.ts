@@ -1,5 +1,5 @@
 import type { NetInfoState } from '@react-native-community/netinfo';
-import type { Dispatch, SetStateAction } from 'react';
+import { Dispatch, SetStateAction, useCallback, useRef } from 'react';
 import type { AuthClient } from '../AuthClient';
 import { AuthenticationClientError } from '../AuthenticationClientError';
 import type { AuthEvent } from '../AuthEvent';
@@ -41,95 +41,113 @@ export function useRefreshCallback<T>({
   backendReachable,
   netInfoState,
 }: RefreshCallbackProps<T>): () => Promise<void> {
-  async function refresh() {
-    if (authState === AuthState.REFRESHING) {
+  const refreshingRef = useRef(false);
+  const refreshAsync = useCallback(
+    async function refresh(reason: string = 'Requested') {
+      if (refreshingRef.current) {
+        notify({
+          type: 'Refreshing',
+          authState,
+          reason: 'Already in progress',
+        });
+        return;
+      }
+      refreshingRef.current = true;
+      setAuthState(AuthState.REFRESHING);
       notify({
         type: 'Refreshing',
         authState,
-        reason: 'Already in progress',
+        reason,
       });
-      return;
-    }
-    setAuthState(AuthState.REFRESHING);
-    notify({
-      type: 'Refreshing',
-      authState,
-      reason: 'Requested',
-    });
-    try {
-      if (!oauthToken) {
-        // refresh wat attempted when oauth token is not available. This may occur when the state is being
-        // resolved
-        setAuthState(AuthState.UNAUTHENTICATED);
-        notify({
-          type: 'Unauthenticated',
-          authState,
-          reason: 'Token data was lost while refreshing',
-        });
-      } else if (!backendReachable) {
-        // refresh was attempted when the backend is not available.  This may occur when refresh is forced.
-        setAuthState(AuthState.BACKEND_INACCESSIBLE);
-        notify({
-          type: 'TokenExpiration',
-          authState,
-          reason: 'Backend is not available and token refresh was requested',
-          netInfoState,
-        });
-      } else {
-        try {
-          const refreshedOAuthToken = await authClient.refresh(
-            oauthToken.refresh_token
-          );
-          const nextTokenExpiresAt =
-            await authStorage.storeOAuthTokenAndGetExpiresAtAsync(
-              refreshedOAuthToken
-            );
-          setOAuthToken(refreshedOAuthToken);
-          setTokenExpiresAt(nextTokenExpiresAt);
-          setAuthState(AuthState.AUTHENTICATED);
+      try {
+        if (!oauthToken) {
+          // refresh wat attempted when oauth token is not available. This may occur when the state is being
+          // resolved
+          setAuthState(AuthState.UNAUTHENTICATED);
           notify({
-            type: 'Authenticated',
-            reason: 'Refreshed',
+            type: 'Unauthenticated',
             authState,
-            accessToken: refreshedOAuthToken.access_token,
-            authorization: `Bearer ${refreshedOAuthToken.access_token}`,
-            tokenExpiresAt: nextTokenExpiresAt,
+            reason: 'Token data was lost while refreshing',
           });
-        } catch (e: unknown) {
-          if (e instanceof AuthenticationClientError && e.isUnauthorized()) {
-            await authStorage.clearAsync();
-            setOAuthToken(null);
-            setTokenExpiresAt(0);
-            setAuthState(AuthState.UNAUTHENTICATED);
+        } else if (!backendReachable) {
+          // refresh was attempted when the backend is not available.  This may occur when refresh is forced.
+          setAuthState(AuthState.BACKEND_INACCESSIBLE);
+          notify({
+            type: 'TokenExpiration',
+            authState,
+            reason: 'Backend is not available and token refresh was requested',
+            netInfoState,
+          });
+        } else {
+          try {
+            const refreshedOAuthToken = await authClient.refreshAsync(
+              oauthToken.refresh_token
+            );
+            const nextTokenExpiresAt =
+              await authStorage.storeOAuthTokenAndGetExpiresAtAsync(
+                refreshedOAuthToken
+              );
+            setOAuthToken(refreshedOAuthToken);
+            setTokenExpiresAt(nextTokenExpiresAt);
+            setAuthState(AuthState.AUTHENTICATED);
             notify({
-              type: 'Unauthenticated',
+              type: 'Authenticated',
+              reason: 'Refreshed',
               authState,
-              reason: e.message,
-              responseBody: e.responseBody,
+              accessToken: refreshedOAuthToken.access_token,
+              authorization: `Bearer ${refreshedOAuthToken.access_token}`,
+              tokenExpiresAt: nextTokenExpiresAt,
             });
-          } else if (
-            e instanceof AuthenticationClientError &&
-            !e.isUnauthorized()
-          ) {
-            // at this point there is an error but it's not something caused by the user so don't clear off the token
-            setAuthState(AuthState.BACKEND_FAILURE);
-            notify({
-              type: 'TokenExpiration',
-              authState,
-              reason: e.message,
-              responseBody: e.responseBody,
-              netInfoState,
-            });
-          } else {
-            console.error('unexpected exception ', e);
-            throw e;
+          } catch (e: unknown) {
+            if (e instanceof AuthenticationClientError && e.isUnauthorized()) {
+              await authStorage.clearAsync();
+              setOAuthToken(null);
+              setTokenExpiresAt(0);
+              setAuthState(AuthState.UNAUTHENTICATED);
+              notify({
+                type: 'Unauthenticated',
+                authState,
+                reason: e.message,
+                responseBody: e.responseBody,
+              });
+            } else if (
+              e instanceof AuthenticationClientError &&
+              !e.isUnauthorized()
+            ) {
+              // at this point there is an error but it's not something caused by the user so don't clear off the token
+              notify({
+                type: 'TokenExpiration',
+                authState,
+                reason: e.message,
+                responseBody: e.responseBody,
+                netInfoState,
+                error: e,
+              });
+              setAuthState(AuthState.BACKEND_FAILURE);
+            } else {
+              console.error('unexpected exception ', e);
+              throw e;
+            }
           }
         }
+      } finally {
+        // const { oauthToken, tokenExpiresAt } = updateFromStorage();
+        // some how make thi
+        refreshingRef.current = false;
       }
-    } finally {
-      // const { oauthToken, tokenExpiresAt } = updateFromStorage();
-      // some how make thi
-    }
-  }
-  return refresh;
+    },
+    [
+      authState,
+      notify,
+      authClient,
+      authStorage,
+      backendReachable,
+      netInfoState,
+      oauthToken,
+      setAuthState,
+      setOAuthToken,
+      setTokenExpiresAt,
+    ]
+  );
+  return refreshAsync;
 }

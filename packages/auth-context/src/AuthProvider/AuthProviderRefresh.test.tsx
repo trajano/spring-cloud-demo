@@ -5,6 +5,7 @@ import {
   cleanup,
   fireEvent,
   render,
+  screen,
   waitFor,
 } from '@testing-library/react-native';
 import fetchMock from 'fetch-mock';
@@ -45,10 +46,13 @@ function MyComponent({ notifications }: { notifications: () => void }) {
     backendReachable: tokenRefreshable,
     subscribe,
   } = useAuth();
-  useEffect(() => subscribe(notifications), []);
-  const doLogin = useCallback(async function doLogin() {
-    return login({ user: 'test' });
-  }, []);
+  useEffect(() => subscribe(notifications), [notifications, subscribe]);
+  const doLogin = useCallback(
+    async function doLogin() {
+      return login({ user: 'test' });
+    },
+    [login]
+  );
   return (
     <>
       <Text testID="hello">{AuthState[authState]}</Text>
@@ -71,33 +75,23 @@ it('Refresh two times', async () => {
   const notifications = jest.fn() as jest.Mock<() => void>;
   fetchMock
     .get('http://asdf.com/ping', { body: { ok: true } })
-    .post(
-      'http://asdf.com/auth',
-      new Promise((res) =>
-        setTimeout(res, 100, {
-          body: {
-            access_token: 'freshAccessToken',
-            refresh_token: 'RefreshToken',
-            token_type: 'Bearer',
-            expires_in: 600,
-          } as OAuthToken,
-        })
-      )
-    )
-    .postOnce(
-      'http://asdf.com/refresh',
-      new Promise((res) =>
-        setTimeout(res, 100, {
-          body: {
-            access_token: 'newAccessToken',
-            refresh_token: 'NotThePreviousRefreshToken',
-            token_type: 'Bearer',
-            expires_in: 600,
-          } as OAuthToken,
-        })
-      )
-    );
-  const { getByTestId, unmount } = render(
+    .post('http://asdf.com/auth', {
+      body: {
+        access_token: 'freshAccessToken',
+        refresh_token: 'RefreshToken',
+        token_type: 'Bearer',
+        expires_in: 600,
+      } as OAuthToken,
+    })
+    .postOnce('http://asdf.com/refresh', {
+      body: {
+        access_token: 'newAccessToken',
+        refresh_token: 'NotThePreviousRefreshToken',
+        token_type: 'Bearer',
+        expires_in: 600,
+      } as OAuthToken,
+    });
+  const { unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
         'http://asdf.com/'
@@ -113,9 +107,7 @@ it('Refresh two times', async () => {
   );
   notifications.mockClear();
 
-  act(() => {
-    fireEvent.press(getByTestId('login'));
-  });
+  fireEvent.press(screen.getByTestId('login'));
   await waitFor(() =>
     expect(notifications).toBeCalledWith(
       expect.objectContaining({
@@ -130,8 +122,10 @@ it('Refresh two times', async () => {
       accessToken: 'freshAccessToken',
     } as Partial<AuthEvent>)
   );
-  expect(getByTestId('accessToken')).toHaveTextContent('freshAccessToken');
-  expect(getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
+  expect(screen.getByTestId('accessToken')).toHaveTextContent(
+    'freshAccessToken'
+  );
+  expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
   notifications.mockClear();
 
   const tokenExpiresAt = new Date(
@@ -148,15 +142,16 @@ it('Refresh two times', async () => {
       authState: AuthState.AUTHENTICATED,
     } as Partial<AuthEvent>)
   );
+  expect(notifications).toBeCalledWith({
+    type: 'Refreshing',
+    authState: AuthState.NEEDS_REFRESH,
+    reason: 'from NeedsRefresh',
+  });
+  expect(screen.getByTestId('hello')).toHaveTextContent('REFRESHING');
   await waitFor(() =>
-    expect(getByTestId('hello')).toHaveTextContent('REFRESHING')
+    expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
   );
-  await waitFor(() =>
-    expect(getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
-  );
-  await waitFor(() =>
-    expect(getByTestId('accessToken')).toHaveTextContent('newAccessToken')
-  );
+  expect(screen.getByTestId('accessToken')).toHaveTextContent('newAccessToken');
 
   // do second refresh
   fetchMock.postOnce(
@@ -171,13 +166,15 @@ it('Refresh two times', async () => {
     },
     { overwriteRoutes: true }
   );
-  act(() => jest.runAllTimers());
-  await waitFor(() =>
-    expect(notifications).toBeCalledWith(
-      expect.objectContaining({
-        type: 'TokenExpiration',
-        authState: AuthState.AUTHENTICATED,
-      } as Partial<AuthEvent>)
+  notifications.mockClear();
+  const secondTokenExpiresAt = new Date(
+    (await AsyncStorage.getItem(
+      'auth.http://asdf.com/..tokenExpiresAt'
+    )) as string
+  );
+  act(() =>
+    jest.advanceTimersByTime(
+      secondTokenExpiresAt.getTime() - Date.now() - 10000
     )
   );
   await waitFor(() =>
@@ -188,9 +185,9 @@ it('Refresh two times', async () => {
       } as Partial<AuthEvent>)
     )
   );
-  await waitFor(() =>
-    expect(getByTestId('hello')).toHaveTextContent('REFRESHING')
-  );
+  // await waitFor(() =>
+  //   expect(screen.getByTestId('hello')).toHaveTextContent('REFRESHING')
+  // );
   await waitFor(() =>
     expect(notifications).toBeCalledWith(
       expect.objectContaining({
@@ -200,46 +197,42 @@ it('Refresh two times', async () => {
     )
   );
   await waitFor(() =>
-    expect(getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
+    expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
   );
   await waitFor(() =>
-    expect(getByTestId('accessToken')).toHaveTextContent(
+    expect(screen.getByTestId('accessToken')).toHaveTextContent(
       'newAccessTokenPartTwo'
     )
   );
   await waitFor(() =>
-    expect(getByTestId('authorization')).toHaveTextContent(
+    expect(screen.getByTestId('authorization')).toHaveTextContent(
       'Bearer newAccessTokenPartTwo'
     )
   );
-
-  expect(jest.getTimerCount()).toBe(1);
+  await waitFor(() => expect(jest.getTimerCount()).toBe(1));
   unmount();
   expect(jest.getTimerCount()).toBe(0);
 });
 
 it('Refresh 500 then successful', async () => {
   const notifications = jest.fn() as jest.Mock<() => void>;
-  fetchMock.get('http://asdf.com/ping', { body: { ok: true } }).post(
-    'http://asdf.com/auth',
-    new Promise((res) =>
-      setTimeout(res, 100, {
-        body: {
-          access_token: 'freshAccessToken',
-          refresh_token: 'RefreshToken',
-          token_type: 'Bearer',
-          expires_in: 600,
-        } as OAuthToken,
-      })
-    )
-  );
+  fetchMock
+    .get('http://asdf.com/ping', { body: { ok: true } })
+    .post('http://asdf.com/auth', {
+      body: {
+        access_token: 'freshAccessToken',
+        refresh_token: 'RefreshToken',
+        token_type: 'Bearer',
+        expires_in: 600,
+      } as OAuthToken,
+    });
 
   fetchMock.postOnce('http://asdf.com/refresh', {
     status: 500,
     body: { error: 'server_error' },
   });
 
-  const { getByTestId, unmount } = render(
+  const { unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
         'http://asdf.com/'
@@ -255,9 +248,7 @@ it('Refresh 500 then successful', async () => {
   );
   notifications.mockClear();
 
-  act(() => {
-    fireEvent.press(getByTestId('login'));
-  });
+  fireEvent.press(screen.getByTestId('login'));
   await waitFor(() =>
     expect(notifications).toBeCalledWith(
       expect.objectContaining({
@@ -272,8 +263,10 @@ it('Refresh 500 then successful', async () => {
       accessToken: 'freshAccessToken',
     } as Partial<AuthEvent>)
   );
-  expect(getByTestId('accessToken')).toHaveTextContent('freshAccessToken');
-  expect(getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
+  expect(screen.getByTestId('accessToken')).toHaveTextContent(
+    'freshAccessToken'
+  );
+  expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
   notifications.mockClear();
 
   const tokenExpiresAt = new Date(
@@ -291,11 +284,26 @@ it('Refresh 500 then successful', async () => {
     } as Partial<AuthEvent>)
   );
   await waitFor(() =>
-    expect(getByTestId('hello')).toHaveTextContent('REFRESHING')
+    expect(notifications).toBeCalledWith(
+      expect.objectContaining({
+        type: 'Refreshing',
+        reason: 'from NeedsRefresh',
+        authState: AuthState.NEEDS_REFRESH,
+      } as Partial<AuthEvent>)
+    )
   );
   await waitFor(() =>
-    expect(getByTestId('hello')).toHaveTextContent('BACKEND_FAILURE')
+    expect(screen.getByTestId('hello')).toHaveTextContent('REFRESHING')
   );
+  await waitFor(() =>
+    expect(screen.getByTestId('hello')).toHaveTextContent('BACKEND_FAILURE')
+  );
+  // expect(notifications).toBeCalledWith(
+  //   expect.objectContaining({
+  //     type: 'CheckRefresh',
+  //     authState: AuthState.BACKEND_FAILURE,
+  //   } as Partial<AuthEvent>)
+  // );
 
   // do second refresh
   fetchMock.postOnce(
@@ -310,39 +318,67 @@ it('Refresh 500 then successful', async () => {
     },
     { overwriteRoutes: true }
   );
-  act(() => jest.runAllTimers());
-  await waitFor(() =>
-    expect(notifications).toBeCalledWith(
-      expect.objectContaining({
-        type: 'TokenExpiration',
-        authState: AuthState.AUTHENTICATED,
-      } as Partial<AuthEvent>)
-    )
+  await waitFor(
+    () =>
+      expect(notifications).toBeCalledWith(
+        expect.objectContaining({
+          type: 'CheckRefresh',
+          authState: AuthState.BACKEND_FAILURE,
+          reason: 'timeout for backend failure retry set',
+        } as Partial<AuthEvent>)
+      ),
+    {
+      onTimeout(e) {
+        console.log(notifications.mock.calls);
+        throw e;
+      },
+    }
   );
+  notifications.mockClear();
+  act(() => jest.runAllTimers());
   await waitFor(() =>
     expect(notifications).toBeCalledWith(
       expect.objectContaining({
         type: 'Refreshing',
         authState: AuthState.NEEDS_REFRESH,
+        reason: 'from NeedsRefresh',
       } as Partial<AuthEvent>)
     )
   );
   await waitFor(() =>
-    expect(getByTestId('hello')).toHaveTextContent('REFRESHING')
+    expect(screen.getByTestId('hello')).toHaveTextContent('REFRESHING')
+  );
+  await waitFor(
+    () =>
+      expect(notifications).toBeCalledWith(
+        expect.objectContaining({
+          type: 'Authenticated',
+          accessToken: 'newAccessTokenPartTwo',
+        } as Partial<AuthEvent>)
+      ),
+    {
+      onTimeout(e) {
+        console.log(notifications.mock.calls);
+        throw e;
+      },
+    }
   );
   await waitFor(() =>
-    expect(notifications).toBeCalledWith(
-      expect.objectContaining({
-        type: 'Authenticated',
-        accessToken: 'newAccessTokenPartTwo',
-      } as Partial<AuthEvent>)
-    )
-  );
-  await waitFor(() =>
-    expect(getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
+    expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
   );
 
-  expect(jest.getTimerCount()).toBe(1);
+  await waitFor(
+    () => {
+      expect(jest.getTimerCount()).toBe(1);
+    },
+    {
+      onTimeout(e) {
+        console.log(notifications.mock.calls);
+        throw e;
+      },
+    }
+  );
+
   unmount();
   expect(jest.getTimerCount()).toBe(0);
 });
@@ -384,9 +420,7 @@ it('Refresh fail with 401', async () => {
   );
   notifications.mockClear();
 
-  act(() => {
-    fireEvent.press(getByTestId('login'));
-  });
+  fireEvent.press(screen.getByTestId('login'));
   await waitFor(() =>
     expect(notifications).toBeCalledWith(
       expect.objectContaining({

@@ -12,41 +12,47 @@ export type NeedsRefreshEffectProps = {
   /**
    * Indicates that the token is refreshable from the device.
    */
-  tokenRefreshable: boolean;
-  refreshAsync: () => Promise<void>;
+  backendReachable: boolean;
+  refreshAsync: (reason?: string) => Promise<void>;
   /**
    * called when there is a refresh error.  by default it simply logs to console.error
    * Technically should never get here since the failure states are already done in refresh()
    * @param reason exception thrown by refresh
    */
-  onRefreshError?: (reason: unknown) => void;
+  onRefreshError: (reason: unknown) => void;
 };
 export function useNeedsRefreshEffect({
   authState,
   setAuthState,
   notify,
-  tokenRefreshable,
+  backendReachable,
   refreshAsync,
-  onRefreshError = (reason) => console.error(reason),
+  onRefreshError,
 }: NeedsRefreshEffectProps) {
   useEffect(() => {
     notify({
       type: 'CheckRefresh',
       authState,
       reason: 'useNeedsRefreshEffect dependency update',
-      tokenRefreshable,
+      backendReachable,
     });
     if (authState === AuthState.NEEDS_REFRESH) {
-      if (tokenRefreshable) {
-        setAuthState(AuthState.REFRESHING);
-        refreshAsync().catch(onRefreshError);
+      if (backendReachable) {
+        refreshAsync('from NeedsRefresh').catch(onRefreshError);
       } else {
         setAuthState(AuthState.BACKEND_INACCESSIBLE);
       }
     } else if (authState === AuthState.BACKEND_INACCESSIBLE) {
-      if (tokenRefreshable) {
+      if (backendReachable) {
         setAuthState(AuthState.NEEDS_REFRESH);
       }
     }
-  }, [authState, tokenRefreshable]);
+  }, [
+    authState,
+    setAuthState,
+    notify,
+    onRefreshError,
+    refreshAsync,
+    backendReachable,
+  ]);
 }

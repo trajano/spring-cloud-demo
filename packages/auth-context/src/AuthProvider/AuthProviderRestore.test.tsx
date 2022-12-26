@@ -48,10 +48,13 @@ function MyComponent({ notifications }: { notifications: () => void }) {
     backendReachable,
     subscribe,
   } = useAuth();
-  const doLogin = useCallback(async function doLogin() {
-    return login({ user: 'test' });
-  }, []);
-  useEffect(() => subscribe(notifications), []);
+  const doLogin = useCallback(
+    async function doLogin() {
+      return login({ user: 'test' });
+    },
+    [login]
+  );
+  useEffect(() => subscribe(notifications), [notifications, subscribe]);
   return (
     <>
       <Text testID="hello">{AuthState[authState]}</Text>
@@ -160,7 +163,7 @@ it('Restore saved not expired', async () => {
   expect(getByTestId('accessTokenExpiresOn')).toHaveTextContent(
     addMilliseconds(specimenInstant, 600000).toISOString()
   );
-  expect(jest.getTimerCount()).toBe(1);
+  await waitFor(() => expect(jest.getTimerCount()).toBe(1));
   unmount();
   expect(jest.getTimerCount()).toBe(0);
 });
@@ -221,7 +224,6 @@ it('Restore saved expired', async () => {
       expect.objectContaining({ type: 'Authenticated' } as Partial<AuthEvent>)
     )
   );
-  expect(jest.getTimerCount()).toBe(1);
   await waitFor(() =>
     expect(getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
   );
@@ -287,7 +289,6 @@ it('Restore saved expired but broken token response', async () => {
       } as Partial<AuthEvent>)
     )
   );
-  expect(jest.getTimerCount()).toBe(1);
   await waitFor(() =>
     expect(getByTestId('hello')).toHaveTextContent('BACKEND_FAILURE')
   );
@@ -348,7 +349,6 @@ it('Restore saved expired but 500 refresh response', async () => {
       } as Partial<AuthEvent>)
     )
   );
-  expect(jest.getTimerCount()).toBe(1);
   await waitFor(() =>
     expect(getByTestId('hello')).toHaveTextContent('BACKEND_FAILURE')
   );
@@ -377,10 +377,9 @@ it('Restore saved expired but error refresh response', async () => {
   expect(await authStore.isExpired()).toBeTruthy();
 
   const notifications = jest.fn() as jest.Mock<() => void>;
-  fetchMock.config.Response = global.Response;
   fetchMock
     .get('http://asdf.com/ping', { body: { ok: true } })
-    .post('http://asdf.com/refresh', global.Response.error());
+    .post('http://asdf.com/refresh', { status: 1 });
   const { unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
@@ -406,11 +405,10 @@ it('Restore saved expired but error refresh response', async () => {
     expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'TokenExpiration',
-        reason: 'HTTP Error 0',
+        reason: 'HTTP Error 1',
       } as Partial<AuthEvent>)
     )
   );
-  expect(jest.getTimerCount()).toBe(1);
   await waitFor(() =>
     expect(screen.getByTestId('hello')).toHaveTextContent('BACKEND_FAILURE')
   );
