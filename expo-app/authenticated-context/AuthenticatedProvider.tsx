@@ -1,4 +1,4 @@
-import { useAsyncSetEffect, useMounted } from "@trajano/react-hooks";
+import { useAsyncSetEffect, useDeepState, useMounted } from "@trajano/react-hooks";
 import { useAuth } from "@trajano/spring-docker-auth-context";
 import { UpdateEvent } from "expo-updates";
 import { PropsWithChildren, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
@@ -33,7 +33,7 @@ type AuthenticatedProviderProps = PropsWithChildren<{
 export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoami/", verifyClaims = true, children }: AuthenticatedProviderProps) {
 
     const { baseUrl, accessToken, authorization } = useAuth();
-    const [claims, setClaims] = useState<JwtClaims>();
+    const [claims, setClaims] = useDeepState<JwtClaims | undefined>();
     const isMounted = useMounted();
     const username = useMemo(() => claims?.sub ?? "", [claims]);
     const verified = useMemo(() => !!claims, [claims]);
@@ -43,7 +43,7 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
     const { loaded: dbLoaded, db } = useDb("mydb");
 
     const [internalState, updateInternalStateFromServerSentEvent] = useReducer((state: string[], nextEvent: string) => { return [...state, nextEvent].slice(-5) }, [])
-    useAsyncSetEffect(
+    const verifyToken = useCallback(
         async function verifyToken() {
             if (!verifyClaims) {
                 return undefined;
@@ -57,9 +57,11 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
                 return Promise.resolve(undefined);
             }
         },
-        (nextClaims) => {
-            setClaims(nextClaims);
-        });
+        [verifyClaims, jwtVerify, accessToken, baseUrl, issuer, clientId])
+
+    useAsyncSetEffect(
+        verifyToken,
+        setClaims, []);
 
     useEffect(() => {
         // this should be refactored to it's own file to provide the data stream
