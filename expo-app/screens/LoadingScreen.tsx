@@ -29,7 +29,7 @@ export function LoadingScreen({ loadedAssets, totalAssets, additionalResourceUpd
   const [fromTimeout, setFromTimeout] = useState(0);
   const [fromExpoUpdate, setFromExpoUpdate] = useState(0);
   const [fromAnimationFinish, setAnimationFinish] = useState(0);
-  useTimeoutEffect(() => setFromTimeout(1), 2000, []);
+  useTimeoutEffect(() => setFromTimeout(1), 2000);
   useEffect(() => {
     (async () => {
       try {
@@ -42,7 +42,7 @@ export function LoadingScreen({ loadedAssets, totalAssets, additionalResourceUpd
         setFromExpoUpdate(1);
 
       }
-    })
+    })();
     if (additionalResourceUpdate) {
       if (fromTimeout === 1 && fromExpoUpdate === 0) {
         // timeout guards against the check for update async going awry

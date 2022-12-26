@@ -59,7 +59,7 @@ export function AuthenticatedProvider({ clientId, issuer, whoAmIEndpoint = "whoa
         },
         (nextClaims) => {
             setClaims(nextClaims);
-        }, [accessToken, verifyClaims]);
+        });
 
     useEffect(() => {
         // this should be refactored to it's own file to provide the data stream

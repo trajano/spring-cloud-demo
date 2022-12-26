@@ -200,8 +200,8 @@ export function ThemeProvider({ children,
         ({ nextInitialAssetsLoaded, nextColorScheme }) => {
             setInitialAssetsLoaded(nextInitialAssetsLoaded);
             setColorScheme(nextColorScheme);
-        },
-        []);
+        }
+    );
     const colors = useMemo(() => colorSchemeColors[colorScheme], [colorSchemeColors, colorScheme])
     const reactNavigationTheme: ReactNavigationTheme = useMemo(() => ({
         dark: colorScheme === "dark",
