@@ -1,5 +1,9 @@
 export class AuthenticationClientError extends Error {
-  constructor(public response: Response, public responseBody: string, message?: string) {
+  constructor(
+    public response: Response,
+    public responseBody: string,
+    message?: string
+  ) {
     super(message ?? `HTTP Error ${response.status}`);
   }
   public readonly isAuthenticationClientError = true;

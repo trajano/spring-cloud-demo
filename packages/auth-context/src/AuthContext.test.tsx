@@ -8,9 +8,9 @@ import { useAuth } from './useAuth';
 afterEach(cleanup);
 beforeEach(() => {
   jest.useFakeTimers({ advanceTimers: true });
-})
+});
 
-it("default context values", async () => {
+it('default context values', async () => {
   function MyComponent() {
     const auth = useAuth();
     const [login, setLogin] = useState(false);
@@ -19,43 +19,54 @@ it("default context values", async () => {
     const [subscribe, setSubscribe] = useState(false);
     useEffect(() => {
       (async () => {
-        try { await auth.loginAsync({ a: "b" }) }
-        catch (e) {
-          setLogin(true)
+        try {
+          await auth.loginAsync({ a: 'b' });
+        } catch (e) {
+          setLogin(true);
         }
-        try { await auth.refreshAsync() }
-        catch (e) {
-          setRefresh(true)
+        try {
+          await auth.refreshAsync();
+        } catch (e) {
+          setRefresh(true);
         }
 
         await auth.logoutAsync();
-        setLogout(true)
+        setLogout(true);
 
         await auth.forceCheckAuthStorageAsync();
 
         auth.subscribe(jest.fn())();
-        setSubscribe(true)
+        setSubscribe(true);
         auth.setEndpointConfiguration({} as EndpointConfiguration);
       })();
-    }, [])
-    return (<View>
-      <Text testID='hello'>{AuthState[auth.authState]}</Text>
-      <Text testID='login'>{login ? "login" : ""}</Text>
-      <Text testID='refresh'>{refresh ? "refresh" : ""}</Text>
-      <Text testID='logout'>{logout ? "logout" : ""}</Text>
-      <Text testID='subscribe'>{subscribe ? "subscribe" : ""}</Text>
-    </View>)
+    }, [auth]);
+    return (
+      <View>
+        <Text testID="hello">{AuthState[auth.authState]}</Text>
+        <Text testID="login">{login ? 'login' : ''}</Text>
+        <Text testID="refresh">{refresh ? 'refresh' : ''}</Text>
+        <Text testID="logout">{logout ? 'logout' : ''}</Text>
+        <Text testID="subscribe">{subscribe ? 'subscribe' : ''}</Text>
+      </View>
+    );
   }
 
-  const { getByTestId } = render(<MyComponent />)
+  const { getByTestId } = render(<MyComponent />);
   act(() => jest.runAllTicks());
-  expect(getByTestId("hello")).toHaveTextContent("INITIAL");
-  await waitFor(() => { expect(getByTestId("login")).toHaveTextContent("login"); })
-  await waitFor(() => { expect(getByTestId("refresh")).toHaveTextContent("refresh"); })
-  await waitFor(() => { expect(getByTestId("logout")).toHaveTextContent("logout"); })
-  await waitFor(() => { expect(getByTestId("subscribe")).toHaveTextContent("subscribe"); })
-
-})
+  expect(getByTestId('hello')).toHaveTextContent('INITIAL');
+  await waitFor(() => {
+    expect(getByTestId('login')).toHaveTextContent('login');
+  });
+  await waitFor(() => {
+    expect(getByTestId('refresh')).toHaveTextContent('refresh');
+  });
+  await waitFor(() => {
+    expect(getByTestId('logout')).toHaveTextContent('logout');
+  });
+  await waitFor(() => {
+    expect(getByTestId('subscribe')).toHaveTextContent('subscribe');
+  });
+});
 afterEach(() => {
   jest.useRealTimers();
-})
+});

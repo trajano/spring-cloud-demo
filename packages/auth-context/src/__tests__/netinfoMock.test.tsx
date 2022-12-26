@@ -1,8 +1,12 @@
 import NetInfo, {
-  NetInfoStateType, NetInfoState
+  NetInfoStateType,
+  NetInfoState,
 } from '@react-native-community/netinfo';
-import { setConnectionState, resetConnectionState } from '../__mocks__/@react-native-community/netinfo'
-it("work closely to the real thing", async () => {
+import {
+  setConnectionState,
+  resetConnectionState,
+} from '../__mocks__/@react-native-community/netinfo';
+it('work closely to the real thing', async () => {
   const c = await NetInfo.fetch();
   expect(c.isInternetReachable).toBeTruthy();
   const mysub = jest.fn();
@@ -24,7 +28,7 @@ it("work closely to the real thing", async () => {
       txLinkSpeed: null,
     },
   };
-  setConnectionState(newState)
+  setConnectionState(newState);
   const cz = await NetInfo.fetch();
   expect(cz.isInternetReachable).toBeFalsy();
   expect(mysub).toBeCalledWith(newState);
@@ -32,4 +36,4 @@ it("work closely to the real thing", async () => {
   resetConnectionState();
   const cy = await NetInfo.fetch();
   expect(cy.isInternetReachable).toBeTruthy();
-})
+});

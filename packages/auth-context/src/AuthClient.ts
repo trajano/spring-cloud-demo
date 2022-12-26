@@ -43,7 +43,7 @@ export class AuthClient<A = any> implements IAuthClient<A> {
    * This also handles the responsibility of assembling the client error.
    * @param response response
    */
-  private async resolveJson<A>(response: Response): Promise<A> {
+  private async resolveJson(response: Response): Promise<A> {
     const responseBody = await response.text();
     try {
       return JSON.parse(responseBody) as A;

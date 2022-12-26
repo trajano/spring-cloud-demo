@@ -111,7 +111,15 @@ export function useRenderOnTokenEvent({
         });
       }
     }
-  }, [backendReachable]);
+  }, [
+    authState,
+    setAuthState,
+    notify,
+    oauthToken,
+    timeBeforeExpirationRefresh,
+    tokenExpiresAt,
+    backendReachable,
+  ]);
 
   return {
     backendReachable,

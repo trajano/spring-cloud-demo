@@ -1,8 +1,8 @@
 import noop from 'lodash/noop';
-import { createContext } from "react";
-import { AuthState } from "./AuthState";
-import { buildSimpleEndpointConfiguration } from "./buildSimpleEndpointConfiguration";
-import type { IAuth } from "./IAuth";
+import { createContext } from 'react';
+import { AuthState } from './AuthState';
+import { buildSimpleEndpointConfiguration } from './buildSimpleEndpointConfiguration';
+import type { IAuth } from './IAuth';
 
 export const AuthContext = createContext<IAuth>({
   loginAsync: () => Promise.reject(),
@@ -17,8 +17,8 @@ export const AuthContext = createContext<IAuth>({
   oauthToken: null,
   authorization: null,
   authState: AuthState.INITIAL,
-  endpointConfiguration: buildSimpleEndpointConfiguration("http://undefined/"),
-  baseUrl: "http://undefined/",
+  endpointConfiguration: buildSimpleEndpointConfiguration('http://undefined/'),
+  baseUrl: 'http://undefined/',
   backendReachable: false,
   lastCheckAt: new Date(),
 });

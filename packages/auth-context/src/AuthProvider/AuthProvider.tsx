@@ -1,21 +1,27 @@
 import { useDateState, useDeepState } from '@trajano/react-hooks';
-import React, { PropsWithChildren, ReactElement, useMemo, useRef, useState } from "react";
-import { AuthClient } from "../AuthClient";
-import { AuthContext } from "../AuthContext";
-import { AuthenticationClientError } from "../AuthenticationClientError";
-import type { AuthEvent } from "../AuthEvent";
-import { AuthState } from "../AuthState";
-import { AuthStore, IAuthStore } from "../AuthStore";
-import type { EndpointConfiguration } from "../EndpointConfiguration";
-import type { IAuth } from "../IAuth";
-import type { OAuthToken } from "../OAuthToken";
-import { isTokenExpired } from "./isTokenExpired";
-import { useBackendFailureTimeoutEffect } from "./useBackendFailureTimeoutEffect";
-import { useInitialAuthStateEffect } from "./useInitialAuthStateEffect";
-import { useNeedsRefreshEffect } from "./useNeedsRefreshEffect";
-import { useRefreshCallback } from "./useRefreshCallback";
+import React, {
+  PropsWithChildren,
+  ReactElement,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { AuthClient } from '../AuthClient';
+import { AuthContext } from '../AuthContext';
+import { AuthenticationClientError } from '../AuthenticationClientError';
+import type { AuthEvent } from '../AuthEvent';
+import { AuthState } from '../AuthState';
+import { AuthStore, IAuthStore } from '../AuthStore';
+import type { EndpointConfiguration } from '../EndpointConfiguration';
+import type { IAuth } from '../IAuth';
+import type { OAuthToken } from '../OAuthToken';
+import { isTokenExpired } from './isTokenExpired';
+import { useBackendFailureTimeoutEffect } from './useBackendFailureTimeoutEffect';
+import { useInitialAuthStateEffect } from './useInitialAuthStateEffect';
+import { useNeedsRefreshEffect } from './useNeedsRefreshEffect';
+import { useRefreshCallback } from './useRefreshCallback';
 import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
-import { useTokenExpirationTimeoutEffect } from "./useTokenExpirationTimeoutEffect";
+import { useTokenExpirationTimeoutEffect } from './useTokenExpirationTimeoutEffect';
 
 type AuthContextProviderProps = PropsWithChildren<{
   /**
@@ -48,11 +54,12 @@ export function AuthProvider<A = any>({
   defaultEndpointConfiguration,
   children,
   timeBeforeExpirationRefresh = 10000,
-  storagePrefix = "auth",
-  authStorage: inAuthStorage
+  storagePrefix = 'auth',
+  authStorage: inAuthStorage,
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
-
-  const [endpointConfiguration, setEndpointConfiguration] = useState(defaultEndpointConfiguration);
+  const [endpointConfiguration, setEndpointConfiguration] = useState(
+    defaultEndpointConfiguration
+  );
   const authClient = useMemo(
     () => new AuthClient<A>(endpointConfiguration),
     [endpointConfiguration]
@@ -62,7 +69,9 @@ export function AuthProvider<A = any>({
    * Auth storage.  If inAuthStorage is provided it will use that otherwise it will create a new one.
    */
   const authStorage = useMemo(
-    () => inAuthStorage ?? new AuthStore(storagePrefix, endpointConfiguration.baseUrl),
+    () =>
+      inAuthStorage ??
+      new AuthStore(storagePrefix, endpointConfiguration.baseUrl),
     [endpointConfiguration.baseUrl, inAuthStorage]
   );
 
@@ -98,30 +107,30 @@ export function AuthProvider<A = any>({
     endpointConfiguration,
   });
 
-  const {
-    timeoutRef: tokenExpirationTimeoutRef,
-  } = useTokenExpirationTimeoutEffect({
-    authState,
-    setAuthState,
-    maxTimeoutForRefreshCheck: 60000,
-    timeBeforeExpirationRefresh,
-    tokenExpiresAt,
-    notify,
-  });
+  const { timeoutRef: tokenExpirationTimeoutRef } =
+    useTokenExpirationTimeoutEffect({
+      authState,
+      setAuthState,
+      maxTimeoutForRefreshCheck: 60000,
+      timeBeforeExpirationRefresh,
+      tokenExpiresAt,
+      notify,
+    });
 
-  const { timeoutRef: backendFailureTimeoutRef } = useBackendFailureTimeoutEffect({
-    authState,
-    setAuthState,
-    notify,
-    backendFailureTimeout: 60000,
-  });
+  const { timeoutRef: backendFailureTimeoutRef } =
+    useBackendFailureTimeoutEffect({
+      authState,
+      setAuthState,
+      notify,
+      backendFailureTimeout: 60000,
+    });
 
   function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
     return () =>
-      subscribersRef.current = subscribersRef.current.filter(
+      (subscribersRef.current = subscribersRef.current.filter(
         (subscription) => !Object.is(subscription, fn)
-      );
+      ));
   }
 
   /**
@@ -146,33 +155,30 @@ export function AuthProvider<A = any>({
   }
 
   async function loginAsync(authenticationCredentials: A): Promise<Response> {
-
     try {
-      const [nextOauthToken, authenticationResponse] = await authClient.authenticate(
-        authenticationCredentials
-      );
-      const nextTokenExpiresAt = await authStorage.storeOAuthTokenAndGetExpiresAtAsync(
-        nextOauthToken
-      );
+      const [nextOauthToken, authenticationResponse] =
+        await authClient.authenticate(authenticationCredentials);
+      const nextTokenExpiresAt =
+        await authStorage.storeOAuthTokenAndGetExpiresAtAsync(nextOauthToken);
       setOAuthToken(nextOauthToken);
       setTokenExpiresAt(nextTokenExpiresAt);
       setAuthState(AuthState.AUTHENTICATED);
       notify({
-        type: "LoggedIn",
-        reason: "Logged with credentials",
+        type: 'LoggedIn',
+        reason: 'Logged with credentials',
         authState,
         accessToken: nextOauthToken.access_token,
         authorization: `Bearer ${nextOauthToken.access_token}`,
-        tokenExpiresAt: nextTokenExpiresAt
-      })
+        tokenExpiresAt: nextTokenExpiresAt,
+      });
       notify({
-        type: "Authenticated",
-        reason: "Login",
+        type: 'Authenticated',
+        reason: 'Login',
         authState,
         accessToken: nextOauthToken.access_token,
         authorization: `Bearer ${nextOauthToken.access_token}`,
-        tokenExpiresAt: nextTokenExpiresAt
-      })
+        tokenExpiresAt: nextTokenExpiresAt,
+      });
       return authenticationResponse;
     } catch (e: unknown) {
       if (e instanceof AuthenticationClientError) {
@@ -203,13 +209,13 @@ export function AuthProvider<A = any>({
       setTokenExpiresAt(0);
       setAuthState(AuthState.UNAUTHENTICATED);
       notify({
-        type: "LoggedOut",
+        type: 'LoggedOut',
         authState,
       });
       notify({
-        type: "Unauthenticated",
+        type: 'Unauthenticated',
         authState,
-        reason: "Logged out"
+        reason: 'Logged out',
       });
     }
   }
@@ -224,8 +230,8 @@ export function AuthProvider<A = any>({
     setTokenExpiresAt,
     authClient,
     netInfoState,
-    backendReachable
-  })
+    backendReachable,
+  });
 
   useInitialAuthStateEffect({
     authState,
@@ -248,8 +254,15 @@ export function AuthProvider<A = any>({
   const contextValue: IAuth = useMemo(
     () => ({
       accessToken: oauthToken?.access_token ?? null,
-      accessTokenExpired: isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh),
-      authorization: (!isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) && !!oauthToken) ? `Bearer ${oauthToken?.access_token}` : null,
+      accessTokenExpired: isTokenExpired(
+        tokenExpiresAt,
+        timeBeforeExpirationRefresh
+      ),
+      authorization:
+        !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&
+        !!oauthToken
+          ? `Bearer ${oauthToken?.access_token}`
+          : null,
       authState,
       backendReachable,
       baseUrl: endpointConfiguration.baseUrl,
@@ -276,5 +289,7 @@ export function AuthProvider<A = any>({
     ]
   );
 
-  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+  );
 }

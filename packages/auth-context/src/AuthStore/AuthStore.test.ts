@@ -20,12 +20,12 @@ it('should construct and store', async () => {
     expires_in: 423,
   });
 
-  expect((await authStorage.getTokenExpiresAtAsync()).getTime()).toBeLessThanOrEqual(
-    Date.now() + 423 * 1000
-  );
-  expect((await authStorage.getTokenExpiresAtAsync()).getTime()).toBeGreaterThan(
-    Date.now()
-  );
+  expect(
+    (await authStorage.getTokenExpiresAtAsync()).getTime()
+  ).toBeLessThanOrEqual(Date.now() + 423 * 1000);
+  expect(
+    (await authStorage.getTokenExpiresAtAsync()).getTime()
+  ).toBeGreaterThan(Date.now());
 
   jest.advanceTimersByTime(423 * 1000 - 1);
   expect(await authStorage.isExpired()).toBe(false);

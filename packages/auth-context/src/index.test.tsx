@@ -1,6 +1,6 @@
-export {}
+export {};
 describe('ExampleComponent', () => {
   it('is truthy', () => {
-    expect(true).toBeTruthy()
-  })
-})
+    expect(true).toBeTruthy();
+  });
+});

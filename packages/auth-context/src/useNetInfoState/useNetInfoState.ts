@@ -51,7 +51,7 @@ export function useNetInfoState(
         onNetInfoUnsubscribe && onNetInfoUnsubscribe();
       };
     },
-    [endpointConfiguration]
+    [endpointConfiguration, onNetInfoUnsubscribe]
   );
   return netInfoState;
 }

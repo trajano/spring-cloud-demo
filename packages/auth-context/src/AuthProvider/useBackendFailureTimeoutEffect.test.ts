@@ -5,7 +5,7 @@ import { AuthState } from '../AuthState';
 import {
   BackendFailureTimeoutProps,
   BackendFailureTimeoutState,
-  useBackendFailureTimeoutEffect
+  useBackendFailureTimeoutEffect,
 } from './useBackendFailureTimeoutEffect';
 beforeEach(() => {
   jest.useFakeTimers({ advanceTimers: true });

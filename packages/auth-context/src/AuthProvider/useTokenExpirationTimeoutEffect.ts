@@ -80,6 +80,8 @@ export function useTokenExpirationTimeoutEffect({
     };
   }, [
     authState,
+    setAuthState,
+    notify,
     tokenExpiresAt,
     maxTimeoutForRefreshCheck,
     timeBeforeExpirationRefresh,
