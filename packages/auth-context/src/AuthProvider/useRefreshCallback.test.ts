@@ -48,25 +48,25 @@ test('mostly mocked', async () => {
     new AuthClient(buildSimpleEndpointConfiguration('http://asdf.com/'))
   );
   const authStorage = new AuthStore('auth', 'http://asdf.com/');
-  const { result } = renderHook<RefreshCallbackProps<any>, () => Promise<void>>(
-    (props) => useRefreshCallback(props),
-    {
-      initialProps: {
-        authState: AuthState.NEEDS_REFRESH,
-        setAuthState,
-        notify,
-        backendReachable: true,
-        authStorage,
-        netInfoState,
-        oauthToken: oldAccessToken,
-        authClient,
-        setOAuthToken,
-        setTokenExpiresAt,
-      },
-    }
-  );
+  const { result } = renderHook<
+    RefreshCallbackProps<unknown>,
+    () => Promise<void>
+  >((props) => useRefreshCallback(props), {
+    initialProps: {
+      authState: AuthState.NEEDS_REFRESH,
+      setAuthState,
+      notify,
+      backendReachable: true,
+      authStorage,
+      netInfoState,
+      oauthToken: oldAccessToken,
+      authClient,
+      setOAuthToken,
+      setTokenExpiresAt,
+    },
+  });
   expect(setAuthState).toBeCalledTimes(0);
-  let refresh = result.current;
+  const refresh = result.current;
 
   authClient.refreshAsync.mockResolvedValueOnce({
     access_token: 'newAccessToken',
@@ -92,25 +92,25 @@ test('no token stored', async () => {
     new AuthClient(buildSimpleEndpointConfiguration('http://asdf.com/'))
   );
   const authStorage = new AuthStore('auth', 'http://asdf.com/');
-  const { result } = renderHook<RefreshCallbackProps<any>, () => Promise<void>>(
-    (props) => useRefreshCallback(props),
-    {
-      initialProps: {
-        authState: AuthState.NEEDS_REFRESH,
-        setAuthState,
-        notify,
-        backendReachable: true,
-        authStorage,
-        netInfoState,
-        oauthToken: null,
-        setOAuthToken,
-        setTokenExpiresAt,
-        authClient,
-      },
-    }
-  );
+  const { result } = renderHook<
+    RefreshCallbackProps<Record<string, unknown>>,
+    () => Promise<void>
+  >((props) => useRefreshCallback(props), {
+    initialProps: {
+      authState: AuthState.NEEDS_REFRESH,
+      setAuthState,
+      notify,
+      backendReachable: true,
+      authStorage,
+      netInfoState,
+      oauthToken: null,
+      setOAuthToken,
+      setTokenExpiresAt,
+      authClient,
+    },
+  });
   expect(setAuthState).toBeCalledTimes(0);
-  let refresh = result.current;
+  const refresh = result.current;
 
   await act(() => refresh());
   expect(setAuthState).toBeCalledTimes(2);
@@ -144,25 +144,25 @@ test('forced refresh while not token is not refreshable', async () => {
     new AuthClient(buildSimpleEndpointConfiguration('http://asdf.com/'))
   );
   const authStorage = new AuthStore('auth', 'http://asdf.com/');
-  const { result } = renderHook<RefreshCallbackProps<any>, () => Promise<void>>(
-    (props) => useRefreshCallback(props),
-    {
-      initialProps: {
-        authState: AuthState.NEEDS_REFRESH,
-        setAuthState,
-        notify,
-        backendReachable: false,
-        authStorage,
-        netInfoState,
-        oauthToken: oldAccessToken,
-        setOAuthToken,
-        setTokenExpiresAt,
-        authClient,
-      },
-    }
-  );
+  const { result } = renderHook<
+    RefreshCallbackProps<Record<string, unknown>>,
+    () => Promise<void>
+  >((props) => useRefreshCallback(props), {
+    initialProps: {
+      authState: AuthState.NEEDS_REFRESH,
+      setAuthState,
+      notify,
+      backendReachable: false,
+      authStorage,
+      netInfoState,
+      oauthToken: oldAccessToken,
+      setOAuthToken,
+      setTokenExpiresAt,
+      authClient,
+    },
+  });
   expect(setAuthState).toBeCalledTimes(0);
-  let refresh = result.current;
+  const refresh = result.current;
 
   await act(async () => {
     await refresh();
@@ -199,7 +199,7 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
   const setTokenExpiresAt = jest.fn();
   const onRefreshError = jest.fn();
   const { result, rerender: rerenderRefreshCallback } = renderHook<
-    RefreshCallbackProps<any>,
+    RefreshCallbackProps<Record<string, unknown>>,
     () => Promise<void>
   >((props) => useRefreshCallback(props), {
     initialProps: {

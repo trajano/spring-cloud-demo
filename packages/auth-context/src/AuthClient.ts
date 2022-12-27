@@ -3,12 +3,12 @@ import { basicAuthorization } from './basicAuthorization';
 import type { EndpointConfiguration } from './EndpointConfiguration';
 import type { OAuthToken } from './OAuthToken';
 
-export interface IAuthClient<A = any> {
+export interface IAuthClient<A = unknown> {
   authenticateAsync(authenticationRequest: A): Promise<[OAuthToken, Response]>;
   refreshAsync(refreshToken: string): Promise<OAuthToken>;
   revokeAsync(refreshToken: string): Promise<void>;
 }
-export class AuthClient<A = any> implements IAuthClient<A> {
+export class AuthClient<A = unknown> implements IAuthClient<A> {
   /**
    * Header value.
    */
@@ -115,6 +115,8 @@ export class AuthClient<A = any> implements IAuthClient<A> {
     if (!response.ok) {
       throw new AuthenticationClientError(response, await response.text());
     }
-    return this.resolveJson<any>(response);
+    // if there's a problem just log it. there's nothing that can be done
+    // as the user has logged out.
+    this.resolveJson<Record<string, unknown>>(response).catch(console.error);
   }
 }

@@ -3,7 +3,7 @@ import type { AuthState } from './AuthState';
 import type { EndpointConfiguration } from './EndpointConfiguration';
 import type { OAuthToken } from './OAuthToken';
 
-export interface IAuth<A = any> {
+export interface IAuth<A = unknown> {
   /**
    *
    * @param fn callback function that receives events

@@ -41,7 +41,9 @@ let listeners: NetInfoChangeHandler[] = [];
 export default <typeof NetInfo>{
   fetch: jest.fn(() => Promise.resolve(currentStateMock())),
   refresh: jest.fn(() => Promise.resolve(currentStateMock())),
-  configure: jest.fn((_configuration: Partial<NetInfoConfiguration>) => {}),
+  configure: jest.fn((_configuration: Partial<NetInfoConfiguration>) =>
+    jest.fn()
+  ),
   addEventListener: jest.fn((listener) => {
     listeners.push(listener);
     return () =>

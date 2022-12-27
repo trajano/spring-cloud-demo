@@ -43,7 +43,7 @@ export function useRefreshCallback<T>({
 }: RefreshCallbackProps<T>): () => Promise<void> {
   const refreshingRef = useRef(false);
   const refreshAsync = useCallback(
-    async function refresh(reason: string = 'Requested') {
+    async function refresh(reason = 'Requested') {
       if (refreshingRef.current) {
         notify({
           type: 'Refreshing',

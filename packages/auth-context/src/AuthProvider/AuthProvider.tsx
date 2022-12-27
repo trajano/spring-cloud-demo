@@ -57,7 +57,7 @@ type AuthContextProviderProps = PropsWithChildren<{
  * @param param0
  * @returns
  */
-export function AuthProvider<A = any>({
+export function AuthProvider<A = unknown>({
   defaultEndpointConfiguration,
   children,
   timeBeforeExpirationRefresh = 10000,
