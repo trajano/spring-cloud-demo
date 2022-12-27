@@ -1,8 +1,9 @@
 import { BASE_URL } from "@env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { buildSimpleEndpointConfiguration } from "@trajano/spring-docker-auth-context";
 import { useDeepState } from "@trajano/react-hooks";
+import { buildSimpleEndpointConfiguration } from "@trajano/spring-docker-auth-context";
 import { useEffect } from "react";
+
 import { AuthenticatedEndpointConfiguration } from "../../navigation/login/types";
 
 export function useStoredEndpointConfigurationEffect(
@@ -17,7 +18,9 @@ export function useStoredEndpointConfigurationEffect(
 
   useEffect(() => {
     (async function () {
-      let configuration = await AsyncStorage.getItem("ENDPOINT_CONFIGURATION");
+      const configuration = await AsyncStorage.getItem(
+        "ENDPOINT_CONFIGURATION"
+      );
       if (configuration) {
         setDefaultEndpointConfiguration(JSON.parse(configuration));
       }

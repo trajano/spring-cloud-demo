@@ -1,5 +1,6 @@
-import { useReducer } from "react";
 import { AuthEvent, useAuth } from "@trajano/spring-docker-auth-context";
+import { useReducer } from "react";
+
 import { LoggedAuthEvent } from "./LoggedAuthEvent";
 
 export function useLastAuthEvents(

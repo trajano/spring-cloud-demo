@@ -1,6 +1,5 @@
 import Constants from "expo-constants";
-export const name = Constants.expoConfig?.name
-
+export const name = Constants.expoConfig?.name;
 
 // import type { PayloadAction } from "@reduxjs/toolkit";
 // import { AUTHENTICATED, SSE_EVENT } from "./actions";

@@ -1,6 +1,7 @@
 import base64url from "base64url";
 import * as jose from "node-jose";
 import * as pako from "pako";
+
 import { JwtClaims } from "./JwtClaims";
 
 /**

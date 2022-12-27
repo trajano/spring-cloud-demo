@@ -4,6 +4,8 @@
  * https://reactnative.dev/docs/next/components-and-apis
  * @module
  */
+import { BlurView as ExpoBlurView } from "expo-blur";
+import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import {
   ActivityIndicator as RNActivityIndicator,
   FlatList as RNFlatList,
@@ -19,8 +21,7 @@ import {
   Text as RNText,
   View as RNView,
 } from "react-native";
-import { BlurView as ExpoBlurView } from "expo-blur";
-import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
+
 import { withI18n } from "./withI18n";
 import { withReplacedWithNativeFonts } from "./withReplacedWithNativeFonts";
 import { withStyled, withStyledText } from "./withStyled";

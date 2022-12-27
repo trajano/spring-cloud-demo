@@ -1,4 +1,5 @@
 import * as SQLite from "expo-sqlite";
+
 import { JwtClaims } from "./JwtClaims";
 
 export interface IAuthenticated {

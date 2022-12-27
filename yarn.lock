@@ -3871,7 +3871,7 @@
     prompts "^2.4.0"
     semver "^6.3.0"
 
-"@react-native-community/eslint-config@^3.0.2":
+"@react-native-community/eslint-config@^3.0.2", "@react-native-community/eslint-config@^3.2.0":
   version "3.2.0"
   resolved "https://registry.npmjs.org/@react-native-community/eslint-config/-/eslint-config-3.2.0.tgz#42f677d5fff385bccf1be1d3b8faa8c086cf998d"
   integrity sha512-ZjGvoeiBtCbd506hQqwjKmkWPgynGUoJspG8/MuV/EfKnkjCtBmeJvq2n+sWbWEvL9LWXDp2GJmPzmvU5RSvKQ==

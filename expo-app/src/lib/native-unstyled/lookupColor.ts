@@ -1,4 +1,5 @@
 import * as RN from "react-native";
+
 import { ColorSchemeColors } from "./Themes";
 
 function lookupLayerColor(

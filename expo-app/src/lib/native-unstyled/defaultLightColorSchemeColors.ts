@@ -1,5 +1,6 @@
-import { ColorSchemeColors } from "./Themes";
 import { DefaultTheme } from "@react-navigation/native";
+
+import { ColorSchemeColors } from "./Themes";
 export const defaultLightColorSchemeColors: ColorSchemeColors = {
   default: ["#000000", "#EEEEEE"],
   layers: {

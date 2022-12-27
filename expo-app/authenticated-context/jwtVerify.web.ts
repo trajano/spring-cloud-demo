@@ -1,6 +1,7 @@
 import base64url from "base64url";
 import * as jose from "jose";
 import * as pako from "pako";
+
 import { JwtClaims } from "./JwtClaims";
 
 /**
@@ -29,7 +30,7 @@ export async function jwtVerify<P extends JwtClaims>(
   const jwks = jose.createRemoteJWKSet(jwksUrl);
   const { payload } = await jose.jwtVerify(jwt, jwks, {
     audience: clientId,
-    issuer: issuer,
+    issuer,
   });
   return payload as P;
 }

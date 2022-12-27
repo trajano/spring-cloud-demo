@@ -1,5 +1,6 @@
-import { replaceStyleWithNativeFont } from "./replaceStyleWithNativeFont";
 import Constants from "expo-constants";
+
+import { replaceStyleWithNativeFont } from "./replaceStyleWithNativeFont";
 
 jest.mock("expo-constants", () => ({
   systemFonts: ["SystemFont"],

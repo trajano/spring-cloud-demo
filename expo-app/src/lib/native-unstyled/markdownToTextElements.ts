@@ -2,6 +2,7 @@ import MarkdownIT from "markdown-it";
 import Token from "markdown-it/lib/token";
 import { createElement, Fragment } from "react";
 import { Text } from "react-native";
+
 import { withReplacedWithNativeFonts } from "./withReplacedWithNativeFonts";
 
 type TextNode = {

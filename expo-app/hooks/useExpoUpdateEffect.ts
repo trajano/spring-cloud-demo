@@ -1,7 +1,8 @@
 import {
-  addListener, reloadAsync,
+  addListener,
+  reloadAsync,
   UpdateEvent,
-  UpdateEventType
+  UpdateEventType,
 } from "expo-updates";
 import { useEffect } from "react";
 import { Alert } from "react-native";

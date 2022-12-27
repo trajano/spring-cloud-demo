@@ -7,7 +7,7 @@ if (__DEV__) {
     const launchHostUrlString = Constants.manifest2?.launchAsset?.url;
     if (launchHostUrlString) {
       const r =
-        /^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/.exec(
+        /^(([^:/?#]+):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/.exec(
           launchHostUrlString
         );
       if (r && r[4] && r[4].split(":")[0]) {

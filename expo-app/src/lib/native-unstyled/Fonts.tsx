@@ -1,6 +1,6 @@
 import { useMounted } from "@trajano/react-hooks";
 import * as Font from "expo-font";
-import noop from 'lodash/noop';
+import noop from "lodash/noop";
 import omit from "lodash/omit";
 import {
   createContext,
@@ -8,9 +8,12 @@ import {
   ReactElement,
   useCallback,
   useContext,
-  useEffect, useMemo, useState
+  useEffect,
+  useMemo,
+  useState,
 } from "react";
 import { StyleProp, TextStyle } from "react-native";
+
 import { replaceStyleWithNativeFont } from "./replaceStyleWithNativeFont";
 
 type IFonts = {
@@ -28,7 +31,7 @@ type IFonts = {
   total: number;
   /**
    * Replace the data with a native font.  May return undefined if it will yield an empty object.
-   * @param flattenedStyle 
+   * @param flattenedStyle
    */
   replaceWithNativeFont(
     flattenedStyle: StyleProp<TextStyle>,
@@ -39,7 +42,8 @@ const FontsContext = createContext<IFonts>({
   loadedFonts: {},
   loaded: 0,
   total: 0,
-  replaceWithNativeFont: (flattenedStyle: StyleProp<TextStyle>) => flattenedStyle,
+  replaceWithNativeFont: (flattenedStyle: StyleProp<TextStyle>) =>
+    flattenedStyle,
 });
 type FontsProviderProps = PropsWithChildren<{
   fontModules?: any[];
@@ -70,8 +74,10 @@ function splitName(
   ];
 }
 
-async function loadFontModuleAsync(fontModule: any): Promise<Record<string, string>> {
-  const fontsLoaded: Record<string, string> = {}
+async function loadFontModuleAsync(
+  fontModule: any
+): Promise<Record<string, string>> {
+  const fontsLoaded: Record<string, string> = {};
   for (const fontName in fontModule) {
     if (
       typeof fontModule[fontName] === "function" ||
@@ -81,53 +87,69 @@ async function loadFontModuleAsync(fontModule: any): Promise<Record<string, stri
     }
     const [fontFamily, fontWeight, fontStyle] = splitName(fontName);
     await Font.loadAsync({ [fontName]: fontModule[fontName] });
-    fontsLoaded[`${fontFamily}:${fontWeight}:${fontStyle}`] = fontName
+    fontsLoaded[`${fontFamily}:${fontWeight}:${fontStyle}`] = fontName;
     if (fontWeight === "400") {
-      fontsLoaded[`${fontFamily}:normal:${fontStyle}`] = fontName
+      fontsLoaded[`${fontFamily}:normal:${fontStyle}`] = fontName;
     } else if (fontWeight === "700") {
-      fontsLoaded[`${fontFamily}:bold:${fontStyle}`] = fontName
+      fontsLoaded[`${fontFamily}:bold:${fontStyle}`] = fontName;
     }
   }
   return fontsLoaded;
-
 }
 export function FontsProvider({
   fontModules = [],
   onLoaded = noop,
-  children
+  children,
 }: FontsProviderProps): ReactElement {
-  const [loadedFonts, setLoadedFonts] = useState<{ loaded: boolean, fonts: Record<string, string> }>({ loaded: false, fonts: {} });
+  const [loadedFonts, setLoadedFonts] = useState<{
+    loaded: boolean;
+    fonts: Record<string, string>;
+  }>({ loaded: false, fonts: {} });
   const [loaded, setLoaded] = useState(0);
   const total = useMemo(() => fontModules.length, [fontModules]);
   const fontFamilyNames = useMemo(
-    () => new Set(fontModules.flatMap(fontModule => Object.entries(fontModule))
-      .filter(en => typeof en[1] === "number")
-      .map(en => en[0])
-      .map(fontName => splitName(fontName))
-      .map(split => split[0])
-      .filter(n => !!n)
-      .reduce<string[]>((s, fontFamily) => [...s, fontFamily!], [])),
-    [fontModules]);
+    () =>
+      new Set(
+        fontModules
+          .flatMap((fontModule) => Object.entries(fontModule))
+          .filter((en) => typeof en[1] === "number")
+          .map((en) => en[0])
+          .map((fontName) => splitName(fontName))
+          .map((split) => split[0])
+          .filter((n) => !!n)
+          .reduce<string[]>((s, fontFamily) => [...s, fontFamily!], [])
+      ),
+    [fontModules]
+  );
   const isMounted = useMounted();
 
-  const replaceWithNativeFont = useCallback(function replaceWithNativeFont(style: TextStyle = {}, defaultTextStyle: TextStyle = {}): TextStyle | undefined {
-    if (loadedFonts.loaded) {
-      return replaceStyleWithNativeFont(style, loadedFonts.fonts, defaultTextStyle);
-    } else {
-      // If the fonts are not loaded then the family has to be excluded.
-      return omit({ ...defaultTextStyle, ...style }, "fontFamily");
-    }
-  }, [fontFamilyNames, loadedFonts]);
+  const replaceWithNativeFont = useCallback(
+    function replaceWithNativeFont(
+      style: TextStyle = {},
+      defaultTextStyle: TextStyle = {}
+    ): TextStyle | undefined {
+      if (loadedFonts.loaded) {
+        return replaceStyleWithNativeFont(
+          style,
+          loadedFonts.fonts,
+          defaultTextStyle
+        );
+      } else {
+        // If the fonts are not loaded then the family has to be excluded.
+        return omit({ ...defaultTextStyle, ...style }, "fontFamily");
+      }
+    },
+    [fontFamilyNames, loadedFonts]
+  );
 
   useEffect(() => {
     async function loadFontsAsync() {
-      let fontsLoadedInEffect: Record<string, string> = {}
+      let fontsLoadedInEffect: Record<string, string> = {};
       let fontsLoaded = 0;
       for (const fontModule of fontModules) {
-
         fontsLoadedInEffect = {
           ...fontsLoadedInEffect,
-          ...(await loadFontModuleAsync(fontModule))
+          ...(await loadFontModuleAsync(fontModule)),
         };
         ++fontsLoaded;
         if (isMounted()) {
@@ -140,14 +162,24 @@ export function FontsProvider({
         setLoadedFonts({ loaded: true, fonts: fontsLoadedInEffect });
         onLoaded();
       }
-
     }
     loadFontsAsync();
+  }, []);
 
-  }, [])
-
-  const contextValue = useMemo<IFonts>(() => ({ loadedFonts: loadedFonts.fonts, loaded, total, replaceWithNativeFont }), [loadedFonts.fonts, loaded, total]);
-  return <FontsContext.Provider value={contextValue}>{children}</FontsContext.Provider>
+  const contextValue = useMemo<IFonts>(
+    () => ({
+      loadedFonts: loadedFonts.fonts,
+      loaded,
+      total,
+      replaceWithNativeFont,
+    }),
+    [loadedFonts.fonts, loaded, total]
+  );
+  return (
+    <FontsContext.Provider value={contextValue}>
+      {children}
+    </FontsContext.Provider>
+  );
 }
 export function useFonts() {
   return useContext(FontsContext);
