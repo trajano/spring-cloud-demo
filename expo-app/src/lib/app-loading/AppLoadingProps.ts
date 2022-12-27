@@ -1,10 +1,10 @@
+import { Asset } from "expo-asset";
 import { ComponentType, PropsWithChildren } from "react";
 import { ColorSchemeName } from "react-native";
 
 import { LoadingComponentProps } from "../native-unstyled";
 type Loader = () => Promise<void>;
 export type AppLoadingProps = PropsWithChildren<{
-  colorScheme: NonNullable<ColorSchemeName>;
   /**
    * Component to show while the theme and all its resources are being loaded.
    * If not specified, then it shows the children immediately.
@@ -22,7 +22,7 @@ export type AppLoadingProps = PropsWithChildren<{
    * Note that by default Expo treats `json` as code so do not load them as assets
    * even Lottie animation.
    */
-  initialAssets?: number | number[];
+  initialAssets?: Parameters<typeof Asset["loadAsync"]>[0];
   /**
    * Additional assets to load after the splash screen his hidden and LoadingComponent is
    * being shown.  The fonts are appended to the number.  Each of this is a callback

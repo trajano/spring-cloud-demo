@@ -24,12 +24,14 @@ function AssetsLoaded({
   animationDone: boolean;
   updateChecked: boolean;
 }) {
+  const { fontsLoaded } = useTheming();
   const { authState, backendReachable, endpointConfiguration } = useAuth();
   const { bottom: safeAreaInsetBottom } = useSafeAreaInsets();
   return (
     <View style={{ paddingBottom: safeAreaInsetBottom }}>
       <Text>{`Assets loaded ${loadedAssets}/${totalAssets}`}</Text>
       <Text>{AuthState[authState]}</Text>
+      <Text>{fontsLoaded ? "Fonts loaded" : "Fonts loaded"}</Text>
       <Text>{animationDone ? "Animation Done" : "Playing Animation"}</Text>
       <Text>{updateChecked ? "Running latest" : "Checking for update"}</Text>
       <Text>
@@ -40,19 +42,33 @@ function AssetsLoaded({
   );
 }
 
+/**
+ * This is an exmaple of how NOT to do a loading screen.  The load screen ideally should
+ * transition to your app's main screen, but this just spits out debug info.
+ */
 export function LoadingScreen({
   loadedAssets,
   totalAssets,
   additionalResourceUpdate,
 }: LoadingComponentProps) {
-  const { colors } = useTheming();
+  const { colors, fontsLoaded } = useTheming();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const portrait = windowHeight > windowWidth;
   const { authState } = useAuth();
-  const [fromTimeout, setFromTimeout] = useState(0);
+
+  const [fromFontsLoaded, setFromFontsLoaded] = useState(fontsLoaded ? 1 : 0);
+  const [fromAuthState, setFromAuthState] = useState(authState === AuthState.INITIAL ? 0 : 1);
   const [fromExpoUpdate, setFromExpoUpdate] = useState(0);
   const [fromAnimationFinish, setAnimationFinish] = useState(0);
-  useTimeoutEffect(() => setFromTimeout(1), 2000);
+
+  useEffect(() => {
+    setFromFontsLoaded(fontsLoaded ? 1 : 0)
+  }, [fontsLoaded])
+
+  useEffect(() => {
+    setFromAuthState(authState === AuthState.INITIAL ? 0 : 1)
+  }, [authState])
+
   useEffect(() => {
     (async () => {
       try {
@@ -65,28 +81,22 @@ export function LoadingScreen({
         setFromExpoUpdate(1);
       }
     })();
-    if (additionalResourceUpdate) {
-      if (fromTimeout === 1 && fromExpoUpdate === 0) {
-        // timeout guards against the check for update async going awry
-        setFromExpoUpdate(1);
-      }
-      if (authState !== AuthState.INITIAL) {
-        additionalResourceUpdate(
-          1 + fromTimeout + fromAnimationFinish + fromExpoUpdate,
-          4
-        );
-      } else {
-        additionalResourceUpdate(
-          fromTimeout + fromAnimationFinish + fromExpoUpdate,
-          4
-        );
-      }
-    }
-  }, [authState, fromTimeout, fromAnimationFinish, fromExpoUpdate]);
+  }, [setFromExpoUpdate]);
 
   const onAnimationFinish = useCallback(() => {
     setAnimationFinish(1);
   }, []);
+
+  useEffect(() => {
+    additionalResourceUpdate(
+      fromAnimationFinish +
+      fromAuthState +
+      fromExpoUpdate +
+      fromFontsLoaded,
+      4)
+
+  }, [fromAnimationFinish, fromAuthState, fromExpoUpdate, fromFontsLoaded])
+
   return (
     <>
       <View

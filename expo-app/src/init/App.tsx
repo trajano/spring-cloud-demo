@@ -15,6 +15,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useExpoUpdateEffect } from "../../hooks/useExpoUpdateEffect";
 import { LoadingScreen } from "../../screens/LoadingScreen";
 import { AppProvider } from "../app-context";
+import { AppLoading } from "../lib/app-loading/AppLoading";
 import { ActivityIndicator, StatusBar, View } from "../lib/native-unstyled";
 import { ThemeProvider } from "../lib/native-unstyled/ThemeContext";
 import { useStoredEndpointConfigurationEffect } from "./useStoredEndpointConfigurationEffect";
@@ -54,22 +55,25 @@ export default function App() {
             mono: { fontFamily: "IBMPlexMono" },
             "sans-serif": { fontFamily: "Lexend" },
           }}
-          initialAssets={[
-            require("../../assets/lottie/28839-ikura-sushi.json"),
-            require("../../assets/images/icon.png"),
-          ]}
-          LoadingComponent={LoadingScreen}
         >
-          <Suspense fallback={<SuspenseView />}>
-            {TEXT_TEST ? (
-              <TextTest />
-            ) : (
-              <AppProvider>
-                <Navigation />
-              </AppProvider>
-            )}
-          </Suspense>
-          <StatusBar />
+          <AppLoading
+            initialAssets={[
+              // require("../../assets/lottie/28839-ikura-sushi.json"),
+              require("../../assets/images/icon.png"),
+            ]}
+            LoadingComponent={LoadingScreen}
+          >
+            <Suspense fallback={<SuspenseView />}>
+              {TEXT_TEST ? (
+                <TextTest />
+              ) : (
+                <AppProvider>
+                  <Navigation />
+                </AppProvider>
+              )}
+            </Suspense>
+            <StatusBar />
+          </AppLoading>
         </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>

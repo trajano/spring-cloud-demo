@@ -22,4 +22,8 @@ export interface ITheme {
    * @param size text role size.
    */
   typography(role?: string, size?: string): TextStyle;
+  /**
+   * Indicates the the fonts registered in the theme have all been loaded.
+   */
+  fontsLoaded: boolean;
 }

@@ -1,38 +1,50 @@
-import { ReactElement, useEffect, useReducer } from "react";
-
+import { useAsyncSetEffect } from "@trajano/react-hooks";
+import { Asset } from "expo-asset";
+import * as SplashScreen from 'expo-splash-screen';
+import { ReactElement, useCallback, useState } from "react";
 import { AppLoadingProps } from "./AppLoadingProps";
-
-type LoadingState = {
-  loadedAssets: number;
-  totalAssets: number;
-};
 export function AppLoading({
   children,
-  LoadingComponent,
-  colorScheme,
+  initialAssets,
+  LoadingComponent
 }: AppLoadingProps): ReactElement<any, any> {
-  const [loadingState, notifyLoad] = useReducer(
-    (prev: LoadingState, nextLoaded: number) => ({
-      totalAssets: prev.loadedAssets,
-      loadedAssets: prev.loadedAssets + nextLoaded,
-    }),
-    { loadedAssets: 0, totalAssets: 1 }
-  );
-  useEffect(() => {
-    notifyLoad(1);
-  }, []);
-  if (
-    loadingState.loadedAssets >= loadingState.totalAssets ||
-    !LoadingComponent
-  ) {
-    return <>children</>;
-  } else {
+  const [initialAssetsLoaded, setInitialAssetsLoaded] = useState(initialAssets !== undefined);
+  const [loadedAssets, setLoadedAssets] = useState(0);
+  const [totalAssets, setTotalAssets] = useState(!!LoadingComponent ? 1 : 0);
+  const additionalResourceUpdate = useCallback((loaded: number, total: number) => {
+    setLoadedAssets(loaded);
+    setTotalAssets(total);
+  }, [])
+  const onLayout = useCallback(async () => {
+    if (initialAssetsLoaded) {
+      await SplashScreen.hideAsync();
+    }
+  }, [initialAssetsLoaded])
+  useAsyncSetEffect(
+    async () => {
+      try {
+        if (initialAssets) {
+          await Asset.loadAsync(initialAssets);
+        }
+      } catch (e: unknown) {
+        console.error(e);
+      }
+      return true;
+    },
+    setInitialAssetsLoaded,
+    [initialAssets])
+  if (loadedAssets >= totalAssets || !LoadingComponent) {
+    return <>{children}</>;
+  } else if (initialAssetsLoaded) {
     return (
       <LoadingComponent
-        colorScheme={colorScheme}
-        loadedAssets={loadingState.loadedAssets}
-        totalAssets={loadingState.totalAssets}
+        onLayout={onLayout}
+        loadedAssets={loadedAssets}
+        totalAssets={totalAssets}
+        additionalResourceUpdate={additionalResourceUpdate}
       />
     );
+  } else {
+    return <></>
   }
 }
