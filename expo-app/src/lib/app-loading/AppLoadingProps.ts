@@ -1,6 +1,5 @@
 import { Asset } from "expo-asset";
 import { ComponentType, PropsWithChildren } from "react";
-import { ColorSchemeName } from "react-native";
 
 import { LoadingComponentProps } from "../native-unstyled";
 type Loader = () => Promise<void>;

@@ -1,4 +1,4 @@
-import { ColorSchemeName, ViewProps } from "react-native";
+import { ViewProps } from "react-native";
 
 export type LoadingComponentProps = ViewProps & {
   totalAssets: number;
