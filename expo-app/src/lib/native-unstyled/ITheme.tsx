@@ -10,7 +10,16 @@ export interface ITheme {
   colorScheme: NonNullable<ColorSchemeName>;
   colors: ColorSchemeColors;
   reactNavigationTheme: ReactNavigationTheme;
-  setColorScheme(colorScheme: NonNullable<ColorSchemeName>): void;
+  /**
+   * Sets to the color scheme
+   * @param colorScheme color scheme if null it will switch to the system color scheme.
+   */
+  setColorScheme(colorScheme: ColorSchemeName | null): void;
+  /**
+   * 
+   * @param locale locale to switch to or swith to the first system locale or default
+   */
+  setLocale(locale: string | null): void;
   /**
    * Default typography.  This is only set to the value specified in the provider once the loading
    * has been completed to prevent missing font messages.  This also specifies the colors.

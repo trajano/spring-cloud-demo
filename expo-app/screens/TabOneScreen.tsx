@@ -5,16 +5,32 @@ import { useCallback, useState } from "react";
 import { Button, StyleSheet } from "react-native";
 
 import { useAuthenticated } from "../authenticated-context";
-import { Text, View } from "../src/lib/native-unstyled";
+import { ScrollView, Text, useTheming, View } from "../src/lib/native-unstyled";
 export default function TabOneScreen() {
   const { logoutAsync, refreshAsync, accessToken, oauthToken, baseUrl } =
     useAuth();
   const { claims, internalState } = useAuthenticated();
   const isMounted = useMounted();
+  const { colorScheme, setColorScheme, setLocale } = useTheming();
 
   async function handleLogout() {
     await logoutAsync();
   }
+  const switchColorScheme = useCallback(() => {
+    if (colorScheme === "light") {
+      setColorScheme("dark");
+    } else {
+      setColorScheme("light");
+    }
+  }, [colorScheme, setColorScheme])
+
+  const switchToSystemColorScheme = useCallback(() => {
+    setColorScheme(null);
+  }, [colorScheme, setColorScheme])
+
+  const switchToSystemLocale = useCallback(() => {
+    setLocale(null);
+  }, [setLocale])
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -35,7 +51,7 @@ export default function TabOneScreen() {
       </View>
     );
   },
-  []);
+    []);
 
   const refreshToken = useCallback(async function refreshToken() {
     setRefreshing(true);
@@ -54,18 +70,33 @@ export default function TabOneScreen() {
     []
   );
   return (
-    <FlashList
+    <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      estimatedItemSize={188}
-      ListHeaderComponent={ListHeaderComponent}
-      ListFooterComponent={() => (
-        <Button title="Logout" onPress={handleLogout} />
-      )}
-      onRefresh={refreshToken}
-      refreshing={refreshing}
-      data={data}
-      renderItem={renderItem}
-    />
+    >
+      <Text>Testing1</Text>
+      <Button title="logout" onPress={logoutAsync} />
+      <Text>Testing3</Text>
+      <Button title={colorScheme === "light" ? "switch to dark" : "switch to light"} onPress={switchColorScheme} />
+      <Button title="switch to system color scheme" onPress={switchToSystemColorScheme} />
+      <Text>Testing4</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+      <Text>Testing</Text>
+    </ScrollView>
   );
 }
 

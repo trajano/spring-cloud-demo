@@ -4,12 +4,13 @@ import {
 } from "@react-navigation/native";
 import { useAsyncSetEffect } from "@trajano/react-hooks";
 import { getLocales } from "expo-localization";
+import noop from 'lodash/noop';
 import {
   createContext,
   useCallback,
   useContext, useMemo, useState
 } from "react";
-import { useColorScheme } from "react-native";
+import { ColorSchemeName, useColorScheme } from "react-native";
 
 import { defaultColorSchemeColors } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from "./defaultLightColorSchemeColors";
@@ -24,7 +25,8 @@ const ThemeContext = createContext<ITheme>({
   colors: defaultLightColorSchemeColors,
   defaultTypography: {},
   reactNavigationTheme: DefaultTheme,
-  setColorScheme: () => { },
+  setColorScheme: noop,
+  setLocale: noop,
   typography: () => ({}),
   fontsLoaded: false,
 });
@@ -40,19 +42,29 @@ export function ThemeProvider({
   colorSchemeColors = defaultColorSchemeColors,
 }: ThemeProviderProps) {
   const systemColorScheme = useColorScheme();
-  const systemLocale = getLocales()[0].languageTag;
-  const [colorScheme, setColorScheme] = useState(() => {
+  const systemLocale = useMemo(() => {
+    const locales = getLocales();
+    if (typeof locales === "object" && Array.isArray(locales)) {
+      return getLocales()
+        .map(p => p.languageTag)
+        .find(p => p in translations);
+    } else {
+      return null;
+    }
+  },
+    [translations]);
+  const [colorScheme, setColorScheme] = useState<ColorSchemeName | null>(() => {
     if (typeof inColorScheme === "string") {
       return inColorScheme;
     } else {
-      return systemColorScheme ?? defaultColorScheme
+      return null
     }
   });
-  const [locale, setLocale] = useState(() => {
+  const [locale, setLocale] = useState<string | null>(() => {
     if (typeof inLocale === "string") {
       return inLocale;
     } else {
-      return systemLocale ?? defaultLocale
+      return null
     }
   });
 
@@ -81,8 +93,8 @@ export function ThemeProvider({
     [setLocale, inLocale]
   );
   const colors = useMemo(
-    () => colorSchemeColors[colorScheme],
-    [colorSchemeColors, colorScheme]
+    () => colorSchemeColors[colorScheme ? colorScheme : (systemColorScheme ?? defaultColorScheme)],
+    [colorSchemeColors, defaultColorScheme, colorScheme, systemColorScheme]
   );
   const reactNavigationTheme: ReactNavigationTheme = useMemo(
     () => ({
@@ -115,20 +127,25 @@ export function ThemeProvider({
   const contextValue = useMemo<ITheme>(
     () => ({
       colors,
-      colorScheme,
+      colorScheme: colorScheme ? colorScheme : (systemColorScheme ?? defaultColorScheme),
       defaultTypography: { color: colors.default[0] },
       fontsLoaded,
-      locale,
+      locale: locale ? locale : (systemLocale ?? defaultLocale),
       reactNavigationTheme,
       setColorScheme,
+      setLocale,
       typography,
     }),
     [
       colors,
       colorScheme,
+      defaultColorScheme,
+      defaultLocale,
       locale,
       fontsLoaded,
       reactNavigationTheme,
+      systemColorScheme,
+      systemLocale,
       setColorScheme,
       typography,
     ]
