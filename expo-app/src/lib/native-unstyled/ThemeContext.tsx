@@ -146,8 +146,8 @@ function LoadingOrChildren({
   useEffect(() => {
     async function loadAdditionalAssetsAsync() {
       let assetsLoaded = 0;
-      for (const loadedAssets of additionalAssets) {
-        await loadedAssets();
+      for (const additionalLoadedAsset of additionalAssets) {
+        await additionalLoadedAsset();
         ++assetsLoaded;
         if (isMounted()) {
           setAdditionalAssetsLoaded(assetsLoaded);

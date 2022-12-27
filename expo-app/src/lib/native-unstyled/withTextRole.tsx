@@ -28,11 +28,9 @@ import { hocDisplayName } from "./hocDisplayName";
 export function withTextRole<
   P extends Q & { role?: string; typeScale?: string },
   Q extends TextProps,
-  T,
-  O = object
+  T
 >(
-  Component: ComponentType<Q>,
-  options?: O
+  Component: ComponentType<Q>
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
   function useWrapped(
     { role, typeScale, style, ...rest }: P,

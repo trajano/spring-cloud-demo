@@ -110,8 +110,8 @@ export function inlineMarkdownToTextElements(
       // if root node with only one child element just return the child element
       return convertTreeToElements(node.children[0]);
     } else {
-      const children = node.children.map((child, index) =>
-        convertTreeToElements(child, index)
+      const children = node.children.map((child, childIndex) =>
+        convertTreeToElements(child, childIndex)
       );
       if (node.format === "em") {
         return createElement(

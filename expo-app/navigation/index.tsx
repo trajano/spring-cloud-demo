@@ -33,7 +33,7 @@ function cleanAuthEvent({
   type,
   authState,
   accessToken,
-  authorization,
+  authorization: _authorization,
   ...rest
 }: AuthEvent & Record<string, any>): string {
   return (

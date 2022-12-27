@@ -149,7 +149,7 @@ it("just italic should look up", () => {
   });
 });
 
-it("just italic should look up", () => {
+it("just italic should look up with weight", () => {
   const style = replaceStyleWithNativeFont(
     {
       fontFamily: "IBMPlexSans",

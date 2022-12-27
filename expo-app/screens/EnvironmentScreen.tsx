@@ -21,8 +21,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BlurView, Text, View } from "../src/lib/native-unstyled";
 
-const isHermes = () => !!(global as any)["HermesInternal"];
-const isRemoteDebug = () => !(global as any)["nativeCallSyncHook"];
+const isHermes = () => !!(global as any).HermesInternal;
+const isRemoteDebug = () => !(global as any).nativeCallSyncHook;
 function tokenReplacer(this: any, key: string, value: any): any {
   if ((key === "key" || key === "hash") && typeof value === "string") {
     return "…" + value.slice(-5);

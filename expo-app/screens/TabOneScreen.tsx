@@ -45,15 +45,19 @@ export default function TabOneScreen() {
     }
   }, []);
 
+  const ListHeaderComponent = useCallback(
+    () => (
+      <View style={{ borderWidth: 1 }}>
+        <Text style={styles.title}>I should be Some Default Font</Text>
+      </View>
+    ),
+    []
+  );
   return (
     <FlashList
       contentInsetAdjustmentBehavior="automatic"
       estimatedItemSize={188}
-      ListHeaderComponent={() => (
-        <View style={{ borderWidth: 1 }}>
-          <Text style={styles.title}>I should be Some Default Font</Text>
-        </View>
-      )}
+      ListHeaderComponent={ListHeaderComponent}
       ListFooterComponent={() => (
         <Button title="Logout" onPress={handleLogout} />
       )}

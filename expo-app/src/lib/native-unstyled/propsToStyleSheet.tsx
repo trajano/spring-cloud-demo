@@ -333,34 +333,31 @@ function doPropsToStyleSheet(
   /* Elevation specific */
   if (
     props.hasOwnProperty("elevation") &&
-    typeof (props as Record<string, unknown>)["elevation"] === "number" &&
-    (props as Record<string, unknown>)["elevation"] !== 0 &&
+    typeof (props as Record<string, unknown>).elevation === "number" &&
+    (props as Record<string, unknown>).elevation !== 0 &&
     RN.Platform.OS !== "android"
   ) {
-    const elevation = (props as Record<string, unknown>)["elevation"] as number;
-    accumulatedStyle["shadowColor"] = "#000";
-    accumulatedStyle["shadowOffset"] =
-      elevationToShadow[elevation].shadowOffset;
-    accumulatedStyle["shadowOpacity"] =
-      elevationToShadow[elevation].shadowOpacity;
-    accumulatedStyle["shadowRadius"] =
-      elevationToShadow[elevation].shadowRadius;
+    const elevation = (props as Record<string, unknown>).elevation as number;
+    accumulatedStyle.shadowColor = "#000";
+    accumulatedStyle.shadowOffset = elevationToShadow[elevation].shadowOffset;
+    accumulatedStyle.shadowOpacity = elevationToShadow[elevation].shadowOpacity;
+    accumulatedStyle.shadowRadius = elevationToShadow[elevation].shadowRadius;
   }
 
   if (
     props.hasOwnProperty("bold") &&
-    typeof (props as Record<string, unknown>)["bold"] === "boolean" &&
-    (props as Record<string, unknown>)["bold"] === true
+    typeof (props as Record<string, unknown>).bold === "boolean" &&
+    (props as Record<string, unknown>).bold === true
   ) {
-    accumulatedStyle["fontWeight"] = "bold";
+    accumulatedStyle.fontWeight = "bold";
   }
 
   if (
     props.hasOwnProperty("italic") &&
-    typeof (props as Record<string, unknown>)["italic"] === "boolean" &&
-    (props as Record<string, unknown>)["italic"] === true
+    typeof (props as Record<string, unknown>).italic === "boolean" &&
+    (props as Record<string, unknown>).italic === true
   ) {
-    accumulatedStyle["fontStyle"] = "italic";
+    accumulatedStyle.fontStyle = "italic";
   }
 
   return isEmpty(accumulatedStyle) ? undefined : pickBy(accumulatedStyle);

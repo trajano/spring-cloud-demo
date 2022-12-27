@@ -13,7 +13,7 @@ import {
 } from "../src/lib/native-unstyled";
 import { propsToStyleSheet } from "../src/lib/native-unstyled/propsToStyleSheet";
 
-const isHermes = () => !!(global as any)["HermesInternal"];
+const isHermes = () => !!(global as any).HermesInternal;
 export function TextTest() {
   const {
     top: marginTop,
