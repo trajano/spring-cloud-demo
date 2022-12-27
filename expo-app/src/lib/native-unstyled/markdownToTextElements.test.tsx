@@ -45,11 +45,13 @@ describe("markdownToTextElements", () => {
     );
     const { toJSON: expectedToJSON } = render(
       <Text>
-        foo{" "}
+        {"foo "}
         <Text style={{ fontWeight: "bold" }}>
-          bold <Text style={{ fontStyle: "italic" }}>italic</Text>
-        </Text>{" "}
-        foo adf <Text style={{ fontStyle: "italic" }}>asdf</Text>
+          {"bold "}
+          <Text style={{ fontStyle: "italic" }}>italic</Text>
+        </Text>
+        {" foo adf "}
+        <Text style={{ fontStyle: "italic" }}>asdf</Text>
       </Text>
     );
     expect(toJSON()).toStrictEqual(expectedToJSON());
@@ -61,11 +63,13 @@ describe("markdownToTextElements", () => {
     );
     const { toJSON: expectedToJSON } = render(
       <Text>
-        foo{" "}
+        {"foo "}
         <Text style={{ fontWeight: "bold" }}>
-          bold <Text style={{ fontStyle: "italic" }}>italic</Text>
-        </Text>{" "}
-        foo <Text style={{ fontFamily: "mono" }}>adf</Text>{" "}
+          {"bold "}
+          <Text style={{ fontStyle: "italic" }}>italic</Text>
+        </Text>
+        {" foo "}
+        <Text style={{ fontFamily: "mono" }}>adf</Text>{" "}
         <Text style={{ fontStyle: "italic" }}>asdf</Text>
       </Text>
     );

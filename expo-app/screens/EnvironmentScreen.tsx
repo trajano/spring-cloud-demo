@@ -34,12 +34,10 @@ export function EnvironmentScreen(): ReactElement<
   SectionListProps<Record<string, unknown>>,
   any
 > {
-  const {
-    manifest,
-    manifest2,
-    expoConfig,
-    ...restOfConstants
-  } = omit(Constants, "systemFonts");
+  const { manifest, manifest2, expoConfig, ...restOfConstants } = omit(
+    Constants,
+    "systemFonts"
+  );
   const systemColorScheme = useColorScheme();
   const safeAreaInsets = useSafeAreaInsets();
   const windowDimensions = useWindowDimensions();
