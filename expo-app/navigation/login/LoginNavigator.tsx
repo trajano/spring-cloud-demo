@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { View } from "../../components/Themed";
+import { View } from "../../src/lib/native-unstyled";
 import LoginScreen from "./LoginScreen";
 import { LoginStackParamList } from "./types";
 
