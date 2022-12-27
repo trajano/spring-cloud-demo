@@ -11,7 +11,7 @@ import {
 } from "react";
 import { useColorScheme } from "react-native";
 
-import { defaultColorSchemes as defaultColorSchemeColors } from "./defaultColorSchemes";
+import { defaultColorSchemeColors } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from "./defaultLightColorSchemeColors";
 import { FontsProvider } from "./Fonts";
 import { I18nProvider } from "./I18n";
