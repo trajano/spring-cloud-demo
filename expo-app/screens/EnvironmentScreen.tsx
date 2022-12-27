@@ -37,10 +37,9 @@ export function EnvironmentScreen(): ReactElement<
   const {
     manifest,
     manifest2,
-    systemFonts: _systemFonts,
     expoConfig,
     ...restOfConstants
-  } = Constants;
+  } = omit(Constants, "systemFonts");
   const systemColorScheme = useColorScheme();
   const safeAreaInsets = useSafeAreaInsets();
   const windowDimensions = useWindowDimensions();
