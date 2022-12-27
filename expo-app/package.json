@@ -8,6 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
+    "lint": "eslint \"**/*.{ts,tsx}\"",
     "prepare": "tsc --noEmit"
   },
   "jest": {
@@ -24,6 +25,17 @@
     "webpack": "< 5",
     "webpack-dev-server": "< 4"
   },
+  "eslintConfig": {
+    "root": true,
+    "extends": [
+      "plugin:prettier/recommended",
+      "plugin:@typescript-eslint/recommended",
+      "universe/native"
+    ]
+  },
+  "eslintIgnore": [
+    "node_modules/"
+  ],
   "dependencies": {
     "@expo-google-fonts/ibm-plex-mono": "^0.2.2",
     "@expo-google-fonts/ibm-plex-sans": "^0.2.2",
@@ -105,12 +117,17 @@
     "@types/react-native": "~0.70.6",
     "@types/react-native-base64": "^0.2.0",
     "@types/webpack-env": "^1.18.0",
+    "@typescript-eslint/eslint-plugin": "^5.47.1",
+    "@typescript-eslint/parser": "^5.47.1",
     "babel-plugin-module-resolver": "^4.1.0",
     "babel-preset-expo": "^9.2.2",
+    "eslint": "^8.30.0",
+    "eslint-config-universe": "^11.1.1",
     "find-yarn-workspace-root": "^2.0.0",
     "jest": "^26.6.3",
     "jest-environment-jsdom": "26",
     "jest-expo": "^47.0.0",
+    "prettier": "^2.8.1",
     "sharp-cli": "^3.0.0",
     "ts-jest": "26",
     "typedoc": "^0.23.23",
