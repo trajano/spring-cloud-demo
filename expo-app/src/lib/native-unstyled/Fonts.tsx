@@ -115,7 +115,7 @@ export function FontsProvider({
       return replaceStyleWithNativeFont(style, loadedFonts.fonts, defaultTextStyle);
     } else {
       // If the fonts are not loaded then the family has to be excluded.
-      return omit(style, "fontFamily");
+      return omit({ ...defaultTextStyle, ...style }, "fontFamily");
     }
   }, [fontFamilyNames, loadedFonts]);
 
