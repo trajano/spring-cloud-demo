@@ -1,4 +1,4 @@
-import type { Dict } from "i18n-js";
+import type { Dict, I18nOptions } from "i18n-js";
 import type { PropsWithChildren } from 'react';
 import type { ColorSchemeName } from "react-native";
 import type { ColorSchemes } from "./Themes";
@@ -15,7 +15,7 @@ type ColorThemeProviderProps = {
   /**
    * Color scheme to use as a fallback in case it couldn't be determined from the system.
    */
-  defaultColorScheme: NonNullable<ColorSchemeName>;
+  defaultColorScheme?: NonNullable<ColorSchemeName>;
 }
 type FontThemeProviderProps = {
   /**
@@ -42,6 +42,9 @@ type LocalizationThemeProviderProps = {
    * i18n translations.
    */
   translations?: Dict;
-
+  /**
+   * i18n options.
+   */
+  i18nOptions?: I18nOptions;
 }
 export type ThemeProviderProps = PropsWithChildren<ColorThemeProviderProps & FontThemeProviderProps & LocalizationThemeProviderProps>;

@@ -19,83 +19,42 @@ import { I18nProvider } from "./I18n";
 import { ITheme } from "./ITheme";
 import { ThemeProviderProps } from "./ThemeProviderProps";
 import { ColorSchemeColors } from "./Themes";
+import { useConfiguredColorSchemes } from "./useConfiguredColorScheme";
+import { useConfiguredLocale } from "./useConfiguredLocale";
 
 const ThemeContext = createContext<ITheme>({
   colorScheme: "light",
   colors: defaultLightColorSchemeColors,
   defaultTypography: {},
   reactNavigationTheme: DefaultTheme,
+  locale: "en",
   setColorScheme: noop,
   setLocale: noop,
   typography: () => ({}),
   t: () => "",
   fontsLoaded: false,
 });
+
 export function ThemeProvider({
   children,
   defaultColorScheme = "light",
-  defaultLocale = "en-US",
+  defaultLocale = "en",
   colorScheme: inColorScheme,
   locale: inLocale,
   fontModules = [],
   textRoles = {},
   translations = {},
+  i18nOptions,
   colorSchemeColors = defaultColorSchemeColors,
 }: ThemeProviderProps) {
-  const systemColorScheme = useColorScheme();
-  const systemLocale = useMemo(() => {
-    const locales = getLocales();
-    if (typeof locales === "object" && Array.isArray(locales)) {
-      return getLocales()
-        .map(p => p.languageTag)
-        .find(p => p in translations);
-    } else {
-      return null;
-    }
-  },
-    [translations]);
-  const [colorScheme, setColorScheme] = useState<ColorSchemeName | null>(() => {
-    if (typeof inColorScheme === "string") {
-      return inColorScheme;
-    } else {
-      return null
-    }
-  });
-  const [locale, setLocale] = useState<string | null>(() => {
-    if (typeof inLocale === "string") {
-      return inLocale;
-    } else {
-      return null
-    }
-  });
+  const [colorScheme, setColorScheme] = useConfiguredColorSchemes(inColorScheme, defaultColorScheme);
+  const [locale, setLocale, t] = useConfiguredLocale(inLocale, defaultLocale, translations, i18nOptions);
 
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
-  useAsyncSetEffect(
-    async () => {
-      if (typeof inColorScheme === "function") {
-        return await inColorScheme();
-      } else {
-        return colorScheme
-      }
-    },
-    setColorScheme,
-    [setColorScheme, inColorScheme]
-  );
-  useAsyncSetEffect(
-    async () => {
-      if (typeof inLocale === "function") {
-        return await inLocale();
-      } else {
-        return locale
-      }
-    },
-    setLocale,
-    [setLocale, inLocale]
-  );
   const colors = useMemo(
-    () => colorSchemeColors[colorScheme ? colorScheme : (systemColorScheme ?? defaultColorScheme)],
-    [colorSchemeColors, defaultColorScheme, colorScheme, systemColorScheme]
+    () => colorSchemeColors[colorScheme],
+    [colorSchemeColors, colorScheme]
   );
   const reactNavigationTheme: ReactNavigationTheme = useMemo(
     () => ({
@@ -128,27 +87,25 @@ export function ThemeProvider({
   const contextValue = useMemo<ITheme>(
     () => ({
       colors,
-      colorScheme: colorScheme ? colorScheme : (systemColorScheme ?? defaultColorScheme),
+      colorScheme,
       defaultTypography: { color: colors.default[0] },
       fontsLoaded,
-      locale: locale ? locale : (systemLocale ?? defaultLocale),
+      locale,
       reactNavigationTheme,
       setColorScheme,
       setLocale,
-      typography,
-      t: () => ""
+      t,
+      typography
     }),
     [
       colors,
       colorScheme,
-      defaultColorScheme,
-      defaultLocale,
       locale,
       fontsLoaded,
       reactNavigationTheme,
-      systemColorScheme,
-      systemLocale,
       setColorScheme,
+      setLocale,
+      t,
       typography,
     ]
   );
@@ -160,9 +117,7 @@ export function ThemeProvider({
           setFontsLoaded(true);
         }}
       >
-        <I18nProvider translations={translations}>
-          {children}
-        </I18nProvider>
+        {children}
       </FontsProvider>
     </ThemeContext.Provider>
   );

@@ -6,8 +6,8 @@ import {
   TextProps,
 } from "react-native";
 
-import { useI18n } from "./I18n";
 import { hocDisplayName } from "./hocDisplayName";
+import { useTheming } from "./ThemeContext";
 
 type I18nProps = {
   _t?: string;
@@ -65,7 +65,7 @@ export function withI18n<
       I18nProps,
     ref: Ref<RNText>
   ) {
-    const { t } = useI18n();
+    const { t } = useTheming();
 
     const localizedProps: Record<string, string | undefined> = {};
     for (const localizationKey in localizedMap) {

@@ -11,7 +11,7 @@ export default function TabOneScreen() {
     useAuth();
   const { claims, internalState } = useAuthenticated();
   const isMounted = useMounted();
-  const { colorScheme, setColorScheme, setLocale } = useTheming();
+  const { colorScheme, setColorScheme, locale, setLocale } = useTheming();
 
   async function handleLogout() {
     await logoutAsync();
@@ -78,8 +78,8 @@ export default function TabOneScreen() {
       <Text>Testing3</Text>
       <Button title={colorScheme === "light" ? "switch to dark" : "switch to light"} onPress={switchColorScheme} />
       <Button title="switch to system color scheme" onPress={switchToSystemColorScheme} />
-      <Text>Testing4</Text>
-      <Text>Testing</Text>
+      <Text>{locale}</Text>
+      <Button title="switch to system locale" onPress={switchToSystemLocale} />
       <Text>Testing</Text>
       <Text>Testing</Text>
       <Text>Testing</Text>
