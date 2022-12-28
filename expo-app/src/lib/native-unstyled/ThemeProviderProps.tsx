@@ -1,8 +1,8 @@
-import { Dict } from "i18n-js";
+import type { Dict } from "i18n-js";
 import type { PropsWithChildren } from 'react';
-import { ColorSchemeName } from "react-native";
-import { ColorSchemes } from "./Themes";
-import { Typography } from "./Typography";
+import type { ColorSchemeName } from "react-native";
+import type { ColorSchemes } from "./Themes";
+import type { Typography } from "./Typography";
 
 type ColorThemeProviderProps = {
   colorSchemeColors?: ColorSchemes;
