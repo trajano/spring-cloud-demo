@@ -2,20 +2,16 @@ import {
   DefaultTheme,
   Theme as ReactNavigationTheme
 } from "@react-navigation/native";
-import { useAsyncSetEffect } from "@trajano/react-hooks";
-import { getLocales } from "expo-localization";
 import noop from 'lodash/noop';
 import {
   createContext,
   useCallback,
   useContext, useMemo, useState
 } from "react";
-import { ColorSchemeName, useColorScheme } from "react-native";
 
 import { defaultColorSchemeColors } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from "./defaultLightColorSchemeColors";
 import { FontsProvider } from "./Fonts";
-import { I18nProvider } from "./I18n";
 import { ITheme } from "./ITheme";
 import { ThemeProviderProps } from "./ThemeProviderProps";
 import { ColorSchemeColors } from "./Themes";
