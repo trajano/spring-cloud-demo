@@ -81,13 +81,13 @@ export default function TabTwoScreen({
       action.eventName === "clear"
         ? []
         : [
-            ...prevState,
-            {
-              name: action.eventName,
-              event: action.event,
-              key: action.eventName + "-" + Date.now(),
-            },
-          ],
+          ...prevState,
+          {
+            name: action.eventName,
+            event: action.event,
+            key: action.eventName + "-" + Date.now(),
+          },
+        ],
     []
   );
 
@@ -201,6 +201,17 @@ export default function TabTwoScreen({
         onFocus={onFocus}
         backgroundColor="#DDDDFF"
       />
+
+      <TextInput
+        _p="Username"
+        editable={false}
+        defaultValue={username}
+        onChangeText={setUsername}
+        width={300}
+        onFocus={onFocus}
+      />
+
+
       <Text fg="blue">{AuthState[authState]}</Text>
       <Text>
         {scrollInfo?.contentOffset.x} {scrollInfo?.contentOffset.y}

@@ -1,4 +1,4 @@
-import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
+import { ListRenderItemInfo } from "@shopify/flash-list";
 import { useMounted } from "@trajano/react-hooks";
 import { useAuth } from "@trajano/spring-docker-auth-context";
 import { useCallback, useState } from "react";
@@ -67,7 +67,7 @@ export default function TabOneScreen() {
       </View>
     );
   },
-  []);
+    []);
 
   const refreshToken = useCallback(async function refreshToken() {
     setRefreshing(true);
@@ -109,7 +109,8 @@ export default function TabOneScreen() {
       <Button title="switch to en" onPress={switchToEn} />
       <Button title="switch to ja" onPress={switchToJa} />
 
-      <Text>Testing</Text>
+      <Text>Disabled buttons</Text>
+      <Button title="switch to ja" disabled={true} onPress={switchToJa} />
       <Text>Testing</Text>
       <Text>Testing</Text>
       <Text>Testing</Text>
