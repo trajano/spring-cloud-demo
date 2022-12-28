@@ -16,7 +16,7 @@ import { ITheme } from "./ITheme";
 import { ThemeProviderProps } from "./ThemeProviderProps";
 import { ColorSchemeColors } from "./Themes";
 import { defaultColorSchemeColors } from "./defaultColorSchemes";
-import { defaultLightColorSchemeColors } from "./defaultLightColorSchemeColors";
+import { defaultLightColorSchemeColors } from "./defaultColorSchemes/defaultLightColorSchemeColors";
 import { useConfiguredColorSchemes } from "./useConfiguredColorScheme";
 import { useConfiguredLocale } from "./useConfiguredLocale";
 

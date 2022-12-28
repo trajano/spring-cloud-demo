@@ -5,7 +5,7 @@ import {
 } from "react-native";
 
 import { Text, TextInput, View } from "./components";
-import { defaultDarkColorSchemeColors } from "./defaultDarkColorSchemeColors";
+import { defaultDarkColorSchemeColors } from "./defaultColorSchemes/defaultDarkColorSchemeColors";
 import { ThemeProvider } from "./ThemeContext";
 
 it("should i18n Text and preseve other styles and remap font", async () => {
@@ -50,7 +50,7 @@ it("should i18n Text and preseve other styles and remap font", async () => {
       style={{
         backgroundColor: "red",
         fontFamily: "IBMPlexSans_400Regular",
-        color: "#FFFFFF",
+        color: defaultDarkColorSchemeColors.default[0],
       }}
     >
       hello
