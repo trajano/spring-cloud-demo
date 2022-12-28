@@ -54,6 +54,11 @@ export default function App() {
             mono: { fontFamily: "IBMPlexMono" },
             "sans-serif": { fontFamily: "Lexend" },
           }}
+          translations={{
+            en: require('../i18n/en.json'),
+            "en-US": require('../i18n/en-US.json'),
+            ja: require('../i18n/ja.json'),
+          }}
         >
           <AppLoading
             initialAssets={[

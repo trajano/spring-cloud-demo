@@ -28,6 +28,7 @@ const ThemeContext = createContext<ITheme>({
   setColorScheme: noop,
   setLocale: noop,
   typography: () => ({}),
+  t: () => "",
   fontsLoaded: false,
 });
 export function ThemeProvider({
@@ -135,6 +136,7 @@ export function ThemeProvider({
       setColorScheme,
       setLocale,
       typography,
+      t: () => ""
     }),
     [
       colors,

@@ -1,4 +1,5 @@
 import { Theme as ReactNavigationTheme } from "@react-navigation/native";
+import { Scope, TranslateOptions } from "i18n-js/typings";
 import { ColorSchemeName, TextStyle } from "react-native";
 
 import { ColorSchemeColors } from "./Themes";
@@ -35,4 +36,10 @@ export interface ITheme {
    * Indicates the the fonts registered in the theme have all been loaded.
    */
   fontsLoaded: boolean;
+  /**
+   * Translator function.  Maybe relocate it to it's own package later to separate it from theme.
+   * @param scope 
+   * @param options 
+   */
+  t(scope: Scope, options?: TranslateOptions): string;
 }
