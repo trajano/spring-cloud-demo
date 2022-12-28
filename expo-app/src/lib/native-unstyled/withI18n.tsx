@@ -1,4 +1,12 @@
-import { ComponentType, forwardRef, Ref } from "react";
+import {
+  ComponentType,
+  forwardRef,
+  NamedExoticComponent,
+  PropsWithoutRef,
+  ReactElement,
+  Ref,
+  RefAttributes,
+} from "react";
 import {
   Animated,
   Text as RNText,
@@ -44,27 +52,27 @@ type I18nHocOptions = {
   _tIsChild?: boolean;
 };
 export function withI18n<
-  P extends Animated.AnimatedProps<TextProps> = Animated.AnimatedProps<TextProps>
+  P extends Q & I18nProps,
+  Q extends TextProps,
+  T
 >(
-  Component: ComponentType<P>,
+  Component: ComponentType<Q>,
   {
     _tIsChild = false,
     localizedMap = {
       _a: "accessibilityLabel",
     },
   }: I18nHocOptions = {}
-) {
+): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
   function useWrapped(
     {
       _t,
       _tp,
       children: inChildren,
       ...rest
-    }: Omit<P, "children"> &
-      Pick<Animated.AnimatedProps<TextProps>, "children"> &
-      I18nProps,
-    ref: Ref<RNText>
-  ) {
+    }: P,
+    ref: Ref<T>
+  ): ReactElement<Q> {
     const { t } = useTheming();
 
     const localizedProps: Record<string, string | undefined> = {};

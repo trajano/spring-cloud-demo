@@ -199,7 +199,6 @@ export default function TabTwoScreen({
         onChangeText={setUsername}
         width={300}
         onFocus={onFocus}
-        backgroundColor="#DDDDFF"
       />
 
       <TextInput

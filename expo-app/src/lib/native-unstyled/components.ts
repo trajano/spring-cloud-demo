@@ -24,7 +24,7 @@ import {
 
 import { withI18n } from "./withI18n";
 import { withReplacedWithNativeFonts } from "./withReplacedWithNativeFonts";
-import { withStyled, withStyledText } from "./withStyled";
+import { withStyled, withStyledText, withStyledTextInput } from "./withStyled";
 import { withTextRole } from "./withTextRole";
 
 export const ActivityIndicator = withStyled(withI18n(RNActivityIndicator));
@@ -48,7 +48,7 @@ export const LinearGradient = withStyled(withI18n(ExpoLinearGradient));
 /**
  * TextInput
  */
-export const TextInput = withStyledText(
+export const TextInput = withStyledTextInput(
   withI18n(
     withTextRole(
       withReplacedWithNativeFonts<TextInputProps, TextInputProps, RNTextInput>(

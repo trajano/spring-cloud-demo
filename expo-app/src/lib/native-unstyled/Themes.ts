@@ -24,7 +24,7 @@ export type Color = ColorSwatch | ColorValue;
 /**
  * Foreground (first element) and background (second element) colors or swatches.
  */
-export type ColorLayers = UnswatchedColorLayers | [Color, Color];
+export type ColorLayers = UnswatchedColorLayers | [ColorValue, ColorValue];
 /**
  * Foreground (first element) and background (second element) colors.
  * These are not swatched as they should have no context.  Also it
@@ -67,6 +67,38 @@ export type ColorSchemeColors = {
     card: string;
     border: string;
     notification: string;
+  };
+
+  /**
+   * Colors for TextInput fields
+   */
+  textInput: {
+    focused: ColorLayers;
+    /**
+     * Disabled is `editable = false`
+     */
+    disabled: ColorLayers;
+    default: ColorLayers;
+    /**
+     * Color for the placeholder text which can vary depending on field state.
+     */
+    placeholderText: {
+      focused: ColorValue;
+      disabled: ColorValue;
+      default: ColorValue;
+    };
+    /**
+     * Color for the border which can vary depending on field state.
+     */
+    border: {
+      focused: ColorValue;
+      disabled: ColorValue;
+      default: ColorValue;
+    };
+    /**
+     * Color for the selection highlight and cursor color. Applicable only on focused.
+     */
+    selection: ColorValue;
   };
   /**
    * Other color layers.  This may be `primary`, `secondary`, `disabled`, `danger` to represent different button states.

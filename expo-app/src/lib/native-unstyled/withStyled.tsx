@@ -7,8 +7,10 @@ import {
   ReactElement,
   Ref,
   RefAttributes,
+  useCallback,
+  useState,
 } from "react";
-import { StyleProp } from "react-native";
+import { StyleProp, TextInputProps } from "react-native";
 
 import { StyleProps } from "./StyleProps";
 import { TextStyleProps } from "./TextStyleProps";
@@ -16,6 +18,7 @@ import { useTheming } from "./ThemeContext";
 import { ColorSchemeColors } from "./Themes";
 import { hocDisplayName } from "./hocDisplayName";
 import { propsToStyleSheet, withoutStyledProps } from "./propsToStyleSheet";
+import { lookupColor } from "./lookupColor";
 
 type WithStyledProps = {
   /**
@@ -120,5 +123,50 @@ export function withStyledText<
     );
   }
   useWrapped.displayName = hocDisplayName("withStyledText", Component);
+  return forwardRef(useWrapped);
+}
+
+type InputState = "default" | "disabled" | "focused";
+/**
+ * This wraps a view component so the styles are exposed.
+ * @param Component component to wrap
+ * @param options options for the HoC building
+ * @typeParam Q the props for the wrapped component
+ * @typeParam O options for the HoC building
+ * @returns A named exotic componentwith P props that accepts a ref
+ */
+export function withStyledTextInput<
+  P extends Q & StyleProps & TextStyleProps,
+  Q extends TextInputProps,
+  T
+>(
+  Component: ComponentType<Q>,
+  { stripStyledPropsToWrappedComponent }: WithStyledProps = {
+    stripStyledPropsToWrappedComponent: __DEV__,
+  }
+): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
+  function useWrapped({ ...props }: P, ref: Ref<T>): ReactElement<Q> {
+    const { colors } = useTheming();
+    const [inputState, setInputState] = useState<InputState>(props.editable === false ? "disabled" : "default");
+    const onFocus = useCallback(() => props.editable !== false && setInputState("focused"), [setInputState, props.editable])
+    const onBlur = useCallback(() => props.editable !== false && setInputState("default"), [setInputState, props.editable])
+
+    props.borderColor = props.borderColor ?? lookupColor(colors.textInput.border[inputState], colors)
+    props.selectionColor = props.selectionColor ?? lookupColor(colors.textInput.selection, colors)
+    props.placeholderTextColor = props.placeholderTextColor ?? lookupColor(colors.textInput.placeholderText[inputState], colors)
+    props.backgroundColor = props.backgroundColor ?? lookupColor(colors.textInput[inputState][1], colors)
+    props.color = props.color ?? lookupColor(colors.textInput[inputState][0], colors)
+
+    props.onFocus = props.onFocus ?? onFocus;
+    props.onBlur = props.onBlur ?? onBlur;
+    return doWrap(
+      Component,
+      props,
+      ref,
+      colors,
+      !!stripStyledPropsToWrappedComponent
+    );
+  }
+  useWrapped.displayName = hocDisplayName("withStyledTextInput", Component);
   return forwardRef(useWrapped);
 }

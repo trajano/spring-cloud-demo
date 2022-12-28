@@ -1,8 +1,9 @@
 import { render, waitFor } from "@testing-library/react-native";
-import { Text as RNText, View as RNView } from "react-native";
+import { Text as RNText, View as RNView, TextInput as RNTextInput } from "react-native";
 
 import { ThemeProvider } from "./ThemeContext";
-import { Text, View } from "./components";
+import { Text, TextInput, View } from "./components";
+import { defaultDarkColorSchemeColors } from "./defaultDarkColorSchemeColors";
 
 it("should i18n Text and preseve other styles and remap font", async () => {
   const mockFont = {
@@ -58,7 +59,7 @@ it("should i18n Text and preseve other styles and remap font", async () => {
   unmount();
 });
 
-it("should i18n Text and preseve other styles and remap font while wrapped in a view", async () => {
+it("should i18n Text and preserve other styles and remap font while wrapped in a view", async () => {
   const mockFont = {
     useFonts: jest.fn(),
 
@@ -99,7 +100,7 @@ it("should i18n Text and preseve other styles and remap font while wrapped in a 
     <RNView style={{ backgroundColor: "red" }}>
       <RNText
         testID="eval"
-        style={{ color: "#FFFFFF", fontFamily: "IBMPlexSans_400Regular" }}
+        style={{ color: defaultDarkColorSchemeColors.default[0], fontFamily: "IBMPlexSans_400Regular" }}
       >
         hello
       </RNText>
@@ -108,5 +109,30 @@ it("should i18n Text and preseve other styles and remap font while wrapped in a 
 
   await waitFor(() => expect(toJSON()).toStrictEqual(toExpectedJson()));
   expect(getByTestId("eval").children).toStrictEqual(["hello"]);
+  unmount();
+});
+
+
+it("should provide a TextInput that is configured to match theme", async () => {
+  const { getByTestId, toJSON, unmount } = render(
+    <ThemeProvider
+      defaultColorScheme="dark"
+      colorScheme="dark"
+    >
+      <TextInput testID="input" />
+    </ThemeProvider>
+  );
+
+  // await waitFor(() => expect(toJSON()).toStrictEqual(
+  //   expect.objectContaining(toExpectedJson())
+  // ));
+  await waitFor(() => expect(getByTestId("input").props.style).toStrictEqual(
+    {
+      color: defaultDarkColorSchemeColors.textInput.default[0],
+      backgroundColor: defaultDarkColorSchemeColors.textInput.default[1],
+      borderColor: defaultDarkColorSchemeColors.textInput.border.default,
+    }
+  ));
+  expect(getByTestId("input").children).toBeTruthy;
   unmount();
 });
