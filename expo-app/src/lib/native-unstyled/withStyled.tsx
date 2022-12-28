@@ -151,9 +151,10 @@ export function withStyledTextInput<
     const onFocus = useCallback(() => props.editable !== false && setInputState("focused"), [setInputState, props.editable])
     const onBlur = useCallback(() => props.editable !== false && setInputState("default"), [setInputState, props.editable])
 
-    props.borderColor = props.borderColor ?? lookupColor(colors.textInput.border[inputState], colors)
     props.selectionColor = props.selectionColor ?? lookupColor(colors.textInput.selection, colors)
     props.placeholderTextColor = props.placeholderTextColor ?? lookupColor(colors.textInput.placeholderText[inputState], colors)
+
+    props.borderColor = props.borderColor ?? lookupColor(colors.textInput.border[inputState], colors)
     props.backgroundColor = props.backgroundColor ?? lookupColor(colors.textInput[inputState][1], colors)
     props.color = props.color ?? lookupColor(colors.textInput[inputState][0], colors)
 

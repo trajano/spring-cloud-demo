@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { Text as RNText, View as RNView, TextInput as RNTextInput } from "react-native";
 
 import { ThemeProvider } from "./ThemeContext";
@@ -114,7 +114,7 @@ it("should i18n Text and preserve other styles and remap font while wrapped in a
 
 
 it("should provide a TextInput that is configured to match theme", async () => {
-  const { getByTestId, toJSON, unmount } = render(
+  const { getByTestId, unmount } = render(
     <ThemeProvider
       defaultColorScheme="dark"
       colorScheme="dark"
@@ -122,10 +122,6 @@ it("should provide a TextInput that is configured to match theme", async () => {
       <TextInput testID="input" />
     </ThemeProvider>
   );
-
-  // await waitFor(() => expect(toJSON()).toStrictEqual(
-  //   expect.objectContaining(toExpectedJson())
-  // ));
   await waitFor(() => expect(getByTestId("input").props.style).toStrictEqual(
     {
       color: defaultDarkColorSchemeColors.textInput.default[0],
@@ -133,6 +129,66 @@ it("should provide a TextInput that is configured to match theme", async () => {
       borderColor: defaultDarkColorSchemeColors.textInput.border.default,
     }
   ));
-  expect(getByTestId("input").children).toBeTruthy;
+  expect(getByTestId("input").props.selectionColor).toStrictEqual(defaultDarkColorSchemeColors.textInput.selection);
+  expect(getByTestId("input").props.placeholderTextColor).toStrictEqual(defaultDarkColorSchemeColors.textInput.placeholderText.default);
+  expect(getByTestId("input").props.onBlur).toBeTruthy();
+  expect(getByTestId("input").props.onFocus).toBeTruthy();
+
+  fireEvent(getByTestId("input"), "focus")
+  await waitFor(() => expect(getByTestId("input").props.style).toStrictEqual(
+    {
+      color: defaultDarkColorSchemeColors.textInput.focused[0],
+      backgroundColor: defaultDarkColorSchemeColors.textInput.focused[1],
+      borderColor: defaultDarkColorSchemeColors.textInput.border.focused,
+    }
+  ));
+  fireEvent(getByTestId("input"), "blur")
+  await waitFor(() => expect(getByTestId("input").props.style).toStrictEqual(
+    {
+      color: defaultDarkColorSchemeColors.textInput.default[0],
+      backgroundColor: defaultDarkColorSchemeColors.textInput.default[1],
+      borderColor: defaultDarkColorSchemeColors.textInput.border.default,
+    }
+  ));
+  unmount();
+});
+
+it("should provide a disabled TextInput that is configured to match theme", async () => {
+  const { getByTestId, unmount } = render(
+    <ThemeProvider
+      defaultColorScheme="dark"
+      colorScheme="dark"
+    >
+      <TextInput testID="input" editable={false} />
+    </ThemeProvider>
+  );
+  await waitFor(() => expect(getByTestId("input").props.style).toStrictEqual(
+    {
+      color: defaultDarkColorSchemeColors.textInput.disabled[0],
+      backgroundColor: defaultDarkColorSchemeColors.textInput.disabled[1],
+      borderColor: defaultDarkColorSchemeColors.textInput.border.disabled,
+    }
+  ));
+  expect(getByTestId("input").props.selectionColor).toStrictEqual(defaultDarkColorSchemeColors.textInput.selection);
+  expect(getByTestId("input").props.placeholderTextColor).toStrictEqual(defaultDarkColorSchemeColors.textInput.placeholderText.disabled);
+  expect(getByTestId("input").props.onBlur).toBeTruthy();
+  expect(getByTestId("input").props.onFocus).toBeTruthy();
+
+  fireEvent(getByTestId("input"), "focus")
+  await waitFor(() => expect(getByTestId("input").props.style).toStrictEqual(
+    {
+      color: defaultDarkColorSchemeColors.textInput.disabled[0],
+      backgroundColor: defaultDarkColorSchemeColors.textInput.disabled[1],
+      borderColor: defaultDarkColorSchemeColors.textInput.border.disabled,
+    }
+  ));
+  fireEvent(getByTestId("input"), "blur")
+  await waitFor(() => expect(getByTestId("input").props.style).toStrictEqual(
+    {
+      color: defaultDarkColorSchemeColors.textInput.disabled[0],
+      backgroundColor: defaultDarkColorSchemeColors.textInput.disabled[1],
+      borderColor: defaultDarkColorSchemeColors.textInput.border.disabled,
+    }
+  ));
   unmount();
 });
