@@ -5,17 +5,15 @@ import {
   PropsWithoutRef,
   ReactElement,
   Ref,
-  RefAttributes,
+  RefAttributes
 } from "react";
 import {
-  Animated,
-  Text as RNText,
   TextInputProps,
-  TextProps,
+  TextProps
 } from "react-native";
 
-import { useTheming } from "./ThemeContext";
 import { hocDisplayName } from "./hocDisplayName";
+import { useTheming } from "./ThemeContext";
 
 type I18nProps = {
   _t?: string;
@@ -51,11 +49,7 @@ type I18nHocOptions = {
    */
   _tIsChild?: boolean;
 };
-export function withI18n<
-  P extends Q & I18nProps,
-  Q extends TextProps,
-  T
->(
+export function withI18n<P extends Q & I18nProps, Q extends TextProps, T>(
   Component: ComponentType<Q>,
   {
     _tIsChild = false,
@@ -65,12 +59,7 @@ export function withI18n<
   }: I18nHocOptions = {}
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
   function useWrapped(
-    {
-      _t,
-      _tp,
-      children: inChildren,
-      ...rest
-    }: P,
+    { _t, _tp, children: inChildren, ...rest }: P,
     ref: Ref<T>
   ): ReactElement<Q> {
     const { t } = useTheming();

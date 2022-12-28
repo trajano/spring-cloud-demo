@@ -67,7 +67,7 @@ export default function TabOneScreen() {
       </View>
     );
   },
-    []);
+  []);
 
   const refreshToken = useCallback(async function refreshToken() {
     setRefreshing(true);
@@ -110,7 +110,7 @@ export default function TabOneScreen() {
       <Button title="switch to ja" onPress={switchToJa} />
 
       <Text>Disabled buttons</Text>
-      <Button title="switch to ja" disabled={true} onPress={switchToJa} />
+      <Button title="switch to ja" disabled onPress={switchToJa} />
       <Text>Testing</Text>
       <Text>Testing</Text>
       <Text>Testing</Text>
