@@ -5,6 +5,7 @@ import * as IslandMoments from "@expo-google-fonts/island-moments";
 import * as Lexend from "@expo-google-fonts/lexend";
 import * as NotoSans from "@expo-google-fonts/noto-sans";
 import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
+import { FontAwesome } from "@expo/vector-icons";
 import { AuthProvider } from "@trajano/spring-docker-auth-context";
 import "expo-dev-client";
 import { deactivateKeepAwake, ExpoKeepAwakeTag } from "expo-keep-awake";
@@ -16,7 +17,12 @@ import { useExpoUpdateEffect } from "../../hooks/useExpoUpdateEffect";
 import { LoadingScreen } from "../../screens/LoadingScreen";
 import { AppProvider } from "../app-context";
 import { AppLoading } from "../lib/app-loading";
-import { ActivityIndicator, StatusBar, ThemeProvider, View } from "../lib/native-unstyled";
+import {
+  ActivityIndicator,
+  StatusBar,
+  ThemeProvider,
+  View,
+} from "../lib/native-unstyled";
 import { useStoredEndpointConfigurationEffect } from "./useStoredEndpointConfigurationEffect";
 
 const TextTest = lazy(() => import("../../screens/TextTest"));
@@ -49,15 +55,17 @@ export default function App() {
             Lexend,
             IBMPlexMono,
             IslandMoments,
+            FontAwesome.font,
           ]}
           textRoles={{
             mono: { fontFamily: "IBMPlexMono" },
             "sans-serif": { fontFamily: "Lexend" },
           }}
           translations={{
-            en: require('../i18n/en.json'),
-            "en-US": require('../i18n/en-US.json'),
-            ja: require('../i18n/ja.json'),
+            en: require("../i18n/en.json"),
+            "en-US": require("../i18n/en-US.json"),
+            "en-CA": require("../i18n/en-CA.json"),
+            ja: require("../i18n/ja.json"),
           }}
         >
           <AppLoading

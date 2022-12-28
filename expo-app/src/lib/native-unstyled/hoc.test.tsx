@@ -19,7 +19,7 @@ import { hocDisplayName } from "./hocDisplayName";
  * as [refs are not passed through](https://reactjs.org/docs/higher-order-components.html#refs-arent-passed-through)
  * HoCs by default.
  * @param Component component to wrap
- * @param options options for the HoC building
+ * @param _options options for the HoC building
  * @typeParam P the exposed props of the higher order component (does not require Q props)
  * @typeParam Q the props for the wrapped component
  * @typeParam T type for ref attribute of the wrapped component
@@ -28,7 +28,7 @@ import { hocDisplayName } from "./hocDisplayName";
  */
 function hoc<P extends Q, Q extends object, T, O = object>(
   Component: ComponentType<Q>,
-  options?: O
+  _options?: O
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
   function useWrapped(props: P, ref: Ref<T>): ReactElement<Q> {
     // the an unknown as Q here is an example, but P and Q can be different.

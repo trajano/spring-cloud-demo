@@ -1,3 +1,5 @@
 {
-  "logout": "ログアウト"
+  "logout": "ログアウト",
+  "switchToDarkColorScheme": "ダークモード",
+  "switchToLightColorScheme": "ライトモード"
 }

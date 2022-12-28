@@ -1,20 +1,22 @@
 import {
   DefaultTheme,
-  Theme as ReactNavigationTheme
+  Theme as ReactNavigationTheme,
 } from "@react-navigation/native";
-import noop from 'lodash/noop';
+import noop from "lodash/noop";
 import {
   createContext,
   useCallback,
-  useContext, useMemo, useState
+  useContext,
+  useMemo,
+  useState,
 } from "react";
 
-import { defaultColorSchemeColors } from "./defaultColorSchemes";
-import { defaultLightColorSchemeColors } from "./defaultLightColorSchemeColors";
 import { FontsProvider } from "./Fonts";
 import { ITheme } from "./ITheme";
 import { ThemeProviderProps } from "./ThemeProviderProps";
 import { ColorSchemeColors } from "./Themes";
+import { defaultColorSchemeColors } from "./defaultColorSchemes";
+import { defaultLightColorSchemeColors } from "./defaultLightColorSchemeColors";
 import { useConfiguredColorSchemes } from "./useConfiguredColorScheme";
 import { useConfiguredLocale } from "./useConfiguredLocale";
 
@@ -43,8 +45,16 @@ export function ThemeProvider({
   i18nOptions,
   colorSchemeColors = defaultColorSchemeColors,
 }: ThemeProviderProps) {
-  const [colorScheme, setColorScheme] = useConfiguredColorSchemes(inColorScheme, defaultColorScheme);
-  const [locale, setLocale, t] = useConfiguredLocale(inLocale, defaultLocale, translations, i18nOptions);
+  const [colorScheme, setColorScheme] = useConfiguredColorSchemes(
+    inColorScheme,
+    defaultColorScheme
+  );
+  const [locale, setLocale, t] = useConfiguredLocale(
+    inLocale,
+    defaultLocale,
+    translations,
+    i18nOptions
+  );
 
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
@@ -91,7 +101,7 @@ export function ThemeProvider({
       setColorScheme,
       setLocale,
       t,
-      typography
+      typography,
     }),
     [
       colors,

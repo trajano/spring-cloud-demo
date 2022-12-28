@@ -175,8 +175,23 @@ function RootNavigator() {
  * https://reactnavigation.org/docs/bottom-tab-navigator
  */
 const BottomTab = createMaterialBottomTabNavigator<RootTabParamList>();
-
 function BottomTabNavigator() {
+  const MainDrawerTabIcon = useCallback(
+    ({ color }: { color: string }) => (
+      <TabBarIcon name="archive" color={color} />
+    ),
+    []
+  );
+  const TabTwoTabIcon = useCallback(
+    ({ color }: { color: string }) => (
+      <TabBarIcon name="address-book" color={color} />
+    ),
+    []
+  );
+  const NetworkLoggerTabIcon = useCallback(
+    ({ color }: { color: string }) => <TabBarIcon name="globe" color={color} />,
+    []
+  );
   return (
     <BottomTab.Navigator
       initialRouteName="MainDrawer"
@@ -186,21 +201,17 @@ function BottomTabNavigator() {
       <BottomTab.Screen
         name="MainDrawer"
         component={DrawerNavigator}
-        options={() => ({
+        options={{
           title: "Tab One",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="archive" color={color} />
-          ),
-        })}
+          tabBarIcon: MainDrawerTabIcon,
+        }}
       />
       <BottomTab.Screen
         name="TabTwo"
         component={TextTab}
         options={{
           title: "Text",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="address-book" color={color} />
-          ),
+          tabBarIcon: TabTwoTabIcon,
         }}
       />
       <BottomTab.Screen
@@ -208,7 +219,7 @@ function BottomTabNavigator() {
         component={NetworkLoggerTab}
         options={{
           title: "Network Log",
-          tabBarIcon: ({ color }) => <TabBarIcon name="globe" color={color} />,
+          tabBarIcon: NetworkLoggerTabIcon,
         }}
       />
     </BottomTab.Navigator>

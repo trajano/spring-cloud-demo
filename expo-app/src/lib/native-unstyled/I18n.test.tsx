@@ -1,8 +1,8 @@
 import { render, waitFor } from "@testing-library/react-native";
 import { Text as RNText, View as RNView } from "react-native";
 
-import { Text, View } from "./components";
 import { ThemeProvider } from "./ThemeContext";
+import { Text, View } from "./components";
 
 it("should i18n Text with no context", () => {
   const { getByTestId, unmount } = render(
@@ -43,7 +43,10 @@ it("should i18n Text and preseve other styles", () => {
     IBMPlexSans_700Bold_Italic: 14,
   };
   const { getByTestId, toJSON, unmount } = render(
-    <ThemeProvider fontModules={[mockFont]} translations={{ en: { key: "hello" } }}>
+    <ThemeProvider
+      fontModules={[mockFont]}
+      translations={{ en: { key: "hello" } }}
+    >
       <Text
         testID="eval"
         _t="key"
@@ -84,7 +87,10 @@ it("should i18n Text and preseve other styles and remap font", async () => {
     IBMPlexSans_700Bold_Italic: 14,
   };
   const { getByTestId, toJSON, unmount } = render(
-    <ThemeProvider fontModules={[mockFont]} translations={{ en: { key: "hello" } }}>
+    <ThemeProvider
+      fontModules={[mockFont]}
+      translations={{ en: { key: "hello" } }}
+    >
       <Text
         testID="eval"
         _t="key"
@@ -97,7 +103,11 @@ it("should i18n Text and preseve other styles and remap font", async () => {
   const { toJSON: toExpectedJson } = render(
     <RNText
       testID="eval"
-      style={{ backgroundColor: "red", fontFamily: "IBMPlexSans_400Regular", color: "#000000" }}
+      style={{
+        backgroundColor: "red",
+        fontFamily: "IBMPlexSans_400Regular",
+        color: "#000000",
+      }}
     >
       hello
     </RNText>
@@ -129,7 +139,10 @@ it("should i18n Text and preseve other styles and remap font while wrapped in a 
     IBMPlexSans_700Bold_Italic: 14,
   };
   const { getByTestId, toJSON, unmount } = render(
-    <ThemeProvider fontModules={[mockFont]} translations={{ en: { key: "hello" } }}>
+    <ThemeProvider
+      fontModules={[mockFont]}
+      translations={{ en: { key: "hello" } }}
+    >
       <View backgroundColor="red">
         <Text
           testID="eval"
@@ -142,7 +155,10 @@ it("should i18n Text and preseve other styles and remap font while wrapped in a 
   );
   const { toJSON: toExpectedJson } = render(
     <RNView style={{ backgroundColor: "red" }}>
-      <RNText testID="eval" style={{ fontFamily: "IBMPlexSans_400Regular", color: "#000000" }}>
+      <RNText
+        testID="eval"
+        style={{ fontFamily: "IBMPlexSans_400Regular", color: "#000000" }}
+      >
         hello
       </RNText>
     </RNView>

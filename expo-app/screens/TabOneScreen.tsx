@@ -11,7 +11,7 @@ export default function TabOneScreen() {
     useAuth();
   const { claims, internalState } = useAuthenticated();
   const isMounted = useMounted();
-  const { colorScheme, setColorScheme, locale, setLocale } = useTheming();
+  const { colorScheme, setColorScheme, locale, setLocale, t } = useTheming();
 
   async function handleLogout() {
     await logoutAsync();
@@ -22,15 +22,31 @@ export default function TabOneScreen() {
     } else {
       setColorScheme("light");
     }
-  }, [colorScheme, setColorScheme])
+  }, [colorScheme, setColorScheme]);
 
   const switchToSystemColorScheme = useCallback(() => {
     setColorScheme(null);
-  }, [colorScheme, setColorScheme])
+  }, [colorScheme, setColorScheme]);
 
   const switchToSystemLocale = useCallback(() => {
     setLocale(null);
-  }, [setLocale])
+  }, [setLocale]);
+
+  const switchToEnCa = useCallback(() => {
+    setLocale("en-CA");
+  }, [setLocale]);
+
+  const switchToEnUS = useCallback(() => {
+    setLocale("en-US");
+  }, [setLocale]);
+
+  const switchToEn = useCallback(() => {
+    setLocale("en");
+  }, [setLocale]);
+
+  const switchToJa = useCallback(() => {
+    setLocale("ja");
+  }, [setLocale]);
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -51,7 +67,7 @@ export default function TabOneScreen() {
       </View>
     );
   },
-    []);
+  []);
 
   const refreshToken = useCallback(async function refreshToken() {
     setRefreshing(true);
@@ -70,17 +86,29 @@ export default function TabOneScreen() {
     []
   );
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-    >
+    <ScrollView contentInsetAdjustmentBehavior="automatic">
       <Text>Testing1</Text>
-      <Button title="logout" onPress={logoutAsync} />
+      <Button title={t("logout")} onPress={logoutAsync} />
       <Text>Testing3</Text>
-      <Button title={colorScheme === "light" ? "switch to dark" : "switch to light"} onPress={switchColorScheme} />
-      <Button title="switch to system color scheme" onPress={switchToSystemColorScheme} />
+      <Button
+        title={
+          colorScheme === "light"
+            ? t("switchToDarkColorScheme")
+            : t("switchToLightColorScheme")
+        }
+        onPress={switchColorScheme}
+      />
+      <Button
+        title="switch to system color scheme"
+        onPress={switchToSystemColorScheme}
+      />
       <Text>{locale}</Text>
       <Button title="switch to system locale" onPress={switchToSystemLocale} />
-      <Text>Testing</Text>
+      <Button title="switch to en-CA" onPress={switchToEnCa} />
+      <Button title="switch to en-US" onPress={switchToEnUS} />
+      <Button title="switch to en" onPress={switchToEn} />
+      <Button title="switch to ja" onPress={switchToJa} />
+
       <Text>Testing</Text>
       <Text>Testing</Text>
       <Text>Testing</Text>

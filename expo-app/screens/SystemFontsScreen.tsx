@@ -9,7 +9,7 @@ import {
 
 import { BlurView, Text, View } from "../src/lib/native-unstyled";
 
-const specimen =
+const specimenText =
   "The quick brown fox jumped over the two lazy dogs. 13-8 0 96?";
 type FontSectionData = { fontFamily: string; specimen: string };
 const variantSuffixes = [
@@ -74,7 +74,7 @@ export function SystemFontsScreen(): ReactElement<
 > {
   function fontSpecimens(fontFamily: string): FontSectionData[] {
     return [
-      { fontFamily, specimen },
+      { fontFamily, specimen: specimenText },
       ...variantSuffixes
         .flatMap((suffix) => [
           fontFamily + "_" + suffix,
@@ -86,7 +86,11 @@ export function SystemFontsScreen(): ReactElement<
               (ff) => ff.toLowerCase() === f.toLowerCase()
             ) !== -1
         )
-        .map((f) => ({ key: f, fontFamily: f, specimen: specimen + " " + f })),
+        .map((f) => ({
+          key: f,
+          fontFamily: f,
+          specimen: specimenText + " " + f,
+        })),
     ];
   }
   const sections: SectionListData<FontSectionData>[] = Constants.systemFonts

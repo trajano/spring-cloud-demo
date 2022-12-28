@@ -1,6 +1,5 @@
-import { renderHook } from "@testing-library/react-hooks";
-import { locale } from "expo-localization";
-import type { Dispatch, SetStateAction } from "react";
+import { act, renderHook } from "@testing-library/react-hooks";
+
 import { useConfiguredLocale } from "./useConfiguredLocale";
 
 it("translate", () => {
@@ -31,6 +30,7 @@ it("translate", () => {
   const [locale, setLocale, t] = result.current;
   expect(locale).toBe("en-US");
   expect(setLocale).toBeTruthy();
+  expect(t).toBeTruthy();
   expect(t("switchToDarkColorScheme")).toBe("Switch to Dark Color Scheme");
 });
 
@@ -55,4 +55,37 @@ it("translate to just en", () => {
   expect(locale).toBe("en");
   expect(setLocale).toBeTruthy();
   expect(t("switchToDarkColorScheme")).toBe("Switch to Dark Colour Scheme");
+});
+
+it("translate switching", () => {
+  const translations = {
+    en: {
+      switchToDarkColorScheme: "Switch to Dark Colour Scheme",
+      switchToLightColorScheme: "Switch to Light Colour Scheme",
+    },
+    ja: {
+      switchToDarkColorScheme: "ダークモード",
+      switchToLightColorScheme: "ライトモード",
+    },
+  };
+  const { result } = renderHook(
+    ({ inLocale, defaultLocale }) =>
+      useConfiguredLocale(inLocale, defaultLocale, translations),
+    {
+      initialProps: {
+        inLocale: undefined,
+        defaultLocale: "en",
+      },
+    }
+  );
+  const [locale, setLocale, t] = result.current;
+  expect(locale).toBe("en");
+  expect(setLocale).toBeTruthy();
+  expect(t("switchToDarkColorScheme")).toBe(
+    translations.en.switchToDarkColorScheme
+  );
+  act(() => setLocale("ja"));
+  expect(t("switchToDarkColorScheme")).toBe(
+    translations.ja.switchToDarkColorScheme
+  );
 });

@@ -1,8 +1,5 @@
 import { useAsyncSetEffect } from "@trajano/react-hooks";
-import {
-    useMemo,
-    useState
-} from "react";
+import { useMemo, useState } from "react";
 import { ColorSchemeName, useColorScheme } from "react-native";
 
 export function useConfiguredColorSchemes(

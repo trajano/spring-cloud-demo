@@ -41,8 +41,8 @@ export interface ITheme {
   setLocale(locale: string | null): void;
   /**
    * Translator function.  Maybe relocate it to it's own package later to separate it from theme.
-   * @param scope 
-   * @param options 
+   * @param scope
+   * @param options
    */
   t(scope: Scope, options?: TranslateOptions): string;
 }

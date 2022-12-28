@@ -1,15 +1,15 @@
-import { useTimeoutEffect } from "@trajano/react-hooks";
 import { AuthState, useAuth } from "@trajano/spring-docker-auth-context";
 import { StatusBar } from "expo-status-bar";
 import { checkForUpdateAsync } from "expo-updates";
 import AnimatedLottieView from "lottie-react-native";
 import { useCallback, useEffect, useState } from "react";
-import { useWindowDimensions, View } from "react-native";
+import { useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   LoadingComponentProps,
   Text,
+  View,
   useTheming,
 } from "../src/lib/native-unstyled";
 
@@ -57,17 +57,19 @@ export function LoadingScreen({
   const { authState } = useAuth();
 
   const [fromFontsLoaded, setFromFontsLoaded] = useState(fontsLoaded ? 1 : 0);
-  const [fromAuthState, setFromAuthState] = useState(authState === AuthState.INITIAL ? 0 : 1);
+  const [fromAuthState, setFromAuthState] = useState(
+    authState === AuthState.INITIAL ? 0 : 1
+  );
   const [fromExpoUpdate, setFromExpoUpdate] = useState(0);
   const [fromAnimationFinish, setAnimationFinish] = useState(0);
 
   useEffect(() => {
-    setFromFontsLoaded(fontsLoaded ? 1 : 0)
-  }, [fontsLoaded])
+    setFromFontsLoaded(fontsLoaded ? 1 : 0);
+  }, [fontsLoaded]);
 
   useEffect(() => {
-    setFromAuthState(authState === AuthState.INITIAL ? 0 : 1)
-  }, [authState])
+    setFromAuthState(authState === AuthState.INITIAL ? 0 : 1);
+  }, [authState]);
 
   useEffect(() => {
     (async () => {
@@ -89,26 +91,21 @@ export function LoadingScreen({
 
   useEffect(() => {
     additionalResourceUpdate(
-      fromAnimationFinish +
-      fromAuthState +
-      fromExpoUpdate +
-      fromFontsLoaded,
-      4)
-
-  }, [fromAnimationFinish, fromAuthState, fromExpoUpdate, fromFontsLoaded])
+      fromAnimationFinish + fromAuthState + fromExpoUpdate + fromFontsLoaded,
+      4
+    );
+  }, [fromAnimationFinish, fromAuthState, fromExpoUpdate, fromFontsLoaded]);
 
   return (
     <>
       <View
-        style={{
-          width: windowWidth,
-          height: windowHeight,
-          backgroundColor: colors.default[1],
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
+        width={windowWidth}
+        height={windowHeight}
+        backgroundColor={colors.default[1]}
+        alignItems="center"
+        justifyContent="space-between"
       >
-        <View style={{ flexDirection: "row", alignSelf: "flex-end" }}>
+        <View flexDirection="row" alignSelf="flex-end">
           <AnimatedLottieView
             autoPlay
             loop={false}
