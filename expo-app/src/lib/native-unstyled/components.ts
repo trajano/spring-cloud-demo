@@ -27,25 +27,23 @@ import { withReplacedWithNativeFonts } from "./withReplacedWithNativeFonts";
 import { withStyled, withStyledText } from "./withStyled";
 import { withTextRole } from "./withTextRole";
 
-export const ActivityIndicator = withStyled(RNActivityIndicator);
-export const FlatList = withStyled(RNFlatList);
-export const Image = withStyled(RNImage);
-export const Modal = withStyled(RNModal);
+export const ActivityIndicator = withStyled(withI18n(RNActivityIndicator));
+export const FlatList = withStyled(withI18n(RNFlatList));
+export const Image = withStyled(withI18n(RNImage));
+export const Modal = withStyled(withI18n(RNModal));
 export const Pressable = withStyled(RNPressable);
-export const RefreshControl = withStyled(RNRefreshControl);
-export const ScrollView = withStyled(RNScrollView);
-export const SectionList = withStyled(
-  withReplacedWithNativeFonts(RNSectionList)
-);
+export const RefreshControl = withStyled(withI18n(RNRefreshControl));
+export const ScrollView = withStyled(withI18n(RNScrollView));
+export const SectionList = withStyled(withI18n(RNSectionList));
 
 /**
  * Expo BlurView
  */
-export const BlurView = withStyled(ExpoBlurView);
+export const BlurView = withStyled(withI18n(ExpoBlurView));
 /**
  * Expo LinearGradient
  */
-export const LinearGradient = withStyled(ExpoLinearGradient);
+export const LinearGradient = withStyled(withI18n(ExpoLinearGradient));
 
 /**
  * TextInput
@@ -82,4 +80,4 @@ export const Text = withStyledText(
   )
 );
 
-export const View = withStyled(RNView);
+export const View = withStyled(withI18n(RNView));

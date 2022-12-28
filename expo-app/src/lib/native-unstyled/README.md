@@ -107,3 +107,7 @@ One thing to note... unlike the normal react-native View, the View style props d
 ## Performance
 
 Eventually some of the HoCs will be converted to a babel plugin to further improve runtime performance but that will come later.
+
+## i18n integration
+
+* Originally I thought to split off the i18n integration but it wasn't possible because I would have to rewrap the components again `withI18n`

@@ -17,11 +17,6 @@ export interface ITheme {
    */
   setColorScheme(colorScheme: ColorSchemeName | null): void;
   /**
-   * 
-   * @param locale locale to switch to or swith to the first system locale or default
-   */
-  setLocale(locale: string | null): void;
-  /**
    * Default typography.  This is only set to the value specified in the provider once the loading
    * has been completed to prevent missing font messages.  This also specifies the colors.
    */
@@ -36,6 +31,14 @@ export interface ITheme {
    * Indicates the the fonts registered in the theme have all been loaded.
    */
   fontsLoaded: boolean;
+  /**
+   * Language tag for the current locale.
+   */
+  locale: string;
+  /**
+   * @param locale locale to switch to or swith to the first system locale or default
+   */
+  setLocale(locale: string | null): void;
   /**
    * Translator function.  Maybe relocate it to it's own package later to separate it from theme.
    * @param scope 
