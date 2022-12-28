@@ -21,7 +21,11 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.trajano.expoapp"
+      "bundleIdentifier": "com.trajano.expoapp",
+      "infoPlist": {
+        "UISupportsDocumentBrowser": true,
+        "UIFileSharingEnabled": true
+      }
     },
     "android": {
       "adaptiveIcon": {

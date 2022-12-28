@@ -1,7 +1,7 @@
-import { useAsyncSetEffect } from "@trajano/react-hooks";
 import { Asset } from "expo-asset";
 import * as SplashScreen from 'expo-splash-screen';
-import { ReactElement, useCallback, useState } from "react";
+import { ReactElement, useCallback, useEffect, useState } from "react";
+import { View } from 'react-native';
 import { AppLoadingProps } from "./AppLoadingProps";
 export function AppLoading({
   children,
@@ -15,34 +15,30 @@ export function AppLoading({
     setLoadedAssets(loaded);
     setTotalAssets(total);
   }, [])
-  const onLayout = useCallback(async () => {
+  const onLayout = useCallback(function onLayout() {
+    console.log({ onLayout: "fired", initialAssetsLoaded })
     if (initialAssetsLoaded) {
-      await SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(console.error);
     }
   }, [initialAssetsLoaded])
-  useAsyncSetEffect(
-    async () => {
-      try {
-        if (initialAssets) {
-          await Asset.loadAsync(initialAssets);
-        }
-      } catch (e: unknown) {
-        console.error(e);
-      }
-      return true;
-    },
-    setInitialAssetsLoaded,
-    [initialAssets])
+  useEffect(() => {
+    if (initialAssets) {
+      Asset.loadAsync(initialAssets).then(() => setInitialAssetsLoaded(true)).catch(console.error);
+    } else {
+      setInitialAssetsLoaded(true)
+    }
+  }, [initialAssets]);
   if (loadedAssets >= totalAssets || !LoadingComponent) {
     return <>{children}</>;
   } else if (initialAssetsLoaded) {
     return (
-      <LoadingComponent
-        onLayout={onLayout}
-        loadedAssets={loadedAssets}
-        totalAssets={totalAssets}
-        additionalResourceUpdate={additionalResourceUpdate}
-      />
+      <View onLayout={onLayout}>
+        <LoadingComponent
+          loadedAssets={loadedAssets}
+          totalAssets={totalAssets}
+          additionalResourceUpdate={additionalResourceUpdate}
+        />
+      </View>
     );
   } else {
     return <></>
