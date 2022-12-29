@@ -10,7 +10,7 @@ import {
 } from "react";
 import { TextProps } from "react-native";
 
-import { useTheming } from "./ThemeContext";
+import { useTheming } from "../ThemeContext";
 import { hocDisplayName } from "./hocDisplayName";
 
 /**

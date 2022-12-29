@@ -7,10 +7,8 @@
  * What it provides are wrappers to the React Native core components
  * that give extra props for i18n, themeing and utility.
  */
-export type {
-  ColorSchemeColors as Theme,
-  ColorSchemes as Themes,
-} from "./Themes";
+export type { ColorSchemeColors } from "./ColorSchemeColors";
+export type { ColorSchemes } from "./Themes";
 export { defaultColorSchemeColors as defaultColorSchemes } from "./defaultColorSchemes";
 export type { LoadingComponentProps } from "../app-loading/LoadingComponentProps";
 export { ThemeProvider, useColors, useTheming } from "./ThemeContext";

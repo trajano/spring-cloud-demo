@@ -7,7 +7,7 @@ import * as RN from "react-native";
 import { StyleProp } from "react-native";
 
 import { StyleProps } from "./StyleProps";
-import { ColorSchemeColors } from "./Themes";
+import { ColorSchemeColors } from "./ColorSchemeColors";
 import { lookupColor } from "./lookupColor";
 
 /**

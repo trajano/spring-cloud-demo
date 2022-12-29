@@ -126,16 +126,16 @@ it("should provide a TextInput that is configured to match theme", async () => {
   );
   await waitFor(() =>
     expect(getByTestId("input").props.style).toStrictEqual({
-      color: defaultDarkColorSchemeColors.textInput.default[0],
-      backgroundColor: defaultDarkColorSchemeColors.textInput.default[1],
-      borderColor: defaultDarkColorSchemeColors.textInput.border.default,
+      color: defaultDarkColorSchemeColors.input.default[0],
+      backgroundColor: defaultDarkColorSchemeColors.input.default[1],
+      borderColor: defaultDarkColorSchemeColors.input.border.default,
     })
   );
   expect(getByTestId("input").props.selectionColor).toStrictEqual(
-    defaultDarkColorSchemeColors.textInput.selection
+    defaultDarkColorSchemeColors.input.selection
   );
   expect(getByTestId("input").props.placeholderTextColor).toStrictEqual(
-    defaultDarkColorSchemeColors.textInput.placeholderText.default
+    defaultDarkColorSchemeColors.input.placeholderText.default
   );
   expect(getByTestId("input").props.onBlur).toBeTruthy();
   expect(getByTestId("input").props.onFocus).toBeTruthy();
@@ -143,17 +143,17 @@ it("should provide a TextInput that is configured to match theme", async () => {
   fireEvent(getByTestId("input"), "focus");
   await waitFor(() =>
     expect(getByTestId("input").props.style).toStrictEqual({
-      color: defaultDarkColorSchemeColors.textInput.focused[0],
-      backgroundColor: defaultDarkColorSchemeColors.textInput.focused[1],
-      borderColor: defaultDarkColorSchemeColors.textInput.border.focused,
+      color: defaultDarkColorSchemeColors.input.enabled[0],
+      backgroundColor: defaultDarkColorSchemeColors.input.enabled[1],
+      borderColor: defaultDarkColorSchemeColors.input.border.enabled,
     })
   );
   fireEvent(getByTestId("input"), "blur");
   await waitFor(() =>
     expect(getByTestId("input").props.style).toStrictEqual({
-      color: defaultDarkColorSchemeColors.textInput.default[0],
-      backgroundColor: defaultDarkColorSchemeColors.textInput.default[1],
-      borderColor: defaultDarkColorSchemeColors.textInput.border.default,
+      color: defaultDarkColorSchemeColors.input.default[0],
+      backgroundColor: defaultDarkColorSchemeColors.input.default[1],
+      borderColor: defaultDarkColorSchemeColors.input.border.default,
     })
   );
   unmount();
@@ -167,16 +167,16 @@ it("should provide a disabled TextInput that is configured to match theme", asyn
   );
   await waitFor(() =>
     expect(getByTestId("input").props.style).toStrictEqual({
-      color: defaultDarkColorSchemeColors.textInput.disabled[0],
-      backgroundColor: defaultDarkColorSchemeColors.textInput.disabled[1],
-      borderColor: defaultDarkColorSchemeColors.textInput.border.disabled,
+      color: defaultDarkColorSchemeColors.input.disabled[0],
+      backgroundColor: defaultDarkColorSchemeColors.input.disabled[1],
+      borderColor: defaultDarkColorSchemeColors.input.border.disabled,
     })
   );
   expect(getByTestId("input").props.selectionColor).toStrictEqual(
-    defaultDarkColorSchemeColors.textInput.selection
+    defaultDarkColorSchemeColors.input.selection
   );
   expect(getByTestId("input").props.placeholderTextColor).toStrictEqual(
-    defaultDarkColorSchemeColors.textInput.placeholderText.disabled
+    defaultDarkColorSchemeColors.input.placeholderText.disabled
   );
   expect(getByTestId("input").props.onBlur).toBeTruthy();
   expect(getByTestId("input").props.onFocus).toBeTruthy();
@@ -184,17 +184,17 @@ it("should provide a disabled TextInput that is configured to match theme", asyn
   fireEvent(getByTestId("input"), "focus");
   await waitFor(() =>
     expect(getByTestId("input").props.style).toStrictEqual({
-      color: defaultDarkColorSchemeColors.textInput.disabled[0],
-      backgroundColor: defaultDarkColorSchemeColors.textInput.disabled[1],
-      borderColor: defaultDarkColorSchemeColors.textInput.border.disabled,
+      color: defaultDarkColorSchemeColors.input.disabled[0],
+      backgroundColor: defaultDarkColorSchemeColors.input.disabled[1],
+      borderColor: defaultDarkColorSchemeColors.input.border.disabled,
     })
   );
   fireEvent(getByTestId("input"), "blur");
   await waitFor(() =>
     expect(getByTestId("input").props.style).toStrictEqual({
-      color: defaultDarkColorSchemeColors.textInput.disabled[0],
-      backgroundColor: defaultDarkColorSchemeColors.textInput.disabled[1],
-      borderColor: defaultDarkColorSchemeColors.textInput.border.disabled,
+      color: defaultDarkColorSchemeColors.input.disabled[0],
+      backgroundColor: defaultDarkColorSchemeColors.input.disabled[1],
+      borderColor: defaultDarkColorSchemeColors.input.border.disabled,
     })
   );
   unmount();

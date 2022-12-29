@@ -19,11 +19,11 @@ export function AppLoading({
       setLoadedAssets(loaded);
       setTotalAssets(total);
     },
-    []
+  []
   );
   const onLayout = useCallback(
     function onLayout() {
-      console.log({ onLayout: "fired", initialAssetsLoaded });
+      // console.log({ onLayout: "fired", initialAssetsLoaded });
       if (initialAssetsLoaded) {
         SplashScreen.hideAsync().catch(console.error);
       }

@@ -3,11 +3,11 @@ import {
   Animated,
   GestureResponderEvent,
   Pressable,
-  PressableProps,
+  PressableProps
 } from "react-native";
 
+import type { ColorSwatch } from "./ColorSwatch";
 import { useTheming } from "./ThemeContext";
-import type { Color, ColorSwatch } from "./Themes";
 type ThemedPressableProps = PressableProps & {
   /**
    * Background color.  If this is a swatch the rule would be
@@ -23,17 +23,17 @@ type ThemedPressableProps = PressableProps & {
    * Foreground color.  If this is a swatch the rule would be
    * normal 500 only.
    */
-  fg: Color;
+  fg: ColorSwatch;
 
   /**
    * This is the background color to use when the pressable is disabled.  Only 500 would be used.  If not specified then the value of `bg` is used.
    */
-  disabledBg?: Color;
+  disabledBg?: ColorSwatch;
 
   /**
    * This is the background color to use when the pressable is disabled.  Only 500 would be used.  If not specified then the value of `fg` is used.
    */
-  disabledFg?: Color;
+  disabledFg?: ColorSwatch;
 
   // outline, elevation etc are not handled
 };

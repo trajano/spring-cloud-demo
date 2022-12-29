@@ -13,7 +13,7 @@ import {
 } from "react-native";
 
 import { hocDisplayName } from "./hocDisplayName";
-import { useTheming } from "./ThemeContext";
+import { useTheming } from "../ThemeContext";
 
 type I18nProps = {
   _t?: string;

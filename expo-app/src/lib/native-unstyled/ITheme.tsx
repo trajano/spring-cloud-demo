@@ -2,7 +2,7 @@ import { Theme as ReactNavigationTheme } from "@react-navigation/native";
 import { Scope, TranslateOptions } from "i18n-js/typings";
 import { ColorSchemeName, TextStyle } from "react-native";
 
-import { ColorSchemeColors } from "./Themes";
+import { ColorSchemeColors } from "./ColorSchemeColors";
 
 /**
  * Theme will still include non-color stuff like fonts etc.  But only the color scheme is selectable.

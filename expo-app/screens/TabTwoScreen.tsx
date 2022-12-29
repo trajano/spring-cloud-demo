@@ -29,6 +29,7 @@ import {
 
 import {
   ScrollView,
+  Switch,
   Text,
   TextInput,
   useTheming,
@@ -81,13 +82,13 @@ export default function TabTwoScreen({
       action.eventName === "clear"
         ? []
         : [
-            ...prevState,
-            {
-              name: action.eventName,
-              event: action.event,
-              key: action.eventName + "-" + Date.now(),
-            },
-          ],
+          ...prevState,
+          {
+            name: action.eventName,
+            event: action.event,
+            key: action.eventName + "-" + Date.now(),
+          },
+        ],
     []
   );
 
@@ -147,7 +148,7 @@ export default function TabTwoScreen({
 
   const onFocus = useCallback(
     (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
-      console.log({ onFocus: e });
+      // console.log({ onFocus: e });
       scrollViewRef.current?.scrollTo({ y: 10, animated: true });
     },
     [scrollViewRef.current]
@@ -173,12 +174,19 @@ export default function TabTwoScreen({
         paddingTop: Platform.OS === "ios" ? 0 : headerHeight,
       }}
       scrollEventThrottle={16}
-      onScroll={(e) => setScrollInfo(e.nativeEvent)}
+      onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => setScrollInfo(e.nativeEvent)}
     >
       <View height={headerHeight} bg="yellow">
         <Text fg="primary:f" style={styles.title}>
           {now}
         </Text>
+      </View>
+      <View flexDirection="row">
+        <Text>{colorScheme}</Text>
+        <View>
+          <Switch value={colorScheme === "light"} onValueChange={(next) => setColorScheme(next ? "light" : "dark")} />
+          <Switch value={colorScheme === "dark"} onValueChange={(next) => setColorScheme(next ? "dark" : "light")} />
+        </View>
       </View>
       <Button
         title={colorScheme === "light" ? "switch to dark" : "switch to light"}

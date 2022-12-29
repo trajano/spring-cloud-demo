@@ -15,17 +15,23 @@ import {
   RefreshControl as RNRefreshControl,
   ScrollView as RNScrollView,
   SectionList as RNSectionList,
-  TextInputProps,
-  TextInput as RNTextInput,
-  TextProps,
+  Switch as RNSwitch,
   Text as RNText,
+  TextInput as RNTextInput,
+  TextInputProps,
+  TextProps,
   View as RNView,
 } from "react-native";
 
-import { withI18n } from "./withI18n";
-import { withReplacedWithNativeFonts } from "./withReplacedWithNativeFonts";
-import { withStyled, withStyledText, withStyledTextInput } from "./withStyled";
-import { withTextRole } from "./withTextRole";
+import {
+  withI18n,
+  withReplacedWithNativeFonts,
+  withStyled,
+  withStyledSwitch,
+  withStyledText,
+  withStyledTextInput,
+  withTextRole,
+} from "./hoc";
 
 export const ActivityIndicator = withStyled(withI18n(RNActivityIndicator));
 export const FlatList = withStyled(withI18n(RNFlatList));
@@ -44,6 +50,11 @@ export const BlurView = withStyled(withI18n(ExpoBlurView));
  * Expo LinearGradient
  */
 export const LinearGradient = withStyled(withI18n(ExpoLinearGradient));
+
+/**
+ * Switch
+ */
+export const Switch = withStyledSwitch(withI18n(RNSwitch));
 
 /**
  * TextInput

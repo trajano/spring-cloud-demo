@@ -1,6 +1,6 @@
 import * as RN from "react-native";
 
-import { ColorSchemeColors } from "./Themes";
+import { ColorSchemeColors } from "./ColorSchemeColors";
 
 function lookupLayerColor(
   requestedLayerColor: string,
@@ -49,7 +49,7 @@ function lookupLayerColor(
  * @return a color value.  This will never return null.
  */
 export function lookupColor(
-  requestedColor: RN.ColorValue,
+  requestedColor: RN.ColorValue | string,
   colorSchemeColors: ColorSchemeColors
 ): RN.ColorValue {
   if (typeof requestedColor === "string") {
