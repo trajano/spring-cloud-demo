@@ -2,6 +2,7 @@ import { act, render } from "@testing-library/react-native";
 import { View } from "react-native";
 
 import { FontsProvider, useFonts } from "./Fonts";
+import { ThemeProvider } from "./ThemeContext";
 describe("replaceWithNativeFont", () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -12,12 +13,13 @@ describe("replaceWithNativeFont", () => {
       const style = replaceWithNativeFont({});
       return <View testID="blah" style={style} />;
     }
-    const { getByTestId } = render(
-      <FontsProvider>
+    const { getByTestId, unmount } = render(
+      <ThemeProvider>
         <MyComponent />
-      </FontsProvider>
+      </ThemeProvider>
     );
     expect(getByTestId("blah").props.style).toBeFalsy();
+    unmount();
   });
 
   it("should render fonts", () => {
@@ -29,15 +31,16 @@ describe("replaceWithNativeFont", () => {
       });
       return <View testID="blah" style={style} />;
     }
-    const { getByTestId } = render(
-      <FontsProvider>
+    const { getByTestId, unmount } = render(
+      <ThemeProvider>
         <MyComponent />
-      </FontsProvider>
+      </ThemeProvider>
     );
     expect(getByTestId("blah").props.style).toStrictEqual({
       fontFamily: "something",
       fontWeight: "300",
     });
+    unmount();
   });
 
   it("should render fonts with default colors", () => {
@@ -49,16 +52,17 @@ describe("replaceWithNativeFont", () => {
       );
       return <View testID="blah" style={style} />;
     }
-    const { getByTestId } = render(
-      <FontsProvider>
+    const { getByTestId, unmount } = render(
+      <ThemeProvider>
         <MyComponent />
-      </FontsProvider>
+      </ThemeProvider>
     );
     expect(getByTestId("blah").props.style).toStrictEqual({
       color: "pink",
       fontFamily: "something",
       fontWeight: "300",
     });
+    unmount();
   });
 
   it("should render fonts overriding default colors", () => {
@@ -70,16 +74,17 @@ describe("replaceWithNativeFont", () => {
       );
       return <View testID="blah" style={style} />;
     }
-    const { getByTestId } = render(
-      <FontsProvider>
+    const { getByTestId, unmount } = render(
+      <ThemeProvider>
         <MyComponent />
-      </FontsProvider>
+      </ThemeProvider>
     );
     expect(getByTestId("blah").props.style).toStrictEqual({
       color: "yellow",
       fontFamily: "something",
       fontWeight: "300",
     });
+    unmount();
   });
 
   it("should render fonts provided", () => {
@@ -111,10 +116,10 @@ describe("replaceWithNativeFont", () => {
       return <View testID="blah" style={style} />;
     }
 
-    const { getByTestId } = render(
-      <FontsProvider fontModules={[mockFont]}>
+    const { getByTestId, unmount } = render(
+      <ThemeProvider fontModules={[mockFont]}>
         <MyComponent />
-      </FontsProvider>
+      </ThemeProvider>
     );
     act(() => {
       jest.runAllTicks();
@@ -122,5 +127,6 @@ describe("replaceWithNativeFont", () => {
     expect(getByTestId("blah").props.style).toStrictEqual({
       fontFamily: "IBMPlexSans_300Light",
     });
+    unmount();
   });
 });
