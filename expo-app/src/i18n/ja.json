@@ -1,4 +1,6 @@
 {
+  "login": "ログイン",
+  "loginAs": "%{username}としてログイン",
   "logout": "ログアウト",
   "switchToDarkColorScheme": "ダークモード",
   "switchToLightColorScheme": "ライトモード"

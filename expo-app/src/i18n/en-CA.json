@@ -1,5 +1,7 @@
 {
-  "logout": "Logout",
+  "login": "Sign in",
+  "loginAs": "Sign in as %{username}",
+  "logout": "Sign out",
   "switchToDarkColorScheme": "Switch to Dark Colour Scheme",
   "switchToLightColorScheme": "Switch to Light Colour Scheme"
 }

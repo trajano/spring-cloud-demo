@@ -81,6 +81,7 @@ export default function TabOneScreen({
     alert(t`logout`, "Are you sure you want to logout?", [
       {
         text: "No",
+        style: "cancel",
       },
       {
         style: "destructive",
