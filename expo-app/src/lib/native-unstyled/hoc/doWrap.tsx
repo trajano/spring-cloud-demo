@@ -1,26 +1,24 @@
 import isEmpty from "lodash/isEmpty";
-import {
-  ComponentType, ReactElement,
-  Ref
-} from "react";
+import { ComponentType, ReactElement, Ref } from "react";
 import { StyleProp } from "react-native";
-import { propsToStyleSheet, withoutStyledProps } from "../propsToStyleSheet";
+
+import { ColorSchemeColors } from "../ColorSchemeColors";
 import { StyleProps } from "../StyleProps";
 import { TextStyleProps } from "../TextStyleProps";
-import { ColorSchemeColors } from "../ColorSchemeColors";
+import { propsToStyleSheet, withoutStyledProps } from "../propsToStyleSheet";
 
 /**
  * Wrapper function creator for styles.
- * @param Component 
- * @param param1 
- * @param ref 
- * @param colors 
- * @param stripStyledPropsToWrappedComponent 
- * @returns 
+ * @param Component
+ * @param param1
+ * @param ref
+ * @param colors
+ * @param stripStyledPropsToWrappedComponent
+ * @returns
  */
 export function doWrap<
   P extends Q & StyleProps & TextStyleProps,
-  Q extends { style?: StyleProp<any>; },
+  Q extends { style?: StyleProp<any> },
   T
 >(
   Component: ComponentType<Q>,
@@ -40,7 +38,8 @@ export function doWrap<
       <Component
         {...componentProps}
         style={[style, stylesFromProps]}
-        ref={ref} />
+        ref={ref}
+      />
     );
   } else if (styleAvailable && !styleFromAvailable) {
     return <Component {...componentProps} style={style} ref={ref} />;

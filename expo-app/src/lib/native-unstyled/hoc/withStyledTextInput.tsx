@@ -8,17 +8,18 @@ import {
   Ref,
   RefAttributes,
   useCallback,
-  useState
+  useState,
 } from "react";
 import { TextInputProps } from "react-native";
-import { hocDisplayName } from "./hocDisplayName";
-import { lookupColor } from "../lookupColor";
+
 import { StyleProps } from "../StyleProps";
 import { TextStyleProps } from "../TextStyleProps";
 import { useTheming } from "../ThemeContext";
-import { WithStyledProps } from "./withStyled";
-import { doWrap } from "./doWrap";
+import { lookupColor } from "../lookupColor";
 import type { InputState } from "./InputState";
+import { doWrap } from "./doWrap";
+import { hocDisplayName } from "./hocDisplayName";
+import { WithStyledProps } from "./withStyled";
 
 /**
  * This wraps a view component so the styles are exposed.
@@ -38,7 +39,10 @@ export function withStyledTextInput<
     stripStyledPropsToWrappedComponent: __DEV__,
   }
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
-  function useWrapped({ editable, onFocus, onBlur, ...props }: P, ref: Ref<T>): ReactElement<Q> {
+  function useWrapped(
+    { editable, onFocus, onBlur, ...props }: P,
+    ref: Ref<T>
+  ): ReactElement<Q> {
     const { colors } = useTheming();
     const [inputState, setInputState] = useState<InputState>(
       editable === false ? "disabled" : "default"
@@ -53,7 +57,6 @@ export function withStyledTextInput<
       },
       [setInputState, originalOnFocus, editable]
     );
-
 
     const originalOnBlur = useCallback(onBlur ?? noop, [onBlur]);
     const augmentedOnBlur = useCallback(
@@ -73,11 +76,9 @@ export function withStyledTextInput<
       lookupColor(colors.input.placeholderText[inputState], colors);
 
     props.borderColor =
-      props.borderColor ??
-      lookupColor(colors.input.border[inputState], colors);
+      props.borderColor ?? lookupColor(colors.input.border[inputState], colors);
     props.backgroundColor =
-      props.backgroundColor ??
-      lookupColor(colors.input[inputState][1], colors);
+      props.backgroundColor ?? lookupColor(colors.input[inputState][1], colors);
     props.color =
       props.color ?? lookupColor(colors.input[inputState][0], colors);
 
@@ -87,7 +88,7 @@ export function withStyledTextInput<
         editable,
         onFocus: augmentedOnFocus,
         onBlur: augmentedOnBlur,
-        ...props
+        ...props,
       } as P,
       ref,
       colors,

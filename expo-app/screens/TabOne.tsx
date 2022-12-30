@@ -1,5 +1,9 @@
 import { FontAwesome } from "@expo/vector-icons";
-import { createStackNavigator } from "@react-navigation/stack";
+import {
+  createStackNavigator,
+  Header,
+  StackHeaderProps,
+} from "@react-navigation/stack";
 import { useCallback } from "react";
 import { Pressable } from "react-native";
 
@@ -7,8 +11,41 @@ import {
   MainDrawerTabOneParamList,
   MainDrawerTabOneScreenProps,
 } from "../types";
+import { OneViewScreen } from "./OneViewScreen";
+import { SystemFontsScreen } from "./SystemFontsScreen";
 import TabOneScreen from "./TabOneScreen";
 const Stack = createStackNavigator<MainDrawerTabOneParamList>();
+
+function LoggingHeader({
+  navigation,
+  route,
+  options,
+  layout,
+  progress,
+  back,
+  styleInterpolator,
+}: StackHeaderProps): JSX.Element {
+  console.log({
+    route,
+    options,
+    layout, // will adjust to the height of the view?
+    progress,
+    back,
+    styleInterpolator,
+  });
+  return (
+    <Header
+      navigation={navigation}
+      route={route}
+      options={options}
+      layout={layout}
+      progress={progress}
+      back={back}
+      styleInterpolator={styleInterpolator}
+    />
+  );
+}
+
 export function TabOne({
   navigation,
 }: MainDrawerTabOneScreenProps<"TabOneScreen">): JSX.Element {
@@ -30,13 +67,49 @@ export function TabOne({
     <Stack.Navigator
       defaultScreenOptions={{
         headerRight: defaultHeaderRight,
+        headerMode: "float",
       }}
     >
       <Stack.Screen
         name="TabOneScreen"
         component={TabOneScreen}
         options={{
+          header: LoggingHeader,
           headerShown: true,
+          headerTransparent: false,
+          headerMode: "float",
+        }}
+      />
+      <Stack.Screen
+        name="SystemFonts"
+        component={SystemFontsScreen}
+        options={{
+          header: LoggingHeader,
+          title: "System Fonts",
+          headerShown: true,
+          headerMode: "float",
+        }}
+      />
+      <Stack.Screen
+        name="OneView"
+        component={OneViewScreen}
+        options={{
+          header: LoggingHeader,
+          title: "One View",
+          headerShown: true,
+          headerTransparent: false,
+          headerMode: "float",
+        }}
+      />
+      <Stack.Screen
+        name="OneViewTransparentHeader"
+        component={OneViewScreen}
+        options={{
+          header: LoggingHeader,
+          title: "One View Transparent Header",
+          headerShown: true,
+          headerTransparent: true,
+          headerMode: "float",
         }}
       />
     </Stack.Navigator>

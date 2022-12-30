@@ -5,15 +5,16 @@ import {
   PropsWithoutRef,
   ReactElement,
   Ref,
-  RefAttributes
+  RefAttributes,
 } from "react";
 import { StyleProp } from "react-native";
-import { hocDisplayName } from "./hocDisplayName";
+
 import { StyleProps } from "../StyleProps";
 import { TextStyleProps } from "../TextStyleProps";
 import { useTheming } from "../ThemeContext";
-import { WithStyledProps } from "./withStyled";
 import { doWrap } from "./doWrap";
+import { hocDisplayName } from "./hocDisplayName";
+import { WithStyledProps } from "./withStyled";
 
 /**
  * This wraps a view component so the styles are exposed.
@@ -26,7 +27,7 @@ import { doWrap } from "./doWrap";
 
 export function withStyledText<
   P extends Q & StyleProps & TextStyleProps,
-  Q extends { style?: StyleProp<any>; },
+  Q extends { style?: StyleProp<any> },
   T
 >(
   Component: ComponentType<Q>,

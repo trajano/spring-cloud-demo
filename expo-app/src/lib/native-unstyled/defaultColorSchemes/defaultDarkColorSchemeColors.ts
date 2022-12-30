@@ -31,7 +31,7 @@ export const defaultDarkColorSchemeColors: ColorSchemeColors = {
       thumb: DarkTheme.colors.text,
       true: DarkTheme.colors.primary,
       false: DarkTheme.colors.border,
-    }
+    },
   },
   layers: {
     primary: ["#F01030", "#101010"],

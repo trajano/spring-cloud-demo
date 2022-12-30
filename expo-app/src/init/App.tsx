@@ -9,7 +9,7 @@ import { FontAwesome } from "@expo/vector-icons";
 import { AuthProvider } from "@trajano/spring-docker-auth-context";
 import "expo-dev-client";
 import { deactivateKeepAwake, ExpoKeepAwakeTag } from "expo-keep-awake";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, StrictMode, Suspense, useEffect } from "react";
 import { LogBox } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -40,7 +40,9 @@ export default function App() {
   useExpoUpdateEffect();
   const defaultEndpointConfiguration = useStoredEndpointConfigurationEffect();
   useEffect(() => {
-    deactivateKeepAwake(ExpoKeepAwakeTag);
+    if (!__DEV__) {
+      deactivateKeepAwake(ExpoKeepAwakeTag);
+    }
   }, []);
 
   return (
@@ -80,7 +82,9 @@ export default function App() {
                 <TextTest />
               ) : (
                 <AppProvider>
-                  <Navigation />
+                  <StrictMode>
+                    <Navigation />
+                  </StrictMode>
                 </AppProvider>
               )}
             </Suspense>

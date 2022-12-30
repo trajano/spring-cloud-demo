@@ -5,15 +5,12 @@ import {
   PropsWithoutRef,
   ReactElement,
   Ref,
-  RefAttributes
+  RefAttributes,
 } from "react";
-import {
-  TextInputProps,
-  TextProps
-} from "react-native";
+import { TextInputProps, TextProps } from "react-native";
 
-import { hocDisplayName } from "./hocDisplayName";
 import { useTheming } from "../ThemeContext";
+import { hocDisplayName } from "./hocDisplayName";
 
 type I18nProps = {
   _t?: string;

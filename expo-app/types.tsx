@@ -10,6 +10,7 @@ import {
   NavigatorScreenParams,
 } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { LayoutRectangle } from "react-native";
 
 declare global {
   namespace ReactNavigation {
@@ -46,6 +47,9 @@ export type MainDrawerTabOneScreenProps<
 
 export type MainDrawerTabOneParamList = {
   TabOneScreen: undefined;
+  SystemFonts: undefined;
+  OneView: LayoutRectangle;
+  OneViewTransparentHeader: LayoutRectangle;
 };
 export type MainDrawerStackNavigatorScrollViewParamList = {
   StackNavigatorScrollViewScreen: undefined;

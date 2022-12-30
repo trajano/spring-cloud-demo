@@ -5,14 +5,14 @@ import {
   PropsWithoutRef,
   ReactElement,
   Ref,
-  RefAttributes
+  RefAttributes,
 } from "react";
 import { StyleProp } from "react-native";
 
-import { hocDisplayName } from "./hocDisplayName";
 import { StyleProps } from "../StyleProps";
 import { useTheming } from "../ThemeContext";
 import { doWrap } from "./doWrap";
+import { hocDisplayName } from "./hocDisplayName";
 
 export type WithStyledProps = {
   /**

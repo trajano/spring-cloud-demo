@@ -3,7 +3,7 @@ import {
   Animated,
   GestureResponderEvent,
   Pressable,
-  PressableProps
+  PressableProps,
 } from "react-native";
 
 import type { ColorSwatch } from "./ColorSwatch";

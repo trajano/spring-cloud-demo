@@ -11,10 +11,10 @@ import {
   useState,
 } from "react";
 
+import { ColorSchemeColors } from "./ColorSchemeColors";
 import { FontsProvider } from "./Fonts";
 import { ITheme } from "./ITheme";
 import { ThemeProviderProps } from "./ThemeProviderProps";
-import { ColorSchemeColors } from "./ColorSchemeColors";
 import { defaultColorSchemeColors } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from "./defaultColorSchemes/defaultLightColorSchemeColors";
 import { useConfiguredColorSchemes } from "./useConfiguredColorScheme";

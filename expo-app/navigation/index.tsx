@@ -196,6 +196,9 @@ function BottomTabNavigator() {
     <BottomTab.Navigator
       initialRouteName="MainDrawer"
       shifting
+      barStyle={{
+        height: 64,
+      }}
       screenOptions={{}}
     >
       <BottomTab.Screen

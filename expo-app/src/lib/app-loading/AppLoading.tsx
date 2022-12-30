@@ -19,7 +19,7 @@ export function AppLoading({
       setLoadedAssets(loaded);
       setTotalAssets(total);
     },
-  []
+    []
   );
   const onLayout = useCallback(
     function onLayout() {

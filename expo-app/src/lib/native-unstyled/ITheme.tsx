@@ -44,5 +44,5 @@ export interface ITheme {
    * @param scope
    * @param options
    */
-  t(scope: Scope, options?: TranslateOptions): string;
+  t(scope: Readonly<Scope>, options?: TranslateOptions): string;
 }

@@ -18,6 +18,8 @@ import {
   Alert,
   Button,
   Keyboard,
+  LayoutChangeEvent,
+  LayoutRectangle,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Platform,
@@ -25,6 +27,7 @@ import {
   StyleSheet,
   Text as RNText,
   TextInputFocusEventData,
+  useWindowDimensions,
 } from "react-native";
 
 import {
@@ -43,6 +46,14 @@ export default function TabTwoScreen({
   const { authState } = useAuth();
   const headerHeight = useHeaderHeight();
   const scrollViewRef = useRef<RNScrollView>();
+  const [scrollViewLayout, setScrollViewLayout] = useState<LayoutRectangle>({
+    width: 0,
+    height: 0,
+    x: 0,
+    y: 0,
+  });
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+
   const [scrollInfo, setScrollInfo] = useDebouncedDeepState<NativeScrollEvent>(
     {
       contentOffset: {
@@ -82,13 +93,13 @@ export default function TabTwoScreen({
       action.eventName === "clear"
         ? []
         : [
-          ...prevState,
-          {
-            name: action.eventName,
-            event: action.event,
-            key: action.eventName + "-" + Date.now(),
-          },
-        ],
+            ...prevState,
+            {
+              name: action.eventName,
+              event: action.event,
+              key: action.eventName + "-" + Date.now(),
+            },
+          ],
     []
   );
 
@@ -166,6 +177,13 @@ export default function TabTwoScreen({
     }, [defaultTypography])
   );
 
+  const onLayout = useCallback(
+    function onLayout(ev: LayoutChangeEvent) {
+      setScrollViewLayout(ev.nativeEvent.layout);
+    },
+    [setScrollViewLayout]
+  );
+
   return (
     <ScrollView
       ref={scrollViewRef}
@@ -173,8 +191,11 @@ export default function TabTwoScreen({
       contentContainerStyle={{
         paddingTop: Platform.OS === "ios" ? 0 : headerHeight,
       }}
+      onLayout={onLayout}
       scrollEventThrottle={16}
-      onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => setScrollInfo(e.nativeEvent)}
+      onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) =>
+        setScrollInfo(e.nativeEvent)
+      }
     >
       <View height={headerHeight} bg="yellow">
         <Text fg="primary:f" style={styles.title}>
@@ -184,10 +205,19 @@ export default function TabTwoScreen({
       <View flexDirection="row">
         <Text>{colorScheme}</Text>
         <View>
-          <Switch value={colorScheme === "light"} onValueChange={(next) => setColorScheme(next ? "light" : "dark")} />
-          <Switch value={colorScheme === "dark"} onValueChange={(next) => setColorScheme(next ? "dark" : "light")} />
+          <Switch
+            value={colorScheme === "light"}
+            onValueChange={(next) => setColorScheme(next ? "light" : "dark")}
+          />
+          <Switch
+            value={colorScheme === "dark"}
+            onValueChange={(next) => setColorScheme(next ? "dark" : "light")}
+          />
         </View>
       </View>
+      <Text>
+        w:{windowWidth} h:{windowHeight} hh:{headerHeight}
+      </Text>
       <Button
         title={colorScheme === "light" ? "switch to dark" : "switch to light"}
         onPress={() => {
@@ -197,6 +227,7 @@ export default function TabTwoScreen({
       <Text>
         {scrollInfo?.contentOffset.x} {scrollInfo?.contentOffset.y}
       </Text>
+      <Text>{JSON.stringify(scrollViewLayout)}</Text>
       <Text>
         Hello {username} <Text style={{ fontWeight: "bold" }}>bold</Text>{" "}
         <Text style={{ fontStyle: "italic" }}>italic</Text>

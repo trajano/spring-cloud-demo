@@ -1,9 +1,9 @@
 import { render, waitFor } from "@testing-library/react-native";
 import { Text as RNText, View as RNView } from "react-native";
 
+import { ThemeProvider } from "./ThemeContext";
 import { Text, View } from "./components";
 import { defaultLightColorSchemeColors } from "./defaultColorSchemes/defaultLightColorSchemeColors";
-import { ThemeProvider } from "./ThemeContext";
 
 it("should i18n Text with no context", () => {
   const { getByTestId, unmount } = render(
@@ -57,10 +57,13 @@ it("should i18n Text and preseve other styles", () => {
     </ThemeProvider>
   );
   const { toJSON: toExpectedJson } = render(
-    <RNText testID="eval" style={{
-      backgroundColor: "red",
-      color: defaultLightColorSchemeColors.default[0],
-    }}>
+    <RNText
+      testID="eval"
+      style={{
+        backgroundColor: "red",
+        color: defaultLightColorSchemeColors.default[0],
+      }}
+    >
       hello
     </RNText>
   );

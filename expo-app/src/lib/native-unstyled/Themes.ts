@@ -1,4 +1,5 @@
 import { ColorValue, TextStyle } from "react-native";
+
 import { ColorSchemeColors } from "./ColorSchemeColors";
 
 /**

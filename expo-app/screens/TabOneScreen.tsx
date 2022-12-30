@@ -1,21 +1,49 @@
+import { useHeaderHeight } from "@react-navigation/elements";
+import { StackScreenProps } from "@react-navigation/stack";
 import { ListRenderItemInfo } from "@shopify/flash-list";
 import { useMounted } from "@trajano/react-hooks";
 import { useAuth } from "@trajano/spring-docker-auth-context";
 import { useCallback, useState } from "react";
-import { Button, StyleSheet } from "react-native";
+import {
+  Alert,
+  Button,
+  LayoutChangeEvent,
+  LayoutRectangle,
+  StyleSheet,
+  useWindowDimensions,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuthenticated } from "../authenticated-context";
 import { ScrollView, Text, useTheming, View } from "../src/lib/native-unstyled";
-export default function TabOneScreen() {
+import { MainDrawerTabOneParamList } from "../types";
+export default function TabOneScreen({
+  navigation,
+  route,
+}: StackScreenProps<MainDrawerTabOneParamList>) {
   const { logoutAsync, refreshAsync, accessToken, oauthToken, baseUrl } =
     useAuth();
   const { claims, internalState } = useAuthenticated();
   const isMounted = useMounted();
+  const headerHeight = useHeaderHeight();
   const { colorScheme, setColorScheme, locale, setLocale, t } = useTheming();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const { top: safeAreaInsetTop } = useSafeAreaInsets();
 
-  async function handleLogout() {
-    await logoutAsync();
-  }
+  const [scrollViewLayout, setScrollViewLayout] = useState<LayoutRectangle>({
+    width: 0,
+    height: 0,
+    x: 0,
+    y: 0,
+  });
+
+  const onLayout = useCallback(
+    function onLayout(ev: LayoutChangeEvent) {
+      setScrollViewLayout(ev.nativeEvent.layout);
+    },
+    [setScrollViewLayout]
+  );
+
   const switchColorScheme = useCallback(() => {
     if (colorScheme === "light") {
       setColorScheme("dark");
@@ -48,6 +76,45 @@ export default function TabOneScreen() {
     setLocale("ja");
   }, [setLocale]);
 
+  const handleLogout = useCallback(() => {
+    Alert.alert(t`logout`, "Are you sure you want to logout?", [
+      {
+        text: "No",
+      },
+      {
+        style: "destructive",
+        text: "Yes",
+        onPress: logoutAsync,
+      },
+    ]);
+  }, [logoutAsync]);
+
+  const headerTransparent = useCallback(() => {
+    navigation.setOptions({ headerTransparent: true });
+  }, [navigation]);
+  const headerNotTransparent = useCallback(() => {
+    navigation.setOptions({ headerTransparent: false });
+  }, [navigation]);
+  const toSystemFonts = useCallback(() => {
+    navigation.navigate("SystemFonts");
+  }, [navigation]);
+  const toOneView = useCallback(() => {
+    navigation.navigate("OneView", {
+      x: 0,
+      y: 0,
+      width: 375,
+      height: 603 - headerHeight, // this is the height with the header and status area minus the tab bar
+    });
+  }, [navigation]);
+  const toOneViewTransparentHeader = useCallback(() => {
+    navigation.navigate("OneViewTransparentHeader", {
+      x: 0,
+      y: 0,
+      width: 375,
+      height: 603, // this is the height with the header and status area minus the tab bar
+    });
+  }, [navigation]);
+
   const [refreshing, setRefreshing] = useState(false);
 
   const data = [
@@ -77,18 +144,24 @@ export default function TabOneScreen() {
     }
   }, []);
 
-  const ListHeaderComponent = useCallback(
-    () => (
-      <View style={{ borderWidth: 1 }}>
-        <Text style={styles.title}>I should be Some Default Font</Text>
-      </View>
-    ),
-    []
-  );
   return (
-    <ScrollView contentInsetAdjustmentBehavior="automatic">
+    <ScrollView contentInsetAdjustmentBehavior="automatic" onLayout={onLayout}>
+      <View
+        height={headerHeight - safeAreaInsetTop}
+        borderWidth={1}
+        borderColor="yellow"
+      >
+        <Text>
+          {headerHeight}-{safeAreaInsetTop}={headerHeight - safeAreaInsetTop}
+        </Text>
+      </View>
       <Text>Testing1</Text>
-      <Button title={t("logout")} onPress={logoutAsync} />
+      <Button title="header transparent" onPress={headerTransparent} />
+      <Button title="header not transparent" onPress={headerNotTransparent} />
+      <Button title="System Fonts" onPress={toSystemFonts} />
+      <Button title="One view" onPress={toOneView} />
+      <Button title="One view (trans)" onPress={toOneViewTransparentHeader} />
+      <Button title={t("logout")} onPress={handleLogout} />
       <Text>Testing3</Text>
       <Button
         title={
@@ -111,9 +184,10 @@ export default function TabOneScreen() {
 
       <Text>Disabled buttons</Text>
       <Button title="switch to ja" disabled onPress={switchToJa} />
-      <Text>Testing</Text>
-      <Text>Testing</Text>
-      <Text>Testing</Text>
+      <Text>
+        w:{windowWidth} h:{windowHeight} hh:{headerHeight}
+      </Text>
+      <Text>{JSON.stringify(scrollViewLayout)}</Text>
       <Text>Testing</Text>
       <Text>Testing</Text>
       <Text>Testing</Text>

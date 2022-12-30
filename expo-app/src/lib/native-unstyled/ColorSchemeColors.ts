@@ -1,4 +1,5 @@
 import { ColorValue } from "react-native";
+
 import { ColorSwatch } from "./ColorSwatch";
 
 /**
