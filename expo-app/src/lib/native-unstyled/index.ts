@@ -12,7 +12,6 @@ export type { ColorSchemes } from "./Themes";
 export { defaultColorSchemeColors as defaultColorSchemes } from "./defaultColorSchemes";
 export type { LoadingComponentProps } from "../app-loading/LoadingComponentProps";
 export { ThemeProvider, useColors, useTheming } from "./ThemeContext";
-export { useFonts } from "./Fonts";
 export * from "./components";
 export { StatusBar } from "./StatusBar";
 export type { StyleProps } from "./StyleProps";

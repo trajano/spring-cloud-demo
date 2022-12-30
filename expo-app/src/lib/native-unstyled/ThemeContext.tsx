@@ -12,7 +12,7 @@ import {
 } from "react";
 
 import { ColorSchemeColors } from "./ColorSchemeColors";
-import { FontsProvider } from "./Fonts";
+import { useFonts } from "./Fonts";
 import { ITheme } from "./ITheme";
 import { ThemeProviderProps } from "./ThemeProviderProps";
 import { defaultColorSchemeColors } from "./defaultColorSchemes";
@@ -28,6 +28,7 @@ const ThemeContext = createContext<ITheme>({
   locale: "en",
   setColorScheme: noop,
   setLocale: noop,
+  replaceWithNativeFont: () => ({}),
   typography: () => ({}),
   t: () => "",
   fontsLoaded: false,
@@ -90,6 +91,9 @@ export function ThemeProvider({
     },
     [textRoles, fontModules]
   );
+  const { replaceWithNativeFont } = useFonts(fontModules, () =>
+    setFontsLoaded(true)
+  );
   const contextValue = useMemo<ITheme>(
     () => ({
       colors,
@@ -98,6 +102,7 @@ export function ThemeProvider({
       fontsLoaded,
       locale,
       reactNavigationTheme,
+      replaceWithNativeFont,
       setColorScheme,
       setLocale,
       t,
@@ -109,6 +114,7 @@ export function ThemeProvider({
       locale,
       fontsLoaded,
       reactNavigationTheme,
+      replaceWithNativeFont,
       setColorScheme,
       setLocale,
       t,
@@ -117,14 +123,7 @@ export function ThemeProvider({
   );
   return (
     <ThemeContext.Provider value={contextValue}>
-      <FontsProvider
-        fontModules={fontModules}
-        onLoaded={() => {
-          setFontsLoaded(true);
-        }}
-      >
-        {children}
-      </FontsProvider>
+      {children}
     </ThemeContext.Provider>
   );
 }

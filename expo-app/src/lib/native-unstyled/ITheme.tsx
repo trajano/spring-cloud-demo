@@ -1,6 +1,6 @@
 import { Theme as ReactNavigationTheme } from "@react-navigation/native";
 import { Scope, TranslateOptions } from "i18n-js/typings";
-import { ColorSchemeName, TextStyle } from "react-native";
+import { ColorSchemeName, StyleProp, TextStyle } from "react-native";
 
 import { ColorSchemeColors } from "./ColorSchemeColors";
 
@@ -45,4 +45,12 @@ export interface ITheme {
    * @param options
    */
   t(scope: Readonly<Scope>, options?: TranslateOptions): string;
+  /**
+   * Replace the data with a native font.  May return undefined if it will yield an empty object.
+   * @param flattenedStyle
+   */
+  replaceWithNativeFont(
+    flattenedStyle: StyleProp<TextStyle>,
+    defaultTextStyle?: Pick<TextStyle, "color">
+  ): StyleProp<TextStyle> | undefined;
 }

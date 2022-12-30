@@ -1,5 +1,10 @@
 import {
-    DefaultNavigatorOptions, EventMapBase, NavigationState, ParamListBase, StackRouter, useNavigationBuilder
+  DefaultNavigatorOptions,
+  EventMapBase,
+  NavigationState,
+  ParamListBase,
+  StackRouter,
+  useNavigationBuilder,
 } from "@react-navigation/native";
 
 import { NonNativeStackView } from "./NonNativeStackView";

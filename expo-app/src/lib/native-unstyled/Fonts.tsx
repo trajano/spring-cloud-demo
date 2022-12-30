@@ -2,16 +2,7 @@ import { useMounted } from "@trajano/react-hooks";
 import * as Font from "expo-font";
 import noop from "lodash/noop";
 import omit from "lodash/omit";
-import {
-  createContext,
-  PropsWithChildren,
-  ReactElement,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleProp, TextStyle } from "react-native";
 
 import { replaceStyleWithNativeFont } from "./replaceStyleWithNativeFont";
@@ -38,17 +29,6 @@ type IFonts = {
     defaultTextStyle?: Pick<TextStyle, "color">
   ): StyleProp<TextStyle> | undefined;
 };
-const FontsContext = createContext<IFonts>({
-  loadedFonts: {},
-  loaded: 0,
-  total: 0,
-  replaceWithNativeFont: (flattenedStyle: StyleProp<TextStyle>) =>
-    flattenedStyle,
-});
-type FontsProviderProps = PropsWithChildren<{
-  fontModules?: any[];
-  onLoaded?: () => void;
-}>;
 const moduleFontWeightToStyleFontWeight: Record<
   string,
   TextStyle["fontWeight"]
@@ -96,11 +76,11 @@ async function loadFontModuleAsync(
   }
   return fontsLoaded;
 }
-export function FontsProvider({
-  fontModules = [],
-  onLoaded = noop,
-  children,
-}: FontsProviderProps): ReactElement {
+
+export function useFonts(
+  fontModules: any[] = [],
+  onLoaded: () => void = noop
+): IFonts {
   const [loadedFonts, setLoadedFonts] = useState<{
     loaded: boolean;
     fonts: Record<string, string>;
@@ -175,14 +155,8 @@ export function FontsProvider({
     }),
     [loadedFonts.fonts, loaded, total]
   );
-  return (
-    <FontsContext.Provider value={contextValue}>
-      {children}
-    </FontsContext.Provider>
-  );
-}
-export function useFonts() {
-  return useContext(FontsContext);
+
+  return contextValue;
 }
 /**
  * Implementation note.  In React Native, the styling is not sustained unlike standard HTML to handle that there needs to be a context created for nested text elements to track what is the current style.  Will do that later.

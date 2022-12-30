@@ -1,7 +1,7 @@
 import { act, render } from "@testing-library/react-native";
 import { View } from "react-native";
 
-import { FontsProvider, useFonts } from "./Fonts";
+import { useFonts } from "./Fonts";
 import { ThemeProvider } from "./ThemeContext";
 describe("replaceWithNativeFont", () => {
   beforeEach(() => {
@@ -108,7 +108,7 @@ describe("replaceWithNativeFont", () => {
       IBMPlexSans_700Bold_Italic: 14,
     };
     function MyComponent() {
-      const { replaceWithNativeFont } = useFonts();
+      const { replaceWithNativeFont } = useFonts([mockFont]);
       const style = replaceWithNativeFont({
         fontFamily: "IBMPlexSans",
         fontWeight: "300",

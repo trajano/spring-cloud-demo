@@ -13,7 +13,6 @@ import {
 } from "react";
 import { StyleProp, StyleSheet, TextStyle } from "react-native";
 
-import { useFonts } from "../Fonts";
 import { useTheming } from "../ThemeContext";
 import { hocDisplayName } from "./hocDisplayName";
 
@@ -24,8 +23,7 @@ function useReplacedWithNativeFonts(
   style?: StyleProp<TextStyle>;
   children?: ReactNode;
 } {
-  const { defaultTypography } = useTheming();
-  const { replaceWithNativeFont } = useFonts();
+  const { defaultTypography, replaceWithNativeFont } = useTheming();
   const flattenedStyle: TextStyle = style
     ? StyleSheet.flatten(style) || {}
     : {};
