@@ -9,11 +9,10 @@ import { FontAwesome } from "@expo/vector-icons";
 import { AuthProvider } from "@trajano/spring-docker-auth-context";
 import "expo-dev-client";
 import { deactivateKeepAwake, ExpoKeepAwakeTag } from "expo-keep-awake";
-import { lazy, StrictMode, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { LogBox } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { useExpoUpdateEffect } from "../../hooks/useExpoUpdateEffect";
 import { LoadingScreen } from "../../screens/LoadingScreen";
 import { AppProvider } from "../app-context";
 import { AppLoading } from "../lib/app-loading";
@@ -21,7 +20,7 @@ import {
   ActivityIndicator,
   StatusBar,
   ThemeProvider,
-  View,
+  View
 } from "../lib/native-unstyled";
 import { useStoredEndpointConfigurationEffect } from "./useStoredEndpointConfigurationEffect";
 
@@ -37,7 +36,6 @@ function SuspenseView() {
   );
 }
 export default function App() {
-  useExpoUpdateEffect();
   const defaultEndpointConfiguration = useStoredEndpointConfigurationEffect();
   useEffect(() => {
     if (!__DEV__) {

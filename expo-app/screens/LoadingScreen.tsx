@@ -5,12 +5,11 @@ import AnimatedLottieView from "lottie-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useExpoUpdateEffect } from "../hooks/useExpoUpdateEffect";
 
 import {
   LoadingComponentProps,
-  Text,
-  View,
-  useTheming,
+  Text, useTheming, View
 } from "../src/lib/native-unstyled";
 
 function AssetsLoaded({
@@ -55,6 +54,7 @@ export function LoadingScreen({
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const portrait = windowHeight > windowWidth;
   const { authState } = useAuth();
+  useExpoUpdateEffect();
 
   const [fromFontsLoaded, setFromFontsLoaded] = useState(fontsLoaded ? 1 : 0);
   const [fromAuthState, setFromAuthState] = useState(
