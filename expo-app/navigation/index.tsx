@@ -14,7 +14,7 @@ import {
   useAuth,
 } from "@trajano/spring-docker-auth-context";
 import { ComponentProps, useCallback, useEffect, useState } from "react";
-import { Linking, Platform } from "react-native";
+import { Linking, Platform, StyleSheet } from "react-native";
 
 import { AuthenticatedProvider } from "../authenticated-context";
 import { DrawerNavigator } from "../screens/MainDrawer";
@@ -64,7 +64,7 @@ export default function Navigation() {
       setAuthNavigationState(AuthState.AUTHENTICATED);
     }
   },
-  []);
+    []);
 
   useEffect(() => {
     const restoreState = async () => {
@@ -236,5 +236,8 @@ function TabBarIcon(props: {
   name: ComponentProps<typeof FontAwesome>["name"];
   color: string;
 }) {
-  return <FontAwesome size={30} style={{ }} {...props} />;
+  return <FontAwesome size={30} style={styles.TabBarIcon} {...props} />;
 }
+const styles = StyleSheet.create({
+  TabBarIcon: { marginBottom: -3 }
+})

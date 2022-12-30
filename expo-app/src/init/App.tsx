@@ -82,9 +82,7 @@ export default function App() {
                 <TextTest />
               ) : (
                 <AppProvider>
-                  <StrictMode>
-                    <Navigation />
-                  </StrictMode>
+                  <Navigation />
                 </AppProvider>
               )}
             </Suspense>
