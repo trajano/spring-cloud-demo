@@ -45,15 +45,19 @@ export function ThemeProvider({
   translations = {},
   i18nOptions,
   colorSchemeColors = defaultColorSchemeColors,
+  onColorSchemeChange = noop,
+  onLocaleChange = noop,
 }: ThemeProviderProps) {
   const [colorScheme, setColorScheme] = useConfiguredColorSchemes(
     inColorScheme,
-    defaultColorScheme
+    defaultColorScheme,
+    onColorSchemeChange
   );
   const [locale, setLocale, t] = useConfiguredLocale(
     inLocale,
     defaultLocale,
     translations,
+    onLocaleChange,
     i18nOptions
   );
 

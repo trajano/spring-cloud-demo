@@ -13,12 +13,17 @@ type ColorThemeProviderProps = {
    * defaultColorScheme while it is starting up.
    */
   colorScheme?:
-    | NonNullable<ColorSchemeName>
-    | (() => Promise<NonNullable<ColorSchemeName>>);
+  | NonNullable<ColorSchemeName>
+  | (() => Promise<NonNullable<ColorSchemeName>>);
   /**
    * Color scheme to use as a fallback in case it couldn't be determined from the system.
    */
   defaultColorScheme?: NonNullable<ColorSchemeName>;
+  /**
+   * If specified, this gets called when the color scheme is changed using setColorScheme. 
+   * @param nextColorScheme color scheme, nullable to allow clearing the value.
+   */
+  onColorSchemeChange?: (nextColorScheme: ColorSchemeName) => void;
 };
 type FontThemeProviderProps = {
   /**
@@ -49,9 +54,14 @@ type LocalizationThemeProviderProps = {
    * i18n options.
    */
   i18nOptions?: I18nOptions;
+  /**
+   * If specified, this gets called when the locale is changed using setLocale. 
+   * @param nextLocale locale, nullable to allow clearing the value.
+   */
+  onLocaleChange?: (nextLocale: string | null) => void;
 };
 export type ThemeProviderProps = PropsWithChildren<
   ColorThemeProviderProps &
-    FontThemeProviderProps &
-    LocalizationThemeProviderProps
+  FontThemeProviderProps &
+  LocalizationThemeProviderProps
 >;

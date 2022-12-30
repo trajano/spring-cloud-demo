@@ -1,5 +1,5 @@
 import { useAsyncSetEffect } from "@trajano/react-hooks";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ColorSchemeName, useColorScheme } from "react-native";
 
 export function useConfiguredColorSchemes(
@@ -7,7 +7,8 @@ export function useConfiguredColorSchemes(
     | NonNullable<ColorSchemeName>
     | (() => Promise<NonNullable<ColorSchemeName>>)
     | undefined,
-  defaultColorScheme: NonNullable<ColorSchemeName>
+  defaultColorScheme: NonNullable<ColorSchemeName>,
+  onColorSchemeChange: (nextColorScheme: ColorSchemeName) => void
 ): [NonNullable<ColorSchemeName>, (v: ColorSchemeName | null) => void] {
   const systemColorScheme = useColorScheme();
   const [colorScheme, setColorScheme] = useState<ColorSchemeName | null>(() => {
@@ -17,6 +18,13 @@ export function useConfiguredColorSchemes(
       return null;
     }
   });
+  const setColorSchemeWithNotification = useCallback(
+    (nextColorScheme: ColorSchemeName) => {
+      setColorScheme(nextColorScheme);
+      onColorSchemeChange(nextColorScheme);
+    },
+    [onColorSchemeChange, setColorScheme]
+  );
   useAsyncSetEffect(
     async () => {
       if (typeof inColorScheme === "function") {
@@ -33,5 +41,5 @@ export function useConfiguredColorSchemes(
     () => (colorScheme ? colorScheme : systemColorScheme ?? defaultColorScheme),
     [colorScheme, systemColorScheme, defaultColorScheme]
   );
-  return [computedColorScheme, setColorScheme];
+  return [computedColorScheme, setColorSchemeWithNotification];
 }

@@ -74,11 +74,11 @@ export function LoadingScreen({
   useEffect(() => {
     (async () => {
       try {
-        await checkForUpdateAsync();
-      } catch (e: unknown) {
         if (!__DEV__) {
-          console.warn("Failed to check for update", e);
+          await checkForUpdateAsync();
         }
+      } catch (e: unknown) {
+        console.warn("Failed to check for update", e);
       } finally {
         setFromExpoUpdate(1);
       }

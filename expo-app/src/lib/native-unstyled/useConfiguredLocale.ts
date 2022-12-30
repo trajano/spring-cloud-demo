@@ -22,6 +22,7 @@ export function useConfiguredLocale(
   inLocale: string | (() => Promise<string>) | undefined,
   defaultLocale: string,
   translations: Dict,
+  onLocaleChange: (nextLocale: string | null) => void,
   i18nOptions?: I18nOptions
 ): [
   string,
@@ -60,8 +61,27 @@ export function useConfiguredLocale(
   );
 
   const t = useCallback(
-    (scope: Scope, options?: TranslateOptions) => i18n.t(scope, options),
+    (scope: Scope, options?: TranslateOptions) => {
+      // this conditional allows for the short form.
+      if (Array.isArray(scope)) {
+        return i18n.t(
+          scope.filter((p) => p.length > 0),
+          options
+        );
+      } else {
+        return i18n.t(scope, options);
+      }
+    },
     [i18n, locale]
   );
-  return [locale, setLocale, t];
+
+  const setLocaleWithNotification = useCallback(
+    (nextLocale: string | null) => {
+      setLocale(nextLocale);
+      onLocaleChange(nextLocale);
+    },
+    [onLocaleChange, setLocale]
+  );
+
+  return [locale, setLocaleWithNotification, t];
 }
