@@ -12,10 +12,9 @@ import {
   useMemo,
   useReducer,
   useRef,
-  useState,
+  useState
 } from "react";
 import {
-  Alert,
   Button,
   Keyboard,
   LayoutChangeEvent,
@@ -27,7 +26,7 @@ import {
   StyleSheet,
   Text as RNText,
   TextInputFocusEventData,
-  useWindowDimensions,
+  useWindowDimensions
 } from "react-native";
 
 import {
@@ -35,8 +34,9 @@ import {
   Switch,
   Text,
   TextInput,
+  useAlert,
   useTheming,
-  View,
+  View
 } from "../src/lib/native-unstyled";
 
 export default function TabTwoScreen({
@@ -46,6 +46,7 @@ export default function TabTwoScreen({
   const { authState } = useAuth();
   const headerHeight = useHeaderHeight();
   const scrollViewRef = useRef<RNScrollView>();
+  const { alert } = useAlert();
   const [scrollViewLayout, setScrollViewLayout] = useState<LayoutRectangle>({
     width: 0,
     height: 0,
@@ -93,13 +94,13 @@ export default function TabTwoScreen({
       action.eventName === "clear"
         ? []
         : [
-            ...prevState,
-            {
-              name: action.eventName,
-              event: action.event,
-              key: action.eventName + "-" + Date.now(),
-            },
-          ],
+          ...prevState,
+          {
+            name: action.eventName,
+            event: action.event,
+            key: action.eventName + "-" + Date.now(),
+          },
+        ],
     []
   );
 
@@ -271,7 +272,7 @@ export default function TabTwoScreen({
       <Button
         title="show alert"
         onPress={() =>
-          Alert.alert("Hello", "world", [
+          alert("Hello", "world", [
             {
               text: "OK Button",
               onPress: () => {

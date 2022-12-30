@@ -1,4 +1,5 @@
-import { NavigationProp, ParamListBase } from "@react-navigation/native";
+import { ParamListBase, StackNavigationState } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 import { View, ViewProps } from "react-native";
 export function NonNativeStackView({
   state,
@@ -6,8 +7,8 @@ export function NonNativeStackView({
   descriptors,
   ...rest
 }: ViewProps & {
-  state: ParamListBase;
-  navigation: NavigationProp<ParamListBase>;
+  state: StackNavigationState<ParamListBase>;
+  navigation: StackNavigationProp<ParamListBase>;
   descriptors: Record<string, unknown>;
 }) {
   return <View {...rest} />;

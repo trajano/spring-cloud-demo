@@ -5,7 +5,6 @@ import { useMounted } from "@trajano/react-hooks";
 import { useAuth } from "@trajano/spring-docker-auth-context";
 import { useCallback, useState } from "react";
 import {
-  Alert,
   Button,
   LayoutChangeEvent,
   LayoutRectangle,
@@ -16,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuthenticated } from "../authenticated-context";
 import { ScrollView, Text, useTheming, View } from "../src/lib/native-unstyled";
+import { useAlert } from "../src/lib/native-unstyled/useAlert";
 import { MainDrawerTabOneParamList } from "../types";
 export default function TabOneScreen({
   navigation,
@@ -29,6 +29,7 @@ export default function TabOneScreen({
   const { colorScheme, setColorScheme, locale, setLocale, t } = useTheming();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const { top: safeAreaInsetTop } = useSafeAreaInsets();
+  const { alert } = useAlert();
 
   const [scrollViewLayout, setScrollViewLayout] = useState<LayoutRectangle>({
     width: 0,
@@ -77,7 +78,7 @@ export default function TabOneScreen({
   }, [setLocale]);
 
   const handleLogout = useCallback(() => {
-    Alert.alert(t`logout`, "Are you sure you want to logout?", [
+    alert(t`logout`, "Are you sure you want to logout?", [
       {
         text: "No",
       },
@@ -87,7 +88,7 @@ export default function TabOneScreen({
         onPress: logoutAsync,
       },
     ]);
-  }, [logoutAsync]);
+  }, [logoutAsync, alert]);
 
   const headerTransparent = useCallback(() => {
     navigation.setOptions({ headerTransparent: true });
@@ -134,7 +135,7 @@ export default function TabOneScreen({
       </View>
     );
   },
-  []);
+    []);
 
   const refreshToken = useCallback(async function refreshToken() {
     setRefreshing(true);

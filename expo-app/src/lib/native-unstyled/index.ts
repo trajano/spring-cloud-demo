@@ -15,4 +15,5 @@ export { ThemeProvider, useColors, useTheming } from "./ThemeContext";
 export * from "./components";
 export { StatusBar } from "./StatusBar";
 export type { StyleProps } from "./StyleProps";
+export { useAlert } from "./useAlert";
 export { useRefreshControl } from "./useRefreshControl";
