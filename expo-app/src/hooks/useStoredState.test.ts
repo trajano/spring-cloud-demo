@@ -33,7 +33,7 @@ it("should work like normal with async storage check", async () => {
 
 it("should work like normal with function", async () => {
   const { result, waitForNextUpdate, unmount } = renderHook(() =>
-    useStoredState("foo", () => "bar")
+    useStoredState<string>("foo", () => "bar")
   );
   let [state, setState] = result.current;
   expect(state).toBe("bar");
@@ -120,7 +120,7 @@ it("should work with null initial state and load stored value", async () => {
 it("should allow clearing an item", async () => {
   await AsyncStorage.setItem("foo", "XXX");
   const { result, waitFor, unmount } = renderHook(() =>
-    useStoredState("foo", "bar")
+    useStoredState<string | null>("foo", "bar")
   );
   let [state, setState] = result.current;
   expect(state).toBe("bar");
