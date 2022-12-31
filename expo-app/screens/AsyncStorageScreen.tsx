@@ -9,8 +9,7 @@ import {
   SectionListRenderItemInfo,
 } from "react-native";
 
-import { Text, BlurView } from "../src/lib/native-unstyled";
-import { useRefreshControl } from "../src/lib/native-unstyled/useRefreshControl";
+import { BlurView, Text, useRefreshControl } from "../src/lib/native-unstyled";
 
 type AsyncStorageSection = { key: string; data: string[] };
 type AsyncStorageSectionListData = SectionListData<string, AsyncStorageSection>;

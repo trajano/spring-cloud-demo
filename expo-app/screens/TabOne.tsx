@@ -7,6 +7,8 @@ import {
 import { useCallback } from "react";
 import { Pressable } from "react-native";
 
+import { HeaderDx } from "../src/lib/stack-navigator-header-dx/HeaderDx";
+import { HeaderDxProvider } from "../src/lib/stack-navigator-header-dx/HeaderDxContext";
 import {
   MainDrawerTabOneParamList,
   MainDrawerTabOneScreenProps,
@@ -64,54 +66,56 @@ export function TabOne({
   );
 
   return (
-    <Stack.Navigator
-      defaultScreenOptions={{
-        headerRight: defaultHeaderRight,
-        headerMode: "float",
-      }}
-    >
-      <Stack.Screen
-        name="TabOneScreen"
-        component={TabOneScreen}
-        options={{
-          header: LoggingHeader,
-          headerShown: true,
-          headerTransparent: false,
+    <HeaderDxProvider>
+      <Stack.Navigator
+        defaultScreenOptions={{
+          headerRight: defaultHeaderRight,
           headerMode: "float",
         }}
-      />
-      <Stack.Screen
-        name="SystemFonts"
-        component={SystemFontsScreen}
-        options={{
-          header: LoggingHeader,
-          title: "System Fonts",
-          headerShown: true,
-          headerMode: "float",
-        }}
-      />
-      <Stack.Screen
-        name="OneView"
-        component={OneViewScreen}
-        options={{
-          header: LoggingHeader,
-          title: "One View",
-          headerShown: true,
-          headerTransparent: false,
-          headerMode: "float",
-        }}
-      />
-      <Stack.Screen
-        name="OneViewTransparentHeader"
-        component={OneViewScreen}
-        options={{
-          header: LoggingHeader,
-          title: "One View Transparent Header",
-          headerShown: true,
-          headerTransparent: true,
-          headerMode: "float",
-        }}
-      />
-    </Stack.Navigator>
+      >
+        <Stack.Screen
+          name="TabOneScreen"
+          component={TabOneScreen}
+          options={{
+            // header: LoggingHeader,
+            headerShown: true,
+            headerTransparent: false,
+            headerMode: "float",
+          }}
+        />
+        <Stack.Screen
+          name="SystemFonts"
+          component={SystemFontsScreen}
+          options={{
+            // header: LoggingHeader,
+            title: "System Fonts",
+            headerShown: true,
+            headerMode: "float",
+          }}
+        />
+        <Stack.Screen
+          name="OneView"
+          component={OneViewScreen}
+          options={{
+            header: HeaderDx,
+            title: "One View",
+            headerShown: true,
+            headerTransparent: false,
+            headerMode: "float",
+          }}
+        />
+        <Stack.Screen
+          name="OneViewTransparentHeader"
+          component={OneViewScreen}
+          options={{
+            header: LoggingHeader,
+            title: "One View Transparent Header",
+            headerShown: true,
+            headerTransparent: true,
+            headerMode: "float",
+          }}
+        />
+      </Stack.Navigator>
+    </HeaderDxProvider>
   );
 }

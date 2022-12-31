@@ -34,10 +34,15 @@ export function JustScrollView() {
     millisecondsToSeconds(tokenExpiresAt.getTime() - Date.now())
   );
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
-  const refreshControl = useRefreshControl(async () => {
-    setWhoamiJson("");
-    await refreshAsync();
-  });
+  const refreshControl = useRefreshControl(
+    async () => {
+      setWhoamiJson("");
+      await refreshAsync();
+    },
+    {
+      title: "Refreshing auth token",
+    }
+  );
   const { whoami } = useAuthenticated();
   const [whoamiJson, setWhoamiJson] = useState("");
 

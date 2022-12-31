@@ -10,11 +10,12 @@ import { AuthProvider } from "@trajano/spring-docker-auth-context";
 import "expo-dev-client";
 import { deactivateKeepAwake, ExpoKeepAwakeTag } from "expo-keep-awake";
 import { lazy, Suspense, useEffect } from "react";
-import { ColorSchemeName, LogBox } from "react-native";
+import { ColorSchemeName, LogBox, useWindowDimensions } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-
+import Constants from 'expo-constants';
 import { LoadingScreen } from "../../screens/LoadingScreen";
 import { AppProvider } from "../app-context";
+import { HeaderTestNavigationContainer } from "../header-test";
 import { useStoredState } from "../hooks/useStoredState";
 import { AppLoading } from "../lib/app-loading";
 import {
@@ -50,9 +51,13 @@ export default function App() {
   const [storedColorScheme, setStoredColorScheme] = useStoredState<
     NonNullable<ColorSchemeName>
   >("colorScheme", null);
+  const { width, height } = useWindowDimensions();
 
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider initialMetrics={{
+      frame: { x: 0, y: 0, width, height },
+      insets: { top: Constants.statusBarHeight, left: 0, right: 0, bottom: 0 }
+    }}>
       <AuthProvider defaultEndpointConfiguration={defaultEndpointConfiguration}>
         <ThemeProvider
           colorScheme={storedColorScheme}
@@ -80,14 +85,16 @@ export default function App() {
           onColorSchemeChange={setStoredColorScheme}
           onLocaleChange={setStoredLocale}
         >
-          <AppLoading
+          <HeaderTestNavigationContainer />
+          {/* <AppLoading
             initialAssets={[
               // require("../../assets/lottie/28839-ikura-sushi.json"),
               require("../../assets/images/icon.png"),
             ]}
             LoadingComponent={LoadingScreen}
           >
-            <Suspense fallback={<SuspenseView />}>
+            
+            {/* <Suspense fallback={<SuspenseView />}>
               {TEXT_TEST ? (
                 <TextTest />
               ) : (
@@ -95,9 +102,9 @@ export default function App() {
                   <Navigation />
                 </AppProvider>
               )}
-            </Suspense>
-            <StatusBar />
-          </AppLoading>
+            </Suspense> */}
+          <StatusBar />
+          {/* </AppLoading> */}
         </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>
