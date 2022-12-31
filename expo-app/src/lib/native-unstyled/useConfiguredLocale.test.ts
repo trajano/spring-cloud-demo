@@ -1,4 +1,5 @@
 import { act, renderHook } from "@testing-library/react-hooks";
+import noop from "lodash/noop";
 
 import { useConfiguredLocale } from "./useConfiguredLocale";
 
@@ -19,7 +20,7 @@ it("translate", () => {
   };
   const { result } = renderHook(
     ({ inLocale, defaultLocale }) =>
-      useConfiguredLocale(inLocale, defaultLocale, translations),
+      useConfiguredLocale(inLocale, defaultLocale, translations, noop),
     {
       initialProps: {
         inLocale: undefined,
@@ -43,7 +44,7 @@ it("translate to just en", () => {
   };
   const { result } = renderHook(
     ({ inLocale, defaultLocale }) =>
-      useConfiguredLocale(inLocale, defaultLocale, translations),
+      useConfiguredLocale(inLocale, defaultLocale, translations, noop),
     {
       initialProps: {
         inLocale: undefined,
@@ -70,7 +71,7 @@ it("translate switching", () => {
   };
   const { result } = renderHook(
     ({ inLocale, defaultLocale }) =>
-      useConfiguredLocale(inLocale, defaultLocale, translations),
+      useConfiguredLocale(inLocale, defaultLocale, translations, noop),
     {
       initialProps: {
         inLocale: undefined,

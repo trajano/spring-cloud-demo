@@ -19,7 +19,7 @@ function computeSystemLocale(locales: Locale[], translations: Dict) {
   }
 }
 export function useConfiguredLocale(
-  inLocale: string | (() => Promise<string>) | undefined,
+  inLocale: string | null | undefined,
   defaultLocale: string,
   translations: Dict,
   onLocaleChange: (nextLocale: string | null) => void,

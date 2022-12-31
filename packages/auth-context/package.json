@@ -56,14 +56,14 @@
     "@react-native-community/eslint-config": "^3.0.2",
     "@react-native-community/netinfo": "9.3.5",
     "@release-it/conventional-changelog": "^5.0.0",
-    "@testing-library/jest-native": "^5.3.2",
+    "@testing-library/jest-native": "^5.4.0",
     "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/react-native": "^11.5.0",
     "@types/jest": "^29.2.4",
     "@types/react": "~18.0.24",
     "@types/react-native": "~0.70.6",
     "commitlint": "^17.3.0",
-    "eslint": "^8.28.0",
+    "eslint": "^8.30.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
     "fetch-mock-jest": "^1.5.1",
@@ -152,7 +152,6 @@
     ]
   },
   "dependencies": {
-    "@js-joda/core": "^5.4.2",
     "@trajano/react-hooks": "2.0.0",
     "jest-environment-node": "^29.3.1",
     "js-base64": "^3.7.3"

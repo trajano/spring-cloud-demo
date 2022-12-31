@@ -8,13 +8,9 @@ import type { Typography } from "./Typography";
 type ColorThemeProviderProps = {
   colorSchemeColors?: ColorSchemes;
   /**
-   * Color scheme to use.  If not present it will use the system if not available it will use the default.
-   * If a function is provided it will use the value of the function as the intial color scheme, but uses
-   * defaultColorScheme while it is starting up.
+   * Color scheme to use.  If falsy it will use the system if not available it will use the default.
    */
-  colorScheme?:
-  | NonNullable<ColorSchemeName>
-  | (() => Promise<NonNullable<ColorSchemeName>>);
+  colorScheme?: ColorSchemeName;
   /**
    * Color scheme to use as a fallback in case it couldn't be determined from the system.
    */
@@ -38,10 +34,8 @@ type FontThemeProviderProps = {
 type LocalizationThemeProviderProps = {
   /**
    * Locale to use.  If not present it will use the system if not available it will use the default.
-   * If a function is provided it will use the value of the function as the intial locale, but uses
-   * defaultLocale while it is starting up.
    */
-  locale?: string | (() => Promise<string>);
+  locale?: string | null;
   /**
    * Locale if not provided by the system
    */

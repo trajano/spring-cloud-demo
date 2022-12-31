@@ -10,8 +10,9 @@ import { AuthProvider } from "@trajano/spring-docker-auth-context";
 import "expo-dev-client";
 import { deactivateKeepAwake, ExpoKeepAwakeTag } from "expo-keep-awake";
 import { lazy, Suspense, useEffect } from "react";
-import { LogBox } from "react-native";
+import { ColorSchemeName, LogBox } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useStoredState } from "../../hooks/useStoredState";
 
 import { LoadingScreen } from "../../screens/LoadingScreen";
 import { AppProvider } from "../app-context";
@@ -42,11 +43,15 @@ export default function App() {
       deactivateKeepAwake(ExpoKeepAwakeTag);
     }
   }, []);
+  const [storedLocale, setStoredLocale] = useStoredState("locale", null);
+  const [storedColorScheme, setStoredColorScheme] = useStoredState<ColorSchemeName>("colorScheme", null);
 
   return (
     <SafeAreaProvider>
       <AuthProvider defaultEndpointConfiguration={defaultEndpointConfiguration}>
         <ThemeProvider
+          colorScheme={storedColorScheme}
+          locale={storedLocale}
           defaultColorScheme="light"
           fontModules={[
             NotoSans,
@@ -67,6 +72,8 @@ export default function App() {
             "en-CA": require("../i18n/en-CA.json"),
             ja: require("../i18n/ja.json"),
           }}
+          onColorSchemeChange={setStoredColorScheme}
+          onLocaleChange={setStoredLocale}
         >
           <AppLoading
             initialAssets={[

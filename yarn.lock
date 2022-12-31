@@ -2631,11 +2631,6 @@
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
 
-"@js-joda/core@^5.4.2":
-  version "5.4.2"
-  resolved "https://registry.npmjs.org/@js-joda/core/-/core-5.4.2.tgz#fedb8b4b98cf0750daf5802fa2a661edbf83892b"
-  integrity sha512-QIDIZ9a0NfDStgD47VaTgwiPjlw1p4QPLwjOB/9+/DqIztoQopPNNAd+HdtQMHgE+ibP3dJacd8/TVL/A1RaaA==
-
 "@leichtgewicht/ip-codec@^2.0.1":
   version "2.0.4"
   resolved "https://registry.npmjs.org/@leichtgewicht/ip-codec/-/ip-codec-2.0.4.tgz#b2ac626d6cb9c8718ab459166d4bb405b8ffa78b"
@@ -4298,10 +4293,10 @@
     lz-string "^1.4.4"
     pretty-format "^27.0.2"
 
-"@testing-library/jest-native@^5.3.2":
-  version "5.3.3"
-  resolved "https://registry.npmjs.org/@testing-library/jest-native/-/jest-native-5.3.3.tgz#8f7c97504d1373d20ded0704586e110a26f9ba1a"
-  integrity sha512-oakP6c4xHR5PyLbw6H6NiUxvTZmsIHNjQRMsI6P3aSLhDSBvzRQ3+KdEwhlhiU2oNMWW45XQakKZN3cf2BG5Dw==
+"@testing-library/jest-native@^5.4.0":
+  version "5.4.0"
+  resolved "https://registry.npmjs.org/@testing-library/jest-native/-/jest-native-5.4.0.tgz#d294d82f9780acb0be248a4cf261280997d6b213"
+  integrity sha512-6zoWxj1aDV/eRiGcrKX4bgxc7cIbK6iWyWWT6zzGCEacpcCfiIdhbQs+qbL+GzSmMufltzojCvka7X76JhooEg==
   dependencies:
     chalk "^4.1.2"
     jest-diff "^29.0.1"
@@ -9566,7 +9561,7 @@ eslint-webpack-plugin@^3.1.1:
     normalize-path "^3.0.0"
     schema-utils "^4.0.0"
 
-eslint@^8.28.0, eslint@^8.3.0:
+eslint@^8.3.0:
   version "8.29.0"
   resolved "https://registry.npmjs.org/eslint/-/eslint-8.29.0.tgz#d74a88a20fb44d59c51851625bc4ee8d0ec43f87"
   integrity sha512-isQ4EEiyUjZFbEKvEGJKKGBwXtvXX+zJbkVKCgTuB9t/+jUBcy8avhkEwWJecI15BkRkOYmvIM5ynbhRjEkoeg==
