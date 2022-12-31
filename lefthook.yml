@@ -3,13 +3,13 @@ pre-commit:
   commands:
     test-app:
       root: ./expo-app/
-      glob: "*.{json,js,ts,tsx}"
+      glob: "**/*.{json,js,ts,tsx}"
       run: yarn test {staged_files}
     tsc-app:
       root: ./expo-app/
-      glob: "*.{json,js,ts,tsx}"
+      glob: "**/*.{json,js,ts,tsx}"
       run: yarn tsc --noEmit
     lint-app:
       root: ./expo-app/
-      glob: "*.{js,ts,tsx}"
+      glob: "**/*.{js,ts,tsx}"
       run: yarn lint --fix {staged_files}
