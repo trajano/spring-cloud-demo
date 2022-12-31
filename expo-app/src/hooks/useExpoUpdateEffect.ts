@@ -5,6 +5,7 @@ import {
   UpdateEventType,
 } from "expo-updates";
 import { useCallback, useEffect } from "react";
+
 import { useAlert } from "../lib/native-unstyled";
 
 /**

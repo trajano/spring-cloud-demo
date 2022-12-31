@@ -64,7 +64,7 @@ export default function Navigation() {
       setAuthNavigationState(AuthState.AUTHENTICATED);
     }
   },
-    []);
+  []);
 
   useEffect(() => {
     const restoreState = async () => {
@@ -239,5 +239,5 @@ function TabBarIcon(props: {
   return <FontAwesome size={30} style={styles.TabBarIcon} {...props} />;
 }
 const styles = StyleSheet.create({
-  TabBarIcon: { marginBottom: -3 }
-})
+  TabBarIcon: { marginBottom: -3 },
+});

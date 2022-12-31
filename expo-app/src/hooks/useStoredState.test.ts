@@ -1,11 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, renderHook } from "@testing-library/react-hooks";
+
 import { useStoredState } from "./useStoredState";
 afterEach(async () => {
   await AsyncStorage.clear();
 });
 it("should work like normal", () => {
-  const { result, unmount } = renderHook(() => useStoredState<string>("foo", "bar"));
+  const { result, unmount } = renderHook(() =>
+    useStoredState<string>("foo", "bar")
+  );
   let [state, setState] = result.current;
   expect(state).toBe("bar");
   act(() => setState("foo"));
@@ -81,7 +84,7 @@ it("should work restore data from storage using function initializer", async () 
   const { result, waitFor, unmount } = renderHook(() =>
     useStoredState<string>("foo", () => "bar")
   );
-  let [state] = result.current;
+  const [state] = result.current;
   expect(state).toBe("bar");
   // at this point the set state is with "XXX"
   await act(async () => {});
@@ -93,7 +96,7 @@ it("should work restore data from storage using function initializer", async () 
 
 it("should work with null initial state and load stored value", async () => {
   const { result, unmount } = renderHook(() => useStoredState("foo", null));
-  let [state] = result.current;
+  const [state] = result.current;
   expect(state).toBeNull();
   // at this point the set state is with "XXX"
   await act(async () => {});
@@ -107,7 +110,7 @@ it("should work with null initial state and load stored value", async () => {
   const { result, waitFor, unmount } = renderHook(() =>
     useStoredState("foo", null)
   );
-  let [state] = result.current;
+  const [state] = result.current;
   expect(state).toBeNull();
   // at this point the set state is with "XXX"
   await act(async () => {});

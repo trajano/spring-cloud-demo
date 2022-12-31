@@ -136,7 +136,7 @@ export default function TabOneScreen({
       </View>
     );
   },
-    []);
+  []);
 
   const refreshToken = useCallback(async function refreshToken() {
     setRefreshing(true);
