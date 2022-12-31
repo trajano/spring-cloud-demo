@@ -1,10 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-function resolveInitialState<T extends string | null | undefined>(
-  initialState: T | (() => T)
-): T {
-  let nextState: T;
+function resolveInitialState<T extends string>(
+  initialState: T | null | undefined | (() => T | null | undefined)
+): T | null | undefined {
+  let nextState: T | null | undefined;
   if (typeof initialState === "function") {
     nextState = initialState();
   } else {
@@ -17,11 +17,11 @@ function resolveInitialState<T extends string | null | undefined>(
  * @param storageKey AsyncStorage key
  * @param initialState initial state if not available in the storage.  If it is in the storage the value in the storage will be used.  This may not be undefined.
  */
-export function useStoredState<T extends string | null | undefined>(
+export function useStoredState<T extends string>(
   storageKey: string,
-  initialState: T | (() => T)
-): [T, Dispatch<SetStateAction<T>>] {
-  const [state, setState] = useState<T>();
+  initialState: T | null | undefined | (() => T | null | undefined)
+): [T | null | undefined, Dispatch<SetStateAction<T | null | undefined>>] {
+  const [state, setState] = useState<T | null>();
   useEffect(() => {
     (async () => {
       if (state === undefined) {
@@ -35,7 +35,7 @@ export function useStoredState<T extends string | null | undefined>(
           }
           setState(nextState);
         }
-      } else if (state === null) {
+      } else if (state === null || state === undefined) {
         await AsyncStorage.removeItem(storageKey);
       } else {
         await AsyncStorage.setItem(storageKey, state);
@@ -43,9 +43,9 @@ export function useStoredState<T extends string | null | undefined>(
     })();
   }, [storageKey, setState, state, initialState]);
   if (state !== undefined) {
-    return [state, setState as Dispatch<SetStateAction<T>>];
+    return [state, setState];
   } else {
     const nextState = resolveInitialState(initialState);
-    return [nextState, setState as Dispatch<SetStateAction<T>>];
+    return [nextState, setState];
   }
 }

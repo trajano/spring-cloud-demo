@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { Animated, Text as RNText, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useDayClockState } from "../hooks/useDayClockState";
+import { useDayClockState } from "../src/hooks/useDayClockState";
 import {
   ScrollView,
   Text,

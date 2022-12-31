@@ -5,7 +5,7 @@ import AnimatedLottieView from "lottie-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useExpoUpdateEffect } from "../hooks/useExpoUpdateEffect";
+import { useExpoUpdateEffect } from "../src/hooks/useExpoUpdateEffect";
 
 import {
   LoadingComponentProps,

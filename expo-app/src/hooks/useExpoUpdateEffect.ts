@@ -5,7 +5,7 @@ import {
   UpdateEventType,
 } from "expo-updates";
 import { useCallback, useEffect } from "react";
-import { useAlert } from "../src/lib/native-unstyled";
+import { useAlert } from "../lib/native-unstyled";
 
 /**
  * This subscribes to Expo Update notifications and alerts the user when there's a new update.
