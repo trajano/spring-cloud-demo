@@ -94,11 +94,10 @@ it("should work restore data from storage using function initializer", async () 
   unmount();
 });
 
-it("should work with null initial state and load stored value", async () => {
+it("should work with null initial state", async () => {
   const { result, unmount } = renderHook(() => useStoredState("foo", null));
   const [state] = result.current;
   expect(state).toBeNull();
-  // at this point the set state is with "XXX"
   await act(async () => {});
   expect(state).toBeNull();
   expect(await AsyncStorage.getItem("foo")).toBeNull();
