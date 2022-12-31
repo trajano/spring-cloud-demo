@@ -1,4 +1,8 @@
 pre-commit:
   commands:
+    test:
+      run: yarn test
+    tsc:
+      run: yarn tsc --noEmit {staged_files}
     lint:
       run: yarn lint --fix {staged_files}
