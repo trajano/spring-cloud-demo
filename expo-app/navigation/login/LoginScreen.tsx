@@ -11,11 +11,11 @@ import { Text, TextInput } from '../../src/lib/native-unstyled';
 import type { AuthenticatedEndpointConfiguration, LoginStackScreenProps } from './types';
 
 export function LoginForm() {
-  const { login, tokenRefreshable, baseUrl, setEndpointConfiguration } = useAuth();
+  const { loginAsync, backendReachable, baseUrl, setEndpointConfiguration } = useAuth();
   const [visible, setVisible] = useState(false);
   const [username, setUsername] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const disabled = useMemo(() => !tokenRefreshable || username === "" || isLoggingIn, [tokenRefreshable, username, isLoggingIn]);
+  const disabled = useMemo(() => !backendReachable || username === "" || isLoggingIn, [backendReachable, username, isLoggingIn]);
 
   function openMenu() { setVisible(true); }
 
@@ -24,7 +24,7 @@ export function LoginForm() {
   async function handleLogin() {
     try {
       setIsLoggingIn(true);
-      return login({
+      return loginAsync({
         "username": username,
         "password": "password123",
         "server_uri": "http://ca1:8080",
@@ -98,8 +98,7 @@ export default function LoginScreen({ navigation }: LoginStackScreenProps<'Login
       <View style={{ flex: 1 }}>
         <LoginForm />
         <ScrollView>
-          <Text>{JSON.stringify({ isConnected: auth.tokenRefreshable, now })}</Text>
-          <Text>{JSON.stringify(auth.lastAuthEvents, null, 2)}</Text>
+          <Text>{JSON.stringify({ isConnected: auth.backendReachable, now })}</Text>
         </ScrollView>
       </View>
     </Provider>
