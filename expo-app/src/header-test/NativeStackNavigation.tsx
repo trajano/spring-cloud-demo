@@ -20,6 +20,7 @@ export function NativeStackNavigation({
         <NativeStack.Navigator screenOptions={{ headerLargeTitle: true }}>
             <NativeStack.Screen
                 name="SampleScrollView"
+                options={{ title: "some very longish title goes here to see what happens" }}
                 component={NativeOneViewScreen}
             />
             <NativeStack.Screen

@@ -1,14 +1,16 @@
 import { Route, useRoute } from "@react-navigation/native";
 import Constants from 'expo-constants'
 import { StackHeaderProps } from "@react-navigation/stack";
-import { useDeepState } from "@trajano/react-hooks";
+import { useAsyncSetEffect, useDeepState } from "@trajano/react-hooks";
 import noop from "lodash/noop";
 import {
+  cloneElement,
   createContext,
   PropsWithChildren,
   RefObject,
   useCallback,
   useContext,
+  ReactElement,
   useEffect,
   useMemo,
   useState,
@@ -17,12 +19,14 @@ import {
   Animated,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  RefreshControlProps,
   ScrollView,
   ScrollViewProps,
   StatusBar,
   ViewProps,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { DeviceType, getDeviceTypeAsync } from "expo-device";
 
 type HeaderDxRouteState = {
   positionY: Animated.Value;
@@ -44,6 +48,7 @@ type HeaderDxState = {
     positionY: number,
     scrollViewRef: RefObject<ScrollView>
   ): HeaderDxRouteState;
+  deviceType: DeviceType;
 };
 const HeaderDxContext = createContext<HeaderDxState>({
   forRoute: () => ({
@@ -64,6 +69,7 @@ const HeaderDxContext = createContext<HeaderDxState>({
     finalPositionY: 0,
     layout: { width: 0, height: 0 }
   }),
+  deviceType: DeviceType.UNKNOWN
 });
 export function HeaderDxProvider({
   children,
@@ -79,6 +85,8 @@ export function HeaderDxProvider({
    */
   onRouteUpdate?: (routeKey: string, state: HeaderDxState) => void;
 }>) {
+  const [deviceType, setDeviceType] = useState(DeviceType.UNKNOWN);
+  useAsyncSetEffect(getDeviceTypeAsync, setDeviceType, [])
 
   const [routes, setRoutes] = useDeepState<{ [routeKey: string]: HeaderDxRouteState }>(
     initialRouteStates
@@ -136,8 +144,9 @@ export function HeaderDxProvider({
       forRoute,
       forRouteForHeader,
       updateRoute,
+      deviceType,
     }),
-    [forRoute, forRouteForHeader, updateRoute]
+    [forRoute, forRouteForHeader, updateRoute, deviceType]
   );
   return (
     <HeaderDxContext.Provider value={contextValue}>
@@ -191,13 +200,14 @@ type HeaderDxScrollViewContentContainerStyle = Omit<
 type HeaderDxScrollViewModifiableProps = Omit<
   Animated.AnimatedProps<ScrollViewProps>,
   "contentContainerStyle"
-> & { contentContainerStyle: HeaderDxScrollViewContentContainerStyle };
+> & { contentContainerStyle?: HeaderDxScrollViewContentContainerStyle };
 
 export function useHeaderDx(
   scrollViewRef: RefObject<ScrollView>,
   {
-    refreshControl,
+    refreshControl: inRefreshControl,
     contentContainerStyle: inContentContainerStyle = {},
+    style: inStyle,
   }: HeaderDxScrollViewModifiableProps
 ): Pick<
   Animated.AnimatedProps<ScrollViewProps>,
@@ -206,6 +216,7 @@ export function useHeaderDx(
   | "scrollEventThrottle"
   | "refreshControl"
   | "contentContainerStyle"
+  | "style"
 > {
   const route = useRoute();
   const { forRoute, updateRoute } = useContext(HeaderDxContext);
@@ -245,13 +256,24 @@ export function useHeaderDx(
       inContentContainerStyle,
       {
         paddingTop: contentContainerStylePaddingTop,
-        // width: layout?.width ?? 0,
-        // height: layout?.height ?? 0
+        width: layout?.width ?? 0,
+        height: layout?.height ?? 0
       }
     ],
     [inContentContainerStyle, contentContainerStylePaddingTop]
   );
 
+  let refreshControl: Animated.WithAnimatedObject<ReactElement<RefreshControlProps>> | undefined;
+  if (inRefreshControl) {
+    refreshControl = cloneElement<Animated.WithAnimatedObject<ReactElement<RefreshControlProps>>>(inRefreshControl, {
+      ...inRefreshControl.props,
+      // progressViewOffset: -60,
+      style: {
+        position: "absolute",
+        backgroundColor: "#101090",
+      }
+    })
+  }
   // useEffect(() => {
   //   // scrollView?.scrollTo({ y: finalPositionY, animated: false });
   // }, [finalPositionY, scrollView]);
@@ -260,7 +282,35 @@ export function useHeaderDx(
     onScroll,
     onScrollEndDrag,
     contentContainerStyle,
+    style: [inStyle, {
+      position: "absolute",
+      // top: -150,
+      // left: 0,
+      // backgroundColor: "silver",
+      width: layout.width,
+      // height: layout.height,
+      transform: [
+        {
+          translateY: -50
+        }
+      ]
+    }],
     scrollEventThrottle: 16,
     refreshControl,
   };
 }
+
+// on iPad header height is 50
+// https://github.com/software-mansion/react-native-screens/blob/86864da31a1d9c180f95239a02220cf07af7979a/src/native-stack/utils/getDefaultHeaderHeight.tsx#L25
+// https://www.learnui.design/blog/ios-font-size-guidelines.html
+
+// basically we have the following zones
+// refresh control area
+// status area
+// header area
+//   - collapsed or can be empty space when large header is on.
+//   - large header area (optional)
+// search area
+
+// Also because I can't pass additional props to the navigator creation https://react-navigation.canny.io/feature-requests/p/allow-passing-custom-stackoptions-to-createstacknavigator
+// The distinction between large and small header would have to be done through different classes.
