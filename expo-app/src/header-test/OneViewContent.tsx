@@ -1,6 +1,11 @@
 import { useHeaderHeight } from "@react-navigation/elements";
+import {
+  NavigationProp,
+  ParamListBase,
+  RouteProp,
+  useNavigation,
+} from "@react-navigation/native";
 import Constants from "expo-constants";
-import { NavigationProp, ParamListBase, RouteProp, useNavigation } from "@react-navigation/native";
 import { memo, useCallback, useState } from "react";
 import { Button, StatusBar, useWindowDimensions } from "react-native";
 
@@ -13,21 +18,24 @@ export const OneViewContent = memo(function OneViewContent({
 }: {
   route: RouteProp<ParamListBase>;
 }) {
-  const navigation = useNavigation<NavigationProp<HeaderDxStackParamList | NativeStackParamList>>();
+  const navigation =
+    useNavigation<
+      NavigationProp<HeaderDxStackParamList | NativeStackParamList>
+    >();
   const headerHeight = useHeaderHeight();
   const [fill, setFill] = useState("");
   const largeHeader = useCallback(() => {
     navigation.navigate("SampleScrollView");
-  }, [navigation])
+  }, [navigation]);
   const smallHeader = useCallback(() => {
-    navigation.navigate("SmallHeader")
-  }, [navigation])
+    navigation.navigate("SmallHeader");
+  }, [navigation]);
   const transparentHeader = useCallback(() => {
-    navigation.navigate("TransparentHeader")
-  }, [navigation])
+    navigation.navigate("TransparentHeader");
+  }, [navigation]);
   const transparentSmallHeader = useCallback(() => {
-    navigation.navigate("TransparentSmallHeader")
-  }, [navigation])
+    navigation.navigate("TransparentSmallHeader");
+  }, [navigation]);
   const toggleFill = useCallback(() => {
     if (fill.length === 0) {
       setFill(`
@@ -54,7 +62,17 @@ Maecenas rhoncus sem leo, vel consectetur tortor rhoncus non. Donec ex sapien, m
   }, [fill, setFill]);
   return (
     <View backgroundColor="black" padding={16}>
-      <Text>{JSON.stringify({ ...route, headerHeight, statusBarCurrentHeight: Constants.statusBarHeight }, null, 2)}</Text>
+      <Text>
+        {JSON.stringify(
+          {
+            ...route,
+            headerHeight,
+            statusBarCurrentHeight: Constants.statusBarHeight,
+          },
+          null,
+          2
+        )}
+      </Text>
       <Button title="largeHeader" onPress={largeHeader} />
       <Button title="smallHeader" onPress={smallHeader} />
       <Button title="transparentHeader" onPress={transparentHeader} />

@@ -10,3 +10,6 @@
  *   - notification zone
  * - Content Area (which is usually a scroll view and will be adjusted based on the header area)
  */
+export { HeaderDx } from "./HeaderDx";
+export { HeaderDxLarge } from "./HeaderDxLarge";
+export { HeaderDxProvider } from "./HeaderDxContext";

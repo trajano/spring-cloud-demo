@@ -1,6 +1,11 @@
 import type { StackScreenProps } from "@react-navigation/stack";
 import { createRef } from "react";
-import { Animated, ScrollView as RNScrollView, StyleSheet, useWindowDimensions } from "react-native";
+import {
+  Animated,
+  ScrollView as RNScrollView,
+  StyleSheet,
+  useWindowDimensions,
+} from "react-native";
 
 import { useRefreshControl } from "../lib/native-unstyled";
 import { useHeaderDx } from "../lib/stack-navigator-header-dx/HeaderDxContext";
@@ -20,15 +25,17 @@ export function HeaderDxOneViewScreen({
 
   const scrollViewProps = useHeaderDx(scrollViewRef, {
     refreshControl,
-    contentContainerStyle: {
-    },
+    contentContainerStyle: {},
     style: {
       flex: 1,
       borderWidth: 1,
       borderColor: "yellow",
-    }
+    },
   });
-  console.log({ scrollViewProps, style: StyleSheet.flatten(scrollViewProps.style) })
+  console.log({
+    scrollViewProps,
+    style: StyleSheet.flatten(scrollViewProps.style),
+  });
   return (
     <Animated.ScrollView
       {...scrollViewProps}

@@ -8,11 +8,12 @@ import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
 import { FontAwesome } from "@expo/vector-icons";
 import { AuthProvider } from "@trajano/spring-docker-auth-context";
 import "expo-dev-client";
+import Constants from "expo-constants";
 import { deactivateKeepAwake, ExpoKeepAwakeTag } from "expo-keep-awake";
 import { lazy, Suspense, useEffect } from "react";
 import { ColorSchemeName, LogBox, useWindowDimensions } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import Constants from 'expo-constants';
+
 import { LoadingScreen } from "../../screens/LoadingScreen";
 import { AppProvider } from "../app-context";
 import { HeaderTestNavigationContainer } from "../header-test";
@@ -54,10 +55,17 @@ export default function App() {
   const { width, height } = useWindowDimensions();
 
   return (
-    <SafeAreaProvider initialMetrics={{
-      frame: { x: 0, y: 0, width, height },
-      insets: { top: Constants.statusBarHeight, left: 0, right: 0, bottom: 0 }
-    }}>
+    <SafeAreaProvider
+      initialMetrics={{
+        frame: { x: 0, y: 0, width, height },
+        insets: {
+          top: Constants.statusBarHeight,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        },
+      }}
+    >
       <AuthProvider defaultEndpointConfiguration={defaultEndpointConfiguration}>
         <ThemeProvider
           colorScheme={storedColorScheme}

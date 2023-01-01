@@ -17,8 +17,7 @@ export function NativeOneViewScreen({
     <Animated.ScrollView
       refreshControl={refreshControl}
       //contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{
-      }}
+      contentContainerStyle={{}}
       style={{
         flex: 1,
         borderWidth: 1,

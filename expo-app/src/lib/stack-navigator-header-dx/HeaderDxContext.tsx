@@ -1,7 +1,8 @@
 import { Route, useRoute } from "@react-navigation/native";
-import Constants from 'expo-constants'
 import { StackHeaderProps } from "@react-navigation/stack";
 import { useAsyncSetEffect, useDeepState } from "@trajano/react-hooks";
+import Constants from "expo-constants";
+import { DeviceType, getDeviceTypeAsync } from "expo-device";
 import noop from "lodash/noop";
 import {
   cloneElement,
@@ -26,13 +27,12 @@ import {
   ViewProps,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { DeviceType, getDeviceTypeAsync } from "expo-device";
 
 type HeaderDxRouteState = {
   positionY: Animated.Value;
   scrollView: ScrollView | null;
   finalPositionY: number;
-  layout: StackHeaderProps['layout']
+  layout: StackHeaderProps["layout"];
 };
 /**
  * Keeps track of the position and the scroll view reference for each route.
@@ -41,7 +41,7 @@ type HeaderDxState = {
   forRoute(route: Route<string>): HeaderDxRouteState;
   forRouteForHeader(
     route: Route<string>,
-    layout: StackHeaderProps['layout']
+    layout: StackHeaderProps["layout"]
   ): HeaderDxRouteState;
   updateRoute(
     route: Route<string>,
@@ -55,21 +55,21 @@ const HeaderDxContext = createContext<HeaderDxState>({
     positionY: new Animated.Value(0),
     scrollView: null,
     finalPositionY: 0,
-    layout: { width: 0, height: 0 }
+    layout: { width: 0, height: 0 },
   }),
   forRouteForHeader: () => ({
     positionY: new Animated.Value(0),
     scrollView: null,
     finalPositionY: 0,
-    layout: { width: 0, height: 0 }
+    layout: { width: 0, height: 0 },
   }),
   updateRoute: () => ({
     positionY: new Animated.Value(0),
     scrollView: null,
     finalPositionY: 0,
-    layout: { width: 0, height: 0 }
+    layout: { width: 0, height: 0 },
   }),
-  deviceType: DeviceType.UNKNOWN
+  deviceType: DeviceType.UNKNOWN,
 });
 export function HeaderDxProvider({
   children,
@@ -86,41 +86,44 @@ export function HeaderDxProvider({
   onRouteUpdate?: (routeKey: string, state: HeaderDxState) => void;
 }>) {
   const [deviceType, setDeviceType] = useState(DeviceType.UNKNOWN);
-  useAsyncSetEffect(getDeviceTypeAsync, setDeviceType, [])
+  useAsyncSetEffect(getDeviceTypeAsync, setDeviceType, []);
 
-  const [routes, setRoutes] = useDeepState<{ [routeKey: string]: HeaderDxRouteState }>(
-    initialRouteStates
+  const [routes, setRoutes] = useDeepState<{
+    [routeKey: string]: HeaderDxRouteState;
+  }>(initialRouteStates);
+  const updateRouteState = useCallback(
+    (routeKey: string, next: Partial<HeaderDxRouteState>) => {
+      setRoutes({
+        ...routes,
+        [routeKey]: { ...routes[routeKey], ...next },
+      });
+      return { ...routes[routeKey], ...next };
+    },
+    [routes, setRoutes]
   );
-  const updateRouteState = useCallback((routeKey: string, next: Partial<HeaderDxRouteState>) => {
-    setRoutes({
-      ...routes,
-      [routeKey]: { ...routes[routeKey], ...next }
-    })
-    return { ...routes[routeKey], ...next };
-  }, [routes, setRoutes])
   const forRoute = useCallback(
     (route: Route<string>) =>
       routes[route.key] ?? {
         positionY: new Animated.Value(0),
         scrollView: null,
         finalPositionY: 0,
-        layout: { width: 0, height: 0 }
+        layout: { width: 0, height: 0 },
       },
     [routes]
   );
   const forRouteForHeader = useCallback(
-    (route: Route<string>, layout: StackHeaderProps['layout']) => {
+    (route: Route<string>, layout: StackHeaderProps["layout"]) => {
       if (!routes[route.key]) {
         return updateRouteState(route.key, {
           positionY: new Animated.Value(0),
           scrollView: null,
           finalPositionY: 0,
-          layout
-        })
+          layout,
+        });
       } else {
         return updateRouteState(route.key, {
-          layout: layout
-        })
+          layout,
+        });
       }
     },
     [routes]
@@ -133,9 +136,9 @@ export function HeaderDxProvider({
     ) => {
       console.log({ saving: finalPositionY });
       return updateRouteState(route.key, {
-        finalPositionY: finalPositionY,
-        scrollView: scrollViewRef.current
-      })
+        finalPositionY,
+        scrollView: scrollViewRef.current,
+      });
     },
     [routes]
   );
@@ -159,15 +162,15 @@ type HeaderScrollViewProps = {
    * This will be fired to update the positions.
    */
   onScroll:
-  | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
-  | undefined;
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
 
   /**
    * This will be handling the "snap back"
    */
   onScrollEndDrag:
-  | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
-  | undefined;
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
   containerPaddingTop: number;
   scrollIndicatorInsetTop: number;
 };
@@ -176,15 +179,15 @@ type AnimatedHeaderScrollViewProps = {
    * This will be fired to update the positions.
    */
   onScroll:
-  | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
-  | undefined;
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
 
   /**
    * This will be handling the "snap back"
    */
   onScrollEndDrag:
-  | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
-  | undefined;
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
   containerPaddingTop: Animated.Value;
   scrollIndicatorInsetTop: Animated.Value;
 };
@@ -220,9 +223,7 @@ export function useHeaderDx(
 > {
   const route = useRoute();
   const { forRoute, updateRoute } = useContext(HeaderDxContext);
-  const { positionY, scrollView, finalPositionY, layout } = forRoute(
-    route,
-  );
+  const { positionY, scrollView, finalPositionY, layout } = forRoute(route);
   const onScroll = useCallback(
     Animated.event(
       [
@@ -237,7 +238,6 @@ export function useHeaderDx(
       { useNativeDriver: true }
     ),
     [positionY]
-
   );
   const onScrollEndDrag = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -257,44 +257,51 @@ export function useHeaderDx(
       {
         paddingTop: contentContainerStylePaddingTop,
         width: layout?.width ?? 0,
-        height: layout?.height ?? 0
-      }
+        height: layout?.height ?? 0,
+      },
     ],
     [inContentContainerStyle, contentContainerStylePaddingTop]
   );
 
-  let refreshControl: Animated.WithAnimatedObject<ReactElement<RefreshControlProps>> | undefined;
+  let refreshControl:
+    | Animated.WithAnimatedObject<ReactElement<RefreshControlProps>>
+    | undefined;
   if (inRefreshControl) {
-    refreshControl = cloneElement<Animated.WithAnimatedObject<ReactElement<RefreshControlProps>>>(inRefreshControl, {
+    refreshControl = cloneElement<
+      Animated.WithAnimatedObject<ReactElement<RefreshControlProps>>
+    >(inRefreshControl, {
       ...inRefreshControl.props,
       // progressViewOffset: -60,
       style: {
         position: "absolute",
         backgroundColor: "#101090",
-      }
-    })
+      },
+    });
   }
   // useEffect(() => {
   //   // scrollView?.scrollTo({ y: finalPositionY, animated: false });
   // }, [finalPositionY, scrollView]);
-  console.log("hook rendering")
+  console.log("hook rendering");
   return {
     onScroll,
     onScrollEndDrag,
     contentContainerStyle,
-    style: [inStyle, {
-      position: "absolute",
-      // top: -150,
-      // left: 0,
-      // backgroundColor: "silver",
-      width: layout.width,
-      // height: layout.height,
-      transform: [
-        {
-          translateY: -50
-        }
-      ]
-    }],
+    style: [
+      inStyle,
+      {
+        position: "absolute",
+        // top: -150,
+        // left: 0,
+        // backgroundColor: "silver",
+        width: layout.width,
+        // height: layout.height,
+        transform: [
+          {
+            translateY: -50,
+          },
+        ],
+      },
+    ],
     scrollEventThrottle: 16,
     refreshControl,
   };

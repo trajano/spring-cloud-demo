@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useHeaderDxContext } from "./HeaderDxContext";
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
-export function HeaderDx({
+export function HeaderDxLarge({
   navigation,
   route,
   options,

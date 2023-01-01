@@ -1,7 +1,8 @@
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
-import { createStackNavigator, } from "@react-navigation/stack";
-import { HeaderDx } from "../lib/stack-navigator-header-dx/HeaderDx";
+import { createStackNavigator } from "@react-navigation/stack";
 
+import { HeaderDxLarge } from "../lib/stack-navigator-header-dx";
+import { HeaderDx } from "../lib/stack-navigator-header-dx/HeaderDx";
 import { HeaderDxProvider } from "../lib/stack-navigator-header-dx/HeaderDxContext";
 import { HeaderDxOneViewScreen } from "./HeaderDxOneViewScreen";
 import { MainTabParamList } from "./MainTabNavigation";
@@ -21,7 +22,7 @@ export function HeaderDxStackNavigation({
 }: BottomTabScreenProps<MainTabParamList>) {
   return (
     <HeaderDxProvider>
-      <HeaderDxStack.Navigator screenOptions={{ header: HeaderDx }}>
+      <HeaderDxStack.Navigator screenOptions={{ header: HeaderDxLarge }}>
         <HeaderDxStack.Screen
           name="SampleScrollView"
           options={{ title: "Apps" }}
@@ -29,7 +30,7 @@ export function HeaderDxStackNavigation({
         />
         <HeaderDxStack.Screen
           name="SmallHeader"
-          options={{ headerLarge: false }}
+          options={{ header: HeaderDx }}
           component={HeaderDxOneViewScreen}
         />
         <HeaderDxStack.Screen
@@ -40,6 +41,7 @@ export function HeaderDxStackNavigation({
         <HeaderDxStack.Screen
           name="TransparentSmallHeader"
           options={{
+            header: HeaderDx,
             headerTransparent: true,
           }}
           component={HeaderDxOneViewScreen}
