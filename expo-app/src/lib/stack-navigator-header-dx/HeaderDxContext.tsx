@@ -263,21 +263,21 @@ export function useHeaderDx(
     [inContentContainerStyle, contentContainerStylePaddingTop]
   );
 
-  let refreshControl:
+  const refreshControl:
     | Animated.WithAnimatedObject<ReactElement<RefreshControlProps>>
-    | undefined;
-  if (inRefreshControl) {
-    refreshControl = cloneElement<
-      Animated.WithAnimatedObject<ReactElement<RefreshControlProps>>
-    >(inRefreshControl, {
-      ...inRefreshControl.props,
-      // progressViewOffset: -60,
-      style: {
-        position: "absolute",
-        backgroundColor: "#101090",
-      },
-    });
-  }
+    | undefined = inRefreshControl;
+  // if (inRefreshControl) {
+  //   refreshControl = cloneElement<
+  //     Animated.WithAnimatedObject<ReactElement<RefreshControlProps>>
+  //   >(inRefreshControl, {
+  //     ...inRefreshControl.props,
+  //     // progressViewOffset: -60,
+  //     style: {
+  //       position: "absolute",
+  //       backgroundColor: "#101090",
+  //     },
+  //   });
+  // }
   // useEffect(() => {
   //   // scrollView?.scrollTo({ y: finalPositionY, animated: false });
   // }, [finalPositionY, scrollView]);

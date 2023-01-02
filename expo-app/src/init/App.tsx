@@ -7,8 +7,8 @@ import * as NotoSans from "@expo-google-fonts/noto-sans";
 import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
 import { FontAwesome } from "@expo/vector-icons";
 import { AuthProvider } from "@trajano/spring-docker-auth-context";
-import "expo-dev-client";
 import Constants from "expo-constants";
+import "expo-dev-client";
 import { deactivateKeepAwake, ExpoKeepAwakeTag } from "expo-keep-awake";
 import { lazy, Suspense, useEffect } from "react";
 import { ColorSchemeName, LogBox, useWindowDimensions } from "react-native";
@@ -16,7 +16,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { LoadingScreen } from "../../screens/LoadingScreen";
 import { AppProvider } from "../app-context";
-import { HeaderTestNavigationContainer } from "../header-test";
 import { useStoredState } from "../hooks/useStoredState";
 import { AppLoading } from "../lib/app-loading";
 import {
@@ -93,16 +92,15 @@ export default function App() {
           onColorSchemeChange={setStoredColorScheme}
           onLocaleChange={setStoredLocale}
         >
-          <HeaderTestNavigationContainer />
-          {/* <AppLoading
+          {/* <HeaderTestNavigationContainer /> */}
+          <AppLoading
             initialAssets={[
               // require("../../assets/lottie/28839-ikura-sushi.json"),
               require("../../assets/images/icon.png"),
             ]}
             LoadingComponent={LoadingScreen}
           >
-            
-            {/* <Suspense fallback={<SuspenseView />}>
+            <Suspense fallback={<SuspenseView />}>
               {TEXT_TEST ? (
                 <TextTest />
               ) : (
@@ -110,9 +108,9 @@ export default function App() {
                   <Navigation />
                 </AppProvider>
               )}
-            </Suspense> */}
-          <StatusBar />
-          {/* </AppLoading> */}
+            </Suspense>
+            <StatusBar />
+          </AppLoading>
         </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>

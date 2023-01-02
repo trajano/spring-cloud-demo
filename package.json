@@ -24,7 +24,7 @@
   },
   "scripts": {},
   "devDependencies": {
-    "lerna": "^6.0.1"
+    "lerna": "^6.3.0"
   },
   "dependencies": {}
 }
