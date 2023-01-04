@@ -1,4 +1,4 @@
-name: Build
+name: SonarCloud
 on:
   push:
     branches:
@@ -6,7 +6,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
-  expo-app:
+  sonarcloud:
     name: SonarCloud
     runs-on: ubuntu-latest
     steps:
@@ -16,12 +16,23 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - run: yarn install --frozen-lockfile
       - run: yarn workspace run test --coverage --ci
-      - name: SonarCloud Scan
+      - name: SonarCloud Scan app
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
+          projectBaseDir: ./expo-app
           args: >
             -Dsonar.organization=trajano
             -Dsonar.projectKey=spring-docker-swarm-expo-app
+      - name: SonarCloud Scan auth-context
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: ./packages/auth-context
+          args: >
+            -Dsonar.organization=trajano
+            -Dsonar.projectKey=spring-docker-swarm-auth-context
