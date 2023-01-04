@@ -23,6 +23,7 @@ import { useAppStateRefreshingEffect } from './useAppStateRefreshingEffect';
 import { useBackendFailureTimeoutEffect } from './useBackendFailureTimeoutEffect';
 import { useInitialAuthStateEffect } from './useInitialAuthStateEffect';
 import { useNeedsRefreshEffect } from './useNeedsRefreshEffect';
+import { usePreventAppFromGettingStuckOnRefreshEffect } from './usePreventAppFromGettingStuckOnRefreshEffect';
 import { useRefreshCallback } from './useRefreshCallback';
 import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
 import { useTokenExpirationTimeoutEffect } from './useTokenExpirationTimeoutEffect';
@@ -148,9 +149,9 @@ export function AuthProvider<A = unknown>({
   function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
     return () =>
-      (subscribersRef.current = subscribersRef.current.filter(
-        (subscription) => !Object.is(subscription, fn)
-      ));
+    (subscribersRef.current = subscribersRef.current.filter(
+      (subscription) => !Object.is(subscription, fn)
+    ));
   }
 
   /**
@@ -243,7 +244,13 @@ export function AuthProvider<A = unknown>({
     backendReachable,
   });
 
-  usePreventAppFromGettingStuckOnRefreshEffect();
+  usePreventAppFromGettingStuckOnRefreshEffect({
+    authState,
+    setAuthState,
+    notify,
+    backendReachable,
+    tokenExpiresAt,
+  });
 
   useInitialAuthStateEffect({
     authState,
@@ -285,7 +292,7 @@ export function AuthProvider<A = unknown>({
       ),
       authorization:
         !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&
-        !!oauthToken
+          !!oauthToken
           ? `Bearer ${oauthToken?.access_token}`
           : null,
       authState,
