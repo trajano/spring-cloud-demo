@@ -32,7 +32,7 @@ function AssetsLoaded({
     <View style={{ paddingBottom: safeAreaInsetBottom }}>
       <Text>{`Assets loaded ${loadedAssets}/${totalAssets}`}</Text>
       <Text>{AuthState[authState]}</Text>
-      <Text>{fontsLoaded ? "Fonts loaded" : "Fonts loaded"}</Text>
+      <Text>{fontsLoaded ? "Fonts loaded" : "Fonts not yet loaded"}</Text>
       <Text>{animationDone ? "Animation Done" : "Playing Animation"}</Text>
       <Text>{updateChecked ? "Running latest" : "Checking for update"}</Text>
       <Text>
