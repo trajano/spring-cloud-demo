@@ -4,7 +4,7 @@ pre-commit:
     test-app:
       root: ./expo-app/
       glob: "**/*.{json,js,ts,tsx}"
-      run: yarn test {staged_files}
+      run: yarn test
     tsc-app:
       root: ./expo-app/
       glob: "**/*.{json,js,ts,tsx}"
@@ -12,12 +12,12 @@ pre-commit:
     lint-app:
       root: ./expo-app/
       glob: "**/*.{js,ts,tsx}"
-      run: yarn lint --fix {staged_files}
+      run: yarn lint --fix
 
     test-auth:
       root: ./packages/auth-context/
       glob: "**/*.{json,js,ts,tsx}"
-      run: yarn test {staged_files}
+      run: yarn test
     tsc-auth:
       root: ./packages/auth-context/
       glob: "**/*.{json,js,ts,tsx}"
@@ -25,7 +25,7 @@ pre-commit:
     lint-auth:
       root: ./packages/auth-context/
       glob: "**/*.{js,ts,tsx}"
-      run: yarn lint --fix {staged_files}
+      run: yarn lint --fix
 
 commit-msg:
   parallel: true

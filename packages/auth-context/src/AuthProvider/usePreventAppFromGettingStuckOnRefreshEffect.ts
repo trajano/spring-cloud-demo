@@ -40,8 +40,6 @@ export function usePreventAppFromGettingStuckOnRefreshEffect({
         }
       }
     );
-    return () => {
-      appStateSubscription.remove();
-    };
+    return () => appStateSubscription.remove();
   }, [authState, setAuthState, notify, backendReachable, tokenExpiresAt]);
 }

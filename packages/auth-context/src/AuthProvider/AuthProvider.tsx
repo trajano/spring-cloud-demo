@@ -149,9 +149,9 @@ export function AuthProvider<A = unknown>({
   function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
     return () =>
-    (subscribersRef.current = subscribersRef.current.filter(
-      (subscription) => !Object.is(subscription, fn)
-    ));
+      (subscribersRef.current = subscribersRef.current.filter(
+        (subscription) => !Object.is(subscription, fn)
+      ));
   }
 
   /**
@@ -292,7 +292,7 @@ export function AuthProvider<A = unknown>({
       ),
       authorization:
         !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&
-          !!oauthToken
+        !!oauthToken
           ? `Bearer ${oauthToken?.access_token}`
           : null,
       authState,

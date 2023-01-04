@@ -61,6 +61,7 @@ it('should throw an error when sending invalid token', async () => {
     new Error('Token {"not":"a","valid":"token"} is not valid')
   );
 });
+
 it('should be expired if there is no data', async () => {
   const authStorage = new AuthStore('myKey2', 'https://trajano.net');
   expect(await authStorage.isExpired()).toBe(true);
