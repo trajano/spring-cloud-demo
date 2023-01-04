@@ -36,39 +36,30 @@ it('should construct and store', async () => {
 });
 it('should throw an error when sending an empty string', async () => {
   const authStorage = new AuthStore('myKey', 'https://trajano.net');
-  try {
+  await expect(async () => {
     await authStorage.storeOAuthTokenAndGetExpiresAtAsync(
       '' as unknown as OAuthToken
     );
-    fail('should not get here');
-  } catch (e) {
-    expect(e).toStrictEqual(new Error('Token "" is not valid'));
-  }
+  }).rejects.toThrow(new Error('Token "" is not valid'));
 });
 it('should throw an error when sending nothing', async () => {
   const authStorage = new AuthStore('myKey', 'https://trajano.net');
-  try {
+  await expect(async () => {
     await authStorage.storeOAuthTokenAndGetExpiresAtAsync(
       null as unknown as OAuthToken
     );
-    fail('should not get here');
-  } catch (e) {
-    expect(e).toStrictEqual(new Error('Token null is not valid'));
-  }
+  }).rejects.toThrow(new Error('Token null is not valid'));
 });
 it('should throw an error when sending invalid token', async () => {
   const authStorage = new AuthStore('myKey', 'https://trajano.net');
-  try {
+  await expect(async () => {
     await authStorage.storeOAuthTokenAndGetExpiresAtAsync({
       not: 'a',
       valid: 'token',
     } as unknown as OAuthToken);
-    fail('should not get here');
-  } catch (e) {
-    expect(e).toStrictEqual(
-      new Error('Token {"not":"a","valid":"token"} is not valid')
-    );
-  }
+  }).rejects.toThrow(
+    new Error('Token {"not":"a","valid":"token"} is not valid')
+  );
 });
 it('should be expired if there is no data', async () => {
   const authStorage = new AuthStore('myKey2', 'https://trajano.net');

@@ -2,10 +2,16 @@ import NetInfo, {
   NetInfoStateType,
   NetInfoState,
 } from '@react-native-community/netinfo';
+
+/* eslint-disable jest/no-mocks-import */
+// expose these two to allow testing.
 import {
   setConnectionState,
   resetConnectionState,
 } from '../__mocks__/@react-native-community/netinfo';
+
+/* eslint-enable jest/no-mocks-import */
+
 it('work closely to the real thing', async () => {
   const c = await NetInfo.fetch();
   expect(c.isInternetReachable).toBeTruthy();

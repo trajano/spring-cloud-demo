@@ -128,12 +128,6 @@ export function AuthProvider<A = unknown>({
   );
 
   const { backendReachable, netInfoState } = useRenderOnTokenEvent({
-    authState,
-    setAuthState,
-    notify,
-    oauthToken,
-    tokenExpiresAt,
-    timeBeforeExpirationRefresh,
     endpointConfiguration,
   });
 

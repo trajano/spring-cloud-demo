@@ -1,9 +1,6 @@
 import type { NetInfoState } from '@react-native-community/netinfo';
-import { Dispatch, useMemo } from 'react';
-import type { AuthEvent } from '../AuthEvent';
-import type { AuthState } from '../AuthState';
+import { useMemo } from 'react';
 import type { EndpointConfiguration } from '../EndpointConfiguration';
-import type { OAuthToken } from '../OAuthToken';
 import { useNetInfoState } from '../useNetInfoState';
 import { useAppStateWithNetInfoRefresh } from './useAppStateWithNetInfoRefresh';
 
@@ -11,12 +8,6 @@ import { useAppStateWithNetInfoRefresh } from './useAppStateWithNetInfoRefresh';
  * @testonly
  */
 export type RenderOnTokenEventProps = {
-  authState: AuthState;
-  setAuthState: Dispatch<AuthState>;
-  notify: (event: AuthEvent) => void;
-  oauthToken: OAuthToken | null;
-  tokenExpiresAt: Date | null;
-  timeBeforeExpirationRefresh: number;
   endpointConfiguration: EndpointConfiguration;
 };
 /**
@@ -37,7 +28,6 @@ export type RenderOnTokenEventState = {
  * - app state changes,
  * - network state changes
  * - token needs to be rechecked.
- * - if the connectivty changes to true and it's in REFRESHING state, then it will switch to either AUTHENTICATED or NEEDS_REFRESH accordingly.
  * @param endpointConfiguration to obtain the ping URL
  */
 export function useRenderOnTokenEvent({

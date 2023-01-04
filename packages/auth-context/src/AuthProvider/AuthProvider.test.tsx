@@ -9,7 +9,7 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor
+  waitFor,
 } from '@testing-library/react-native';
 import fetchMock from 'fetch-mock-jest';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -314,7 +314,7 @@ describe('with component', () => {
     expect(failedCall instanceof AuthenticationClientError).toBeTruthy();
     expect(
       failedCall instanceof AuthenticationClientError &&
-      failedCall.isUnauthorized()
+        failedCall.isUnauthorized()
     ).toBeTruthy();
     unmount();
   });
@@ -360,7 +360,7 @@ describe('with component', () => {
     expect(failedCall instanceof AuthenticationClientError).toBeTruthy();
     expect(
       failedCall instanceof AuthenticationClientError &&
-      failedCall.isUnauthorized()
+        failedCall.isUnauthorized()
     ).toBeFalsy();
     unmount();
   });
@@ -378,7 +378,7 @@ describe('with component', () => {
           <MyComponent notifications={notifications} />
         </AuthProvider>
       );
-    }).toThrowError(new Error("baseUrl=http://asdf.com should end with a '/'"))
+    }).toThrow(new Error("baseUrl=http://asdf.com should end with a '/'"));
   });
 
   it('login failed logout', async () => {
