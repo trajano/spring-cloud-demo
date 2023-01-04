@@ -101,7 +101,7 @@ it('Refresh two times', async () => {
     </AuthProvider>
   );
   await waitFor(() =>
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'Unauthenticated' } as Partial<AuthEvent>)
     )
   );
@@ -109,14 +109,14 @@ it('Refresh two times', async () => {
 
   fireEvent.press(screen.getByTestId('login'));
   await waitFor(() =>
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'LoggedIn',
         accessToken: 'freshAccessToken',
       } as Partial<AuthEvent>)
     )
   );
-  expect(notifications).toBeCalledWith(
+  expect(notifications).toHaveBeenCalledWith(
     expect.objectContaining({
       type: 'Authenticated',
       accessToken: 'freshAccessToken',
@@ -136,13 +136,13 @@ it('Refresh two times', async () => {
   act(() =>
     jest.advanceTimersByTime(tokenExpiresAt.getTime() - Date.now() - 10000)
   );
-  expect(notifications).toBeCalledWith(
+  expect(notifications).toHaveBeenCalledWith(
     expect.objectContaining({
       type: 'TokenExpiration',
       authState: AuthState.AUTHENTICATED,
     } as Partial<AuthEvent>)
   );
-  expect(notifications).toBeCalledWith({
+  expect(notifications).toHaveBeenCalledWith({
     type: 'Refreshing',
     authState: AuthState.NEEDS_REFRESH,
     reason: 'from NeedsRefresh',
@@ -178,7 +178,7 @@ it('Refresh two times', async () => {
     )
   );
   await waitFor(() =>
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'Refreshing',
         authState: AuthState.NEEDS_REFRESH,
@@ -189,7 +189,7 @@ it('Refresh two times', async () => {
   //   expect(screen.getByTestId('hello')).toHaveTextContent('REFRESHING')
   // );
   await waitFor(() =>
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'Authenticated',
         accessToken: 'newAccessTokenPartTwo',
@@ -242,7 +242,7 @@ it('Refresh 500 then successful', async () => {
     </AuthProvider>
   );
   await waitFor(() =>
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'Unauthenticated' } as Partial<AuthEvent>)
     )
   );
@@ -250,14 +250,14 @@ it('Refresh 500 then successful', async () => {
 
   fireEvent.press(screen.getByTestId('login'));
   await waitFor(() =>
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'LoggedIn',
         accessToken: 'freshAccessToken',
       } as Partial<AuthEvent>)
     )
   );
-  expect(notifications).toBeCalledWith(
+  expect(notifications).toHaveBeenCalledWith(
     expect.objectContaining({
       type: 'Authenticated',
       accessToken: 'freshAccessToken',
@@ -277,14 +277,14 @@ it('Refresh 500 then successful', async () => {
   act(() =>
     jest.advanceTimersByTime(tokenExpiresAt.getTime() - Date.now() - 10000)
   );
-  expect(notifications).toBeCalledWith(
+  expect(notifications).toHaveBeenCalledWith(
     expect.objectContaining({
       type: 'TokenExpiration',
       authState: AuthState.AUTHENTICATED,
     } as Partial<AuthEvent>)
   );
   await waitFor(() =>
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'Refreshing',
         reason: 'from NeedsRefresh',
@@ -320,7 +320,7 @@ it('Refresh 500 then successful', async () => {
   );
   await waitFor(
     () =>
-      expect(notifications).toBeCalledWith(
+      expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'CheckRefresh',
           authState: AuthState.BACKEND_FAILURE,
@@ -337,7 +337,7 @@ it('Refresh 500 then successful', async () => {
   notifications.mockClear();
   act(() => jest.runAllTimers());
   await waitFor(() =>
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'Refreshing',
         authState: AuthState.NEEDS_REFRESH,
@@ -350,7 +350,7 @@ it('Refresh 500 then successful', async () => {
   );
   await waitFor(
     () =>
-      expect(notifications).toBeCalledWith(
+      expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'Authenticated',
           accessToken: 'newAccessTokenPartTwo',
@@ -414,7 +414,7 @@ it('Refresh fail with 401', async () => {
     </AuthProvider>
   );
   await waitFor(() =>
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'Unauthenticated' } as Partial<AuthEvent>)
     )
   );
@@ -422,14 +422,14 @@ it('Refresh fail with 401', async () => {
 
   fireEvent.press(screen.getByTestId('login'));
   await waitFor(() =>
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'LoggedIn',
         accessToken: 'freshAccessToken',
       } as Partial<AuthEvent>)
     )
   );
-  expect(notifications).toBeCalledWith(
+  expect(notifications).toHaveBeenCalledWith(
     expect.objectContaining({
       type: 'Authenticated',
       accessToken: 'freshAccessToken',
@@ -447,7 +447,7 @@ it('Refresh fail with 401', async () => {
   act(() =>
     jest.advanceTimersByTime(tokenExpiresAt.getTime() - Date.now() - 10000)
   );
-  expect(notifications).toBeCalledWith(
+  expect(notifications).toHaveBeenCalledWith(
     expect.objectContaining({
       type: 'TokenExpiration',
       authState: AuthState.AUTHENTICATED,

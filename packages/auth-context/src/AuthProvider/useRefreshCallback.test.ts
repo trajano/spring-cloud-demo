@@ -65,7 +65,7 @@ test('mostly mocked', async () => {
       setTokenExpiresAt,
     },
   });
-  expect(setAuthState).toBeCalledTimes(0);
+  expect(setAuthState).toHaveBeenCalledTimes(0);
   const refresh = result.current;
 
   authClient.refreshAsync.mockResolvedValueOnce({
@@ -75,7 +75,7 @@ test('mostly mocked', async () => {
     expires_in: 600,
   });
   await refresh();
-  expect(setAuthState).toBeCalledTimes(2);
+  expect(setAuthState).toHaveBeenCalledTimes(2);
   expect(setAuthState).toHaveBeenNthCalledWith(1, AuthState.REFRESHING);
   expect(setAuthState).toHaveBeenNthCalledWith(2, AuthState.AUTHENTICATED);
 });
@@ -109,11 +109,11 @@ test('no token stored', async () => {
       authClient,
     },
   });
-  expect(setAuthState).toBeCalledTimes(0);
+  expect(setAuthState).toHaveBeenCalledTimes(0);
   const refresh = result.current;
 
   await act(() => refresh());
-  expect(setAuthState).toBeCalledTimes(2);
+  expect(setAuthState).toHaveBeenCalledTimes(2);
   expect(setAuthState).toHaveBeenLastCalledWith(AuthState.UNAUTHENTICATED);
 });
 
@@ -161,7 +161,7 @@ test('forced refresh while not token is not refreshable', async () => {
       authClient,
     },
   });
-  expect(setAuthState).toBeCalledTimes(0);
+  expect(setAuthState).toHaveBeenCalledTimes(0);
   const refresh = result.current;
 
   await act(async () => {
@@ -233,7 +233,7 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
       refreshAsync: result.current,
     },
   });
-  expect(setAuthState).toBeCalledTimes(1);
+  expect(setAuthState).toHaveBeenCalledTimes(1);
   expect(setAuthState).toHaveBeenLastCalledWith(AuthState.BACKEND_INACCESSIBLE);
   rerenderRefreshCallback({
     authState: AuthState.BACKEND_INACCESSIBLE,
@@ -334,5 +334,5 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
   await waitFor(() =>
     expect(setAuthState).toHaveBeenLastCalledWith(AuthState.AUTHENTICATED)
   );
-  expect(onRefreshError).toBeCalledTimes(0);
+  expect(onRefreshError).toHaveBeenCalledTimes(0);
 });

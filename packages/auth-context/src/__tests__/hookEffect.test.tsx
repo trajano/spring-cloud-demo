@@ -37,21 +37,21 @@ it('does not work with empty dep list', () => {
   jest.setSystemTime(new Date('2025-01-01T20:00:00Z'));
   const { getByTestId, unmount } = render(<MyComponent />);
   expect(getByTestId('lastCheckTime')).toHaveTextContent('1735761600000');
-  expect(effectCallback).toBeCalledTimes(1);
-  expect(effectCleanup).toBeCalledTimes(0);
-  expect(rendered).toBeCalledTimes(1);
+  expect(effectCallback).toHaveBeenCalledTimes(1);
+  expect(effectCleanup).toHaveBeenCalledTimes(0);
+  expect(rendered).toHaveBeenCalledTimes(1);
   jest.advanceTimersByTime(1000);
   fireEvent.press(getByTestId('lastCheckTime'));
   // remains the same
   expect(getByTestId('lastCheckTime')).toHaveTextContent('1735761600000');
-  expect(effectCallback).toBeCalledTimes(1);
-  expect(effectCleanup).toBeCalledTimes(0);
+  expect(effectCallback).toHaveBeenCalledTimes(1);
+  expect(effectCleanup).toHaveBeenCalledTimes(0);
   // rendered still because of auth state change
-  expect(rendered).toBeCalledTimes(2);
+  expect(rendered).toHaveBeenCalledTimes(2);
   unmount();
-  expect(effectCallback).toBeCalledTimes(1);
-  expect(effectCleanup).toBeCalledTimes(1);
-  expect(rendered).toBeCalledTimes(2);
+  expect(effectCallback).toHaveBeenCalledTimes(1);
+  expect(effectCleanup).toHaveBeenCalledTimes(1);
+  expect(rendered).toHaveBeenCalledTimes(2);
 });
 
 it('works with dep list', () => {
@@ -85,20 +85,20 @@ it('works with dep list', () => {
   jest.setSystemTime(new Date('2025-01-01T20:00:00Z'));
   const { getByTestId, unmount } = render(<MyComponent />);
   expect(getByTestId('lastCheckTime')).toHaveTextContent('1735761600000');
-  expect(effectCallback).toBeCalledTimes(1);
-  expect(effectCleanup).toBeCalledTimes(0);
-  expect(rendered).toBeCalledTimes(1);
+  expect(effectCallback).toHaveBeenCalledTimes(1);
+  expect(effectCleanup).toHaveBeenCalledTimes(0);
+  expect(rendered).toHaveBeenCalledTimes(1);
   jest.advanceTimersByTime(1000);
   fireEvent.press(getByTestId('lastCheckTime'));
   expect(getByTestId('lastCheckTime')).toHaveTextContent('1735761601000');
-  expect(effectCallback).toBeCalledTimes(2);
-  expect(effectCleanup).toBeCalledTimes(1);
+  expect(effectCallback).toHaveBeenCalledTimes(2);
+  expect(effectCleanup).toHaveBeenCalledTimes(1);
   // authenticated which then calls set state to trigger two renders
-  expect(rendered).toBeCalledTimes(3);
+  expect(rendered).toHaveBeenCalledTimes(3);
   unmount();
-  expect(effectCallback).toBeCalledTimes(2);
-  expect(effectCleanup).toBeCalledTimes(2);
-  expect(rendered).toBeCalledTimes(3);
+  expect(effectCallback).toHaveBeenCalledTimes(2);
+  expect(effectCleanup).toHaveBeenCalledTimes(2);
+  expect(rendered).toHaveBeenCalledTimes(3);
 });
 afterEach(() => {
   jest.useRealTimers();

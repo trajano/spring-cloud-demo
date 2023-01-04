@@ -61,7 +61,7 @@ test('happy path from intial to authenticated to needs refresh then back to auth
     },
   });
 
-  expect(setAuthState).toBeCalledTimes(0);
+  expect(setAuthState).toHaveBeenCalledTimes(0);
   expect(jest.getTimerCount()).toBe(0);
   jest.advanceTimersByTime(60000);
 
@@ -88,11 +88,11 @@ test('happy path from intial to authenticated to needs refresh then back to auth
   expect(jest.getTimerCount()).toBe(1);
   act(() => jest.advanceTimersByTime(60000));
   jest.advanceTimersByTime(49999);
-  expect(setAuthState).toBeCalledTimes(1);
+  expect(setAuthState).toHaveBeenCalledTimes(1);
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:02:49.999Z'));
   act(() => jest.advanceTimersByTime(1));
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:02:50.000Z'));
-  expect(setAuthState).toBeCalledTimes(2);
+  expect(setAuthState).toHaveBeenCalledTimes(2);
   expect(setAuthState).toHaveBeenLastCalledWith(AuthState.NEEDS_REFRESH);
   expect(jest.getTimerCount()).toBe(0);
 
@@ -113,12 +113,12 @@ test('happy path from intial to authenticated to needs refresh then back to auth
     notify,
   });
   jest.advanceTimersByTime(60000);
-  expect(setAuthState).toBeCalledTimes(3);
+  expect(setAuthState).toHaveBeenCalledTimes(3);
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:03:50.000Z'));
 
   // update to new value
   tokenExpiresAt = new Date('2025-01-01T03:05:00Z');
-  expect(setAuthState).toBeCalledTimes(3);
+  expect(setAuthState).toHaveBeenCalledTimes(3);
   rerenderTokenExpirationTimeout({
     authState: AuthState.AUTHENTICATED,
     setAuthState,
@@ -131,11 +131,11 @@ test('happy path from intial to authenticated to needs refresh then back to auth
   expect(jest.getTimerCount()).toBe(1);
   jest.advanceTimersByTime(10000);
   jest.advanceTimersByTime(49999);
-  expect(setAuthState).toBeCalledTimes(3);
+  expect(setAuthState).toHaveBeenCalledTimes(3);
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:04:49.999Z'));
   act(() => jest.advanceTimersByTime(1));
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:04:50.000Z'));
-  expect(setAuthState).toBeCalledTimes(4);
+  expect(setAuthState).toHaveBeenCalledTimes(4);
   expect(setAuthState).toHaveBeenLastCalledWith(AuthState.NEEDS_REFRESH);
   expect(jest.getTimerCount()).toBe(0);
 });

@@ -31,7 +31,7 @@ it('work closely to the real thing', async () => {
   setConnectionState(newState);
   const cz = await NetInfo.fetch();
   expect(cz.isInternetReachable).toBeFalsy();
-  expect(mysub).toBeCalledWith(newState);
+  expect(mysub).toHaveBeenCalledWith(newState);
   sub();
   resetConnectionState();
   const cy = await NetInfo.fetch();

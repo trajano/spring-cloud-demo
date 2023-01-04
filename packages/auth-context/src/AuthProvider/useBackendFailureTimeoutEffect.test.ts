@@ -35,16 +35,16 @@ test('active backend failure', () => {
       },
     }
   );
-  expect(setAuthState).toBeCalledTimes(0);
+  expect(setAuthState).toHaveBeenCalledTimes(0);
   expect(jest.getTimerCount()).toBe(1);
   jest.advanceTimersByTime(29999);
-  expect(setAuthState).toBeCalledTimes(0);
+  expect(setAuthState).toHaveBeenCalledTimes(0);
   jest.advanceTimersByTime(1);
-  expect(setAuthState).toBeCalledTimes(1);
-  expect(setAuthState).toBeCalledWith(AuthState.NEEDS_REFRESH);
+  expect(setAuthState).toHaveBeenCalledTimes(1);
+  expect(setAuthState).toHaveBeenCalledWith(AuthState.NEEDS_REFRESH);
   expect(jest.getTimerCount()).toBe(0);
   jest.advanceTimersByTime(60000);
-  expect(setAuthState).toBeCalledTimes(1);
+  expect(setAuthState).toHaveBeenCalledTimes(1);
 });
 
 test('do nothing when not authenticated', () => {
@@ -67,7 +67,7 @@ test('do nothing when not authenticated', () => {
       },
     }
   );
-  expect(setAuthState).toBeCalledTimes(0);
+  expect(setAuthState).toHaveBeenCalledTimes(0);
   expect(jest.getTimerCount()).toBe(0);
   jest.advanceTimersByTime(60000);
   jest.advanceTimersByTime(60000);
@@ -75,10 +75,10 @@ test('do nothing when not authenticated', () => {
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:02:49.999Z'));
   jest.advanceTimersByTime(1);
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:02:50.000Z'));
-  expect(setAuthState).toBeCalledTimes(0);
+  expect(setAuthState).toHaveBeenCalledTimes(0);
   expect(jest.getTimerCount()).toBe(0);
   jest.advanceTimersByTime(60000);
-  expect(setAuthState).toBeCalledTimes(0);
+  expect(setAuthState).toHaveBeenCalledTimes(0);
   expect(jest.getTimerCount()).toBe(0);
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:03:50.000Z'));
 });
@@ -103,7 +103,7 @@ test('activate and then cancel backend failure timer', () => {
       backendFailureTimeout: 30000,
     },
   });
-  expect(setAuthState).toBeCalledTimes(0);
+  expect(setAuthState).toHaveBeenCalledTimes(0);
   expect(jest.getTimerCount()).toBe(0);
   jest.advanceTimersByTime(60000);
 

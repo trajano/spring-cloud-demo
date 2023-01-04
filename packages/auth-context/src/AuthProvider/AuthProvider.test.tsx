@@ -9,10 +9,9 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor,
+  waitFor
 } from '@testing-library/react-native';
 import fetchMock from 'fetch-mock-jest';
-import { noop } from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 import { AppState, Pressable, Text } from 'react-native';
 import { AuthenticationClientError } from '../AuthenticationClientError';
@@ -159,14 +158,14 @@ describe('with component', () => {
     });
 
     await waitFor(() =>
-      expect(notifications).toBeCalledWith(
+      expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'LoggedIn',
           accessToken: 'freshAccessToken',
         } as Partial<AuthEvent>)
       )
     );
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'Authenticated',
         accessToken: 'freshAccessToken',
@@ -191,11 +190,11 @@ describe('with component', () => {
       fireEvent.press(getByTestId('logout'));
     });
     await waitFor(() =>
-      expect(notifications).toBeCalledWith(
+      expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)
       )
     );
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'Unauthenticated' } as Partial<AuthEvent>)
     );
     await waitFor(() =>
@@ -236,14 +235,14 @@ describe('with component', () => {
     });
 
     await waitFor(() =>
-      expect(notifications).toBeCalledWith(
+      expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'LoggedIn',
           accessToken: 'freshAccessToken',
         } as Partial<AuthEvent>)
       )
     );
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'Authenticated',
         accessToken: 'freshAccessToken',
@@ -309,13 +308,13 @@ describe('with component', () => {
       expect(getByTestId('loginFailure')).toHaveTextContent('loginFailure');
     });
     expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED');
-    expect(onLoginFailure).toBeCalledTimes(1);
-    expect(onLoginFailure).toBeCalledWith(new Error('HTTP Error 401'));
+    expect(onLoginFailure).toHaveBeenCalledTimes(1);
+    expect(onLoginFailure).toHaveBeenCalledWith(new Error('HTTP Error 401'));
     const failedCall = onLoginFailure.mock.calls[0][0];
     expect(failedCall instanceof AuthenticationClientError).toBeTruthy();
     expect(
       failedCall instanceof AuthenticationClientError &&
-        failedCall.isUnauthorized()
+      failedCall.isUnauthorized()
     ).toBeTruthy();
     unmount();
   });
@@ -355,13 +354,13 @@ describe('with component', () => {
       expect(getByTestId('loginFailure')).toHaveTextContent('loginFailure');
     });
     expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED');
-    expect(onLoginFailure).toBeCalledTimes(1);
-    expect(onLoginFailure).toBeCalledWith(new Error('HTTP Error 500'));
+    expect(onLoginFailure).toHaveBeenCalledTimes(1);
+    expect(onLoginFailure).toHaveBeenCalledWith(new Error('HTTP Error 500'));
     const failedCall = onLoginFailure.mock.calls[0][0];
     expect(failedCall instanceof AuthenticationClientError).toBeTruthy();
     expect(
       failedCall instanceof AuthenticationClientError &&
-        failedCall.isUnauthorized()
+      failedCall.isUnauthorized()
     ).toBeFalsy();
     unmount();
   });
@@ -369,9 +368,8 @@ describe('with component', () => {
   it('Invalid base URL', async () => {
     const notifications = jest.fn() as jest.Mock<() => void>;
     fetchMock.get('http://asdf.com/ping', { ok: true });
-    let iUnmount: () => void = noop;
-    try {
-      const { unmount } = render(
+    expect(() => {
+      render(
         <AuthProvider
           defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
             'http://asdf.com'
@@ -380,14 +378,7 @@ describe('with component', () => {
           <MyComponent notifications={notifications} />
         </AuthProvider>
       );
-      iUnmount = unmount;
-      fail('should not get here');
-    } catch (e) {
-      expect(e).toStrictEqual(
-        new Error("baseUrl=http://asdf.com should end with a '/'")
-      );
-    }
-    iUnmount && iUnmount();
+    }).toThrowError(new Error("baseUrl=http://asdf.com should end with a '/'"))
   });
 
   it('login failed logout', async () => {
@@ -419,14 +410,14 @@ describe('with component', () => {
     });
 
     await waitFor(() =>
-      expect(notifications).toBeCalledWith(
+      expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'LoggedIn',
           accessToken: 'freshAccessToken',
         } as Partial<AuthEvent>)
       )
     );
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'Authenticated',
         accessToken: 'freshAccessToken',
@@ -456,11 +447,11 @@ describe('with component', () => {
       fireEvent.press(getByTestId('logout'));
     });
     await waitFor(() =>
-      expect(notifications).toBeCalledWith(
+      expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)
       )
     );
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'Unauthenticated' } as Partial<AuthEvent>)
     );
     await waitFor(() =>
@@ -503,11 +494,11 @@ describe('with component', () => {
       fireEvent.press(getByTestId('logout'));
     });
     await waitFor(() =>
-      expect(notifications).toBeCalledWith(
+      expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)
       )
     );
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'Unauthenticated' } as Partial<AuthEvent>)
     );
     await waitFor(() =>
@@ -546,11 +537,11 @@ describe('with component', () => {
       fireEvent.press(getByTestId('logout'));
     });
     await waitFor(() =>
-      expect(notifications).toBeCalledWith(
+      expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)
       )
     );
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'Unauthenticated' } as Partial<AuthEvent>)
     );
     await waitFor(() =>
@@ -594,11 +585,11 @@ describe('with component', () => {
       fireEvent.press(screen.getByTestId('logout'));
     });
     await waitFor(() =>
-      expect(notifications).toBeCalledWith(
+      expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)
       )
     );
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'Unauthenticated' } as Partial<AuthEvent>)
     );
     await waitFor(() =>

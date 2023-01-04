@@ -119,10 +119,13 @@ export function AuthProvider<A = unknown>({
    * These and other functions are not wrapped in useCallback because when any of the state changes it
    * will render these anyway and we're not optimizing from the return value either.
    */
-  const notify = useCallback(function notify(event: AuthEvent) {
-    pushAuthEvent(event);
-    subscribersRef.current.forEach((fn) => fn(event));
-  }, [pushAuthEvent]);
+  const notify = useCallback(
+    function notify(event: AuthEvent) {
+      pushAuthEvent(event);
+      subscribersRef.current.forEach((fn) => fn(event));
+    },
+    [pushAuthEvent]
+  );
 
   const { backendReachable, netInfoState } = useRenderOnTokenEvent({
     authState,
@@ -153,9 +156,9 @@ export function AuthProvider<A = unknown>({
   function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
     return () =>
-    (subscribersRef.current = subscribersRef.current.filter(
-      (subscription) => !Object.is(subscription, fn)
-    ));
+      (subscribersRef.current = subscribersRef.current.filter(
+        (subscription) => !Object.is(subscription, fn)
+      ));
   }
 
   /**
@@ -310,7 +313,7 @@ export function AuthProvider<A = unknown>({
       ),
       authorization:
         !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&
-          !!oauthToken
+        !!oauthToken
           ? `Bearer ${oauthToken?.access_token}`
           : null,
       authState,

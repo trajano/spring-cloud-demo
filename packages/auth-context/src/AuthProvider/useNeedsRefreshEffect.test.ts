@@ -32,7 +32,7 @@ test('happy path with one cycle and updating all the way to needs refresh', () =
     }
   );
   expect(setAuthState).toHaveBeenLastCalledWith(AuthState.AUTHENTICATED);
-  expect(refresh).toBeCalledTimes(1);
+  expect(refresh).toHaveBeenCalledTimes(1);
 });
 
 test('backend not accessible', () => {
@@ -59,12 +59,12 @@ test('backend not accessible', () => {
       },
     }
   );
-  expect(setAuthState).toBeCalledTimes(1);
+  expect(setAuthState).toHaveBeenCalledTimes(1);
   expect(setAuthState).toHaveBeenNthCalledWith(
     1,
     AuthState.BACKEND_INACCESSIBLE
   );
-  expect(refresh).toBeCalledTimes(0);
+  expect(refresh).toHaveBeenCalledTimes(0);
 });
 
 test('backend not accessible #2', () => {
@@ -91,10 +91,10 @@ test('backend not accessible #2', () => {
       },
     }
   );
-  expect(setAuthState).toBeCalledTimes(1);
+  expect(setAuthState).toHaveBeenCalledTimes(1);
   expect(setAuthState).toHaveBeenNthCalledWith(
     1,
     AuthState.BACKEND_INACCESSIBLE
   );
-  expect(refresh).toBeCalledTimes(0);
+  expect(refresh).toHaveBeenCalledTimes(0);
 });

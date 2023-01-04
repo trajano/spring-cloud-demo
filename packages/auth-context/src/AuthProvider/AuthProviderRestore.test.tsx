@@ -151,7 +151,7 @@ it('Restore saved not expired', async () => {
   );
   expect(getByTestId('hello')).toHaveTextContent('INITIAL');
   await waitFor(() =>
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'Authenticated',
         accessToken: 'oldAccessToken',
@@ -228,7 +228,7 @@ it('Restore saved expired', async () => {
     expect(getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
   );
   await waitFor(() =>
-    expect(notifications).toBeCalledWith(
+    expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'TokenExpiration' } as Partial<AuthEvent>)
     )
   );

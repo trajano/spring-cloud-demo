@@ -53,7 +53,7 @@ it.skip('should not get stuck on refreshing state when authenticated', () => {
     },
   });
   expect(result.current.backendReachable).toBe(true);
-  expect(setAuthState).toBeCalledWith(AuthState.AUTHENTICATED);
+  expect(setAuthState).toHaveBeenCalledWith(AuthState.AUTHENTICATED);
 });
 
 it.skip('should not get stuck on refreshing state when expired', () => {
@@ -89,5 +89,5 @@ it.skip('should not get stuck on refreshing state when expired', () => {
     },
   });
   expect(result.current.backendReachable).toBe(true);
-  expect(setAuthState).toBeCalledWith(AuthState.NEEDS_REFRESH);
+  expect(setAuthState).toHaveBeenCalledWith(AuthState.NEEDS_REFRESH);
 });
