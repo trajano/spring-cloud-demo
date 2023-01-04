@@ -13,3 +13,23 @@ pre-commit:
       root: ./expo-app/
       glob: "**/*.{js,ts,tsx}"
       run: yarn lint --fix {staged_files}
+
+    test-auth:
+      root: ./packages/auth-context/
+      glob: "**/*.{json,js,ts,tsx}"
+      run: yarn test {staged_files}
+    tsc-auth:
+      root: ./packages/auth-context/
+      glob: "**/*.{json,js,ts,tsx}"
+      run: yarn tsc --noEmit
+    lint-auth:
+      root: ./packages/auth-context/
+      glob: "**/*.{js,ts,tsx}"
+      run: yarn lint --fix {staged_files}
+
+commit-msg:
+  parallel: true
+  commands:
+    commitlint:
+      run: npx commitlint --edit
+
