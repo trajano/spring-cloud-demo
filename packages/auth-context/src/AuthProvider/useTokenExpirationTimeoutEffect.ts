@@ -9,10 +9,10 @@ import { isTokenExpired } from './isTokenExpired';
 export type TokenExpirationTimeoutEffectProps = {
   authState: AuthState;
   setAuthState: Dispatch<SetStateAction<AuthState>>;
+  notify: (event: AuthEvent) => void;
   maxTimeoutForRefreshCheck: number;
   tokenExpiresAt: Date;
   timeBeforeExpirationRefresh: number;
-  notify: (event: AuthEvent) => void;
 };
 /**
  * @testonly

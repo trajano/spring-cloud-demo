@@ -3,13 +3,11 @@ import React, {
   PropsWithChildren,
   ReactElement,
   useCallback,
-  useEffect,
   useMemo,
   useReducer,
   useRef,
   useState,
 } from 'react';
-import { AppState } from 'react-native';
 import { AuthClient } from '../AuthClient';
 import { AuthContext } from '../AuthContext';
 import { AuthenticationClientError } from '../AuthenticationClientError';
@@ -245,27 +243,7 @@ export function AuthProvider<A = unknown>({
     backendReachable,
   });
 
-  useEffect(() => {
-    const appStateSubscription = AppState.addEventListener(
-      'change',
-      (nextAppState) => {
-        if (nextAppState === 'active' && authState === AuthState.REFRESHING) {
-          setAuthState(AuthState.NEEDS_REFRESH);
-          notify({
-            type: 'CheckRefresh',
-            authState,
-            reason:
-              'AuthState === REFRESHING but state just switched to Active, forcing recheck',
-            backendReachable,
-            tokenExpiresAt,
-          });
-        }
-      }
-    );
-    return () => {
-      appStateSubscription.remove();
-    };
-  }, [authState, setAuthState, notify, backendReachable, tokenExpiresAt]);
+  usePreventAppFromGettingStuckOnRefreshEffect();
 
   useInitialAuthStateEffect({
     authState,
