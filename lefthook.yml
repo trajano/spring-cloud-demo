@@ -2,30 +2,30 @@ pre-commit:
   parallel: true
   commands:
     test-app:
-      root: ./expo-app/
+      root: expo-app/
       glob: "**/*.{json,js,ts,tsx}"
       run: yarn test
     tsc-app:
-      root: ./expo-app/
+      root: expo-app/
       glob: "**/*.{json,js,ts,tsx}"
       run: yarn tsc --noEmit
     lint-app:
-      root: ./expo-app/
+      root: expo-app/
       glob: "**/*.{js,ts,tsx}"
-      run: yarn lint --fix
+      run: yarn lint --fix {staged_files}
 
     test-auth:
-      root: ./packages/auth-context/
+      root: packages/auth-context/
       glob: "**/*.{json,js,ts,tsx}"
       run: yarn test
     tsc-auth:
-      root: ./packages/auth-context/
+      root: packages/auth-context/
       glob: "**/*.{json,js,ts,tsx}"
       run: yarn tsc --noEmit
     lint-auth:
-      root: ./packages/auth-context/
+      root: packages/auth-context/
       glob: "**/*.{js,ts,tsx}"
-      run: yarn lint --fix
+      run: yarn lint --fix {staged_files}
 
 commit-msg:
   parallel: true

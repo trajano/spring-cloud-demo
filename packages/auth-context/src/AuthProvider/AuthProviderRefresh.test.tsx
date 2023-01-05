@@ -185,9 +185,6 @@ it('Refresh two times', async () => {
       } as Partial<AuthEvent>)
     )
   );
-  // await waitFor(() =>
-  //   expect(screen.getByTestId('hello')).toHaveTextContent('REFRESHING')
-  // );
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({

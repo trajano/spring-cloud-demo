@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render } from '@testing-library/react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, Text } from 'react-native';
 afterEach(cleanup);
 beforeEach(() => {
@@ -23,12 +23,11 @@ it('does not work with empty dep list', () => {
     const [authState, setAuthState] = useState('AuthState.INITIAL');
     const lastCheckTime = useMyHook(authState, 10);
     rendered({ authState, lastCheckTime });
+    const onPress = useCallback(() => {
+      setAuthState('AuthState.AUTHENTICATED');
+    }, [setAuthState]);
     return (
-      <Pressable
-        onPress={() => {
-          setAuthState('AuthState.AUTHENTICATED');
-        }}
-      >
+      <Pressable onPress={onPress}>
         <Text testID="lastCheckTime">{lastCheckTime}</Text>
       </Pressable>
     );
