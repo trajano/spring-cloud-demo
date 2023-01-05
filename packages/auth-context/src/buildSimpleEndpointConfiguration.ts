@@ -6,12 +6,10 @@ import type { EndpointConfiguration } from './EndpointConfiguration';
  * @param inBaseUrl base URL must have trailing slash.
  */
 export function buildSimpleEndpointConfiguration(
-  inBaseUrl: string | URL,
+  baseUrl: string,
   clientId = 'unknown',
   clientSecret = 'unknown'
 ): EndpointConfiguration {
-  const baseUrl =
-    typeof inBaseUrl === 'string' ? inBaseUrl : inBaseUrl.toString();
   /* istanbul ignore next */
   if (__DEV__) {
     if (baseUrl.substring(baseUrl.length - 1) !== '/') {
