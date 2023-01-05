@@ -69,13 +69,12 @@ it('works with dep list', () => {
   function MyComponent() {
     const [authState, setAuthState] = useState('AuthState.INITIAL');
     const lastCheckTime = useMyHook(authState, 10);
+    const onPress = useCallback(() => {
+      setAuthState('AuthState.AUTHENTICATED');
+    }, [setAuthState]);
     rendered({ authState, lastCheckTime });
     return (
-      <Pressable
-        onPress={() => {
-          setAuthState('AuthState.AUTHENTICATED');
-        }}
-      >
+      <Pressable onPress={onPress}>
         <Text testID="lastCheckTime">{lastCheckTime}</Text>
       </Pressable>
     );
