@@ -103,11 +103,11 @@ describe('with component', () => {
 
   it('UNAUTHENTICATED', async () => {
     const notifications = jest.fn() as jest.Mock<() => void>;
-    fetchMock.get('http://asdf.com/ping', { ok: true });
+    fetchMock.get('https://asdf.com/ping', { ok: true });
     const { unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-          'http://asdf.com/'
+          'https://asdf.com/'
         )}
       >
         <MyComponent notifications={notifications} />
@@ -137,13 +137,13 @@ describe('with component', () => {
       expires_in: 600,
     };
     fetchMock
-      .get('http://asdf.com/ping', { body: { ok: true } })
-      .post('http://asdf.com/auth', { body: freshAccessToken })
-      .post('http://asdf.com/logout', { body: { ok: true } });
+      .get('https://asdf.com/ping', { body: { ok: true } })
+      .post('https://asdf.com/auth', { body: freshAccessToken })
+      .post('https://asdf.com/logout', { body: { ok: true } });
     const { getByTestId, unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-          'http://asdf.com/'
+          'https://asdf.com/'
         )}
       >
         <MyComponent onRender={onRender} notifications={notifications} />
@@ -174,11 +174,11 @@ describe('with component', () => {
     expect(getByTestId('authState')).toHaveTextContent('AUTHENTICATED');
 
     expect(
-      await AsyncStorage.getItem('auth.http://asdf.com/..oauthToken')
+      await AsyncStorage.getItem('auth.https://asdf.com/..oauthToken')
     ).toBe(JSON.stringify(freshAccessToken));
     const tokenExpiresAt = new Date(
       (await AsyncStorage.getItem(
-        'auth.http://asdf.com/..tokenExpiresAt'
+        'auth.https://asdf.com/..tokenExpiresAt'
       )) as string
     );
     // give at least a second of slack
@@ -214,13 +214,13 @@ describe('with component', () => {
       expires_in: 600,
     };
     fetchMock
-      .get('http://asdf.com/ping', { body: { ok: true } })
-      .post('http://asdf.com/auth', { body: freshAccessToken })
-      .post('http://asdf.com/logout', { body: { ok: true } });
+      .get('https://asdf.com/ping', { body: { ok: true } })
+      .post('https://asdf.com/auth', { body: freshAccessToken })
+      .post('https://asdf.com/logout', { body: { ok: true } });
     const { getByTestId, unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-          'http://asdf.com/'
+          'https://asdf.com/'
         )}
       >
         <MyComponent onRender={onRender} notifications={notifications} />
@@ -251,11 +251,11 @@ describe('with component', () => {
     expect(getByTestId('authState')).toHaveTextContent('AUTHENTICATED');
 
     expect(
-      await AsyncStorage.getItem('auth.http://asdf.com/..oauthToken')
+      await AsyncStorage.getItem('auth.https://asdf.com/..oauthToken')
     ).toBe(JSON.stringify(freshAccessToken));
     const tokenExpiresAt = new Date(
       (await AsyncStorage.getItem(
-        'auth.http://asdf.com/..tokenExpiresAt'
+        'auth.https://asdf.com/..tokenExpiresAt'
       )) as string
     );
     // give at least a second of slack
@@ -277,8 +277,8 @@ describe('with component', () => {
     const notifications = jest.fn() as jest.Mock<() => void>;
     const onLoginFailure = jest.fn() as jest.Mock<(e: unknown) => void>;
     fetchMock
-      .get('http://asdf.com/ping', { body: { ok: true } })
-      .post('http://asdf.com/auth', {
+      .get('https://asdf.com/ping', { body: { ok: true } })
+      .post('https://asdf.com/auth', {
         status: 401,
         body: { error: 'authentication_failure' },
       });
@@ -286,7 +286,7 @@ describe('with component', () => {
     const { getByTestId, unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-          'http://asdf.com/'
+          'https://asdf.com/'
         )}
       >
         <MyComponent
@@ -323,8 +323,8 @@ describe('with component', () => {
     const notifications = jest.fn() as jest.Mock<() => void>;
     const onLoginFailure = jest.fn() as jest.Mock<(e: unknown) => void>;
     fetchMock
-      .get('http://asdf.com/ping', { body: { ok: true } })
-      .post('http://asdf.com/auth', {
+      .get('https://asdf.com/ping', { body: { ok: true } })
+      .post('https://asdf.com/auth', {
         status: 500,
         body: { error: 'server_error' },
       });
@@ -332,7 +332,7 @@ describe('with component', () => {
     const { getByTestId, unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-          'http://asdf.com/'
+          'https://asdf.com/'
         )}
       >
         <MyComponent
@@ -367,18 +367,18 @@ describe('with component', () => {
 
   it('Invalid base URL', async () => {
     const notifications = jest.fn() as jest.Mock<() => void>;
-    fetchMock.get('http://asdf.com/ping', { ok: true });
+    fetchMock.get('https://asdf.com/ping', { ok: true });
     expect(() => {
       render(
         <AuthProvider
           defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-            'http://asdf.com'
+            'https://asdf.com'
           )}
         >
           <MyComponent notifications={notifications} />
         </AuthProvider>
       );
-    }).toThrow(new Error("baseUrl=http://asdf.com should end with a '/'"));
+    }).toThrow(new Error("baseUrl=https://asdf.com should end with a '/'"));
   });
 
   it('login failed logout', async () => {
@@ -390,12 +390,12 @@ describe('with component', () => {
       expires_in: 600,
     };
     fetchMock
-      .get('http://asdf.com/ping', { body: { ok: true } })
-      .post('http://asdf.com/auth', { body: freshAccessToken });
+      .get('https://asdf.com/ping', { body: { ok: true } })
+      .post('https://asdf.com/auth', { body: freshAccessToken });
     const { getByTestId, unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-          'http://asdf.com/'
+          'https://asdf.com/'
         )}
       >
         <MyComponent notifications={notifications} />
@@ -426,11 +426,11 @@ describe('with component', () => {
     expect(getByTestId('authState')).toHaveTextContent('AUTHENTICATED');
 
     expect(
-      await AsyncStorage.getItem('auth.http://asdf.com/..oauthToken')
+      await AsyncStorage.getItem('auth.https://asdf.com/..oauthToken')
     ).toBe(JSON.stringify(freshAccessToken));
     const tokenExpiresAt = new Date(
       (await AsyncStorage.getItem(
-        'auth.http://asdf.com/..tokenExpiresAt'
+        'auth.https://asdf.com/..tokenExpiresAt'
       )) as string
     );
     // give at least a second of slack
@@ -438,7 +438,7 @@ describe('with component', () => {
       Date.now() + 600000 - 1000
     );
 
-    fetchMock.post('http://asdf.com/logout', {
+    fetchMock.post('https://asdf.com/logout', {
       body: 'safely ignore me',
       status: 500,
     });
@@ -470,9 +470,9 @@ describe('with component', () => {
       expires_in: 600,
     };
     fetchMock
-      .get('http://asdf.com/ping', { body: { ok: true } })
-      .post('http://asdf.com/auth', { body: freshAccessToken })
-      .post('http://asdf.com/logout', {
+      .get('https://asdf.com/ping', { body: { ok: true } })
+      .post('https://asdf.com/auth', { body: freshAccessToken })
+      .post('https://asdf.com/logout', {
         ok: false,
         status: 0,
         type: 'error',
@@ -480,7 +480,7 @@ describe('with component', () => {
     const { getByTestId, unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-          'http://asdf.com/'
+          'https://asdf.com/'
         )}
       >
         <MyComponent notifications={notifications} />
@@ -517,13 +517,13 @@ describe('with component', () => {
       expires_in: 600,
     };
     fetchMock
-      .get('http://asdf.com/ping', { body: { ok: true } })
-      .post('http://asdf.com/auth', { body: freshAccessToken })
-      .post('http://asdf.com/logout', { body: { ok: true } });
+      .get('https://asdf.com/ping', { body: { ok: true } })
+      .post('https://asdf.com/auth', { body: freshAccessToken })
+      .post('https://asdf.com/logout', { body: { ok: true } });
     const { getByTestId, unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-          'http://asdf.com/'
+          'https://asdf.com/'
         )}
       >
         <MyComponent notifications={notifications} />
@@ -560,16 +560,16 @@ describe('with component', () => {
       expires_in: 600,
     };
     fetchMock
-      .get('http://asdf.com/ping', { body: { ok: true } })
-      .post('http://asdf.com/auth', { body: freshAccessToken })
-      .post('http://asdf.com/logout', {
+      .get('https://asdf.com/ping', { body: { ok: true } })
+      .post('https://asdf.com/auth', { body: freshAccessToken })
+      .post('https://asdf.com/logout', {
         body: 'safely ignore me',
         status: 500,
       });
     const { unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-          'http://asdf.com/'
+          'https://asdf.com/'
         )}
       >
         <MyComponent notifications={notifications} />
@@ -601,10 +601,10 @@ describe('with component', () => {
     unmount();
 
     expect(
-      (await fetch('http://asdf.com/logout', { method: 'post' })).status
+      (await fetch('https://asdf.com/logout', { method: 'post' })).status
     ).toBe(500);
-    expect((await fetch('http://asdf.com/logout', { method: 'post' })).ok).toBe(
-      false
-    );
+    expect(
+      (await fetch('https://asdf.com/logout', { method: 'post' })).ok
+    ).toBe(false);
   });
 });

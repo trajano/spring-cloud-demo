@@ -80,14 +80,14 @@ it('Check storage', async () => {
     expires_in: 600,
   };
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..oauthToken',
+    'auth.https://asdf.com/..oauthToken',
     JSON.stringify(oldAccessToken)
   );
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..tokenExpiresAt',
+    'auth.https://asdf.com/..tokenExpiresAt',
     addMilliseconds(specimenInstant, 600000).toISOString()
   );
-  const authStore = new AuthStore('auth', 'http://asdf.com/');
+  const authStore = new AuthStore('auth', 'https://asdf.com/');
   expect(await authStore.isExpired()).toBeFalsy();
 });
 
@@ -99,14 +99,14 @@ it('Check storage expired', async () => {
     expires_in: 600,
   };
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..oauthToken',
+    'auth.https://asdf.com/..oauthToken',
     JSON.stringify(oldAccessToken)
   );
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..tokenExpiresAt',
+    'auth.https://asdf.com/..tokenExpiresAt',
     subMilliseconds(specimenInstant, 600000).toISOString()
   );
-  const authStore = new AuthStore('auth', 'http://asdf.com/');
+  const authStore = new AuthStore('auth', 'https://asdf.com/');
   expect(await authStore.isExpired()).toBeTruthy();
 });
 
@@ -118,17 +118,17 @@ it('Restore saved not expired', async () => {
     expires_in: 600,
   };
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..oauthToken',
+    'auth.https://asdf.com/..oauthToken',
     JSON.stringify(oldAccessToken)
   );
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..tokenExpiresAt',
+    'auth.https://asdf.com/..tokenExpiresAt',
     addMilliseconds(specimenInstant, 600000).toISOString()
   );
 
   const notifications = jest.fn() as jest.Mock<() => void>;
-  fetchMock.get('http://asdf.com/ping', { body: { ok: true } }).post(
-    'http://asdf.com/refresh',
+  fetchMock.get('https://asdf.com/ping', { body: { ok: true } }).post(
+    'https://asdf.com/refresh',
     new Promise((res) =>
       setTimeout(res, 100, {
         body: {
@@ -143,7 +143,7 @@ it('Restore saved not expired', async () => {
   const { getByTestId, unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-        'http://asdf.com/'
+        'https://asdf.com/'
       )}
     >
       <MyComponent notifications={notifications} />
@@ -176,21 +176,21 @@ it('Restore saved expired', async () => {
     expires_in: 600,
   };
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..oauthToken',
+    'auth.https://asdf.com/..oauthToken',
     JSON.stringify(oldAccessToken)
   );
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..tokenExpiresAt',
+    'auth.https://asdf.com/..tokenExpiresAt',
     subMilliseconds(specimenInstant, 600000).toISOString()
   );
 
-  const authStore = new AuthStore('auth', 'http://asdf.com/');
+  const authStore = new AuthStore('auth', 'https://asdf.com/');
   expect(await authStore.isExpired()).toBeTruthy();
 
   const notifications = jest.fn() as jest.Mock<() => void>;
   fetchMock
-    .get('http://asdf.com/ping', { body: { ok: true } })
-    .post('http://asdf.com/refresh', {
+    .get('https://asdf.com/ping', { body: { ok: true } })
+    .post('https://asdf.com/refresh', {
       body: {
         access_token: 'newAccessToken',
         refresh_token: 'NotThePreviousRefreshToken',
@@ -201,7 +201,7 @@ it('Restore saved expired', async () => {
   const { getByTestId, unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-        'http://asdf.com/'
+        'https://asdf.com/'
       )}
     >
       <MyComponent notifications={notifications} />
@@ -245,25 +245,28 @@ it('Restore saved expired but broken token response', async () => {
     expires_in: 600,
   };
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..oauthToken',
+    'auth.https://asdf.com/..oauthToken',
     JSON.stringify(oldAccessToken)
   );
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..tokenExpiresAt',
+    'auth.https://asdf.com/..tokenExpiresAt',
     subMilliseconds(specimenInstant, 600000).toISOString()
   );
 
-  const authStore = new AuthStore('auth', 'http://asdf.com/');
+  const authStore = new AuthStore('auth', 'https://asdf.com/');
   expect(await authStore.isExpired()).toBeTruthy();
 
   const notifications = jest.fn() as jest.Mock<() => void>;
   fetchMock
-    .get('http://asdf.com/ping', { body: { ok: true } })
-    .post('http://asdf.com/refresh', { status: 200, body: 'this is not json' });
+    .get('https://asdf.com/ping', { body: { ok: true } })
+    .post('https://asdf.com/refresh', {
+      status: 200,
+      body: 'this is not json',
+    });
   const { getByTestId, unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-        'http://asdf.com/'
+        'https://asdf.com/'
       )}
     >
       <MyComponent notifications={notifications} />
@@ -305,25 +308,28 @@ it('Restore saved expired but 500 refresh response', async () => {
     expires_in: 600,
   };
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..oauthToken',
+    'auth.https://asdf.com/..oauthToken',
     JSON.stringify(oldAccessToken)
   );
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..tokenExpiresAt',
+    'auth.https://asdf.com/..tokenExpiresAt',
     subMilliseconds(specimenInstant, 600000).toISOString()
   );
 
-  const authStore = new AuthStore('auth', 'http://asdf.com/');
+  const authStore = new AuthStore('auth', 'https://asdf.com/');
   expect(await authStore.isExpired()).toBeTruthy();
 
   const notifications = jest.fn() as jest.Mock<() => void>;
   fetchMock
-    .get('http://asdf.com/ping', { body: { ok: true } })
-    .post('http://asdf.com/refresh', { status: 500, body: 'this is not json' });
+    .get('https://asdf.com/ping', { body: { ok: true } })
+    .post('https://asdf.com/refresh', {
+      status: 500,
+      body: 'this is not json',
+    });
   const { getByTestId, unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-        'http://asdf.com/'
+        'https://asdf.com/'
       )}
     >
       <MyComponent notifications={notifications} />
@@ -365,25 +371,25 @@ it('Restore saved expired but error refresh response', async () => {
     expires_in: 600,
   };
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..oauthToken',
+    'auth.https://asdf.com/..oauthToken',
     JSON.stringify(oldAccessToken)
   );
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..tokenExpiresAt',
+    'auth.https://asdf.com/..tokenExpiresAt',
     subMilliseconds(specimenInstant, 600000).toISOString()
   );
 
-  const authStore = new AuthStore('auth', 'http://asdf.com/');
+  const authStore = new AuthStore('auth', 'https://asdf.com/');
   expect(await authStore.isExpired()).toBeTruthy();
 
   const notifications = jest.fn() as jest.Mock<() => void>;
   fetchMock
-    .get('http://asdf.com/ping', { body: { ok: true } })
-    .post('http://asdf.com/refresh', { status: 1 });
+    .get('https://asdf.com/ping', { body: { ok: true } })
+    .post('https://asdf.com/refresh', { status: 1 });
   const { unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-        'http://asdf.com/'
+        'https://asdf.com/'
       )}
     >
       <MyComponent notifications={notifications} />

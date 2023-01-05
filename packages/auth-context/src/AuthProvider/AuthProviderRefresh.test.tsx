@@ -74,8 +74,8 @@ function MyComponent({ notifications }: { notifications: () => void }) {
 it('Refresh two times', async () => {
   const notifications = jest.fn() as jest.Mock<() => void>;
   fetchMock
-    .get('http://asdf.com/ping', { body: { ok: true } })
-    .post('http://asdf.com/auth', {
+    .get('https://asdf.com/ping', { body: { ok: true } })
+    .post('https://asdf.com/auth', {
       body: {
         access_token: 'freshAccessToken',
         refresh_token: 'RefreshToken',
@@ -83,7 +83,7 @@ it('Refresh two times', async () => {
         expires_in: 600,
       } as OAuthToken,
     })
-    .postOnce('http://asdf.com/refresh', {
+    .postOnce('https://asdf.com/refresh', {
       body: {
         access_token: 'newAccessToken',
         refresh_token: 'NotThePreviousRefreshToken',
@@ -94,7 +94,7 @@ it('Refresh two times', async () => {
   const { unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-        'http://asdf.com/'
+        'https://asdf.com/'
       )}
     >
       <MyComponent notifications={notifications} />
@@ -130,7 +130,7 @@ it('Refresh two times', async () => {
 
   const tokenExpiresAt = new Date(
     (await AsyncStorage.getItem(
-      'auth.http://asdf.com/..tokenExpiresAt'
+      'auth.https://asdf.com/..tokenExpiresAt'
     )) as string
   );
   act(() =>
@@ -155,7 +155,7 @@ it('Refresh two times', async () => {
 
   // do second refresh
   fetchMock.postOnce(
-    'http://asdf.com/refresh',
+    'https://asdf.com/refresh',
     {
       body: {
         access_token: 'newAccessTokenPartTwo',
@@ -169,7 +169,7 @@ it('Refresh two times', async () => {
   notifications.mockClear();
   const secondTokenExpiresAt = new Date(
     (await AsyncStorage.getItem(
-      'auth.http://asdf.com/..tokenExpiresAt'
+      'auth.https://asdf.com/..tokenExpiresAt'
     )) as string
   );
   act(() =>
@@ -214,8 +214,8 @@ it('Refresh two times', async () => {
 it('Refresh 500 then successful', async () => {
   const notifications = jest.fn() as jest.Mock<() => void>;
   fetchMock
-    .get('http://asdf.com/ping', { body: { ok: true } })
-    .post('http://asdf.com/auth', {
+    .get('https://asdf.com/ping', { body: { ok: true } })
+    .post('https://asdf.com/auth', {
       body: {
         access_token: 'freshAccessToken',
         refresh_token: 'RefreshToken',
@@ -224,7 +224,7 @@ it('Refresh 500 then successful', async () => {
       } as OAuthToken,
     });
 
-  fetchMock.postOnce('http://asdf.com/refresh', {
+  fetchMock.postOnce('https://asdf.com/refresh', {
     status: 500,
     body: { error: 'server_error' },
   });
@@ -232,7 +232,7 @@ it('Refresh 500 then successful', async () => {
   const { unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-        'http://asdf.com/'
+        'https://asdf.com/'
       )}
     >
       <MyComponent notifications={notifications} />
@@ -268,7 +268,7 @@ it('Refresh 500 then successful', async () => {
 
   const tokenExpiresAt = new Date(
     (await AsyncStorage.getItem(
-      'auth.http://asdf.com/..tokenExpiresAt'
+      'auth.https://asdf.com/..tokenExpiresAt'
     )) as string
   );
   act(() =>
@@ -304,7 +304,7 @@ it('Refresh 500 then successful', async () => {
 
   // do second refresh
   fetchMock.postOnce(
-    'http://asdf.com/refresh',
+    'https://asdf.com/refresh',
     {
       body: {
         access_token: 'newAccessTokenPartTwo',
@@ -382,8 +382,8 @@ it('Refresh 500 then successful', async () => {
 
 it('Refresh fail with 401', async () => {
   const notifications = jest.fn() as jest.Mock<() => void>;
-  fetchMock.get('http://asdf.com/ping', { body: { ok: true } }).post(
-    'http://asdf.com/auth',
+  fetchMock.get('https://asdf.com/ping', { body: { ok: true } }).post(
+    'https://asdf.com/auth',
     new Promise((res) =>
       setTimeout(res, 100, {
         body: {
@@ -396,7 +396,7 @@ it('Refresh fail with 401', async () => {
     )
   );
 
-  fetchMock.postOnce('http://asdf.com/refresh', {
+  fetchMock.postOnce('https://asdf.com/refresh', {
     status: 401,
     body: { error: 'unauthorized_client' },
   });
@@ -404,7 +404,7 @@ it('Refresh fail with 401', async () => {
   const { getByTestId, unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
-        'http://asdf.com/'
+        'https://asdf.com/'
       )}
     >
       <MyComponent notifications={notifications} />
@@ -438,7 +438,7 @@ it('Refresh fail with 401', async () => {
 
   const tokenExpiresAt = new Date(
     (await AsyncStorage.getItem(
-      'auth.http://asdf.com/..tokenExpiresAt'
+      'auth.https://asdf.com/..tokenExpiresAt'
     )) as string
   );
   act(() =>
@@ -458,10 +458,10 @@ it('Refresh fail with 401', async () => {
   );
 
   expect(
-    await AsyncStorage.getItem('auth.http://asdf.com/..tokenExpiresAt')
+    await AsyncStorage.getItem('auth.https://asdf.com/..tokenExpiresAt')
   ).toBeFalsy();
   expect(
-    await AsyncStorage.getItem('auth.http://asdf.com/..oauthToken')
+    await AsyncStorage.getItem('auth.https://asdf.com/..oauthToken')
   ).toBeFalsy();
   expect(jest.getTimerCount()).toBe(0);
   unmount();
