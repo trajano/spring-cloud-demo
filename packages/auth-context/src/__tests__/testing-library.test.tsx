@@ -45,7 +45,7 @@ test('examples of some things', () => {
 
   fireEvent.changeText(screen.getByTestId('input'), expectedUsername);
   fireEvent.press(screen.getByText('Print Username'));
-  act(()=>jest.advanceTimersToNextTimer());
+  act(() => jest.advanceTimersToNextTimer());
   const usernameOutput = screen.getByTestId('printed-username');
 
   // Using `toHaveTextContent` matcher from `@testing-library/jest-native` package.
