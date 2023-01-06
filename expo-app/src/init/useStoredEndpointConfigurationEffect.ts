@@ -1,7 +1,7 @@
 import { BASE_URL } from "@env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDeepState } from "@trajano/react-hooks";
-import { buildSimpleEndpointConfiguration, EndpointConfiguration, validateEndpointConfiguration } from "@trajano/spring-docker-auth-context";
+import { buildSimpleEndpointConfiguration, validateEndpointConfiguration } from "@trajano/spring-docker-auth-context";
 import { useEffect } from "react";
 
 import { AuthenticatedEndpointConfiguration } from "../../navigation/login/types";
