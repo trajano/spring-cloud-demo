@@ -1,4 +1,5 @@
 import pickBy from "lodash/pickBy";
+import { BASE_URL } from "@env";
 /**
  * tests for understanding of standard library
  */
@@ -9,4 +10,8 @@ it("should remove undefined", () => {
   expect(combined).toStrictEqual({ _a: undefined, accessibilityLabel: "bar" });
   const combinedPicked = pickBy(combined);
   expect(combinedPicked).toStrictEqual({ accessibilityLabel: "bar" });
+});
+
+it("should not crash importing BASE_URL whether it has a value or not", () => {
+  expect(BASE_URL ?? "a").toBeTruthy();
 });
