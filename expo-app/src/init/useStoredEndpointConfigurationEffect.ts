@@ -1,7 +1,7 @@
 import { BASE_URL } from "@env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDeepState } from "@trajano/react-hooks";
-import { buildSimpleEndpointConfiguration } from "@trajano/spring-docker-auth-context";
+import { buildSimpleEndpointConfiguration, EndpointConfiguration, validateEndpointConfiguration } from "@trajano/spring-docker-auth-context";
 import { useEffect } from "react";
 
 import { AuthenticatedEndpointConfiguration } from "../../navigation/login/types";
@@ -22,7 +22,13 @@ export function useStoredEndpointConfigurationEffect(
         "ENDPOINT_CONFIGURATION"
       );
       if (configuration) {
-        setDefaultEndpointConfiguration(JSON.parse(configuration));
+        try {
+          const storedConfiguration = JSON.parse(configuration) as AuthenticatedEndpointConfiguration;
+          validateEndpointConfiguration(storedConfiguration);
+          setDefaultEndpointConfiguration(storedConfiguration);
+        } catch (err) {
+          console.error(`Got error validating the configuration ${configuration}, not setting the value`, err)
+        }
       }
     })();
   }, []);
