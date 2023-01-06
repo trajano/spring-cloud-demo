@@ -15,6 +15,7 @@ import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import { AuthStore, IAuthStore } from '../AuthStore';
 import type { EndpointConfiguration } from '../EndpointConfiguration';
+import { validateEndpointConfiguration } from "../validateEndpointConfiguration";
 import type { IAuth } from '../IAuth';
 import type { OAuthToken } from '../OAuthToken';
 import { initialAuthEventReducer } from './initialAuthEventReducer';
@@ -71,6 +72,10 @@ export function AuthProvider<A = unknown>({
     () => new AuthClient<A>(endpointConfiguration),
     [endpointConfiguration]
   );
+  const validatedSetEndpointConfiguration = useCallback((nextEndpointConfiguration: EndpointConfiguration) => {
+    validateEndpointConfiguration(nextEndpointConfiguration);
+    setEndpointConfiguration(nextEndpointConfiguration);
+  }, [setEndpointConfiguration])
 
   const onRefreshError = useCallback(
     (reason: unknown) =>
@@ -149,9 +154,9 @@ export function AuthProvider<A = unknown>({
   function subscribe(fn: (event: AuthEvent) => void) {
     subscribersRef.current.push(fn);
     return () =>
-      (subscribersRef.current = subscribersRef.current.filter(
-        (subscription) => !Object.is(subscription, fn)
-      ));
+    (subscribersRef.current = subscribersRef.current.filter(
+      (subscription) => !Object.is(subscription, fn)
+    ));
   }
 
   /**
@@ -292,7 +297,7 @@ export function AuthProvider<A = unknown>({
       ),
       authorization:
         !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&
-        !!oauthToken
+          !!oauthToken
           ? `Bearer ${oauthToken?.access_token}`
           : null,
       authState,
@@ -307,7 +312,7 @@ export function AuthProvider<A = unknown>({
       loginAsync,
       logoutAsync,
       refreshAsync,
-      setEndpointConfiguration,
+      setEndpointConfiguration: validatedSetEndpointConfiguration,
       subscribe,
     }),
     [
@@ -324,7 +329,7 @@ export function AuthProvider<A = unknown>({
       loginAsync,
       logoutAsync,
       refreshAsync,
-      setEndpointConfiguration,
+      validatedSetEndpointConfiguration,
       subscribe,
     ]
   );

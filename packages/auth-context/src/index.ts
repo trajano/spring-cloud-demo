@@ -6,3 +6,4 @@ export { IAuthStore, AuthStore } from './AuthStore';
 export type { AuthEvent } from './AuthEvent';
 export type { EndpointConfiguration } from './EndpointConfiguration';
 export { buildSimpleEndpointConfiguration } from './buildSimpleEndpointConfiguration';
+export { validateEndpointConfiguration } from './validateEndpointConfiguration';
