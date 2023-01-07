@@ -8,7 +8,7 @@ jobs:
   app:
     runs-on: ubuntu-latest
     env:
-      BASE_URL: https://api.trajano.net
+      BASE_URL: https://api.trajano.net/
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -28,10 +28,10 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
       - name: 📦 Install dependencies
         run: yarn install --frozen-lockfile --network-concurrency 2
-      - name: Create env
-        run: |
-          echo BASE_URL=https://api.trajano.net/ > .env
-        working-directory: ./expo-app
+      # - name: Create env
+      #   run: |
+      #     echo BASE_URL=https://api.trajano.net/ > .env
+      #   working-directory: ./expo-app
       - name: 📦 Prepare
         run: yarn workspaces run prepare
       - name: 📦 Test
