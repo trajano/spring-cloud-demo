@@ -21,8 +21,10 @@ function Example() {
   const [show, setShow] = useState(false);
 
   const onPress = useCallback(() => {
-    // let's pretend this is making a server request, so it's async
-    // (you'd want to mock this imaginary request in your unit tests)...
+    /*
+     * let's pretend this is making a server request, so it's async
+     * (you'd want to mock this imaginary request in your unit tests)...
+     */
     setTimeout(() => {
       setShow(true);
     }, Math.floor(Math.random() * 200));

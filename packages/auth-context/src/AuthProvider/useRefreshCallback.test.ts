@@ -318,16 +318,14 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
   setAuthState.mockClear();
   notify.mockClear();
 
-  act(() =>
-    rerenderNeedsEffect({
-      authState: AuthState.NEEDS_REFRESH,
-      setAuthState,
-      backendReachable: true,
-      notify,
-      onRefreshError,
-      refreshAsync: result.current,
-    })
-  );
+  rerenderNeedsEffect({
+    authState: AuthState.NEEDS_REFRESH,
+    setAuthState,
+    backendReachable: true,
+    notify,
+    onRefreshError,
+    refreshAsync: result.current,
+  });
 
   expect(setAuthState).toHaveBeenLastCalledWith(AuthState.REFRESHING);
   await waitFor(() => expect(authClient.refreshAsync).toHaveBeenCalledTimes(1));

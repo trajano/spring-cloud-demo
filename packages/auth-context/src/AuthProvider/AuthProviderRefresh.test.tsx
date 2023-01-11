@@ -47,12 +47,7 @@ function MyComponent({ notifications }: { notifications: () => void }) {
     subscribe,
   } = useAuth();
   useEffect(() => subscribe(notifications), [notifications, subscribe]);
-  const doLogin = useCallback(
-    async function doLogin() {
-      return login({ user: 'test' });
-    },
-    [login]
-  );
+  const doLogin = useCallback(async () => login({ user: 'test' }), [login]);
   return (
     <>
       <Text testID="hello">{AuthState[authState]}</Text>
@@ -295,12 +290,14 @@ it('Refresh 500 then successful', async () => {
   await waitFor(() =>
     expect(screen.getByTestId('hello')).toHaveTextContent('BACKEND_FAILURE')
   );
-  // expect(notifications).toBeCalledWith(
-  //   expect.objectContaining({
-  //     type: 'CheckRefresh',
-  //     authState: AuthState.BACKEND_FAILURE,
-  //   } as Partial<AuthEvent>)
-  // );
+  /*
+   * expect(notifications).toBeCalledWith(
+   *   expect.objectContaining({
+   *     type: 'CheckRefresh',
+   *     authState: AuthState.BACKEND_FAILURE,
+   *   } as Partial<AuthEvent>)
+   * );
+   */
 
   // do second refresh
   fetchMock.postOnce(
@@ -401,7 +398,7 @@ it('Refresh fail with 401', async () => {
     body: { error: 'unauthorized_client' },
   });
 
-  const { getByTestId, unmount } = render(
+  const { unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
         'https://asdf.com/'
@@ -432,8 +429,10 @@ it('Refresh fail with 401', async () => {
       accessToken: 'freshAccessToken',
     } as Partial<AuthEvent>)
   );
-  expect(getByTestId('accessToken')).toHaveTextContent('freshAccessToken');
-  expect(getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
+  expect(screen.getByTestId('accessToken')).toHaveTextContent(
+    'freshAccessToken'
+  );
+  expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
   notifications.mockClear();
 
   const tokenExpiresAt = new Date(
@@ -451,10 +450,10 @@ it('Refresh fail with 401', async () => {
     } as Partial<AuthEvent>)
   );
   await waitFor(() =>
-    expect(getByTestId('hello')).toHaveTextContent('REFRESHING')
+    expect(screen.getByTestId('hello')).toHaveTextContent('REFRESHING')
   );
   await waitFor(() =>
-    expect(getByTestId('hello')).toHaveTextContent('UNAUTHENTICATED')
+    expect(screen.getByTestId('hello')).toHaveTextContent('UNAUTHENTICATED')
   );
 
   expect(

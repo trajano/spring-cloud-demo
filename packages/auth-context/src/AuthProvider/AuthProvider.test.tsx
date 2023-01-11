@@ -4,7 +4,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import '@testing-library/jest-native/extend-expect';
 import {
-  act,
   cleanup,
   fireEvent,
   render,
@@ -64,17 +63,14 @@ describe('with component', () => {
       forceCheckAuthStorageAsync: forceCheckAuthStorage,
     } = useAuth();
     const [loginFailure, setLoginFailure] = useState<unknown>();
-    const handleLogin = useCallback(
-      async function handleLogin() {
-        try {
-          await loginAsync({ user: 'test' });
-        } catch (e: unknown) {
-          setLoginFailure(e);
-          onLoginFailure && onLoginFailure(e);
-        }
-      },
-      [loginAsync, onLoginFailure]
-    );
+    const handleLogin = useCallback(async () => {
+      try {
+        await loginAsync({ user: 'test' });
+      } catch (e: unknown) {
+        setLoginFailure(e);
+        onLoginFailure && onLoginFailure(e);
+      }
+    }, [loginAsync, onLoginFailure]);
     const handleLogout = useCallback(() => logoutAsync(), [logoutAsync]);
     useEffect(() => subscribe(notifications), [notifications, subscribe]);
     onRender && onRender();
@@ -140,7 +136,7 @@ describe('with component', () => {
       .get('https://asdf.com/ping', { body: { ok: true } })
       .post('https://asdf.com/auth', { body: freshAccessToken })
       .post('https://asdf.com/logout', { body: { ok: true } });
-    const { getByTestId, unmount } = render(
+    const { unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
           'https://asdf.com/'
@@ -151,11 +147,11 @@ describe('with component', () => {
     );
 
     await waitFor(() =>
-      expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED')
+      expect(screen.getByTestId('authState')).toHaveTextContent(
+        'UNAUTHENTICATED'
+      )
     );
-    act(() => {
-      fireEvent.press(getByTestId('login'));
-    });
+    fireEvent.press(screen.getByTestId('login'));
 
     await waitFor(() =>
       expect(notifications).toHaveBeenCalledWith(
@@ -171,7 +167,7 @@ describe('with component', () => {
         accessToken: 'freshAccessToken',
       } as Partial<AuthEvent>)
     );
-    expect(getByTestId('authState')).toHaveTextContent('AUTHENTICATED');
+    expect(screen.getByTestId('authState')).toHaveTextContent('AUTHENTICATED');
 
     expect(
       await AsyncStorage.getItem('auth.https://asdf.com/..oauthToken')
@@ -186,9 +182,7 @@ describe('with component', () => {
       Date.now() + 600000 - 1000
     );
 
-    act(() => {
-      fireEvent.press(getByTestId('logout'));
-    });
+    fireEvent.press(screen.getByTestId('logout'));
     await waitFor(() =>
       expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)
@@ -198,7 +192,9 @@ describe('with component', () => {
       expect.objectContaining({ type: 'Unauthenticated' } as Partial<AuthEvent>)
     );
     await waitFor(() =>
-      expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED')
+      expect(screen.getByTestId('authState')).toHaveTextContent(
+        'UNAUTHENTICATED'
+      )
     );
     expect(await AsyncStorage.getAllKeys()).toHaveLength(0);
     unmount();
@@ -217,7 +213,7 @@ describe('with component', () => {
       .get('https://asdf.com/ping', { body: { ok: true } })
       .post('https://asdf.com/auth', { body: freshAccessToken })
       .post('https://asdf.com/logout', { body: { ok: true } });
-    const { getByTestId, unmount } = render(
+    const { unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
           'https://asdf.com/'
@@ -228,11 +224,11 @@ describe('with component', () => {
     );
 
     await waitFor(() =>
-      expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED')
+      expect(screen.getByTestId('authState')).toHaveTextContent(
+        'UNAUTHENTICATED'
+      )
     );
-    act(() => {
-      fireEvent.press(getByTestId('login'));
-    });
+    fireEvent.press(screen.getByTestId('login'));
 
     await waitFor(() =>
       expect(notifications).toHaveBeenCalledWith(
@@ -248,7 +244,7 @@ describe('with component', () => {
         accessToken: 'freshAccessToken',
       } as Partial<AuthEvent>)
     );
-    expect(getByTestId('authState')).toHaveTextContent('AUTHENTICATED');
+    expect(screen.getByTestId('authState')).toHaveTextContent('AUTHENTICATED');
 
     expect(
       await AsyncStorage.getItem('auth.https://asdf.com/..oauthToken')
@@ -264,10 +260,8 @@ describe('with component', () => {
     );
 
     onRender.mockClear();
-    act(() => {
-      fireEvent.press(getByTestId('forceCheckAuthStorage'));
-    });
-    expect(getByTestId('authState')).toHaveTextContent('AUTHENTICATED');
+    fireEvent.press(screen.getByTestId('forceCheckAuthStorage'));
+    expect(screen.getByTestId('authState')).toHaveTextContent('AUTHENTICATED');
 
     expect(onRender).toHaveBeenCalledTimes(0);
     unmount();
@@ -283,7 +277,7 @@ describe('with component', () => {
         body: { error: 'authentication_failure' },
       });
 
-    const { getByTestId, unmount } = render(
+    const { unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
           'https://asdf.com/'
@@ -295,19 +289,23 @@ describe('with component', () => {
         />
       </AuthProvider>
     );
-    expect(getByTestId('authState')).toHaveTextContent('INITIAL');
+    expect(screen.getByTestId('authState')).toHaveTextContent('INITIAL');
     await waitFor(() =>
-      expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED')
+      expect(screen.getByTestId('authState')).toHaveTextContent(
+        'UNAUTHENTICATED'
+      )
     );
-    expect(getByTestId('loginFailure')).toHaveTextContent('');
+    expect(screen.getByTestId('loginFailure')).toHaveTextContent('');
 
-    act(() => {
-      fireEvent.press(getByTestId('login'));
-    });
+    fireEvent.press(screen.getByTestId('login'));
     await waitFor(() => {
-      expect(getByTestId('loginFailure')).toHaveTextContent('loginFailure');
+      expect(screen.getByTestId('loginFailure')).toHaveTextContent(
+        'loginFailure'
+      );
     });
-    expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED');
+    expect(screen.getByTestId('authState')).toHaveTextContent(
+      'UNAUTHENTICATED'
+    );
     expect(onLoginFailure).toHaveBeenCalledTimes(1);
     expect(onLoginFailure).toHaveBeenCalledWith(new Error('HTTP Error 401'));
     const failedCall = onLoginFailure.mock.calls[0][0];
@@ -329,7 +327,7 @@ describe('with component', () => {
         body: { error: 'server_error' },
       });
 
-    const { getByTestId, unmount } = render(
+    const { unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
           'https://asdf.com/'
@@ -341,19 +339,23 @@ describe('with component', () => {
         />
       </AuthProvider>
     );
-    expect(getByTestId('authState')).toHaveTextContent('INITIAL');
+    expect(screen.getByTestId('authState')).toHaveTextContent('INITIAL');
     await waitFor(() =>
-      expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED')
+      expect(screen.getByTestId('authState')).toHaveTextContent(
+        'UNAUTHENTICATED'
+      )
     );
-    expect(getByTestId('loginFailure')).toHaveTextContent('');
+    expect(screen.getByTestId('loginFailure')).toHaveTextContent('');
 
-    act(() => {
-      fireEvent.press(getByTestId('login'));
-    });
+    fireEvent.press(screen.getByTestId('login'));
     await waitFor(() => {
-      expect(getByTestId('loginFailure')).toHaveTextContent('loginFailure');
+      expect(screen.getByTestId('loginFailure')).toHaveTextContent(
+        'loginFailure'
+      );
     });
-    expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED');
+    expect(screen.getByTestId('authState')).toHaveTextContent(
+      'UNAUTHENTICATED'
+    );
     expect(onLoginFailure).toHaveBeenCalledTimes(1);
     expect(onLoginFailure).toHaveBeenCalledWith(new Error('HTTP Error 500'));
     const failedCall = onLoginFailure.mock.calls[0][0];
@@ -392,7 +394,7 @@ describe('with component', () => {
     fetchMock
       .get('https://asdf.com/ping', { body: { ok: true } })
       .post('https://asdf.com/auth', { body: freshAccessToken });
-    const { getByTestId, unmount } = render(
+    const { unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
           'https://asdf.com/'
@@ -403,11 +405,11 @@ describe('with component', () => {
     );
 
     await waitFor(() =>
-      expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED')
+      expect(screen.getByTestId('authState')).toHaveTextContent(
+        'UNAUTHENTICATED'
+      )
     );
-    act(() => {
-      fireEvent.press(getByTestId('login'));
-    });
+    fireEvent.press(screen.getByTestId('login'));
 
     await waitFor(() =>
       expect(notifications).toHaveBeenCalledWith(
@@ -423,7 +425,7 @@ describe('with component', () => {
         accessToken: 'freshAccessToken',
       } as Partial<AuthEvent>)
     );
-    expect(getByTestId('authState')).toHaveTextContent('AUTHENTICATED');
+    expect(screen.getByTestId('authState')).toHaveTextContent('AUTHENTICATED');
 
     expect(
       await AsyncStorage.getItem('auth.https://asdf.com/..oauthToken')
@@ -443,9 +445,7 @@ describe('with component', () => {
       status: 500,
     });
 
-    act(() => {
-      fireEvent.press(getByTestId('logout'));
-    });
+    fireEvent.press(screen.getByTestId('logout'));
     await waitFor(() =>
       expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)
@@ -455,7 +455,9 @@ describe('with component', () => {
       expect.objectContaining({ type: 'Unauthenticated' } as Partial<AuthEvent>)
     );
     await waitFor(() =>
-      expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED')
+      expect(screen.getByTestId('authState')).toHaveTextContent(
+        'UNAUTHENTICATED'
+      )
     );
     expect(await AsyncStorage.getAllKeys()).toHaveLength(0);
     unmount();
@@ -477,7 +479,7 @@ describe('with component', () => {
         status: 0,
         type: 'error',
       });
-    const { getByTestId, unmount } = render(
+    const { unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
           'https://asdf.com/'
@@ -488,11 +490,11 @@ describe('with component', () => {
     );
 
     await waitFor(() =>
-      expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED')
+      expect(screen.getByTestId('authState')).toHaveTextContent(
+        'UNAUTHENTICATED'
+      )
     );
-    act(() => {
-      fireEvent.press(getByTestId('logout'));
-    });
+    fireEvent.press(screen.getByTestId('logout'));
     await waitFor(() =>
       expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)
@@ -502,7 +504,9 @@ describe('with component', () => {
       expect.objectContaining({ type: 'Unauthenticated' } as Partial<AuthEvent>)
     );
     await waitFor(() =>
-      expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED')
+      expect(screen.getByTestId('authState')).toHaveTextContent(
+        'UNAUTHENTICATED'
+      )
     );
     expect(await AsyncStorage.getAllKeys()).toHaveLength(0);
     unmount();
@@ -520,7 +524,7 @@ describe('with component', () => {
       .get('https://asdf.com/ping', { body: { ok: true } })
       .post('https://asdf.com/auth', { body: freshAccessToken })
       .post('https://asdf.com/logout', { body: { ok: true } });
-    const { getByTestId, unmount } = render(
+    const { unmount } = render(
       <AuthProvider
         defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
           'https://asdf.com/'
@@ -531,11 +535,11 @@ describe('with component', () => {
     );
 
     await waitFor(() =>
-      expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED')
+      expect(screen.getByTestId('authState')).toHaveTextContent(
+        'UNAUTHENTICATED'
+      )
     );
-    act(() => {
-      fireEvent.press(getByTestId('logout'));
-    });
+    fireEvent.press(screen.getByTestId('logout'));
     await waitFor(() =>
       expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)
@@ -545,7 +549,9 @@ describe('with component', () => {
       expect.objectContaining({ type: 'Unauthenticated' } as Partial<AuthEvent>)
     );
     await waitFor(() =>
-      expect(getByTestId('authState')).toHaveTextContent('UNAUTHENTICATED')
+      expect(screen.getByTestId('authState')).toHaveTextContent(
+        'UNAUTHENTICATED'
+      )
     );
     expect(await AsyncStorage.getAllKeys()).toHaveLength(0);
     unmount();
@@ -581,9 +587,7 @@ describe('with component', () => {
         'UNAUTHENTICATED'
       )
     );
-    act(() => {
-      fireEvent.press(screen.getByTestId('logout'));
-    });
+    fireEvent.press(screen.getByTestId('logout'));
     await waitFor(() =>
       expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)

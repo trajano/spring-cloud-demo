@@ -70,6 +70,7 @@
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-jest": "^27.2.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-testing-library": "^5.9.1",
     "fetch-mock-jest": "^1.5.1",
     "jest": "^29.3.1",
     "jest-environment-jsdom": "^29.3.1",
@@ -130,8 +131,24 @@
       "@react-native-community",
       "prettier",
       "plugin:@typescript-eslint/recommended",
-      "plugin:jest/recommended"
-    ]
+      "plugin:jest/recommended",
+      "plugin:testing-library/react"
+    ],
+    "rules": {
+      "arrow-body-style": "error",
+      "curly": "error",
+      "eqeqeq": "error",
+      "logical-assignment-operators": "error",
+      "multiline-comment-style": "error",
+      "no-floating-decimal": "error",
+      "prefer-arrow-callback": "error",
+      "prefer-const": "error",
+      "prefer-numeric-literals": "error",
+      "prefer-object-spread": "error",
+      "prefer-template": "error",
+      "yoda": "error",
+      "@typescript-eslint/ban-types": "off"
+    }
   },
   "eslintIgnore": [
     "node_modules/",

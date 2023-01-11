@@ -29,7 +29,7 @@ export function useNetInfoState(
     /**
      * Monitors network state changes.
      */
-    function netInfoSubscription() {
+    () => {
       NetInfo.configure({
         reachabilityUrl: endpointConfiguration.pingEndpoint,
         reachabilityTest: (response) =>

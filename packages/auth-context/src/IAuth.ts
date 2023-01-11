@@ -34,7 +34,8 @@ export interface IAuth<A = unknown> {
    * as a new token is obtained.
    *
    * The token will be provided as long as it is present.  It
-   * does not check whether it is expired or not.   */
+   * does not check whether it is expired or not.
+   */
   oauthToken: OAuthToken | null;
   /**
    * The access token.  May be null if the token is not obtained.

@@ -115,8 +115,10 @@ export class AuthClient<A = unknown> implements IAuthClient<A> {
     if (!response.ok) {
       throw new AuthenticationClientError(response, await response.text());
     }
-    // if there's a problem just log it. there's nothing that can be done
-    // as the user has logged out.
+    /*
+     * if there's a problem just log it. there's nothing that can be done
+     * as the user has logged out.
+     */
     this.resolveJson<Record<string, unknown>>(response).catch(console.error);
   }
 }

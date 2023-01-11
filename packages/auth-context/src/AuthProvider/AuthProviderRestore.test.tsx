@@ -48,12 +48,7 @@ function MyComponent({ notifications }: { notifications: () => void }) {
     backendReachable,
     subscribe,
   } = useAuth();
-  const doLogin = useCallback(
-    async function doLogin() {
-      return login({ user: 'test' });
-    },
-    [login]
-  );
+  const doLogin = useCallback(async () => login({ user: 'test' }), [login]);
   useEffect(() => subscribe(notifications), [notifications, subscribe]);
   return (
     <>
@@ -140,7 +135,7 @@ it('Restore saved not expired', async () => {
       })
     )
   );
-  const { getByTestId, unmount } = render(
+  const { unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
         'https://asdf.com/'
@@ -149,7 +144,7 @@ it('Restore saved not expired', async () => {
       <MyComponent notifications={notifications} />
     </AuthProvider>
   );
-  expect(getByTestId('hello')).toHaveTextContent('INITIAL');
+  expect(screen.getByTestId('hello')).toHaveTextContent('INITIAL');
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -158,9 +153,9 @@ it('Restore saved not expired', async () => {
       } as Partial<AuthEvent>)
     )
   );
-  expect(getByTestId('accessToken')).toHaveTextContent('oldAccessToken');
-  expect(getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
-  expect(getByTestId('accessTokenExpiresOn')).toHaveTextContent(
+  expect(screen.getByTestId('accessToken')).toHaveTextContent('oldAccessToken');
+  expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
+  expect(screen.getByTestId('accessTokenExpiresOn')).toHaveTextContent(
     addMilliseconds(specimenInstant, 600000).toISOString()
   );
   await waitFor(() => expect(jest.getTimerCount()).toBe(1));
@@ -198,7 +193,7 @@ it('Restore saved expired', async () => {
         expires_in: 600,
       } as OAuthToken,
     });
-  const { getByTestId, unmount } = render(
+  const { unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
         'https://asdf.com/'
@@ -207,7 +202,7 @@ it('Restore saved expired', async () => {
       <MyComponent notifications={notifications} />
     </AuthProvider>
   );
-  expect(getByTestId('hello')).toHaveTextContent('INITIAL');
+  expect(screen.getByTestId('hello')).toHaveTextContent('INITIAL');
 
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
@@ -225,7 +220,7 @@ it('Restore saved expired', async () => {
     )
   );
   await waitFor(() =>
-    expect(getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
+    expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
   );
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
@@ -263,7 +258,7 @@ it('Restore saved expired but broken token response', async () => {
       status: 200,
       body: 'this is not json',
     });
-  const { getByTestId, unmount } = render(
+  const { unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
         'https://asdf.com/'
@@ -272,7 +267,7 @@ it('Restore saved expired but broken token response', async () => {
       <MyComponent notifications={notifications} />
     </AuthProvider>
   );
-  expect(getByTestId('hello')).toHaveTextContent('INITIAL');
+  expect(screen.getByTestId('hello')).toHaveTextContent('INITIAL');
 
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
@@ -293,7 +288,7 @@ it('Restore saved expired but broken token response', async () => {
     )
   );
   await waitFor(() =>
-    expect(getByTestId('hello')).toHaveTextContent('BACKEND_FAILURE')
+    expect(screen.getByTestId('hello')).toHaveTextContent('BACKEND_FAILURE')
   );
 
   unmount();
@@ -326,7 +321,7 @@ it('Restore saved expired but 500 refresh response', async () => {
       status: 500,
       body: 'this is not json',
     });
-  const { getByTestId, unmount } = render(
+  const { unmount } = render(
     <AuthProvider
       defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
         'https://asdf.com/'
@@ -335,7 +330,7 @@ it('Restore saved expired but 500 refresh response', async () => {
       <MyComponent notifications={notifications} />
     </AuthProvider>
   );
-  expect(getByTestId('hello')).toHaveTextContent('INITIAL');
+  expect(screen.getByTestId('hello')).toHaveTextContent('INITIAL');
 
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
@@ -356,7 +351,7 @@ it('Restore saved expired but 500 refresh response', async () => {
     )
   );
   await waitFor(() =>
-    expect(getByTestId('hello')).toHaveTextContent('BACKEND_FAILURE')
+    expect(screen.getByTestId('hello')).toHaveTextContent('BACKEND_FAILURE')
   );
 
   unmount();

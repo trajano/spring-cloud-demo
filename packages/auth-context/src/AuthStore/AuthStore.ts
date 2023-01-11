@@ -31,7 +31,7 @@ export class AuthStore implements IAuthStore {
   }
   async getOAuthTokenAsync(): Promise<OAuthToken | null> {
     const oauthTokenJson = await AsyncStorage.getItem(
-      this.storagePrefix + '.oauthToken'
+      `${this.storagePrefix}.oauthToken`
     );
     if (oauthTokenJson == null) {
       return null;
@@ -51,14 +51,14 @@ export class AuthStore implements IAuthStore {
       throw new Error(`Token ${JSON.stringify(oauthToken)} is not valid`);
     }
     await AsyncStorage.setItem(
-      this.storagePrefix + '.oauthToken',
+      `${this.storagePrefix}.oauthToken`,
       JSON.stringify(oauthToken)
     );
     const expiresAt = add(Date.now(), {
       seconds: oauthToken.expires_in,
     });
     await AsyncStorage.setItem(
-      this.storagePrefix + '.tokenExpiresAt',
+      `${this.storagePrefix}.tokenExpiresAt`,
       expiresAt.toISOString()
     );
     return expiresAt;
@@ -69,7 +69,7 @@ export class AuthStore implements IAuthStore {
    */
   async getTokenExpiresAtAsync(): Promise<Date> {
     const tokenExpiresAtString = await AsyncStorage.getItem(
-      this.storagePrefix + '.tokenExpiresAt'
+      `${this.storagePrefix}.tokenExpiresAt`
     );
     if (tokenExpiresAtString === null) {
       return new Date(0);
@@ -96,8 +96,8 @@ export class AuthStore implements IAuthStore {
 
   async clearAsync(): Promise<void> {
     await AsyncStorage.multiRemove([
-      this.storagePrefix + '.oauthToken',
-      this.storagePrefix + '.tokenExpiresAt',
+      `${this.storagePrefix}.oauthToken`,
+      `${this.storagePrefix}.tokenExpiresAt`,
     ]);
   }
 }

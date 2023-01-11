@@ -1,4 +1,9 @@
-import { cleanup, fireEvent, render } from '@testing-library/react-native';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, Text } from 'react-native';
 afterEach(cleanup);
@@ -34,15 +39,19 @@ it('does not work with empty dep list', () => {
   }
 
   jest.setSystemTime(new Date('2025-01-01T20:00:00Z'));
-  const { getByTestId, unmount } = render(<MyComponent />);
-  expect(getByTestId('lastCheckTime')).toHaveTextContent('1735761600000');
+  const { unmount } = render(<MyComponent />);
+  expect(screen.getByTestId('lastCheckTime')).toHaveTextContent(
+    '1735761600000'
+  );
   expect(effectCallback).toHaveBeenCalledTimes(1);
   expect(effectCleanup).toHaveBeenCalledTimes(0);
   expect(rendered).toHaveBeenCalledTimes(1);
   jest.advanceTimersByTime(1000);
-  fireEvent.press(getByTestId('lastCheckTime'));
+  fireEvent.press(screen.getByTestId('lastCheckTime'));
   // remains the same
-  expect(getByTestId('lastCheckTime')).toHaveTextContent('1735761600000');
+  expect(screen.getByTestId('lastCheckTime')).toHaveTextContent(
+    '1735761600000'
+  );
   expect(effectCallback).toHaveBeenCalledTimes(1);
   expect(effectCleanup).toHaveBeenCalledTimes(0);
   // rendered still because of auth state change
@@ -81,14 +90,18 @@ it('works with dep list', () => {
   }
 
   jest.setSystemTime(new Date('2025-01-01T20:00:00Z'));
-  const { getByTestId, unmount } = render(<MyComponent />);
-  expect(getByTestId('lastCheckTime')).toHaveTextContent('1735761600000');
+  const { unmount } = render(<MyComponent />);
+  expect(screen.getByTestId('lastCheckTime')).toHaveTextContent(
+    '1735761600000'
+  );
   expect(effectCallback).toHaveBeenCalledTimes(1);
   expect(effectCleanup).toHaveBeenCalledTimes(0);
   expect(rendered).toHaveBeenCalledTimes(1);
   jest.advanceTimersByTime(1000);
-  fireEvent.press(getByTestId('lastCheckTime'));
-  expect(getByTestId('lastCheckTime')).toHaveTextContent('1735761601000');
+  fireEvent.press(screen.getByTestId('lastCheckTime'));
+  expect(screen.getByTestId('lastCheckTime')).toHaveTextContent(
+    '1735761601000'
+  );
   expect(effectCallback).toHaveBeenCalledTimes(2);
   expect(effectCleanup).toHaveBeenCalledTimes(1);
   // authenticated which then calls set state to trigger two renders

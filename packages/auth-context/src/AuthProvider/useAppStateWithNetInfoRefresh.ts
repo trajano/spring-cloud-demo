@@ -13,7 +13,7 @@ export function useAppStateWithNetInfoRefresh(): AppStateStatus {
     /**
      * Monitors app state changes.
      */
-    function createSubscription() {
+    () => {
       const appStateSubscription = AppState.addEventListener(
         'change',
         (nextAppState) => {

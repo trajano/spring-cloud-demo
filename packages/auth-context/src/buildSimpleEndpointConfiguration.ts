@@ -18,10 +18,10 @@ export function buildSimpleEndpointConfiguration(
   }
   return {
     baseUrl: baseUrl,
-    authorizationEndpoint: baseUrl + 'auth',
-    refreshEndpoint: baseUrl + 'refresh',
-    revocationEndpoint: baseUrl + 'logout',
-    pingEndpoint: baseUrl + 'ping',
+    authorizationEndpoint: `${baseUrl}auth`,
+    refreshEndpoint: `${baseUrl}refresh`,
+    revocationEndpoint: `${baseUrl}logout`,
+    pingEndpoint: `${baseUrl}ping`,
     clientId,
     clientSecret,
   };

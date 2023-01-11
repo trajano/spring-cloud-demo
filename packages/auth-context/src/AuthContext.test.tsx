@@ -1,4 +1,9 @@
-import { cleanup, render, waitFor } from '@testing-library/react-native';
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { act } from 'react-test-renderer';
@@ -51,20 +56,20 @@ it('default context values', async () => {
     );
   }
 
-  const { getByTestId } = render(<MyComponent />);
+  render(<MyComponent />);
   act(() => jest.runAllTicks());
-  expect(getByTestId('hello')).toHaveTextContent('INITIAL');
+  expect(screen.getByTestId('hello')).toHaveTextContent('INITIAL');
   await waitFor(() => {
-    expect(getByTestId('login')).toHaveTextContent('login');
+    expect(screen.getByTestId('login')).toHaveTextContent('login');
   });
   await waitFor(() => {
-    expect(getByTestId('refresh')).toHaveTextContent('refresh');
+    expect(screen.getByTestId('refresh')).toHaveTextContent('refresh');
   });
   await waitFor(() => {
-    expect(getByTestId('logout')).toHaveTextContent('logout');
+    expect(screen.getByTestId('logout')).toHaveTextContent('logout');
   });
   await waitFor(() => {
-    expect(getByTestId('subscribe')).toHaveTextContent('subscribe');
+    expect(screen.getByTestId('subscribe')).toHaveTextContent('subscribe');
   });
 });
 afterEach(() => {

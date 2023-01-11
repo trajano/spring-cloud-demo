@@ -43,7 +43,7 @@ export function useRefreshCallback<T>({
 }: RefreshCallbackProps<T>): () => Promise<void> {
   const refreshingRef = useRef(false);
   const refreshAsync = useCallback(
-    async function refresh(reason = 'Requested') {
+    async (reason = 'Requested') => {
       if (refreshingRef.current) {
         notify({
           type: 'Refreshing',
@@ -61,8 +61,10 @@ export function useRefreshCallback<T>({
       });
       try {
         if (!oauthToken) {
-          // refresh wat attempted when oauth token is not available. This may occur when the state is being
-          // resolved
+          /*
+           * refresh wat attempted when oauth token is not available. This may occur when the state is being
+           * resolved
+           */
           setAuthState(AuthState.UNAUTHENTICATED);
           notify({
             type: 'Unauthenticated',
@@ -131,8 +133,10 @@ export function useRefreshCallback<T>({
           }
         }
       } finally {
-        // const { oauthToken, tokenExpiresAt } = updateFromStorage();
-        // some how make thi
+        /*
+         * const { oauthToken, tokenExpiresAt } = updateFromStorage();
+         * some how make thi
+         */
         refreshingRef.current = false;
       }
     },
