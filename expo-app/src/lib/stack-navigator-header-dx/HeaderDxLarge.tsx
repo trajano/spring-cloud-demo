@@ -35,40 +35,47 @@ export function HeaderDxLarge({
   const { top: safeAreaInsetTop } = useSafeAreaInsets();
   const navigationTheme = useNavigationTheme();
   const { forRoute, forRouteForHeader, deviceType } = useHeaderDxContext();
-  // // useNavigationTheme ().colors.card
-  // // this will depend on whether the large header is shown or not
-  // // progress?
 
-  // // so how does the header know where the scroll view is?
-
-  // useEffect(() => {
-  //   function listener(ev: EventArg<"focus", boolean, undefined>) {
-  //     // do something?
-  //   }
-  //   navigation.addListener("focus", listener);
-  //   return () => navigation.removeListener("focus", listener);
-  // }, [navigation])
+  /*
+   * useNavigationTheme ().colors.card
+   * this will depend on whether the large header is shown or not
+   * progress?
+   * so how does the header know where the scroll view is?
+   * useEffect(() => {
+   *   function listener(ev: EventArg<"focus", boolean, undefined>) {
+   *     // do something?
+   *   }
+   *   navigation.addListener("focus", listener);
+   *   return () => navigation.removeListener("focus", listener);
+   * }, [navigation])
+   */
 
   const title = options.title ?? route.name;
   const trans = options.headerTransparent;
   const blur = options.headerBackground;
 
-  // const scrollPositionY = new Animated.Value(0);
-  // const intensity = 1.5;
-  // const paddingTop = Animated.add(scrollPositionY, safeAreaInsetTop);
+  /*
+   * const scrollPositionY = new Animated.Value(0);
+   * const intensity = 1.5;
+   * const paddingTop = Animated.add(scrollPositionY, safeAreaInsetTop);
+   */
 
-  // return <Animated.View style={{ paddingTop, backgroundColor: navigationTheme.colors.card, height: 30, zIndex: -200 }}><Text style={{
-  //   color: navigationTheme.colors.text, fontSize: 30
-  // }}>{title}adfZZZZ</Text></Animated.View>
+  /*
+   * return <Animated.View style={{ paddingTop, backgroundColor: navigationTheme.colors.card, height: 30, zIndex: -200 }}><Text style={{
+   *   color: navigationTheme.colors.text, fontSize: 30
+   * }}>{title}adfZZZZ</Text></Animated.View>
+   */
 
   const { positionY } = forRoute(route);
   const translateY = Animated.multiply(positionY, -1);
   const headerTranslateY = Animated.add(translateY, safeAreaInsetTop);
   const headerLargeTranslateY = Animated.add(headerTranslateY, 44);
-  // content is rendered first
-  // starts with full screen layout
-  // then header is layouted
-  // then renders with layout less the tab area height (header height is still there)
+  /*
+   * content is rendered first
+   * starts with full screen layout
+   * then header is layouted
+   * then renders with layout less the tab area height (header height is still there)
+   */
   console.log({ header: "rendering", layout, options, route });
 
   const onLayout = useCallback(({ nativeEvent }: LayoutChangeEvent) => {

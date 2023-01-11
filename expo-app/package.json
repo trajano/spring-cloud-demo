@@ -45,7 +45,19 @@
     },
     "rules": {
       "react/react-in-jsx-scope": "off",
+      "arrow-body-style": "error",
+      "curly": "error",
+      "eqeqeq": "error",
+      "logical-assignment-operators": "error",
+      "multiline-comment-style": "error",
+      "no-floating-decimal": "error",
       "prefer-arrow-callback": "error",
+      "prefer-const": "error",
+      "prefer-numeric-literals": "error",
+      "prefer-object-spread": "error",
+      "prefer-template": "error",
+      "yoda": "error",
+      "@typescript-eslint/ban-types": "off",
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {

@@ -69,18 +69,14 @@ export function withStyledTextInput<
       [setInputState, originalOnBlur, editable]
     );
 
-    props.selectionColor =
-      props.selectionColor ?? lookupColor(colors.input.selection, colors);
-    props.placeholderTextColor =
-      props.placeholderTextColor ??
-      lookupColor(colors.input.placeholderText[inputState], colors);
-
-    props.borderColor =
-      props.borderColor ?? lookupColor(colors.input.border[inputState], colors);
-    props.backgroundColor =
-      props.backgroundColor ?? lookupColor(colors.input[inputState][1], colors);
-    props.color =
-      props.color ?? lookupColor(colors.input[inputState][0], colors);
+    props.selectionColor ??= lookupColor(colors.input.selection, colors);
+    props.placeholderTextColor ??= lookupColor(
+      colors.input.placeholderText[inputState],
+      colors
+    );
+    props.borderColor ??= lookupColor(colors.input.border[inputState], colors);
+    props.backgroundColor ??= lookupColor(colors.input[inputState][1], colors);
+    props.color ??= lookupColor(colors.input[inputState][0], colors);
 
     return doStyleWrap(
       Component,

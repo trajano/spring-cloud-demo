@@ -19,20 +19,24 @@ import { AuthenticatedContext } from "./IAuthenticatedContext";
 import { JwtClaims } from "./JwtClaims";
 import { jwtVerify } from "./jwtVerify";
 import { useDb } from "./useDb";
-// import '@reduxjs/toolkit';
-// import { legacy_createStore as createStore } from "redux";
-// export const store = createStore((state = 0, action) => state);
+/*
+ * import '@reduxjs/toolkit';
+ * import { legacy_createStore as createStore } from "redux";
+ * export const store = createStore((state = 0, action) => state);
+ */
 
-// let store;
-// try {
-//     const { configureStore } = require("@reduxjs/toolkit");
-//     store = configureStore({
-//         reducer: {},
-//     });
-// } catch (error) {
-//     alert(`Caught error: ${error}`);
-// }
-// console.log(store);
+/*
+ * let store;
+ * try {
+ *     const { configureStore } = require("@reduxjs/toolkit");
+ *     store = configureStore({
+ *         reducer: {},
+ *     });
+ * } catch (error) {
+ *     alert(`Caught error: ${error}`);
+ * }
+ * console.log(store);
+ */
 
 // At present this has a problem on restore in that the access token is not valid yet.
 type AuthenticatedProviderProps = PropsWithChildren<{
@@ -59,18 +63,18 @@ export function AuthenticatedProvider({
   const { loaded: dbLoaded, db } = useDb("mydb");
 
   const [internalState, updateInternalStateFromServerSentEvent] = useReducer(
-    (state: string[], nextEvent: string) => {
-      return [...state, nextEvent].slice(-5);
-    },
+    (state: string[], nextEvent: string) => [...state, nextEvent].slice(-5),
     []
   );
   const verifyToken = useCallback(async () => {
     if (!verifyClaims) {
       return undefined;
     }
-    // when access token changes the value could fail.
-    // when the internet is broken then the verification will fail
-    // maybe use a reducer here?
+    /*
+     * when access token changes the value could fail.
+     * when the internet is broken then the verification will fail
+     * maybe use a reducer here?
+     */
     try {
       return await jwtVerify(accessToken, `${baseUrl}jwks`, issuer, clientId);
     } catch (_e: unknown) {
@@ -81,8 +85,10 @@ export function AuthenticatedProvider({
   useAsyncSetEffect(verifyToken, setClaims, []);
 
   useEffect(() => {
-    // this should be refactored to it's own file to provide the data stream
-    // log.warn({ verified, username })
+    /*
+     * this should be refactored to it's own file to provide the data stream
+     * log.warn({ verified, username })
+     */
     if (verified && username) {
       eventStream.current = new EventSource<string>(
         new URL("/grpc/Echo/echoStream", baseUrl),

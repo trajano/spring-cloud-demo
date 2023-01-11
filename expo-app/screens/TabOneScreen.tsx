@@ -127,13 +127,14 @@ export default function TabOneScreen({
     accessToken?.slice(-5),
     ...internalState,
   ];
-  const renderItem = useCallback(({ item }: ListRenderItemInfo<any>) => {
-    return (
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<any>) => (
       <View>
         <Text>{JSON.stringify(item, null, 2)}</Text>
       </View>
-    );
-  }, []);
+    ),
+    []
+  );
 
   const refreshToken = useCallback(async () => {
     setRefreshing(true);

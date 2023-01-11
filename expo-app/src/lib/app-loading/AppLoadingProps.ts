@@ -21,7 +21,7 @@ export type AppLoadingProps = PropsWithChildren<{
    * Note that by default Expo treats `json` as code so do not load them as assets
    * even Lottie animation.
    */
-  initialAssets?: Parameters<typeof Asset["loadAsync"]>[0];
+  initialAssets?: Parameters<(typeof Asset)["loadAsync"]>[0];
   /**
    * Additional assets to load after the splash screen his hidden and LoadingComponent is
    * being shown.  The fonts are appended to the number.  Each of this is a callback

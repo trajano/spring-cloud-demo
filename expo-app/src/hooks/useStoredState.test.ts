@@ -23,8 +23,10 @@ it("should work like normal with async storage check", async () => {
   );
   let [state, setState] = result.current;
   expect(state).toBe("bar");
-  // expect(await AsyncStorage.getItem("foo")).toBeNull() cannot be performed as it switches the context
-  // and the set state is called during that time causing an `act` warning
+  /*
+   * expect(await AsyncStorage.getItem("foo")).toBeNull() cannot be performed as it switches the context
+   * and the set state is called during that time causing an `act` warning
+   */
   await waitForNextUpdate();
   expect(await AsyncStorage.getItem("foo")).toBe("bar");
   act(() => setState("foo"));

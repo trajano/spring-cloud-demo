@@ -130,7 +130,7 @@ export function ThemedPressable({
   );
 }
 /**
-```tsx
-<ThemedPressable >
-```
+ *```tsx
+ *<ThemedPressable >
+ *```
  */

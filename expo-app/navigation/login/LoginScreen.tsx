@@ -110,17 +110,21 @@ export function LoginForm() {
 export default function LoginScreen({
   navigation,
 }: LoginStackScreenProps<"Login">) {
-  // given Localization.locales
-  // translate to DateFnsLocales
+  /*
+   * given Localization.locales
+   * translate to DateFnsLocales
+   */
   const locale: Locale = useMemo(() => {
     const dateFnsLocales2 = dateFnsLocales as Record<string, Locale>;
     return (
       Localization.locales
-        .map((locale) => {
-          // handle special cases
-          // Android does not support replaceAll() this is a workaround.
-          return locale.split("-").join("");
-        })
+        .map((locale) =>
+          /*
+           * handle special cases
+           * Android does not support replaceAll() this is a workaround.
+           */
+          locale.split("-").join("")
+        )
         .filter((localeKey) => !!dateFnsLocales2[localeKey])
         .map((localeKey) => dateFnsLocales2[localeKey])[0] ??
       dateFnsLocales.enUS

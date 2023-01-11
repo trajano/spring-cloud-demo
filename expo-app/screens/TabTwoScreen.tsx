@@ -76,10 +76,10 @@ export default function TabTwoScreen({
     const dateFnsLocales2 = dateFnsLocales as Record<string, Locale>;
     return (
       Localization.getLocales()
-        .map((locale) => {
+        .map((locale) =>
           // handle special cases
-          return locale.languageTag.split("-").join("");
-        })
+          locale.languageTag.split("-").join("")
+        )
         .filter((localKey) => !!dateFnsLocales2[localKey])
         .map((localKey) => dateFnsLocales2[localKey])[0] ?? dateFnsLocales.enUS
     );
@@ -153,8 +153,10 @@ export default function TabTwoScreen({
 
   // useEffect(() => {
 
-  //   const c = setInterval(() => setNow(format(Date.now(), "PPpp", { locale })), 1000);
-  //   return () => clearInterval(c);
+  /*
+   *   const c = setInterval(() => setNow(format(Date.now(), "PPpp", { locale })), 1000);
+   *   return () => clearInterval(c);
+   */
 
   // }, [locale])
 

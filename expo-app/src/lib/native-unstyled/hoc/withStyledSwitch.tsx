@@ -58,19 +58,16 @@ export function withStyledSwitch<
       [setInputState, originalOnValueChange, value]
     );
 
-    props.thumbColor =
-      props.thumbColor ?? lookupColor(colors.input.switch.thumb, colors);
-    props.trackColor = props.trackColor ?? {
+    props.thumbColor ??= lookupColor(colors.input.switch.thumb, colors);
+    props.trackColor ??= {
       false: lookupColor(colors.input.switch.false, colors),
       true: lookupColor(colors.input.switch.true, colors),
     };
 
-    props.borderColor =
-      props.borderColor ?? lookupColor(colors.input.border[inputState], colors);
-    props.backgroundColor =
-      props.backgroundColor ?? lookupColor(colors.input[inputState][1], colors);
+    props.borderColor ??= lookupColor(colors.input.border[inputState], colors);
+    props.backgroundColor ??= lookupColor(colors.input[inputState][1], colors);
 
-    props.ios_backgroundColor = props.ios_backgroundColor ?? "transparent";
+    props.ios_backgroundColor ??= "transparent";
 
     return doStyleWrap(
       Component,

@@ -241,8 +241,10 @@ export function useHeaderDx(
   );
   const onScrollEndDrag = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      // updateRoute(route, event.nativeEvent.contentOffset.y, scrollViewRef);
-      // snap back
+      /*
+       * updateRoute(route, event.nativeEvent.contentOffset.y, scrollViewRef);
+       * snap back
+       */
     },
     []
   );
@@ -266,21 +268,23 @@ export function useHeaderDx(
   const refreshControl:
     | Animated.WithAnimatedObject<ReactElement<RefreshControlProps>>
     | undefined = inRefreshControl;
-  // if (inRefreshControl) {
-  //   refreshControl = cloneElement<
-  //     Animated.WithAnimatedObject<ReactElement<RefreshControlProps>>
-  //   >(inRefreshControl, {
-  //     ...inRefreshControl.props,
-  //     // progressViewOffset: -60,
-  //     style: {
-  //       position: "absolute",
-  //       backgroundColor: "#101090",
-  //     },
-  //   });
-  // }
-  // useEffect(() => {
-  //   // scrollView?.scrollTo({ y: finalPositionY, animated: false });
-  // }, [finalPositionY, scrollView]);
+  /*
+   * if (inRefreshControl) {
+   *   refreshControl = cloneElement<
+   *     Animated.WithAnimatedObject<ReactElement<RefreshControlProps>>
+   *   >(inRefreshControl, {
+   *     ...inRefreshControl.props,
+   *     // progressViewOffset: -60,
+   *     style: {
+   *       position: "absolute",
+   *       backgroundColor: "#101090",
+   *     },
+   *   });
+   * }
+   * useEffect(() => {
+   *   // scrollView?.scrollTo({ y: finalPositionY, animated: false });
+   * }, [finalPositionY, scrollView]);
+   */
   console.log("hook rendering");
   return {
     onScroll,
@@ -290,9 +294,11 @@ export function useHeaderDx(
       inStyle,
       {
         position: "absolute",
-        // top: -150,
-        // left: 0,
-        // backgroundColor: "silver",
+        /*
+         * top: -150,
+         * left: 0,
+         * backgroundColor: "silver",
+         */
         width: layout.width,
         // height: layout.height,
         transform: [
@@ -307,17 +313,23 @@ export function useHeaderDx(
   };
 }
 
-// on iPad header height is 50
-// https://github.com/software-mansion/react-native-screens/blob/86864da31a1d9c180f95239a02220cf07af7979a/src/native-stack/utils/getDefaultHeaderHeight.tsx#L25
-// https://www.learnui.design/blog/ios-font-size-guidelines.html
+/*
+ * on iPad header height is 50
+ * https://github.com/software-mansion/react-native-screens/blob/86864da31a1d9c180f95239a02220cf07af7979a/src/native-stack/utils/getDefaultHeaderHeight.tsx#L25
+ * https://www.learnui.design/blog/ios-font-size-guidelines.html
+ */
 
-// basically we have the following zones
-// refresh control area
-// status area
-// header area
-//   - collapsed or can be empty space when large header is on.
-//   - large header area (optional)
-// search area
+/*
+ * basically we have the following zones
+ * refresh control area
+ * status area
+ * header area
+ *   - collapsed or can be empty space when large header is on.
+ *   - large header area (optional)
+ * search area
+ */
 
-// Also because I can't pass additional props to the navigator creation https://react-navigation.canny.io/feature-requests/p/allow-passing-custom-stackoptions-to-createstacknavigator
-// The distinction between large and small header would have to be done through different classes.
+/*
+ * Also because I can't pass additional props to the navigator creation https://react-navigation.canny.io/feature-requests/p/allow-passing-custom-stackoptions-to-createstacknavigator
+ * The distinction between large and small header would have to be done through different classes.
+ */
