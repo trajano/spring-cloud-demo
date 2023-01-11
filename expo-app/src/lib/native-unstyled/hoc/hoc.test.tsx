@@ -123,7 +123,7 @@ describe("hoc", () => {
     const { toJSON } = render(<MyComponent />);
     const { toJSON: expectedToJSON } = render(<Text>simple string</Text>);
     expect(toJSON()).toStrictEqual(expectedToJSON());
-    expect(callback).toBeCalledTimes(1);
+    expect(callback).toHaveBeenCalledTimes(1);
     expect(callback.mock.calls[0][0]).toBeTruthy();
   });
 
@@ -140,7 +140,7 @@ describe("hoc", () => {
     const { toJSON } = render(<MyComponent />);
     const { toJSON: expectedToJSON } = render(<Text>simple string</Text>);
     expect(toJSON()).toStrictEqual(expectedToJSON());
-    expect(callback).toBeCalledTimes(1);
+    expect(callback).toHaveBeenCalledTimes(1);
     expect(callback.mock.calls[0][0]).toBeTruthy();
   });
 });

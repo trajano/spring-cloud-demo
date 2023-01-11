@@ -1,8 +1,10 @@
-import { act, render } from "@testing-library/react-native";
+import "@testing-library/jest-native/extend-expect";
+import { act, render, screen } from "@testing-library/react-native";
 import { View } from "react-native";
 
 import { useFonts } from "./Fonts";
 import { ThemeProvider } from "./ThemeContext";
+
 describe("replaceWithNativeFont", () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -13,12 +15,12 @@ describe("replaceWithNativeFont", () => {
       const style = replaceWithNativeFont({});
       return <View testID="blah" style={style} />;
     }
-    const { getByTestId, unmount } = render(
+    const { unmount } = render(
       <ThemeProvider>
         <MyComponent />
       </ThemeProvider>
     );
-    expect(getByTestId("blah").props.style).toBeFalsy();
+    expect(screen.getByTestId("blah")).not.toHaveProp("style");
     unmount();
   });
 
@@ -31,12 +33,12 @@ describe("replaceWithNativeFont", () => {
       });
       return <View testID="blah" style={style} />;
     }
-    const { getByTestId, unmount } = render(
+    const { unmount } = render(
       <ThemeProvider>
         <MyComponent />
       </ThemeProvider>
     );
-    expect(getByTestId("blah").props.style).toStrictEqual({
+    expect(screen.getByTestId("blah").props.style).toStrictEqual({
       fontFamily: "something",
       fontWeight: "300",
     });
@@ -52,12 +54,12 @@ describe("replaceWithNativeFont", () => {
       );
       return <View testID="blah" style={style} />;
     }
-    const { getByTestId, unmount } = render(
+    const { unmount } = render(
       <ThemeProvider>
         <MyComponent />
       </ThemeProvider>
     );
-    expect(getByTestId("blah").props.style).toStrictEqual({
+    expect(screen.getByTestId("blah").props.style).toStrictEqual({
       color: "pink",
       fontFamily: "something",
       fontWeight: "300",
@@ -74,12 +76,12 @@ describe("replaceWithNativeFont", () => {
       );
       return <View testID="blah" style={style} />;
     }
-    const { getByTestId, unmount } = render(
+    const { unmount } = render(
       <ThemeProvider>
         <MyComponent />
       </ThemeProvider>
     );
-    expect(getByTestId("blah").props.style).toStrictEqual({
+    expect(screen.getByTestId("blah").props.style).toStrictEqual({
       color: "yellow",
       fontFamily: "something",
       fontWeight: "300",
@@ -116,7 +118,7 @@ describe("replaceWithNativeFont", () => {
       return <View testID="blah" style={style} />;
     }
 
-    const { getByTestId, unmount } = render(
+    const { unmount } = render(
       <ThemeProvider fontModules={[mockFont]}>
         <MyComponent />
       </ThemeProvider>
@@ -124,7 +126,7 @@ describe("replaceWithNativeFont", () => {
     act(() => {
       jest.runAllTicks();
     });
-    expect(getByTestId("blah").props.style).toStrictEqual({
+    expect(screen.getByTestId("blah").props.style).toStrictEqual({
       fontFamily: "IBMPlexSans_300Light",
     });
     unmount();

@@ -1,4 +1,5 @@
-import { render, waitFor } from "@testing-library/react-native";
+import "@testing-library/jest-native/extend-expect";
+import { render, screen, waitFor } from "@testing-library/react-native";
 import { Text as RNText, View as RNView } from "react-native";
 
 import { ThemeProvider } from "./ThemeContext";
@@ -6,20 +7,20 @@ import { Text, View } from "./components";
 import { defaultLightColorSchemeColors } from "./defaultColorSchemes/defaultLightColorSchemeColors";
 
 it("should i18n Text with no context", () => {
-  const { getByTestId, unmount } = render(
+  const { unmount } = render(
     <Text _t="key" testID="eval" _tp={{ prop: "val", prop2: "val" }} />
   );
-  expect(getByTestId("eval").children).toHaveLength(0);
+  expect(screen.getByTestId("eval")).toHaveTextContent("");
   unmount();
 });
 
 it("should i18n Text", () => {
-  const { getByTestId, unmount } = render(
+  const { unmount } = render(
     <ThemeProvider translations={{ en: { key: "hello" } }}>
       <Text testID="eval" _t="key" _tp={{ prop: "val", prop2: "val" }} />
     </ThemeProvider>
   );
-  expect(getByTestId("eval").children).toStrictEqual(["hello"]);
+  expect(screen.getByTestId("eval")).toHaveTextContent("hello");
   unmount();
 });
 
@@ -43,7 +44,7 @@ it("should i18n Text and preseve other styles", () => {
     IBMPlexSans_700Bold: 13,
     IBMPlexSans_700Bold_Italic: 14,
   };
-  const { getByTestId, toJSON, unmount } = render(
+  const { toJSON, unmount } = render(
     <ThemeProvider
       fontModules={[mockFont]}
       translations={{ en: { key: "hello" } }}
@@ -68,7 +69,7 @@ it("should i18n Text and preseve other styles", () => {
     </RNText>
   );
 
-  expect(getByTestId("eval").children).toStrictEqual(["hello"]);
+  expect(screen.getByTestId("eval")).toHaveTextContent("hello");
   expect(toJSON()).toStrictEqual(toExpectedJson());
   unmount();
 });
@@ -120,7 +121,7 @@ it("should i18n Text and preseve other styles and remap font", async () => {
     </RNText>
   );
 
-  expect(getByTestId("eval").children).toStrictEqual(["hello"]);
+  expect(screen.getByTestId("eval")).toHaveTextContent("hello");
   await waitFor(() => expect(toJSON()).toStrictEqual(toExpectedJson()));
   unmount();
 });
@@ -145,7 +146,7 @@ it("should i18n Text and preseve other styles and remap font while wrapped in a 
     IBMPlexSans_700Bold: 13,
     IBMPlexSans_700Bold_Italic: 14,
   };
-  const { getByTestId, toJSON, unmount } = render(
+  const { toJSON, unmount } = render(
     <ThemeProvider
       fontModules={[mockFont]}
       translations={{ en: { key: "hello" } }}
@@ -174,7 +175,7 @@ it("should i18n Text and preseve other styles and remap font while wrapped in a 
     </RNView>
   );
 
-  expect(getByTestId("eval").children).toStrictEqual(["hello"]);
+  expect(screen.getByTestId("eval")).toHaveTextContent("hello");
   await waitFor(() => expect(toJSON()).toStrictEqual(toExpectedJson()));
   unmount();
 });

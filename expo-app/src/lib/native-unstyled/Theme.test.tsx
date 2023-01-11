@@ -1,10 +1,15 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import "@testing-library/jest-native/extend-expect";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor
+} from "@testing-library/react-native";
 import { Text as RNText, View as RNView, ViewProps } from "react-native";
-
-import { ThemeProvider } from "./ThemeContext";
 import { Text, TextInput, View } from "./components";
 import { defaultDarkColorSchemeColors } from "./defaultColorSchemes/defaultDarkColorSchemeColors";
 import { withStyled } from "./hoc";
+import { ThemeProvider } from "./ThemeContext";
 
 it("should i18n Text and preseve other styles and remap font", async () => {
   const mockFont = {
@@ -26,7 +31,7 @@ it("should i18n Text and preseve other styles and remap font", async () => {
     IBMPlexSans_700Bold: 13,
     IBMPlexSans_700Bold_Italic: 14,
   };
-  const { getByTestId, toJSON, unmount } = render(
+  const { toJSON, unmount } = render(
     <ThemeProvider
       defaultColorScheme="dark"
       colorScheme="dark"
@@ -56,7 +61,7 @@ it("should i18n Text and preseve other styles and remap font", async () => {
   );
 
   await waitFor(() => expect(toJSON()).toStrictEqual(toExpectedJson()));
-  expect(getByTestId("eval").children).toStrictEqual(["hello"]);
+  expect(screen.getByTestId("eval")).toHaveTextContent("hello");
   unmount();
 });
 
@@ -80,7 +85,7 @@ it("should i18n Text and preserve other styles and remap font while wrapped in a
     IBMPlexSans_700Bold: 13,
     IBMPlexSans_700Bold_Italic: 14,
   };
-  const { getByTestId, toJSON, unmount } = render(
+  const { toJSON, unmount } = render(
     <ThemeProvider
       defaultColorScheme="dark"
       colorScheme="dark"
@@ -112,43 +117,43 @@ it("should i18n Text and preserve other styles and remap font while wrapped in a
   );
 
   await waitFor(() => expect(toJSON()).toStrictEqual(toExpectedJson()));
-  expect(getByTestId("eval").children).toStrictEqual(["hello"]);
+  expect(screen.getByTestId("eval")).toHaveTextContent("hello");
   unmount();
 });
 
 it("should provide a TextInput that is configured to match theme", async () => {
-  const { getByTestId, unmount } = render(
+  const { unmount } = render(
     <ThemeProvider defaultColorScheme="dark" colorScheme="dark">
       <TextInput testID="input" />
     </ThemeProvider>
   );
   await waitFor(() =>
-    expect(getByTestId("input").props.style).toStrictEqual({
+    expect(screen.getByTestId("input").props.style).toStrictEqual({
       color: defaultDarkColorSchemeColors.input.default[0],
       backgroundColor: defaultDarkColorSchemeColors.input.default[1],
       borderColor: defaultDarkColorSchemeColors.input.border.default,
     })
   );
-  expect(getByTestId("input").props.selectionColor).toStrictEqual(
+  expect(screen.getByTestId("input").props.selectionColor).toStrictEqual(
     defaultDarkColorSchemeColors.input.selection
   );
-  expect(getByTestId("input").props.placeholderTextColor).toStrictEqual(
+  expect(screen.getByTestId("input").props.placeholderTextColor).toStrictEqual(
     defaultDarkColorSchemeColors.input.placeholderText.default
   );
-  expect(getByTestId("input").props.onBlur).toBeTruthy();
-  expect(getByTestId("input").props.onFocus).toBeTruthy();
+  expect(screen.getByTestId("input").props.onBlur).toBeTruthy();
+  expect(screen.getByTestId("input").props.onFocus).toBeTruthy();
 
-  fireEvent(getByTestId("input"), "focus");
+  fireEvent(screen.getByTestId("input"), "focus");
   await waitFor(() =>
-    expect(getByTestId("input").props.style).toStrictEqual({
+    expect(screen.getByTestId("input").props.style).toStrictEqual({
       color: defaultDarkColorSchemeColors.input.enabled[0],
       backgroundColor: defaultDarkColorSchemeColors.input.enabled[1],
       borderColor: defaultDarkColorSchemeColors.input.border.enabled,
     })
   );
-  fireEvent(getByTestId("input"), "blur");
+  fireEvent(screen.getByTestId("input"), "blur");
   await waitFor(() =>
-    expect(getByTestId("input").props.style).toStrictEqual({
+    expect(screen.getByTestId("input").props.style).toStrictEqual({
       color: defaultDarkColorSchemeColors.input.default[0],
       backgroundColor: defaultDarkColorSchemeColors.input.default[1],
       borderColor: defaultDarkColorSchemeColors.input.border.default,
@@ -158,38 +163,38 @@ it("should provide a TextInput that is configured to match theme", async () => {
 });
 
 it("should provide a disabled TextInput that is configured to match theme", async () => {
-  const { getByTestId, unmount } = render(
+  const { unmount } = render(
     <ThemeProvider defaultColorScheme="dark" colorScheme="dark">
       <TextInput testID="input" editable={false} />
     </ThemeProvider>
   );
   await waitFor(() =>
-    expect(getByTestId("input").props.style).toStrictEqual({
+    expect(screen.getByTestId("input").props.style).toStrictEqual({
       color: defaultDarkColorSchemeColors.input.disabled[0],
       backgroundColor: defaultDarkColorSchemeColors.input.disabled[1],
       borderColor: defaultDarkColorSchemeColors.input.border.disabled,
     })
   );
-  expect(getByTestId("input").props.selectionColor).toStrictEqual(
+  expect(screen.getByTestId("input").props.selectionColor).toStrictEqual(
     defaultDarkColorSchemeColors.input.selection
   );
-  expect(getByTestId("input").props.placeholderTextColor).toStrictEqual(
+  expect(screen.getByTestId("input").props.placeholderTextColor).toStrictEqual(
     defaultDarkColorSchemeColors.input.placeholderText.disabled
   );
-  expect(getByTestId("input").props.onBlur).toBeTruthy();
-  expect(getByTestId("input").props.onFocus).toBeTruthy();
+  expect(screen.getByTestId("input").props.onBlur).toBeTruthy();
+  expect(screen.getByTestId("input").props.onFocus).toBeTruthy();
 
-  fireEvent(getByTestId("input"), "focus");
+  fireEvent(screen.getByTestId("input"), "focus");
   await waitFor(() =>
-    expect(getByTestId("input").props.style).toStrictEqual({
+    expect(screen.getByTestId("input").props.style).toStrictEqual({
       color: defaultDarkColorSchemeColors.input.disabled[0],
       backgroundColor: defaultDarkColorSchemeColors.input.disabled[1],
       borderColor: defaultDarkColorSchemeColors.input.border.disabled,
     })
   );
-  fireEvent(getByTestId("input"), "blur");
+  fireEvent(screen.getByTestId("input"), "blur");
   await waitFor(() =>
-    expect(getByTestId("input").props.style).toStrictEqual({
+    expect(screen.getByTestId("input").props.style).toStrictEqual({
       color: defaultDarkColorSchemeColors.input.disabled[0],
       backgroundColor: defaultDarkColorSchemeColors.input.disabled[1],
       borderColor: defaultDarkColorSchemeColors.input.border.disabled,

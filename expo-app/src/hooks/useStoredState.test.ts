@@ -59,7 +59,6 @@ it("should work restore data from storage using value", async () => {
   let [state, setState] = result.current;
   expect(state).toBe("bar");
   // at this point the set state is with "XXX"
-  await act(async () => {});
   // now we wait for the render to update
   await waitFor(() => result.current[0] === "XXX");
 
@@ -86,8 +85,6 @@ it("should work restore data from storage using function initializer", async () 
   );
   const [state] = result.current;
   expect(state).toBe("bar");
-  // at this point the set state is with "XXX"
-  await act(async () => {});
   // now we wait for the render to update
   await waitFor(() => result.current[0] === "XXX");
 
@@ -97,8 +94,6 @@ it("should work restore data from storage using function initializer", async () 
 it("should work with null initial state", async () => {
   const { result, unmount } = renderHook(() => useStoredState("foo", null));
   const [state] = result.current;
-  expect(state).toBeNull();
-  await act(async () => {});
   expect(state).toBeNull();
   expect(await AsyncStorage.getItem("foo")).toBeNull();
   unmount();
@@ -111,8 +106,6 @@ it("should work with null initial state and load stored value", async () => {
   );
   const [state] = result.current;
   expect(state).toBeNull();
-  // at this point the set state is with "XXX"
-  await act(async () => {});
   // now we wait for the render to update
   await waitFor(() => result.current[0] === "XXX");
 
@@ -126,8 +119,6 @@ it("should allow clearing an item", async () => {
   );
   let [state, setState] = result.current;
   expect(state).toBe("bar");
-  // at this point the set state is with "XXX"
-  await act(async () => {});
   // now we wait for the render to update
   await waitFor(() => result.current[0] === "XXX");
 

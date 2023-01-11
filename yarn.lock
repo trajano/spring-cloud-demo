@@ -4315,17 +4315,6 @@
     lodash "^4.17.15"
     redent "^3.0.0"
 
-"@testing-library/jest-native@^5.4.0":
-  version "5.4.0"
-  resolved "https://registry.npmjs.org/@testing-library/jest-native/-/jest-native-5.4.0.tgz#d294d82f9780acb0be248a4cf261280997d6b213"
-  integrity sha512-6zoWxj1aDV/eRiGcrKX4bgxc7cIbK6iWyWWT6zzGCEacpcCfiIdhbQs+qbL+GzSmMufltzojCvka7X76JhooEg==
-  dependencies:
-    chalk "^4.1.2"
-    jest-diff "^29.0.1"
-    jest-matcher-utils "^29.0.1"
-    pretty-format "^29.0.3"
-    redent "^3.0.0"
-
 "@testing-library/jest-native@^5.4.1":
   version "5.4.1"
   resolved "https://registry.npmjs.org/@testing-library/jest-native/-/jest-native-5.4.1.tgz#88ae27943996551970de5d722525200f9f7cbc96"
@@ -9479,6 +9468,13 @@ eslint-plugin-jest@^27.2.0:
   dependencies:
     "@typescript-eslint/utils" "^5.10.0"
 
+eslint-plugin-jest@^27.2.1:
+  version "27.2.1"
+  resolved "https://registry.npmjs.org/eslint-plugin-jest/-/eslint-plugin-jest-27.2.1.tgz#b85b4adf41c682ea29f1f01c8b11ccc39b5c672c"
+  integrity sha512-l067Uxx7ZT8cO9NJuf+eJHvt6bqJyz2Z29wykyEdz/OtmcELQl2MQGQLX8J94O1cSJWAwUSEvCjwjA7KEK3Hmg==
+  dependencies:
+    "@typescript-eslint/utils" "^5.10.0"
+
 eslint-plugin-jsx-a11y@^6.5.1:
   version "6.6.1"
   resolved "https://registry.npmjs.org/eslint-plugin-jsx-a11y/-/eslint-plugin-jsx-a11y-6.6.1.tgz#93736fc91b83fdc38cc8d115deedfc3091aef1ff"
@@ -9556,7 +9552,7 @@ eslint-plugin-react@^7.27.1, eslint-plugin-react@^7.30.0, eslint-plugin-react@^7
     semver "^6.3.0"
     string.prototype.matchall "^4.0.8"
 
-eslint-plugin-testing-library@^5.0.1:
+eslint-plugin-testing-library@^5.0.1, eslint-plugin-testing-library@^5.9.1:
   version "5.9.1"
   resolved "https://registry.npmjs.org/eslint-plugin-testing-library/-/eslint-plugin-testing-library-5.9.1.tgz#12e4bd34c48683ee98af4df2e3318ec9f51dcf8a"
   integrity sha512-6BQp3tmb79jLLasPHJmy8DnxREe+2Pgf7L+7o09TSWPfdqqtQfRZmZNetr5mOs3yqZk/MRNxpN3RUpJe0wB4LQ==
