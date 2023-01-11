@@ -98,7 +98,7 @@ export default function TabTwoScreen({
             {
               name: action.eventName,
               event: action.event,
-              key: action.eventName + "-" + Date.now(),
+              key: `${action.eventName}-${Date.now()}`,
             },
           ],
     []

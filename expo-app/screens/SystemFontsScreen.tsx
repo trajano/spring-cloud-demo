@@ -61,7 +61,7 @@ const SpecimenView = memo(
 export function hasNoVariantSuffix(fontFamily: string): boolean {
   return (
     variantSuffixes
-      .flatMap((suffix) => ["_" + suffix, "-" + suffix])
+      .flatMap((suffix) => [`_${suffix}`, `-${suffix}`])
       .findIndex(
         (suffix) => fontFamily.toLowerCase().indexOf(suffix.toLowerCase()) >= 0
       ) === -1
@@ -77,8 +77,8 @@ export function SystemFontsScreen(): ReactElement<
       { fontFamily, specimen: specimenText },
       ...variantSuffixes
         .flatMap((suffix) => [
-          fontFamily + "_" + suffix,
-          fontFamily + "-" + suffix,
+          `${fontFamily}_${suffix}`,
+          `${fontFamily}-${suffix}`,
         ])
         .filter(
           (f) =>
@@ -89,7 +89,7 @@ export function SystemFontsScreen(): ReactElement<
         .map((f) => ({
           key: f,
           fontFamily: f,
-          specimen: specimenText + " " + f,
+          specimen: `${specimenText} ${f}`,
         })),
     ];
   }

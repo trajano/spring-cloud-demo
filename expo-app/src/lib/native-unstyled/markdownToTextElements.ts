@@ -74,7 +74,7 @@ export function inlineMarkdownToTextElements(
       // verify
       stackPtr = stackPtr.parent!;
     } else if (__DEV__ && token.type !== "text") {
-      throw new Error("Unexpected token: " + JSON.stringify(token));
+      throw new Error(`Unexpected token: ${JSON.stringify(token)}`);
     }
   }
 

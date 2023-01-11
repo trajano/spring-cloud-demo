@@ -25,7 +25,7 @@ const isHermes = () => !!(global as any).HermesInternal;
 const isRemoteDebug = () => !(global as any).nativeCallSyncHook;
 function tokenReplacer(this: any, key: string, value: any): any {
   if ((key === "key" || key === "hash") && typeof value === "string") {
-    return "…" + value.slice(-5);
+    return `…${value.slice(-5)}`;
   } else {
     return value;
   }
@@ -77,7 +77,7 @@ export function EnvironmentScreen(): ReactElement<
       ],
     },
     {
-      key: "expo-constants.expoConfig." + Platform.OS,
+      key: `expo-constants.expoConfig.${Platform.OS}`,
       data: [(expoConfig as unknown as Record<string, unknown>)[Platform.OS]],
     },
     {
@@ -97,7 +97,7 @@ export function EnvironmentScreen(): ReactElement<
       data: manifest2?.assets ?? [],
     },
     {
-      key: "expo-constants.manifest2." + Platform.OS,
+      key: `expo-constants.manifest2.${Platform.OS}`,
       data: [(manifest2 as unknown as Record<string, unknown>)[Platform.OS]],
     },
     {

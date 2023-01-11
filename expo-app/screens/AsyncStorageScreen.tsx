@@ -18,7 +18,7 @@ function tokenReplacer(this: any, key: string, value: any): any {
     (key === "access_token" || key === "refresh_token") &&
     typeof value === "string"
   ) {
-    return "…" + value.slice(-5);
+    return `…${value.slice(-5)}`;
   } else {
     return value;
   }

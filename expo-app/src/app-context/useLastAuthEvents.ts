@@ -28,7 +28,7 @@ export function useLastAuthEvents(
     },
     initialAuthEvents.map((event, index) => ({
       ...event,
-      key: "initial." + index,
+      key: `initial.${index}`,
       on: new Date(),
     }))
   );

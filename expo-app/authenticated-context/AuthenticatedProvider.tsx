@@ -73,7 +73,7 @@ export function AuthenticatedProvider({
       // when the internet is broken then the verification will fail
       // maybe use a reducer here?
       try {
-        return await jwtVerify(accessToken, baseUrl + "jwks", issuer, clientId);
+        return await jwtVerify(accessToken, `${baseUrl}jwks`, issuer, clientId);
       } catch (_e: unknown) {
         return Promise.resolve(undefined);
       }

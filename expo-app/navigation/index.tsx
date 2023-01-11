@@ -36,13 +36,10 @@ function cleanAuthEvent({
   authorization: _authorization,
   ...rest
 }: AuthEvent & Record<string, any>): string {
-  return (
-    `${AuthState[authState]} [${type}] ` +
-    JSON.stringify({
-      accessToken: accessToken?.slice(-5),
-      ...rest,
-    })
-  );
+  return `${AuthState[authState]} [${type}] ${JSON.stringify({
+    accessToken: accessToken?.slice(-5),
+    ...rest,
+  })}`;
 }
 export default function Navigation() {
   const auth = useAuth();
@@ -196,9 +193,7 @@ function BottomTabNavigator() {
     <BottomTab.Navigator
       initialRouteName="MainDrawer"
       shifting
-      barStyle={{
-        height: 64,
-      }}
+      barStyle={styles.bar}
       screenOptions={{}}
     >
       <BottomTab.Screen
@@ -240,4 +235,7 @@ function TabBarIcon(props: {
 }
 const styles = StyleSheet.create({
   TabBarIcon: { marginBottom: -3 },
+  bar: {
+    height: 64,
+  },
 });

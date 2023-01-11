@@ -43,7 +43,7 @@ it("should work like normal with function", async () => {
   await waitForNextUpdate();
   expect(await AsyncStorage.getItem("foo")).toBe("bar");
   act(() => {
-    setState((prev) => prev + "foo");
+    setState((prev) => `${prev}foo`);
   });
   [state] = result.current;
   expect(state).toBe("barfoo");
@@ -71,7 +71,7 @@ it("should work restore data from storage using value", async () => {
   expect(await AsyncStorage.getItem("foo")).toBe("foo");
 
   // now update it using the functional version
-  act(() => setState((prev) => "BLAH" + prev));
+  act(() => setState((prev) => `BLAH${prev}`));
   [state, setState] = result.current;
   expect(state).toBe("BLAHfoo");
   expect(await AsyncStorage.getItem("foo")).toBe("BLAHfoo");

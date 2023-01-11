@@ -30,7 +30,7 @@ import {
 
 function tokenReplacer(this: any, key: string, value: any): any {
   if ((key === "key" || key === "hash") && typeof value === "string") {
-    return "…" + value.slice(-5);
+    return `…${value.slice(-5)}`;
   } else if (key === "stacktrace" && Array.isArray(value)) {
     return undefined;
   } else {
