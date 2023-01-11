@@ -5,6 +5,7 @@
 export { withI18n } from "./withI18n";
 export { withReplacedWithNativeFonts } from "./withReplacedWithNativeFonts";
 export { withStyled } from "./withStyled";
+export { withStyledScrollView } from "./withStyledScrollView";
 export { withStyledSwitch } from "./withStyledSwitch";
 export { withStyledText } from "./withStyledText";
 export { withStyledTextInput } from "./withStyledTextInput";

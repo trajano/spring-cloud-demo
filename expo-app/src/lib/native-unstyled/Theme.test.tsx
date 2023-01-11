@@ -1,9 +1,10 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { Text as RNText, View as RNView } from "react-native";
+import { Text as RNText, View as RNView, ViewProps } from "react-native";
 
 import { ThemeProvider } from "./ThemeContext";
 import { Text, TextInput, View } from "./components";
 import { defaultDarkColorSchemeColors } from "./defaultColorSchemes/defaultDarkColorSchemeColors";
+import { withStyled } from "./hoc";
 
 it("should i18n Text and preseve other styles and remap font", async () => {
   const mockFont = {
@@ -195,4 +196,33 @@ it("should provide a disabled TextInput that is configured to match theme", asyn
     })
   );
   unmount();
+});
+
+it("should support a custom component", async () => {
+  function MyCustomComponent({ ...rest }: ViewProps) {
+    return (
+      <RNView {...rest}>
+        <RNText>My Text</RNText>
+      </RNView>
+    );
+  }
+  const MyWrapped = withStyled(MyCustomComponent);
+
+  const { toJSON } = render(
+    <ThemeProvider defaultColorScheme="dark" colorScheme="dark">
+      <MyWrapped testID="input" backgroundColor="red" />
+    </ThemeProvider>
+  );
+  const { toJSON: toExpectedJson } = render(
+    <ThemeProvider defaultColorScheme="dark" colorScheme="dark">
+      <MyCustomComponent testID="input" style={{ backgroundColor: "red" }} />
+    </ThemeProvider>
+  );
+  const { toJSON: toExpectedNativeJson } = render(
+    <RNView testID="input" style={{ backgroundColor: "red" }}>
+      <RNText>My Text</RNText>
+    </RNView>
+  );
+  await waitFor(() => expect(toJSON()).toStrictEqual(toExpectedJson()));
+  await waitFor(() => expect(toJSON()).toStrictEqual(toExpectedNativeJson()));
 });

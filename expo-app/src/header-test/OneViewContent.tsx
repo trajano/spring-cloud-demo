@@ -7,9 +7,9 @@ import {
 } from "@react-navigation/native";
 import Constants from "expo-constants";
 import { memo, useCallback, useState } from "react";
-import { Button, StatusBar, useWindowDimensions } from "react-native";
+import { Button } from "react-native";
 
-import { View, Text } from "../lib/native-unstyled";
+import { Text, View } from "../lib/native-unstyled";
 import { HeaderDxStackParamList } from "./HeaderDxStackNavigation";
 import { NativeStackParamList } from "./NativeStackNavigation";
 

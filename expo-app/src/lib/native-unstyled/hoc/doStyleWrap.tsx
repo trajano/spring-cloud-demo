@@ -16,7 +16,7 @@ import { propsToStyleSheet, withoutStyledProps } from "../propsToStyleSheet";
  * @param stripStyledPropsToWrappedComponent
  * @returns
  */
-export function doWrap<
+export function doStyleWrap<
   P extends Q & StyleProps & TextStyleProps,
   Q extends { style?: StyleProp<any> },
   T

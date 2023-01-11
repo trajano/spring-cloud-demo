@@ -7,32 +7,26 @@ import {
   Ref,
   RefAttributes,
 } from "react";
-import { StyleProp } from "react-native";
+import { ScrollViewProps } from "react-native";
 
 import { StyleProps } from "../StyleProps";
 import { useTheming } from "../ThemeContext";
 import { doStyleWrap } from "./doStyleWrap";
 import { hocDisplayName } from "./hocDisplayName";
-
-export type WithStyledProps = {
-  /**
-   * Specifies that the style props are stripped out before calling the component.
-   * This is disabled by default on production for performance, but enabled on development.
-   */
-  stripStyledPropsToWrappedComponent?: boolean;
-};
+import { WithStyledProps } from "./withStyled";
 
 /**
- * This wraps a view component so the styles are exposed.
+ * This wraps a ScrollView component so the styles are exposed.
  * @param Component component to wrap
  * @param options options for the HoC building
  * @typeParam Q the props for the wrapped component
  * @typeParam O options for the HoC building
  * @returns A named exotic componentwith P props that accepts a ref
  */
-export function withStyled<
+
+export function withStyledScrollView<
   P extends Q & StyleProps,
-  Q extends { style?: StyleProp<any> },
+  Q extends ScrollViewProps,
   T
 >(
   Component: ComponentType<Q>,
@@ -42,6 +36,7 @@ export function withStyled<
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
   function useWrapped(props: P, ref: Ref<T>): ReactElement<Q> {
     const { colors } = useTheming();
+
     return doStyleWrap(
       Component,
       props,
@@ -50,6 +45,6 @@ export function withStyled<
       !!stripStyledPropsToWrappedComponent
     );
   }
-  useWrapped.displayName = hocDisplayName("withStyled", Component);
+  useWrapped.displayName = hocDisplayName("withStyledScrollView", Component);
   return forwardRef(useWrapped);
 }

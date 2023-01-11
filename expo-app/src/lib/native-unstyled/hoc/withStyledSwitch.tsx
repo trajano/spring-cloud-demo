@@ -16,7 +16,7 @@ import { StyleProps } from "../StyleProps";
 import { useTheming } from "../ThemeContext";
 import { lookupColor } from "../lookupColor";
 import { InputState } from "./InputState";
-import { doWrap } from "./doWrap";
+import { doStyleWrap } from "./doStyleWrap";
 import { hocDisplayName } from "./hocDisplayName";
 import { WithStyledProps } from "./withStyled";
 
@@ -72,7 +72,7 @@ export function withStyledSwitch<
 
     props.ios_backgroundColor = props.ios_backgroundColor ?? "transparent";
 
-    return doWrap(
+    return doStyleWrap(
       Component,
       { disabled, value, onValueChange: augmentedOnValueChange, ...props } as P,
       ref,

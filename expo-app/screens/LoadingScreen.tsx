@@ -1,8 +1,8 @@
+import { BASE_URL } from "@env";
 import { AuthState, useAuth } from "@trajano/spring-docker-auth-context";
 import { StatusBar } from "expo-status-bar";
 import { checkForUpdateAsync } from "expo-updates";
 import AnimatedLottieView from "lottie-react-native";
-import { BASE_URL } from "@env";
 import { useCallback, useEffect, useState } from "react";
 import { useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -40,9 +40,7 @@ function AssetsLoaded({
         {backendReachable ? "Connected" : "Disconnected"}:{" "}
         {endpointConfiguration?.pingEndpoint}
       </Text>
-      <Text>
-        {BASE_URL}
-      </Text>
+      <Text>{BASE_URL}</Text>
     </View>
   );
 }

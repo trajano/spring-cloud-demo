@@ -1,5 +1,5 @@
-import pickBy from "lodash/pickBy";
 import { BASE_URL } from "@env";
+import pickBy from "lodash/pickBy";
 /**
  * tests for understanding of standard library
  */

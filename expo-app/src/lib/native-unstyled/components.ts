@@ -27,6 +27,7 @@ import {
   withI18n,
   withReplacedWithNativeFonts,
   withStyled,
+  withStyledScrollView,
   withStyledSwitch,
   withStyledText,
   withStyledTextInput,
@@ -34,13 +35,13 @@ import {
 } from "./hoc";
 
 export const ActivityIndicator = withStyled(withI18n(RNActivityIndicator));
-export const FlatList = withStyled(withI18n(RNFlatList));
+export const FlatList = withStyledScrollView(withI18n(RNFlatList));
 export const Image = withStyled(withI18n(RNImage));
 export const Modal = withStyled(withI18n(RNModal));
 export const Pressable = withStyled(RNPressable);
 export const RefreshControl = withStyled(withI18n(RNRefreshControl));
-export const ScrollView = withStyled(withI18n(RNScrollView));
-export const SectionList = withStyled(withI18n(RNSectionList));
+export const ScrollView = withStyledScrollView(withI18n(RNScrollView));
+export const SectionList = withStyledScrollView(withI18n(RNSectionList));
 
 /**
  * Expo BlurView

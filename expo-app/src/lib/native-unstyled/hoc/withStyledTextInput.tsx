@@ -17,7 +17,7 @@ import { TextStyleProps } from "../TextStyleProps";
 import { useTheming } from "../ThemeContext";
 import { lookupColor } from "../lookupColor";
 import type { InputState } from "./InputState";
-import { doWrap } from "./doWrap";
+import { doStyleWrap } from "./doStyleWrap";
 import { hocDisplayName } from "./hocDisplayName";
 import { WithStyledProps } from "./withStyled";
 
@@ -82,7 +82,7 @@ export function withStyledTextInput<
     props.color =
       props.color ?? lookupColor(colors.input[inputState][0], colors);
 
-    return doWrap(
+    return doStyleWrap(
       Component,
       {
         editable,

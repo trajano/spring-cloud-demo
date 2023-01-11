@@ -12,7 +12,7 @@ import { StyleProp } from "react-native";
 import { StyleProps } from "../StyleProps";
 import { TextStyleProps } from "../TextStyleProps";
 import { useTheming } from "../ThemeContext";
-import { doWrap } from "./doWrap";
+import { doStyleWrap } from "./doStyleWrap";
 import { hocDisplayName } from "./hocDisplayName";
 import { WithStyledProps } from "./withStyled";
 
@@ -37,7 +37,7 @@ export function withStyledText<
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
   function useWrapped(props: P, ref: Ref<T>): ReactElement<Q> {
     const { colors } = useTheming();
-    return doWrap(
+    return doStyleWrap(
       Component,
       props,
       ref,

@@ -76,7 +76,7 @@ export function HeaderDxLarge({
     forRouteForHeader(route, layout);
   }, []);
 
-  const headerHeight = deviceType == DeviceType.TABLET ? 50 : 44;
+  const headerHeight = deviceType === DeviceType.TABLET ? 50 : 44;
   const opacity = positionY.interpolate({
     inputRange: [-100, 0, 100],
     outputRange: [0.5, 0.75, 0.5],

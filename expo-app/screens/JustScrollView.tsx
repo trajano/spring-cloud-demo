@@ -9,7 +9,7 @@ import {
   startOfSecond,
 } from "date-fns";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Animated, ColorValue, View } from "react-native";
+import { Animated, ColorValue, StyleSheet, View } from "react-native";
 import { Button } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -81,7 +81,7 @@ export function JustScrollView() {
   return (
     <Animated.ScrollView
       contentInset={safeAreaInsets}
-      contentContainerStyle={{ padding: 16 }}
+      contentContainerStyle={styles.contentContainerStyle}
       refreshControl={refreshControl}
     >
       <Text backgroundColor={accessTokenBackgroundColor}>
@@ -138,3 +138,7 @@ export function JustScrollView() {
     </Animated.ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  contentContainerStyle: { padding: 16 },
+});
