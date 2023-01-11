@@ -104,10 +104,10 @@ export function useFonts(
   const isMounted = useMounted();
 
   const replaceWithNativeFont = useCallback(
-    function replaceWithNativeFont(
+    (
       style: TextStyle = {},
       defaultTextStyle: TextStyle = {}
-    ): TextStyle | undefined {
+    ): TextStyle | undefined => {
       if (loadedFonts.loaded) {
         return replaceStyleWithNativeFont(
           style,

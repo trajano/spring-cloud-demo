@@ -42,25 +42,25 @@ export function AsyncStorageScreen() {
     setSections(await storageToSections());
   });
   useFocusEffect(
-    useCallback(function update() {
+    useCallback(() => {
       (async () => {
         setSections(await storageToSections());
       })();
     }, [])
   );
 
-  const renderItem = useCallback(function renderItem({
-    item,
-  }: SectionListRenderItemInfo<string, AsyncStorageSection>) {
-    try {
-      const json = JSON.stringify(JSON.parse(item), tokenReplacer, 2);
-      return <Text>{json}</Text>;
-    } catch (_e: unknown) {
-      // assume it is not parsable as JSON show the string as is
-      return <Text>{item}</Text>;
-    }
-  },
-  []);
+  const renderItem = useCallback(
+    ({ item }: SectionListRenderItemInfo<string, AsyncStorageSection>) => {
+      try {
+        const json = JSON.stringify(JSON.parse(item), tokenReplacer, 2);
+        return <Text>{json}</Text>;
+      } catch (_e: unknown) {
+        // assume it is not parsable as JSON show the string as is
+        return <Text>{item}</Text>;
+      }
+    },
+    []
+  );
 
   const renderSectionHeader = useCallback(
     ({

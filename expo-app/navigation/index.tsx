@@ -50,9 +50,7 @@ export default function Navigation() {
   const [ready, setReady] = useState(false);
   const [initialState, setInitialState] = useState<NavigationState>();
 
-  const authEventHandler = useCallback(function authEventHandler(
-    event: AuthEvent
-  ) {
+  const authEventHandler = useCallback((event: AuthEvent) => {
     console.log(cleanAuthEvent(event));
 
     if (event.type === "Unauthenticated") {
@@ -60,8 +58,7 @@ export default function Navigation() {
     } else if (event.type === "Authenticated") {
       setAuthNavigationState(AuthState.AUTHENTICATED);
     }
-  },
-  []);
+  }, []);
 
   useEffect(() => {
     const restoreState = async () => {

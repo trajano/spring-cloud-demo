@@ -45,6 +45,8 @@
     },
     "rules": {
       "react/react-in-jsx-scope": "off",
+      "prefer-arrow-callback": "error",
+      "yoda": "error",
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {

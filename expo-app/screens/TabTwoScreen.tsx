@@ -179,7 +179,7 @@ export default function TabTwoScreen({
   );
 
   const onLayout = useCallback(
-    function onLayout(ev: LayoutChangeEvent) {
+    (ev: LayoutChangeEvent) => {
       setScrollViewLayout(ev.nativeEvent.layout);
     },
     [setScrollViewLayout]

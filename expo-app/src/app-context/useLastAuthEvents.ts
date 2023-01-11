@@ -9,10 +9,10 @@ export function useLastAuthEvents(
 ) {
   const { initialAuthEvents } = useAuth();
   return useReducer(
-    function lastAuthEventsReducer(
+    (
       current: LoggedAuthEvent[],
       nextAuthEvent: AuthEvent
-    ): LoggedAuthEvent[] {
+    ): LoggedAuthEvent[] => {
       if (logAuthEventFilterPredicate(nextAuthEvent)) {
         return [
           {

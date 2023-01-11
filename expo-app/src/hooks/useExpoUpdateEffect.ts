@@ -15,7 +15,7 @@ import { useAlert } from "../lib/native-unstyled";
 export function useExpoUpdateEffect() {
   const { alert } = useAlert();
   const checkForUpdate = useCallback(
-    async function checkForUpdate(event: UpdateEvent) {
+    async (event: UpdateEvent) => {
       if (event.type === UpdateEventType.UPDATE_AVAILABLE) {
         alert(
           "Update available",

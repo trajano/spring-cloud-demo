@@ -13,7 +13,7 @@ export function useRefreshControl(
   >
 ): ReactElement<StyledProps<RefreshControlProps>> {
   const [refreshing, setRefreshing] = useState(false);
-  const doRefresh = useCallback(async function doRefresh() {
+  const doRefresh = useCallback(async () => {
     try {
       setRefreshing(true);
       await onRefresh();

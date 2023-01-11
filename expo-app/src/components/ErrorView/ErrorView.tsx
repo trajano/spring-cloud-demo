@@ -10,9 +10,7 @@ type ErrorViewProps = StyleProps & {
 /**
  * This is a error view that will take up the full area that is given to it.
  */
-export const ErrorView = memo(function ErrorView({
-  exception,
-}: ErrorViewProps) {
+export const ErrorView = memo(({ exception }: ErrorViewProps) => {
   if (!exception) {
     return <SimpleErrorView message="Exception passed was null or undefined" />;
   } else if (typeof exception === "object") {

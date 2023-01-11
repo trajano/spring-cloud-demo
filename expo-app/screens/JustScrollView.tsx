@@ -46,7 +46,7 @@ export function JustScrollView() {
   const { whoami } = useAuthenticated();
   const [whoamiJson, setWhoamiJson] = useState("");
 
-  const expire = useCallback(async function expire() {
+  const expire = useCallback(async () => {
     await AsyncStorage.setItem(
       `auth.${baseUrl.toString()}..tokenExpiresAt`,
       new Date(Date.now() - 10).toISOString()

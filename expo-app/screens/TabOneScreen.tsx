@@ -39,7 +39,7 @@ export default function TabOneScreen({
   });
 
   const onLayout = useCallback(
-    function onLayout(ev: LayoutChangeEvent) {
+    (ev: LayoutChangeEvent) => {
       setScrollViewLayout(ev.nativeEvent.layout);
     },
     [setScrollViewLayout]
@@ -127,18 +127,15 @@ export default function TabOneScreen({
     accessToken?.slice(-5),
     ...internalState,
   ];
-  const renderItem = useCallback(function renderItem({
-    item,
-  }: ListRenderItemInfo<any>) {
+  const renderItem = useCallback(({ item }: ListRenderItemInfo<any>) => {
     return (
       <View>
         <Text>{JSON.stringify(item, null, 2)}</Text>
       </View>
     );
-  },
-  []);
+  }, []);
 
-  const refreshToken = useCallback(async function refreshToken() {
+  const refreshToken = useCallback(async () => {
     setRefreshing(true);
     await refreshAsync();
     if (isMounted()) {

@@ -21,15 +21,12 @@ export function AppLoading({
     },
     []
   );
-  const onLayout = useCallback(
-    function onLayout() {
-      // console.log({ onLayout: "fired", initialAssetsLoaded });
-      if (initialAssetsLoaded) {
-        SplashScreen.hideAsync().catch(console.error);
-      }
-    },
-    [initialAssetsLoaded]
-  );
+  const onLayout = useCallback(() => {
+    // console.log({ onLayout: "fired", initialAssetsLoaded });
+    if (initialAssetsLoaded) {
+      SplashScreen.hideAsync().catch(console.error);
+    }
+  }, [initialAssetsLoaded]);
   useEffect(() => {
     if (initialAssets) {
       Asset.loadAsync(initialAssets)
