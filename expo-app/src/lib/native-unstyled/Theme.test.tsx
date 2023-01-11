@@ -3,13 +3,14 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor
+  waitFor,
 } from "@testing-library/react-native";
 import { Text as RNText, View as RNView, ViewProps } from "react-native";
+
+import { ThemeProvider } from "./ThemeContext";
 import { Text, TextInput, View } from "./components";
 import { defaultDarkColorSchemeColors } from "./defaultColorSchemes/defaultDarkColorSchemeColors";
 import { withStyled } from "./hoc";
-import { ThemeProvider } from "./ThemeContext";
 
 it("should i18n Text and preseve other styles and remap font", async () => {
   const mockFont = {
