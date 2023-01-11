@@ -159,7 +159,7 @@
     ]
   },
   "dependencies": {
-    "@trajano/react-hooks": "2.0.0",
+    "@trajano/react-hooks": "2.0.1",
     "jest-environment-node": "^29.3.1",
     "js-base64": "^3.7.4"
   }
