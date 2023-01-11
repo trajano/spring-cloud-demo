@@ -154,65 +154,75 @@ export function AuthProvider<A = unknown>({
     backendFailureTimeout: 60000,
   });
 
-  function subscribe(fn: (event: AuthEvent) => void) {
+  const subscribe = useCallback((fn: (event: AuthEvent) => void) => {
     subscribersRef.current.push(fn);
     return () =>
       (subscribersRef.current = subscribersRef.current.filter(
         (subscription) => !Object.is(subscription, fn)
       ));
-  }
+  }, []);
 
   /**
    * Forces the state to pull from auth storage.  Primarily used for testing as the auth storage is not
    * meant to be modified outside this context.
    */
-  async function forceCheckAuthStorageAsync() {
+  const forceCheckAuthStorageAsync = useCallback(async () => {
     const nextOauthToken = await authStorage.getOAuthTokenAsync();
     const nextTokenExpiresAt = await authStorage.getTokenExpiresAtAsync();
     setOAuthToken(nextOauthToken);
     setTokenExpiresAt(nextTokenExpiresAt);
-  }
+  }, [authStorage, setOAuthToken, setTokenExpiresAt]);
 
-  async function loginAsync(authenticationCredentials: A): Promise<Response> {
-    try {
-      const [nextOauthToken, authenticationResponse] =
-        await authClient.authenticateAsync(authenticationCredentials);
-      const nextTokenExpiresAt =
-        await authStorage.storeOAuthTokenAndGetExpiresAtAsync(nextOauthToken);
-      setOAuthToken(nextOauthToken);
-      setTokenExpiresAt(nextTokenExpiresAt);
-      setAuthState(AuthState.AUTHENTICATED);
-      notify({
-        type: 'LoggedIn',
-        reason: 'Logged with credentials',
-        authState,
-        accessToken: nextOauthToken.access_token,
-        authorization: `Bearer ${nextOauthToken.access_token}`,
-        tokenExpiresAt: nextTokenExpiresAt,
-      });
-      notify({
-        type: 'Authenticated',
-        reason: 'Login',
-        authState,
-        accessToken: nextOauthToken.access_token,
-        authorization: `Bearer ${nextOauthToken.access_token}`,
-        tokenExpiresAt: nextTokenExpiresAt,
-      });
-      return authenticationResponse;
-    } catch (e: unknown) {
-      if (e instanceof AuthenticationClientError) {
-        await authStorage.clearAsync();
-        setOAuthToken(null);
-        setTokenExpiresAt(0);
+  const loginAsync = useCallback(
+    async (authenticationCredentials: A): Promise<Response> => {
+      try {
+        const [nextOauthToken, authenticationResponse] =
+          await authClient.authenticateAsync(authenticationCredentials);
+        const nextTokenExpiresAt =
+          await authStorage.storeOAuthTokenAndGetExpiresAtAsync(nextOauthToken);
+        setOAuthToken(nextOauthToken);
+        setTokenExpiresAt(nextTokenExpiresAt);
+        setAuthState(AuthState.AUTHENTICATED);
+        notify({
+          type: 'LoggedIn',
+          reason: 'Logged with credentials',
+          authState,
+          accessToken: nextOauthToken.access_token,
+          authorization: `Bearer ${nextOauthToken.access_token}`,
+          tokenExpiresAt: nextTokenExpiresAt,
+        });
+        notify({
+          type: 'Authenticated',
+          reason: 'Login',
+          authState,
+          accessToken: nextOauthToken.access_token,
+          authorization: `Bearer ${nextOauthToken.access_token}`,
+          tokenExpiresAt: nextTokenExpiresAt,
+        });
+        return authenticationResponse;
+      } catch (e: unknown) {
+        if (e instanceof AuthenticationClientError) {
+          await authStorage.clearAsync();
+          setOAuthToken(null);
+          setTokenExpiresAt(0);
+        }
+        throw e;
       }
-      throw e;
-    }
-  }
+    },
+    [
+      authClient,
+      authState,
+      authStorage,
+      notify,
+      setOAuthToken,
+      setTokenExpiresAt,
+    ]
+  );
 
   /**
    * This will perform the logout.  Client failures are ignored since there's no point handling it.
    */
-  async function logoutAsync() {
+  const logoutAsync = useCallback(async () => {
     try {
       if (!oauthToken) {
         return;
@@ -237,7 +247,15 @@ export function AuthProvider<A = unknown>({
         reason: 'Logged out',
       });
     }
-  }
+  }, [
+    authClient,
+    authState,
+    authStorage,
+    oauthToken,
+    notify,
+    setOAuthToken,
+    setTokenExpiresAt,
+  ]);
 
   const refreshAsync = useRefreshCallback({
     authState,
