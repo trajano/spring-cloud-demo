@@ -1,9 +1,11 @@
-export { AuthProvider } from './AuthProvider';
 export { AuthenticationClientError } from './AuthenticationClientError';
-export { useAuth } from './useAuth';
-export { AuthState } from './AuthState';
-export { IAuthStore, AuthStore } from './AuthStore';
 export type { AuthEvent } from './AuthEvent';
-export type { EndpointConfiguration } from './EndpointConfiguration';
+export { AuthProvider } from './AuthProvider';
+export { AuthState } from './AuthState';
+export { AuthStore, IAuthStore } from './AuthStore';
 export { buildSimpleEndpointConfiguration } from './buildSimpleEndpointConfiguration';
+export type { EndpointConfiguration } from './EndpointConfiguration';
+export type { IAuth } from './IAuth';
+export { useAuth } from './useAuth';
 export { validateEndpointConfiguration } from './validateEndpointConfiguration';
+

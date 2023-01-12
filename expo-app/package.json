@@ -48,7 +48,10 @@
       "arrow-body-style": "error",
       "curly": "error",
       "eqeqeq": "error",
-      "logical-assignment-operators": [ "error", "never"],
+      "logical-assignment-operators": [
+        "error",
+        "never"
+      ],
       "multiline-comment-style": "error",
       "no-floating-decimal": "error",
       "prefer-arrow-callback": "error",
@@ -137,7 +140,7 @@
     "text-encoding": "^0.7.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.7",
+    "@babel/core": "^7.20.12",
     "@commitlint/config-conventional": "^17.4.0",
     "@expo/webpack-config": "^0.17.2",
     "@react-native-community/eslint-config": "^3.2.0",
