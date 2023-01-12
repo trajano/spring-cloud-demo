@@ -39,35 +39,35 @@ export function withStyledSwitch<
   }
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
   function useWrapped(
-    { onValueChange, disabled, value, ...props }: P,
+    { onValueChange: originalOnValueChange, disabled, value, ...props }: P,
     ref: Ref<T>
   ): ReactElement<Q> {
     const { colors } = useTheming();
     const [inputState, setInputState] = useState<InputState>(
       disabled === true ? "disabled" : value ? "enabled" : "default"
     );
-    const originalOnValueChange = useCallback(onValueChange ?? noop, [
-      onValueChange,
-    ]);
 
     const augmentedOnValueChange = useCallback(
       (nextValue: boolean) => {
         setInputState(value ? "enabled" : "default");
-        originalOnValueChange(nextValue);
+        originalOnValueChange && originalOnValueChange(nextValue);
       },
       [setInputState, originalOnValueChange, value]
     );
 
-    props.thumbColor ??= lookupColor(colors.input.switch.thumb, colors);
-    props.trackColor ??= {
+    props.thumbColor =
+      props.thumbColor ?? lookupColor(colors.input.switch.thumb, colors);
+    props.trackColor = props.trackColor ?? {
       false: lookupColor(colors.input.switch.false, colors),
       true: lookupColor(colors.input.switch.true, colors),
     };
 
-    props.borderColor ??= lookupColor(colors.input.border[inputState], colors);
-    props.backgroundColor ??= lookupColor(colors.input[inputState][1], colors);
+    props.borderColor =
+      props.borderColor ?? lookupColor(colors.input.border[inputState], colors);
+    props.backgroundColor =
+      props.backgroundColor ?? lookupColor(colors.input[inputState][1], colors);
 
-    props.ios_backgroundColor ??= "transparent";
+    props.ios_backgroundColor = props.ios_backgroundColor ?? "transparent";
 
     return doStyleWrap(
       Component,

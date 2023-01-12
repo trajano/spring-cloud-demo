@@ -48,7 +48,7 @@
       "arrow-body-style": "error",
       "curly": "error",
       "eqeqeq": "error",
-      "logical-assignment-operators": "error",
+      "logical-assignment-operators": [ "error", "never"],
       "multiline-comment-style": "error",
       "no-floating-decimal": "error",
       "prefer-arrow-callback": "error",

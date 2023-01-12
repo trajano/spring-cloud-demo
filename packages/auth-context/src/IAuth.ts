@@ -79,7 +79,7 @@ export interface IAuth<A = unknown> {
   authorization: string | null;
   /**
    * Current authentication state.  This is
-   * not a React state and will not trigger a re-render when updated.
+   * a React state and triggers a re-render when updated.
    */
   authState: AuthState;
   /**
