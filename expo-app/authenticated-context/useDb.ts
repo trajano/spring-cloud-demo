@@ -10,7 +10,7 @@ type DbUnloadedState = {
 };
 type DbState = DbLoadedState | DbUnloadedState;
 export function useDb(databaseName: string): DbState {
-  const dbRef = useRef<SQLite.Database>();
+  const dbRef = useRef<SQLite.WebSQLDatabase>();
   useEffect(() => {
     SQLite.openDatabase(
       databaseName,
@@ -23,13 +23,8 @@ export function useDb(databaseName: string): DbState {
     );
     return () => {
       if (dbRef.current !== undefined) {
-        (dbRef.current as unknown as { closeAsync(): Promise<void> })
-          .closeAsync()
-          // not much can be done at this point so just log an error
-          .catch((e) => console.error(e))
-          .finally(() => {
-            dbRef.current = undefined;
-          });
+        dbRef.current.closeAsync();
+        dbRef.current = undefined;
       }
     };
   });
