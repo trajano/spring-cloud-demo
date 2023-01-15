@@ -7,27 +7,24 @@ import { AuthState } from '../AuthState';
 import type { IAuthStore } from '../AuthStore';
 import type { OAuthToken } from '../OAuthToken';
 
-/**
- * @testonly
- */
-export type RefreshCallbackProps<T> = {
+/** @testonly */
+export interface RefreshCallbackProps<T> {
   authState: AuthState;
   setAuthState: Dispatch<SetStateAction<AuthState>>;
   notify: (event: AuthEvent) => void;
   authStorage: IAuthStore;
   authClient: AuthClient<T>;
-  /**
-   * Indicates that the token is refreshable from the device.
-   */
+  /** Indicates that the token is refreshable from the device. */
   backendReachable: boolean;
   netInfoState: NetInfoState;
   oauthToken: OAuthToken | null;
   setOAuthToken: Dispatch<OAuthToken | null>;
   setTokenExpiresAt: Dispatch<Date | number>;
-};
+}
 
 /**
- * This provides the refresh function.  It is extracted so that specific tests can be performed without relying on the whole component.
+ * This provides the refresh function. It is extracted so that specific tests
+ * can be performed without relying on the whole component.
  */
 export function useRefreshCallback<T>({
   authState,

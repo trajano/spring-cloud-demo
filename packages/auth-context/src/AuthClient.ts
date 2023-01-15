@@ -9,20 +9,17 @@ export interface IAuthClient<A = unknown> {
   revokeAsync(refreshToken: string): Promise<void>;
 }
 export class AuthClient<A = unknown> implements IAuthClient<A> {
-  /**
-   * Header value.
-   */
+  /** Header value. */
   private authorization: string;
-  /**
-   * Authorization end point
-   */
+  /** Authorization end point */
   private authorizationEndpoint: string;
   private refreshEndpoint: string;
   private revocationEndpoint: string;
   /**
-   * The endpoints are not converted from string to URLs to ensure they are valid due to an issue
-   * https://github.com/expo/expo/issues/15868
-   * @param endpointConfiguration endpoint configuration
+   * The endpoints are not converted from string to URLs to ensure they are
+   * valid due to an issue https://github.com/expo/expo/issues/15868
+   *
+   * @param endpointConfiguration Endpoint configuration
    */
   constructor(endpointConfiguration: EndpointConfiguration) {
     this.authorization = basicAuthorization(
@@ -35,13 +32,15 @@ export class AuthClient<A = unknown> implements IAuthClient<A> {
   }
 
   /**
-   * This extracts the body from the response as .text() rather than .json()
-   * so error handlers can use it to get the content that was sent as-is.
+   * This extracts the body from the response as .text() rather than .json() so
+   * error handlers can use it to get the content that was sent as-is.
    *
-   * It may be slower, but this ensures we do not lose useful data for debugging.
+   * It may be slower, but this ensures we do not lose useful data for
+   * debugging.
    *
    * This also handles the responsibility of assembling the client error.
-   * @param response response
+   *
+   * @param response Response
    */
   private async resolveJson<X>(response: Response): Promise<X> {
     const responseBody = await response.text();
@@ -58,8 +57,9 @@ export class AuthClient<A = unknown> implements IAuthClient<A> {
 
   /**
    * Calls the API endpoint to authenticate.
+   *
    * @param authenticationRequest
-   * @returns [ OAuthToken, Response ]
+   * @returns {undefined} OAuthToken, Response
    * @throws AuthenticationClientError
    */
   public async authenticateAsync(

@@ -57,7 +57,7 @@ function MyComponent({ notifications }: { notifications: () => void }) {
         {tokenRefreshable ? 'tokenRefreshable' : ''}
       </Text>
       <Text testID="accessTokenExpiresOn">
-        {accessTokenExpiresOn?.toISOString()}
+        {accessTokenExpiresOn.toISOString()}
       </Text>
       <Pressable onPress={doLogin}>
         <Text testID="login">Login</Text>
@@ -123,11 +123,11 @@ it('Refresh two times', async () => {
   expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
   notifications.mockClear();
 
-  const tokenExpiresAt = new Date(
-    (await AsyncStorage.getItem(
-      'auth.https://asdf.com/..tokenExpiresAt'
-    )) as string
+  const tokenExpiresAtFromStore = await AsyncStorage.getItem(
+    'auth.https://asdf.com/..tokenExpiresAt'
   );
+  expect(tokenExpiresAtFromStore).not.toBeNull();
+  const tokenExpiresAt = new Date(tokenExpiresAtFromStore!);
   act(() =>
     jest.advanceTimersByTime(tokenExpiresAt.getTime() - Date.now() - 10000)
   );
@@ -162,11 +162,12 @@ it('Refresh two times', async () => {
     { overwriteRoutes: true }
   );
   notifications.mockClear();
-  const secondTokenExpiresAt = new Date(
-    (await AsyncStorage.getItem(
-      'auth.https://asdf.com/..tokenExpiresAt'
-    )) as string
+
+  const secondTokenExpiresAtFromStore = await AsyncStorage.getItem(
+    'auth.https://asdf.com/..tokenExpiresAt'
   );
+  expect(secondTokenExpiresAtFromStore).not.toBeNull();
+  const secondTokenExpiresAt = new Date(secondTokenExpiresAtFromStore!);
   act(() =>
     jest.advanceTimersByTime(
       secondTokenExpiresAt.getTime() - Date.now() - 10000
@@ -261,11 +262,11 @@ it('Refresh 500 then successful', async () => {
   expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
   notifications.mockClear();
 
-  const tokenExpiresAt = new Date(
-    (await AsyncStorage.getItem(
-      'auth.https://asdf.com/..tokenExpiresAt'
-    )) as string
+  const tokenExpiresAtFromStore = await AsyncStorage.getItem(
+    'auth.https://asdf.com/..tokenExpiresAt'
   );
+  expect(tokenExpiresAtFromStore).not.toBeNull();
+  const tokenExpiresAt = new Date(tokenExpiresAtFromStore!);
   act(() =>
     jest.advanceTimersByTime(tokenExpiresAt.getTime() - Date.now() - 10000)
   );
@@ -435,11 +436,11 @@ it('Refresh fail with 401', async () => {
   expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
   notifications.mockClear();
 
-  const tokenExpiresAt = new Date(
-    (await AsyncStorage.getItem(
-      'auth.https://asdf.com/..tokenExpiresAt'
-    )) as string
+  const tokenExpiresAtFromStore = await AsyncStorage.getItem(
+    'auth.https://asdf.com/..tokenExpiresAt'
   );
+  expect(tokenExpiresAtFromStore).not.toBeNull();
+  const tokenExpiresAt = new Date(tokenExpiresAtFromStore!);
   act(() =>
     jest.advanceTimersByTime(tokenExpiresAt.getTime() - Date.now() - 10000)
   );

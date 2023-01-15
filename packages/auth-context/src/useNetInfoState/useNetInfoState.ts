@@ -8,17 +8,18 @@ import { netInfoStateReducer } from './netInfoStateReducer';
 
 /**
  * Similar to the function of @react-native-community/netinfo useNetInfo, but
- * locked down here to ensure that configuration is updated on the NetInfo level.
- * @param endpoint configuration to obtain the ping endpoint
- * @param onNetInfoUnsubscribe invoked when the subscription is going to be removed.
+ * locked down here to ensure that configuration is updated on the NetInfo
+ * level.
+ *
+ * @param endpoint Configuration to obtain the ping endpoint
+ * @param onNetInfoUnsubscribe Invoked when the subscription is going to be
+ *   removed.
  */
 export function useNetInfoState(
   endpointConfiguration: Pick<EndpointConfiguration, 'pingEndpoint'>,
   onNetInfoUnsubscribe?: () => void
 ): NetInfoState {
-  /**
-   * Net info state.
-   */
+  /** Net info state. */
   const [netInfoState, updateNetInfoState] = useReducer(netInfoStateReducer, {
     type: NetInfoStateType.unknown,
     isConnected: null,
@@ -26,9 +27,7 @@ export function useNetInfoState(
     details: null,
   });
   useEffect(
-    /**
-     * Monitors network state changes.
-     */
+    /** Monitors network state changes. */
     () => {
       NetInfo.configure({
         reachabilityUrl: endpointConfiguration.pingEndpoint,
@@ -48,7 +47,7 @@ export function useNetInfoState(
       });
       return () => {
         unsubscribeNetInfo();
-        onNetInfoUnsubscribe && onNetInfoUnsubscribe();
+        onNetInfoUnsubscribe?.();
       };
     },
     [endpointConfiguration, onNetInfoUnsubscribe]

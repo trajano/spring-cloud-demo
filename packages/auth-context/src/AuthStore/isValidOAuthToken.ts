@@ -1,11 +1,10 @@
-import type { OAuthToken } from '../OAuthToken';
-
 /**
  * Ensures that the value is a valid OAuth token.
- * @param oauthToken object to check
- * @returns true if valid.
+ *
+ * @param oauthToken Object to check
+ * @returns True if valid.
  */
-export function isValidOAuthToken(oauthToken: OAuthToken): boolean {
+export function isValidOAuthToken(oauthToken?: any): boolean {
   return (
     !!oauthToken &&
     typeof oauthToken === 'object' &&

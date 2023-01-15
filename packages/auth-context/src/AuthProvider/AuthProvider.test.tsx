@@ -1,6 +1,4 @@
-/**
- * @jest-environment node
- */
+/** @jest-environment node */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import '@testing-library/jest-native/extend-expect';
 import {
@@ -68,12 +66,12 @@ describe('with component', () => {
         await loginAsync({ user: 'test' });
       } catch (e: unknown) {
         setLoginFailure(e);
-        onLoginFailure && onLoginFailure(e);
+        onLoginFailure?.(e);
       }
     }, [loginAsync, onLoginFailure]);
     const handleLogout = useCallback(() => logoutAsync(), [logoutAsync]);
     useEffect(() => subscribe(notifications), [notifications, subscribe]);
-    onRender && onRender();
+    onRender?.();
     return (
       <>
         <Text testID="authState">{AuthState[authState]}</Text>
@@ -172,11 +170,12 @@ describe('with component', () => {
     expect(
       await AsyncStorage.getItem('auth.https://asdf.com/..oauthToken')
     ).toBe(JSON.stringify(freshAccessToken));
-    const tokenExpiresAt = new Date(
-      (await AsyncStorage.getItem(
-        'auth.https://asdf.com/..tokenExpiresAt'
-      )) as string
+
+    const tokenExpiresAtFromStore = await AsyncStorage.getItem(
+      'auth.https://asdf.com/..tokenExpiresAt'
     );
+    expect(tokenExpiresAtFromStore).not.toBeNull();
+    const tokenExpiresAt = new Date(tokenExpiresAtFromStore!);
     // give at least a second of slack
     expect(tokenExpiresAt.getTime()).toBeGreaterThanOrEqual(
       Date.now() + 600000 - 1000
@@ -249,11 +248,11 @@ describe('with component', () => {
     expect(
       await AsyncStorage.getItem('auth.https://asdf.com/..oauthToken')
     ).toBe(JSON.stringify(freshAccessToken));
-    const tokenExpiresAt = new Date(
-      (await AsyncStorage.getItem(
-        'auth.https://asdf.com/..tokenExpiresAt'
-      )) as string
+    const tokenExpiresAtFromStore = await AsyncStorage.getItem(
+      'auth.https://asdf.com/..tokenExpiresAt'
     );
+    expect(tokenExpiresAtFromStore).not.toBeNull();
+    const tokenExpiresAt = new Date(tokenExpiresAtFromStore!);
     // give at least a second of slack
     expect(tokenExpiresAt.getTime()).toBeGreaterThanOrEqual(
       Date.now() + 600000 - 1000
@@ -430,11 +429,11 @@ describe('with component', () => {
     expect(
       await AsyncStorage.getItem('auth.https://asdf.com/..oauthToken')
     ).toBe(JSON.stringify(freshAccessToken));
-    const tokenExpiresAt = new Date(
-      (await AsyncStorage.getItem(
-        'auth.https://asdf.com/..tokenExpiresAt'
-      )) as string
+    const tokenExpiresAtFromStore = await AsyncStorage.getItem(
+      'auth.https://asdf.com/..tokenExpiresAt'
     );
+    expect(tokenExpiresAtFromStore).not.toBeNull();
+    const tokenExpiresAt = new Date(tokenExpiresAtFromStore!);
     // give at least a second of slack
     expect(tokenExpiresAt.getTime()).toBeGreaterThanOrEqual(
       Date.now() + 600000 - 1000

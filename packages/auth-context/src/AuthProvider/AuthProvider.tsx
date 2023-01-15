@@ -15,9 +15,9 @@ import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import { AuthStore, IAuthStore } from '../AuthStore';
 import type { EndpointConfiguration } from '../EndpointConfiguration';
-import { validateEndpointConfiguration } from '../validateEndpointConfiguration';
 import type { IAuth } from '../IAuth';
 import type { OAuthToken } from '../OAuthToken';
+import { validateEndpointConfiguration } from '../validateEndpointConfiguration';
 import { initialAuthEventReducer } from './initialAuthEventReducer';
 import { isTokenExpired } from './isTokenExpired';
 import { useAppStateRefreshingEffect } from './useAppStateRefreshingEffect';
@@ -30,30 +30,29 @@ import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
 import { useTokenExpirationTimeoutEffect } from './useTokenExpirationTimeoutEffect';
 
 type AuthContextProviderProps = PropsWithChildren<{
-  /**
-   * Default endpoint configuration
-   */
+  /** Default endpoint configuration */
   defaultEndpointConfiguration: EndpointConfiguration;
   /**
-   * AsyncStorage prefix used to store the authentication data. Applicable only to the default auth store.
+   * AsyncStorage prefix used to store the authentication data. Applicable only
+   * to the default auth store.
    */
   storagePrefix?: string;
   /**
-   * Time in milliseconds to consider refreshing the access token.  Defaults to 10 seconds.
+   * Time in milliseconds to consider refreshing the access token. Defaults to
+   * 10 seconds.
    */
   timeBeforeExpirationRefresh?: number;
-  /**
-   * Alternative auth storage.
-   */
+  /** Alternative auth storage. */
   authStorage?: IAuthStore;
   onRefreshError?: (reason: unknown) => void;
 }>;
 
 /**
- * Auth provider starts at the INITIAL state in that state it will load up all the necessary data from the stores and set the other states up
- * correctly.
+ * Auth provider starts at the INITIAL state in that state it will load up all
+ * the necessary data from the stores and set the other states up correctly.
  *
  * Only a few things are stored in the state
+ *
  * @param param0
  * @returns
  */
@@ -86,7 +85,8 @@ export function AuthProvider<A = unknown>({
     [inOnRefreshError]
   );
   /**
-   * Auth storage.  If inAuthStorage is provided it will use that otherwise it will create a new one.
+   * Auth storage. If inAuthStorage is provided it will use that otherwise it
+   * will create a new one.
    */
   const authStorage = useMemo(
     () =>
@@ -97,24 +97,18 @@ export function AuthProvider<A = unknown>({
 
   const subscribersRef = useRef<((event: AuthEvent) => void)[]>([]);
 
-  /**
-   * Authentication state.
-   */
+  /** Authentication state. */
   const [authState, setAuthState] = useState(AuthState.INITIAL);
 
-  /**
-   * OAuth token state.
-   */
+  /** OAuth token state. */
   const [oauthToken, setOAuthToken] = useDeepState<OAuthToken | null>(null);
 
-  /**
-   * Token expires at state.
-   */
+  /** Token expires at state. */
   const [tokenExpiresAt, setTokenExpiresAt] = useDateState(0);
 
   /**
-   * Last auth events.  Eventually this will be removed and placed with the app rather than the context.
-   * Kept for debugging.
+   * Last auth events. Eventually this will be removed and placed with the app
+   * rather than the context. Kept for debugging.
    */
   const [initialAuthEvents, pushAuthEvent] = useReducer(
     initialAuthEventReducer,
@@ -122,9 +116,10 @@ export function AuthProvider<A = unknown>({
   );
 
   /**
-   * Notifies subscribers.  There's a specific handler if it is "Unauthenticated" that the provider handles.
-   * These and other functions are not wrapped in useCallback because when any of the state changes it
-   * will render these anyway and we're not optimizing from the return value either.
+   * Notifies subscribers. There's a specific handler if it is "Unauthenticated"
+   * that the provider handles. These and other functions are not wrapped in
+   * useCallback because when any of the state changes it will render these
+   * anyway and we're not optimizing from the return value either.
    */
   const notify = useCallback(
     (event: AuthEvent) => {
@@ -163,8 +158,8 @@ export function AuthProvider<A = unknown>({
   }, []);
 
   /**
-   * Forces the state to pull from auth storage.  Primarily used for testing as the auth storage is not
-   * meant to be modified outside this context.
+   * Forces the state to pull from auth storage. Primarily used for testing as
+   * the auth storage is not meant to be modified outside this context.
    */
   const forceCheckAuthStorageAsync = useCallback(async () => {
     const nextOauthToken = await authStorage.getOAuthTokenAsync();
@@ -220,7 +215,8 @@ export function AuthProvider<A = unknown>({
   );
 
   /**
-   * This will perform the logout.  Client failures are ignored since there's no point handling it.
+   * This will perform the logout. Client failures are ignored since there's no
+   * point handling it.
    */
   const logoutAsync = useCallback(async () => {
     try {
@@ -319,7 +315,7 @@ export function AuthProvider<A = unknown>({
       authorization:
         !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&
         !!oauthToken
-          ? `Bearer ${oauthToken?.access_token}`
+          ? `Bearer ${oauthToken.access_token}`
           : null,
       authState,
       backendReachable,

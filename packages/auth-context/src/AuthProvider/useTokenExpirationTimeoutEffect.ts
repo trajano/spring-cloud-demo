@@ -3,27 +3,24 @@ import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import { isTokenExpired } from './isTokenExpired';
 
-/**
- * @testonly
- */
-export type TokenExpirationTimeoutEffectProps = {
+/** @testonly */
+export interface TokenExpirationTimeoutEffectProps {
   authState: AuthState;
   setAuthState: Dispatch<SetStateAction<AuthState>>;
   notify: (event: AuthEvent) => void;
   maxTimeoutForRefreshCheck: number;
   tokenExpiresAt: Date;
   timeBeforeExpirationRefresh: number;
-};
-/**
- * @testonly
- */
-export type TokenExpirationTimeoutState = {
+}
+/** @testonly */
+export interface TokenExpirationTimeoutState {
   timeout: ReturnType<typeof setTimeout> | undefined;
-};
+}
 /**
- * This sets up a timeout on AUTHENTICATED state that cycles every `maxTimeoutForRefreshCheck` ms or
- * `timeBeforeExpirationRefresh` ms before the token expiration time.  When the timeout finishes
- * and the token is expired it will set the state to NEEDS_REFRESH.
+ * This sets up a timeout on AUTHENTICATED state that cycles every
+ * `maxTimeoutForRefreshCheck` ms or `timeBeforeExpirationRefresh` ms before the
+ * token expiration time. When the timeout finishes and the token is expired it
+ * will set the state to NEEDS_REFRESH.
  */
 export function useTokenExpirationTimeoutEffect({
   authState,
@@ -36,7 +33,7 @@ export function useTokenExpirationTimeoutEffect({
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => {
     function updateStateOnTimeout() {
-      if (!tokenExpiresAt) {
+      if (tokenExpiresAt.getTime() === 0) {
         return;
       }
       if (!timeoutRef.current) {
@@ -48,7 +45,7 @@ export function useTokenExpirationTimeoutEffect({
         notify({
           type: 'TokenExpiration',
           authState,
-          reason: `Token has expires on ${tokenExpiresAt?.toISOString()} is near or is expired on ${new Date().toISOString()} `,
+          reason: `Token has expires on ${tokenExpiresAt.toISOString()} is near or is expired on ${new Date().toISOString()} `,
         });
       } else {
         const ms = Math.min(

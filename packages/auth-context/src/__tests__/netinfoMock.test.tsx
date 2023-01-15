@@ -1,13 +1,13 @@
 import NetInfo, {
-  NetInfoStateType,
   NetInfoState,
+  NetInfoStateType,
 } from '@react-native-community/netinfo';
 
 /* eslint-disable jest/no-mocks-import */
 // expose these two to allow testing.
 import {
-  setConnectionState,
   resetConnectionState,
+  setConnectionState,
 } from '../__mocks__/@react-native-community/netinfo';
 
 /* eslint-enable jest/no-mocks-import */

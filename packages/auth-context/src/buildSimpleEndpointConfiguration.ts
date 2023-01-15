@@ -1,9 +1,10 @@
 import type { EndpointConfiguration } from './EndpointConfiguration';
 
 /**
- * This builds a simple endpoint configuration that is used by Spring Docker project.
- * It does the conversion to URL to ensure that the input is valid.
- * @param inBaseUrl base URL must have trailing slash.
+ * This builds a simple endpoint configuration that is used by Spring Docker
+ * project. It does the conversion to URL to ensure that the input is valid.
+ *
+ * @param inBaseUrl Base URL must have trailing slash.
  */
 export function buildSimpleEndpointConfiguration(
   baseUrl: string,
@@ -12,7 +13,7 @@ export function buildSimpleEndpointConfiguration(
 ): EndpointConfiguration {
   /* istanbul ignore next */
   if (__DEV__) {
-    if (baseUrl.substring(baseUrl.length - 1) !== '/') {
+    if (!baseUrl.endsWith('/')) {
       throw new Error(`baseUrl=${baseUrl} should end with a '/'`);
     }
   }

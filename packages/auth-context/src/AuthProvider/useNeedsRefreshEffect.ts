@@ -2,25 +2,23 @@ import { Dispatch, SetStateAction, useEffect } from 'react';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 
-/**
- * @testonly
- */
-export type NeedsRefreshEffectProps = {
+/** @testonly */
+export interface NeedsRefreshEffectProps {
   authState: AuthState;
   setAuthState: Dispatch<SetStateAction<AuthState>>;
   notify: (event: AuthEvent) => void;
-  /**
-   * Indicates that the token is refreshable from the device.
-   */
+  /** Indicates that the token is refreshable from the device. */
   backendReachable: boolean;
   refreshAsync: (reason?: string) => Promise<void>;
   /**
-   * called when there is a refresh error.  by default it simply logs to console.error
-   * Technically should never get here since the failure states are already done in refresh()
-   * @param reason exception thrown by refresh
+   * Called when there is a refresh error. by default it simply logs to
+   * console.error Technically should never get here since the failure states
+   * are already done in refresh()
+   *
+   * @param reason Exception thrown by refresh
    */
   onRefreshError: (reason: unknown) => void;
-};
+}
 export function useNeedsRefreshEffect({
   authState,
   setAuthState,
@@ -28,7 +26,7 @@ export function useNeedsRefreshEffect({
   backendReachable,
   refreshAsync,
   onRefreshError,
-}: NeedsRefreshEffectProps) {
+}: NeedsRefreshEffectProps): void {
   useEffect(() => {
     notify({
       type: 'CheckRefresh',

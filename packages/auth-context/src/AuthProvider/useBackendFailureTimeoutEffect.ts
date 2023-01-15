@@ -3,27 +3,21 @@ import { Dispatch, SetStateAction, useEffect, useRef } from 'react';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 
-/**
- * @testonly
- */
-export type BackendFailureTimeoutProps = {
+/** @testonly */
+export interface BackendFailureTimeoutProps {
   authState: AuthState;
   setAuthState: Dispatch<SetStateAction<AuthState>>;
   notify: (event: AuthEvent) => void;
-  /**
-   * Time before rechecking backend failure.
-   */
+  /** Time before rechecking backend failure. */
   backendFailureTimeout: number;
-};
-/**
- * @testonly
- */
-export type BackendFailureTimeoutState = {
+}
+/** @testonly */
+export interface BackendFailureTimeoutState {
   timeout: ReturnType<typeof setTimeout> | undefined;
-};
+}
 /**
- * This sets up a timeout on BACKEND_FAILURE state that sets the state to NEEDS_REFRESH after
- * `backendFailureTimeout` ms.
+ * This sets up a timeout on BACKEND_FAILURE state that sets the state to
+ * NEEDS_REFRESH after `backendFailureTimeout` ms.
  */
 export function useBackendFailureTimeoutEffect({
   authState,

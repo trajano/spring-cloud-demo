@@ -5,10 +5,8 @@ import type { IAuthStore } from '../AuthStore';
 import type { OAuthToken } from '../OAuthToken';
 import { isTokenExpired } from './isTokenExpired';
 
-/**
- * @testonly
- */
-export type InitialAuthStateProps = {
+/** @testonly */
+export interface InitialAuthStateProps {
   authState: AuthState;
   setAuthState: Dispatch<SetStateAction<AuthState>>;
   notify: (event: AuthEvent) => void;
@@ -16,7 +14,7 @@ export type InitialAuthStateProps = {
   timeBeforeExpirationRefresh: number;
   setOAuthToken: Dispatch<OAuthToken | null>;
   setTokenExpiresAt: Dispatch<Date | number>;
-};
+}
 export function useInitialAuthStateEffect({
   authState,
   setAuthState,
@@ -38,7 +36,7 @@ export function useInitialAuthStateEffect({
     const nextOAuthToken = await authStorage.getOAuthTokenAsync();
     const nextTokenExpiresAt = await authStorage.getTokenExpiresAtAsync();
 
-    if (!nextOAuthToken || !nextTokenExpiresAt) {
+    if (!nextOAuthToken || nextTokenExpiresAt.getTime() === 0) {
       // no token so unauthenticated
       setAuthState(AuthState.UNAUTHENTICATED);
       notify({

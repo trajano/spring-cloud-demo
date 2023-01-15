@@ -2,23 +2,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { add, isBefore, parseISO, subMilliseconds } from 'date-fns';
 import type { OAuthToken } from '../OAuthToken';
 import type { IAuthStore } from './IAuthStore';
-import { isValidOAuthToken as isValidOAuthToken } from './isValidOAuthToken';
+import { isValidOAuthToken } from './isValidOAuthToken';
 export class AuthStore implements IAuthStore {
-  /**
-   * Storage prefix with the trailing `.`
-   */
+  /** Storage prefix with the trailing `.` */
   private storagePrefix: string;
   /**
-   *
-   * @param storagePrefix storage prefix without the trailing `.`
-   * @param baseUrl base URL appended to the storage prefix.
+   * @param storagePrefix Storage prefix without the trailing `.`
+   * @param baseUrl Base URL appended to the storage prefix.
    */
   constructor(storagePrefix: string, baseUrl: string) {
     this.storagePrefix = `${storagePrefix}.${baseUrl}.`;
   }
 
   /**
-   * Obtains the access token provide if it is available and not expired.  This will return null if the token is expired.
+   * Obtains the access token provide if it is available and not expired. This
+   * will return null if the token is expired.
    */
   async getAccessTokenAsync(): Promise<string | null> {
     const oauthToken = await this.getOAuthTokenAsync();
@@ -40,9 +38,9 @@ export class AuthStore implements IAuthStore {
   }
 
   /**
-   *
-   * @param oauthToken OAuth token to store.  This token will be validated for structure and will throw an error if it is not valid.
-   * @returns when the token will expire
+   * @param oauthToken OAuth token to store. This token will be validated for
+   *   structure and will throw an error if it is not valid.
+   * @returns When the token will expire
    */
   async storeOAuthTokenAndGetExpiresAtAsync(
     oauthToken: OAuthToken
@@ -65,7 +63,8 @@ export class AuthStore implements IAuthStore {
   }
 
   /**
-   * Obtains the instant when the token will expire.  This will never return null, but may return epoch time.
+   * Obtains the instant when the token will expire. This will never return
+   * null, but may return epoch time.
    */
   async getTokenExpiresAtAsync(): Promise<Date> {
     const tokenExpiresAtString = await AsyncStorage.getItem(
@@ -78,7 +77,9 @@ export class AuthStore implements IAuthStore {
   }
   /**
    * Checks if the token is expired
-   * @returns true if the token is expired.  This will never return null and will return true if there's no token.
+   *
+   * @returns True if the token is expired. This will never return null and will
+   *   return true if there's no token.
    */
   async isExpired(): Promise<boolean> {
     return this.isExpiringInMillis(0);
@@ -86,8 +87,10 @@ export class AuthStore implements IAuthStore {
 
   /**
    * Checks if the token is expiring or expired in the given number of seconds.
-   * @param seconds seconds before expiration
-   * @returns true if the token is expiring or expired.  This will never return null and will return true if there's no token.
+   *
+   * @param seconds Seconds before expiration
+   * @returns True if the token is expiring or expired. This will never return
+   *   null and will return true if there's no token.
    */
   async isExpiringInMillis(millis: number): Promise<boolean> {
     const tokenExpiresAt = await this.getTokenExpiresAtAsync();

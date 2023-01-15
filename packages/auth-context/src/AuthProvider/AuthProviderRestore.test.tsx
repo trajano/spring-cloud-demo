@@ -58,7 +58,7 @@ function MyComponent({ notifications }: { notifications: () => void }) {
         {backendReachable ? 'tokenRefreshable' : ''}
       </Text>
       <Text testID="accessTokenExpiresOn">
-        {accessTokenExpiresOn?.toISOString()}
+        {accessTokenExpiresOn.toISOString()}
       </Text>
       <Pressable onPress={doLogin}>
         <Text testID="login">Login</Text>

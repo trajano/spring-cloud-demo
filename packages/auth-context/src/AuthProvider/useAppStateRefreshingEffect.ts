@@ -4,21 +4,17 @@ import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import type { OAuthToken } from '../OAuthToken';
 import { isTokenExpired } from './isTokenExpired';
-/**
- * @testonly
- */
-export type AppStateRefreshingProps = {
+/** @testonly */
+export interface AppStateRefreshingProps {
   authState: AuthState;
   setAuthState: Dispatch<AuthState>;
   notify: (event: AuthEvent) => void;
-  /**
-   * Indicates that the token is refreshable from the device.
-   */
+  /** Indicates that the token is refreshable from the device. */
   backendReachable: boolean;
   oauthToken: OAuthToken | null;
   tokenExpiresAt: Date | null;
   timeBeforeExpirationRefresh: number;
-};
+}
 export function useAppStateRefreshingEffect({
   authState,
   setAuthState,

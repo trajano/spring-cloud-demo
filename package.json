@@ -9,11 +9,15 @@
       "expo-app"
     ],
     "nohoist": [
-      "**/babel**",
-      "**/eslint**",
-      "**/jest**",
-      "**/webpack**",
-      "**/type-graphql**"
+      "**/babel*",
+      "**/eslint",
+      "**/eslint-config-*",
+      "**/eslint-plugin-*",
+      "**/jest*",
+      "**/prettier",
+      "**/prettier-plugin-*",
+      "**/webpack*",
+      "**/type-graphql*"
     ]
   },
   "resolutions": {

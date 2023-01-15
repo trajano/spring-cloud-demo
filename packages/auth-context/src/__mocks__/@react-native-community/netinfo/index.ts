@@ -38,7 +38,7 @@ const connectedState: NetInfoState = {
 const currentStateMock = jest.fn<NetInfoState, []>(() => connectedState);
 let listeners: NetInfoChangeHandler[] = [];
 
-export default <typeof NetInfo>{
+export default {
   fetch: jest.fn(() => Promise.resolve(currentStateMock())),
   refresh: jest.fn(() => Promise.resolve(currentStateMock())),
   configure: jest.fn((_configuration: Partial<NetInfoConfiguration>) =>
@@ -53,10 +53,11 @@ export default <typeof NetInfo>{
       );
   }),
   useNetInfo: jest.fn(() => currentStateMock()),
-};
+} as typeof NetInfo;
 
 /**
  * Sets the connection state and fires all the listeners
+ *
  * @param nextState
  */
 export function setConnectionState(nextState: NetInfoState): void {

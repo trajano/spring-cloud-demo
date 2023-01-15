@@ -3,16 +3,12 @@ import { useEffect, useState } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 
 export function useAppStateWithNetInfoRefresh(): AppStateStatus {
-  /**
-   * App State
-   */
+  /** App State */
   const [appState, setAppState] = useState<AppStateStatus>(
     AppState.currentState
   );
   useEffect(
-    /**
-     * Monitors app state changes.
-     */
+    /** Monitors app state changes. */
     () => {
       const appStateSubscription = AppState.addEventListener(
         'change',

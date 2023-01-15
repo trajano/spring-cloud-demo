@@ -2,19 +2,15 @@ import { Dispatch, SetStateAction, useEffect } from 'react';
 import { AppState } from 'react-native';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
-/**
- * @testonly
- */
-export type PreventAppFromGettingStuckOnRefreshProps = {
+/** @testonly */
+export interface PreventAppFromGettingStuckOnRefreshProps {
   authState: AuthState;
   setAuthState: Dispatch<SetStateAction<AuthState>>;
   notify: (event: AuthEvent) => void;
-  /**
-   * Indicates that the token is refreshable from the device.
-   */
+  /** Indicates that the token is refreshable from the device. */
   backendReachable: boolean;
   tokenExpiresAt: Date;
-};
+}
 
 export function usePreventAppFromGettingStuckOnRefreshEffect({
   authState,

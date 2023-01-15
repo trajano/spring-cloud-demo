@@ -9,7 +9,8 @@ export class AuthenticationClientError extends Error {
   public readonly isAuthenticationClientError = true;
   /**
    * Explicit check for 401 errors.
-   * @returns if status code is 401
+   *
+   * @returns If status code is 401
    */
   isUnauthorized() {
     return this.response.status === 401;

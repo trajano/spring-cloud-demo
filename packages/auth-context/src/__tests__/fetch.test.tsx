@@ -1,8 +1,6 @@
-/**
- * @jest-environment node
- */
-import 'whatwg-fetch';
+/** @jest-environment node */
 import fetchMock from 'fetch-mock-jest';
+import 'whatwg-fetch';
 describe('http', () => {
   let fetchConfigResponse: (new () => Response) | undefined;
   beforeEach(() => {
@@ -76,7 +74,7 @@ describe('http', () => {
     fetchMock.config.Response = Response;
     expect(Response.error() instanceof Response).toBe(true);
     expect(
-      fetchMock.config.Response?.prototype.isPrototypeOf(Response.error())
+      fetchMock.config.Response.prototype.isPrototypeOf(Response.error())
     ).toBe(true);
   });
 });
