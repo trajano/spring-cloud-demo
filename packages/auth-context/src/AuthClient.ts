@@ -32,30 +32,6 @@ export class AuthClient<A = unknown> implements IAuthClient<A> {
   }
 
   /**
-   * This extracts the body from the response as .text() rather than .json() so
-   * error handlers can use it to get the content that was sent as-is.
-   *
-   * It may be slower, but this ensures we do not lose useful data for
-   * debugging.
-   *
-   * This also handles the responsibility of assembling the client error.
-   *
-   * @param response Response
-   */
-  private async resolveJson<X>(response: Response): Promise<X> {
-    const responseBody = await response.text();
-    try {
-      return JSON.parse(responseBody) as X;
-    } catch (e) {
-      throw new AuthenticationClientError(
-        response,
-        responseBody,
-        'unable to parse response as JSON'
-      );
-    }
-  }
-
-  /**
    * Calls the API endpoint to authenticate.
    *
    * @param authenticationRequest
@@ -120,5 +96,29 @@ export class AuthClient<A = unknown> implements IAuthClient<A> {
      * as the user has logged out.
      */
     this.resolveJson<Record<string, unknown>>(response).catch(console.error);
+  }
+
+  /**
+   * This extracts the body from the response as .text() rather than .json() so
+   * error handlers can use it to get the content that was sent as-is.
+   *
+   * It may be slower, but this ensures we do not lose useful data for
+   * debugging.
+   *
+   * This also handles the responsibility of assembling the client error.
+   *
+   * @param response Response
+   */
+  private async resolveJson<X>(response: Response): Promise<X> {
+    const responseBody = await response.text();
+    try {
+      return JSON.parse(responseBody) as X;
+    } catch (e) {
+      throw new AuthenticationClientError(
+        response,
+        responseBody,
+        'unable to parse response as JSON'
+      );
+    }
   }
 }

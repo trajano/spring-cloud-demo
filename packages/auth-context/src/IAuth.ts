@@ -5,25 +5,6 @@ import type { OAuthToken } from './OAuthToken';
 
 export interface IAuth<A = unknown> {
   /**
-   * @param fn Callback function that receives events
-   * @returns Function to unsubscribe
-   */
-  subscribe(fn: (event: AuthEvent) => void): () => void;
-  /**
-   * This performs the call to the authentication server with the credentials
-   * provided. If the authentication was successful it provide the API response
-   * for further processing. If there's a failure a AuthenticationClientError
-   * will be thrown.
-   *
-   * @param authenticationCredentials
-   * @returns The fetch API response
-   * @throws AuthenticationClientError
-   */
-  loginAsync(authenticationCredentials: A): Promise<Response>;
-  /** Refreshes the token outside of the schedule. */
-  refreshAsync(): Promise<void>;
-  logoutAsync(): Promise<void>;
-  /**
    * The OAuth token from the store if available. May be null.
    *
    * Note this should only be used for setting the initial state and not be used
@@ -99,6 +80,27 @@ export interface IAuth<A = unknown> {
    * may not have been called yet to capture the logs.
    */
   initialAuthEvents: AuthEvent[];
+
+  /**
+   * @param fn Callback function that receives events
+   * @returns Function to unsubscribe
+   */
+  subscribe(fn: (event: AuthEvent) => void): () => void;
+  /**
+   * This performs the call to the authentication server with the credentials
+   * provided. If the authentication was successful it provide the API response
+   * for further processing. If there's a failure a AuthenticationClientError
+   * will be thrown.
+   *
+   * @param authenticationCredentials
+   * @returns The fetch API response
+   * @throws AuthenticationClientError
+   */
+  loginAsync(authenticationCredentials: A): Promise<Response>;
+  /** Refreshes the token outside of the schedule. */
+  refreshAsync(): Promise<void>;
+  /** Revokes the token */
+  logoutAsync(): Promise<void>;
   /**
    * Sets the endpoint configuration for the context. This allows switching
    * between backends.

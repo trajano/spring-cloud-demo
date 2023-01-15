@@ -1,4 +1,5 @@
 export class AuthenticationClientError extends Error {
+  public readonly isAuthenticationClientError = true;
   constructor(
     public response: Response,
     public responseBody: string,
@@ -6,13 +7,12 @@ export class AuthenticationClientError extends Error {
   ) {
     super(message ?? `HTTP Error ${response.status}`);
   }
-  public readonly isAuthenticationClientError = true;
   /**
    * Explicit check for 401 errors.
    *
    * @returns If status code is 401
    */
-  isUnauthorized() {
+  public isUnauthorized(): boolean {
     return this.response.status === 401;
   }
 }

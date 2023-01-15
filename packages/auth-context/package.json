@@ -88,6 +88,7 @@
       "prefer-template": "error",
       "yoda": "error",
       "@typescript-eslint/ban-types": "off",
+      "@typescript-eslint/member-ordering": "warn",
       "@typescript-eslint/no-invalid-void-type": "off"
     },
     "root": true
