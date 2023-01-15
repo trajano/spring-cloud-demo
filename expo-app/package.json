@@ -1,50 +1,38 @@
 {
   "name": "@trajano/spring-docker-expo-app",
   "version": "1.0.0",
+  "private": true,
   "main": "src/init/index.ts",
   "scripts": {
-    "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web",
-    "test": "jest",
     "lint": "eslint \"**/*.{ts,tsx}\"",
-    "prepare": "tsc --noEmit"
-  },
-  "jest": {
-    "preset": "jest-expo",
-    "transformIgnorePatterns": [
-      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|i18n-js)"
-    ]
-  },
-  "x-resolutions": {
-    "shell-quote": ">= 1.7.3",
-    "@expo/dev-server": "> 0.1.123 || <= 0.1.120",
-    "react-native-dotenv": "< 3.4",
-    "@types/react": "~18.0.24",
-    "webpack": "< 5",
-    "webpack-dev-server": "< 4"
+    "prepare": "tsc --noEmit",
+    "start": "expo start",
+    "test": "jest",
+    "web": "expo start --web"
   },
   "eslintConfig": {
+    "parserOptions": {
+      "project": [
+        "./tsconfig.json"
+      ]
+    },
+    "settings": {
+      "import/ignore": [
+        "react-native"
+      ]
+    },
     "extends": [
       "@react-native-community",
+      "plugin:@typescript-eslint/strict",
       "plugin:jest/recommended",
       "plugin:react-hooks/recommended",
       "plugin:testing-library/react",
       "prettier",
       "universe/native"
     ],
-    "parser": "@typescript-eslint/parser",
-    "ignorePatterns": [
-      "node_modules"
-    ],
-    "settings": {
-      "import/ignore": [
-        "react-native"
-      ]
-    },
     "rules": {
-      "react/react-in-jsx-scope": "off",
       "arrow-body-style": "error",
       "curly": "error",
       "eqeqeq": "error",
@@ -66,8 +54,18 @@
         {
           "argsIgnorePattern": "^_"
         }
-      ]
-    }
+      ],
+      "react/react-in-jsx-scope": "off"
+    },
+    "ignorePatterns": [
+      "node_modules"
+    ]
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|i18n-js)"
+    ]
   },
   "dependencies": {
     "@expo-google-fonts/ibm-plex-mono": "^0.2.2",
@@ -184,5 +182,12 @@
     "webpack": "4.46.0",
     "webpack-dev-server": "3.11.3"
   },
-  "private": true
+  "x-resolutions": {
+    "shell-quote": ">= 1.7.3",
+    "@expo/dev-server": "> 0.1.123 || <= 0.1.120",
+    "react-native-dotenv": "< 3.4",
+    "@types/react": "~18.0.24",
+    "webpack": "< 5",
+    "webpack-dev-server": "< 4"
+  }
 }
