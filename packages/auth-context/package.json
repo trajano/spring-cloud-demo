@@ -2,11 +2,23 @@
   "name": "@trajano/spring-docker-auth-context",
   "version": "0.1.0",
   "description": "test",
+  "keywords": [
+    "react-native",
+    "ios",
+    "android"
+  ],
+  "homepage": "https://github.com/trajano/trajano-spring-docker-auth-context#readme",
+  "bugs": {
+    "url": "https://github.com/trajano/trajano-spring-docker-auth-context/issues"
+  },
+  "repository": "https://github.com/trajano/trajano-spring-docker-auth-context",
+  "license": "MIT",
+  "author": "Archimedes Trajano <developer@trajano.net> (https://github.com/trajano)",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
-  "types": "lib/typescript/index.d.ts",
-  "react-native": "src/index",
   "source": "src/index",
+  "react-native": "src/index",
+  "types": "lib/typescript/index.d.ts",
   "files": [
     "src",
     "lib",
@@ -28,28 +40,77 @@
     "!**/.*"
   ],
   "scripts": {
-    "test": "jest",
-    "typescript": "tsc --noEmit",
+    "bootstrap": "yarn example && yarn install",
+    "example": "yarn --cwd example",
     "lint": "eslint \"**/*.{ts,tsx}\"",
     "prepare": "bob build",
     "release": "release-it",
-    "example": "yarn --cwd example",
-    "bootstrap": "yarn example && yarn install"
+    "test": "jest",
+    "typescript": "tsc --noEmit"
   },
-  "keywords": [
-    "react-native",
-    "ios",
-    "android"
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "prettier": {
+    "quoteProps": "consistent",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "useTabs": false
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "project": [
+        "./tsconfig.json"
+      ]
+    },
+    "extends": [
+      "@react-native-community",
+      "plugin:@typescript-eslint/strict",
+      "plugin:jest/recommended",
+      "plugin:react-hooks/recommended",
+      "plugin:testing-library/react",
+      "prettier"
+    ],
+    "rules": {
+      "arrow-body-style": "error",
+      "curly": "error",
+      "eqeqeq": "error",
+      "logical-assignment-operators": "error",
+      "multiline-comment-style": "error",
+      "no-floating-decimal": "error",
+      "prefer-arrow-callback": "error",
+      "prefer-const": "error",
+      "prefer-numeric-literals": "error",
+      "prefer-object-spread": "error",
+      "prefer-template": "error",
+      "yoda": "error",
+      "@typescript-eslint/ban-types": "off",
+      "@typescript-eslint/no-invalid-void-type": "off"
+    },
+    "root": true
+  },
+  "eslintIgnore": [
+    "node_modules/",
+    "lib/"
   ],
-  "repository": "https://github.com/trajano/trajano-spring-docker-auth-context",
-  "author": "Archimedes Trajano <developer@trajano.net> (https://github.com/trajano)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/trajano/trajano-spring-docker-auth-context/issues"
+  "jest": {
+    "modulePathIgnorePatterns": [
+      "<rootDir>/example/node_modules",
+      "<rootDir>/lib/"
+    ],
+    "preset": "@testing-library/react-native",
+    "setupFilesAfterEnv": [
+      "@testing-library/jest-native/extend-expect"
+    ],
+    "testEnvironment": "node"
   },
-  "homepage": "https://github.com/trajano/trajano-spring-docker-auth-context#readme",
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+  "dependencies": {
+    "@trajano/react-hooks": "2.0.1",
+    "jest-environment-node": "^29.3.1",
+    "js-base64": "^3.7.4"
   },
   "devDependencies": {
     "@arkweid/lefthook": "^0.7.7",
@@ -96,20 +157,21 @@
     "react": "*",
     "react-native": "*"
   },
-  "jest": {
-    "preset": "@testing-library/react-native",
-    "testEnvironment": "node",
-    "setupFilesAfterEnv": [
-      "@testing-library/jest-native/extend-expect"
-    ],
-    "modulePathIgnorePatterns": [
-      "<rootDir>/example/node_modules",
-      "<rootDir>/lib/"
-    ]
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      "commonjs",
+      "module",
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
     ]
   },
   "release-it": {
@@ -128,67 +190,5 @@
         "preset": "angular"
       }
     }
-  },
-  "eslintConfig": {
-    "root": true,
-    "extends": [
-      "@react-native-community",
-      "plugin:@typescript-eslint/strict",
-      "plugin:jest/recommended",
-      "plugin:react-hooks/recommended",
-      "plugin:testing-library/react",
-      "prettier"
-    ],
-    "rules": {
-      "arrow-body-style": "error",
-      "curly": "error",
-      "eqeqeq": "error",
-      "logical-assignment-operators": "error",
-      "multiline-comment-style": "error",
-      "no-floating-decimal": "error",
-      "prefer-arrow-callback": "error",
-      "prefer-const": "error",
-      "prefer-numeric-literals": "error",
-      "prefer-object-spread": "error",
-      "prefer-template": "error",
-      "yoda": "error",
-      "@typescript-eslint/ban-types": "off",
-      "@typescript-eslint/no-invalid-void-type": "off"
-    },
-    "parserOptions": {
-      "project": [
-        "./tsconfig.json"
-      ]
-    }
-  },
-  "eslintIgnore": [
-    "node_modules/",
-    "lib/"
-  ],
-  "prettier": {
-    "quoteProps": "consistent",
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "es5",
-    "useTabs": false
-  },
-  "react-native-builder-bob": {
-    "source": "src",
-    "output": "lib",
-    "targets": [
-      "commonjs",
-      "module",
-      [
-        "typescript",
-        {
-          "project": "tsconfig.build.json"
-        }
-      ]
-    ]
-  },
-  "dependencies": {
-    "@trajano/react-hooks": "2.0.1",
-    "jest-environment-node": "^29.3.1",
-    "js-base64": "^3.7.4"
   }
 }
