@@ -12,7 +12,7 @@
     "url": "https://github.com/trajano/trajano-spring-docker-auth-context/issues"
   },
   "repository": "https://github.com/trajano/trajano-spring-docker-auth-context",
-  "license": "MIT",
+  "license": "EPL-2.0",
   "author": "Archimedes Trajano <developer@trajano.net> (https://github.com/trajano)",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
