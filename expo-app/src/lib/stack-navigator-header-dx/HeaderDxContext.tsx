@@ -125,7 +125,7 @@ export function HeaderDxProvider({
         });
       }
     },
-    [routes]
+    [routes, updateRouteState]
   );
   const updateRoute = useCallback(
     (
@@ -139,7 +139,7 @@ export function HeaderDxProvider({
         scrollView: scrollViewRef.current,
       });
     },
-    [routes]
+    [updateRouteState]
   );
   const contextValue = useMemo(
     () => ({
@@ -240,6 +240,7 @@ export function useHeaderDx(
   );
   const onScrollEndDrag = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      console.log("onScrollEndDrag")
       /*
        * updateRoute(route, event.nativeEvent.contentOffset.y, scrollViewRef);
        * snap back
@@ -261,7 +262,7 @@ export function useHeaderDx(
         height: layout.height ?? 0,
       },
     ],
-    [inContentContainerStyle, contentContainerStylePaddingTop]
+    [inContentContainerStyle, contentContainerStylePaddingTop, layout.height, layout.width]
   );
 
   const refreshControl:

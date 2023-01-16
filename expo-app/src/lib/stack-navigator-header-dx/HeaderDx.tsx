@@ -81,7 +81,7 @@ export function HeaderDx({
   const onLayout = useCallback(({ nativeEvent }: LayoutChangeEvent) => {
     console.log({ header: "layouted", nativeEvent });
     forRouteForHeader(route, layout);
-  }, []);
+  }, [forRouteForHeader, layout, route]);
 
   const headerHeight = deviceType === DeviceType.TABLET ? 50 : 44;
   const opacity = positionY.interpolate({

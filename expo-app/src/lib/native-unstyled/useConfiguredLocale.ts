@@ -72,7 +72,7 @@ export function useConfiguredLocale(
         return i18n.t(scope, options);
       }
     },
-    [i18n, locale]
+    [i18n]
   );
 
   const setLocaleWithNotification = useCallback(

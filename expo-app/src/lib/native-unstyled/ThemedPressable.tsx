@@ -105,7 +105,7 @@ export function ThemedPressable({
         originalOnPressIn(event);
       }
     },
-    [originalOnPressIn, bg, pressStateRef]
+    [originalOnPressIn, pressInAnimationTiming]
   );
   const onPressOut = useCallback(
     (event: GestureResponderEvent) => {
@@ -115,7 +115,7 @@ export function ThemedPressable({
         originalOnPressOut(event);
       }
     },
-    [originalOnPressOut, bg, pressStateRef]
+    [originalOnPressOut, pressOutAnimationTiming, bg, pressStateRef]
   );
   return (
     <Pressable

@@ -93,7 +93,7 @@ export function ThemeProvider({
         return {};
       }
     },
-    [textRoles, fontModules]
+    [textRoles]
   );
   const { replaceWithNativeFont } = useFonts(fontModules, () =>
     setFontsLoaded(true)

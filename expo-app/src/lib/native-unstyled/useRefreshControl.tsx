@@ -20,7 +20,7 @@ export function useRefreshControl(
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [onRefresh]);
 
   return (
     <RefreshControl

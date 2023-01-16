@@ -40,14 +40,13 @@ export function withStyledTextInput<
   }
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
   function useWrapped(
-    { editable, onFocus, onBlur, ...props }: P,
+    { editable, onFocus: originalOnFocus = noop, onBlur, ...props }: P,
     ref: Ref<T>
   ): ReactElement<Q> {
     const { colors } = useTheming();
     const [inputState, setInputState] = useState<InputState>(
       editable === false ? "disabled" : "default"
     );
-    const originalOnFocus = useCallback(onFocus ?? noop, [onFocus]);
     const augmentedOnFocus = useCallback(
       (ev: Parameters<NonNullable<TextInputProps["onFocus"]>>[0]) => {
         if (editable !== false) {

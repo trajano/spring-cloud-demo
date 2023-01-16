@@ -119,7 +119,7 @@ export function useFonts(
         return omit({ ...defaultTextStyle, ...style }, "fontFamily");
       }
     },
-    [fontFamilyNames, loadedFonts]
+    [loadedFonts]
   );
 
   useEffect(() => {
@@ -144,7 +144,7 @@ export function useFonts(
       }
     }
     loadFontsAsync();
-  }, []);
+  }, [fontModules, isMounted, onload]);
 
   const contextValue = useMemo<IFonts>(
     () => ({
@@ -153,7 +153,7 @@ export function useFonts(
       total,
       replaceWithNativeFont,
     }),
-    [loadedFonts.fonts, loaded, total]
+    [loadedFonts.fonts, loaded, total, replaceStyleWithNativeFont]
   );
 
   return contextValue;
