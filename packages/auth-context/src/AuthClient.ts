@@ -91,6 +91,10 @@ export class AuthClient<A = unknown> implements IAuthClient<A> {
     if (!response.ok) {
       throw new AuthenticationClientError(response, await response.text());
     }
+    if (response.status === 204) {
+      // body is blank do not process anymore.
+      return;
+    }
     /*
      * if there's a problem just log it. there's nothing that can be done
      * as the user has logged out.
