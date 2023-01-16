@@ -94,7 +94,7 @@ it("should i18n Text and preseve other styles and remap font", async () => {
     IBMPlexSans_700Bold: 13,
     IBMPlexSans_700Bold_Italic: 14,
   };
-  const { getByTestId, toJSON, unmount } = render(
+  const { toJSON, unmount } = render(
     <ThemeProvider
       fontModules={[mockFont]}
       translations={{ en: { key: "hello" } }}

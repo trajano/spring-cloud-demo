@@ -85,9 +85,9 @@ export function ThemeProvider({
     (role?: string, size?: string) => {
       if (!role) {
         return {};
-      } else if (textRoles[`${role}.${size}`]) {
+      } else if (`${role}.${size}` in textRoles) {
         return textRoles[`${role}.${size}`];
-      } else if (textRoles[role]) {
+      } else if (role in textRoles) {
         return textRoles[role];
       } else {
         return {};

@@ -1,13 +1,13 @@
 import * as SQLite from "expo-sqlite";
 import { useEffect, useRef } from "react";
-type DbLoadedState = {
+interface DbLoadedState {
   loaded: true;
   db: SQLite.Database;
-};
-type DbUnloadedState = {
+}
+interface DbUnloadedState {
   loaded: false;
   db: undefined;
-};
+}
 type DbState = DbLoadedState | DbUnloadedState;
 export function useDb(databaseName: string): DbState {
   const dbRef = useRef<SQLite.WebSQLDatabase>();

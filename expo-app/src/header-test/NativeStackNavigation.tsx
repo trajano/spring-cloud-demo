@@ -1,15 +1,16 @@
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { ParamListBase } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import { MainTabParamList } from "./MainTabNavigation";
 import { NativeOneViewScreen } from "./NativeOneViewScreen";
 
-export type NativeStackParamList = {
+export interface NativeStackParamList extends ParamListBase {
   SampleScrollView: undefined;
   SmallHeader: undefined;
   TransparentHeader: undefined;
   TransparentSmallHeader: undefined;
-};
+}
 const NativeStack = createNativeStackNavigator<NativeStackParamList>();
 
 export function NativeStackNavigation({

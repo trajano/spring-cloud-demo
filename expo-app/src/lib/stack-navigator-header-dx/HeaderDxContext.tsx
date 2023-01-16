@@ -28,16 +28,16 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type HeaderDxRouteState = {
+interface HeaderDxRouteState {
   positionY: Animated.Value;
   scrollView: ScrollView | null;
   finalPositionY: number;
   layout: StackHeaderProps["layout"];
-};
+}
 /**
  * Keeps track of the position and the scroll view reference for each route.
  */
-type HeaderDxState = {
+interface HeaderDxState {
   forRoute(route: Route<string>): HeaderDxRouteState;
   forRouteForHeader(
     route: Route<string>,
@@ -49,7 +49,7 @@ type HeaderDxState = {
     scrollViewRef: RefObject<ScrollView>
   ): HeaderDxRouteState;
   deviceType: DeviceType;
-};
+}
 const HeaderDxContext = createContext<HeaderDxState>({
   forRoute: () => ({
     positionY: new Animated.Value(0),
@@ -76,7 +76,7 @@ export function HeaderDxProvider({
   initialRouteStates = {},
   onRouteUpdate = noop,
 }: PropsWithChildren<{
-  initialRouteStates?: { [routeKey: string]: HeaderDxRouteState };
+  initialRouteStates?: Record<string, HeaderDxRouteState>;
   /**
    * triggered when the route data has been updated.  Can be used to save
    * @param routeKey
@@ -88,9 +88,8 @@ export function HeaderDxProvider({
   const [deviceType, setDeviceType] = useState(DeviceType.UNKNOWN);
   useAsyncSetEffect(getDeviceTypeAsync, setDeviceType, []);
 
-  const [routes, setRoutes] = useDeepState<{
-    [routeKey: string]: HeaderDxRouteState;
-  }>(initialRouteStates);
+  const [routes, setRoutes] =
+    useDeepState<Record<string, HeaderDxRouteState>>(initialRouteStates);
   const updateRouteState = useCallback(
     (routeKey: string, next: Partial<HeaderDxRouteState>) => {
       setRoutes({
@@ -157,7 +156,7 @@ export function HeaderDxProvider({
     </HeaderDxContext.Provider>
   );
 }
-type HeaderScrollViewProps = {
+interface HeaderScrollViewProps {
   /**
    * This will be fired to update the positions.
    */
@@ -173,8 +172,8 @@ type HeaderScrollViewProps = {
     | undefined;
   containerPaddingTop: number;
   scrollIndicatorInsetTop: number;
-};
-type AnimatedHeaderScrollViewProps = {
+}
+interface AnimatedHeaderScrollViewProps {
   /**
    * This will be fired to update the positions.
    */
@@ -190,7 +189,7 @@ type AnimatedHeaderScrollViewProps = {
     | undefined;
   containerPaddingTop: Animated.Value;
   scrollIndicatorInsetTop: Animated.Value;
-};
+}
 
 export function useHeaderDxContext() {
   return useContext(HeaderDxContext);
@@ -258,8 +257,8 @@ export function useHeaderDx(
       inContentContainerStyle,
       {
         paddingTop: contentContainerStylePaddingTop,
-        width: layout?.width ?? 0,
-        height: layout?.height ?? 0,
+        width: layout.width ?? 0,
+        height: layout.height ?? 0,
       },
     ],
     [inContentContainerStyle, contentContainerStylePaddingTop]

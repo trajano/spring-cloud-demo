@@ -35,8 +35,7 @@ function hoc<P extends Q, Q extends object, T, O = object>(
     const componentProps: Q = props as Q;
     return <Component {...componentProps} ref={ref} />;
   }
-  const displayName =
-    Component.displayName || Component.name || "AnonymousComponent";
+  const displayName = Component.displayName ?? Component.name;
   useWrapped.displayName = displayName;
   return forwardRef(useWrapped);
 }
@@ -57,7 +56,7 @@ function hocTemplate<P extends Q, Q extends object, T, O = object>(
   Component: ComponentType<Q>,
   name: string,
   wrapper: (props: P, ref: Ref<T>) => ReactElement<Q>,
-  options?: O
+  _options?: O
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
   function useWrapped(props: P, ref: Ref<T>): ReactElement<Q> {
     return wrapper(props, ref);
@@ -66,10 +65,10 @@ function hocTemplate<P extends Q, Q extends object, T, O = object>(
   return forwardRef(useWrapped);
 }
 
-type IgnoredProps = {
+interface IgnoredProps {
   foo: string;
   bar: string;
-};
+}
 describe("hoc", () => {
   it("should work with text", () => {
     const HocText = hoc<TextProps, TextProps, Text>(Text);
@@ -115,7 +114,7 @@ describe("hoc", () => {
     function MyComponent() {
       const textRef = useRef<Text>(null);
       useEffect(() => {
-        callback(textRef?.current);
+        callback(textRef.current);
       }, []);
       return <HocText ref={textRef}>simple string</HocText>;
     }
@@ -132,7 +131,7 @@ describe("hoc", () => {
     function MyComponent() {
       const textRef = useRef<Text>(null);
       useEffect(() => {
-        callback(textRef?.current);
+        callback(textRef.current);
       }, []);
       return <Text ref={textRef}>simple string</Text>;
     }

@@ -24,9 +24,7 @@ function useReplacedWithNativeFonts(
   children?: ReactNode;
 } {
   const { defaultTypography, replaceWithNativeFont } = useTheming();
-  const flattenedStyle: TextStyle = style
-    ? StyleSheet.flatten(style) || {}
-    : {};
+  const flattenedStyle: TextStyle = style ? StyleSheet.flatten(style) : {};
   const replacedStyle = replaceWithNativeFont(
     flattenedStyle,
     defaultTypography

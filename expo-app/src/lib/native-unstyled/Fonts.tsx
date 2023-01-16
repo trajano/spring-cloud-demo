@@ -7,7 +7,7 @@ import { StyleProp, TextStyle } from "react-native";
 
 import { replaceStyleWithNativeFont } from "./replaceStyleWithNativeFont";
 
-type IFonts = {
+interface IFonts {
   /**
    * These are fonts that are loaded.  They are keyed using a colon separated composite key containing the family, weight and style of the font.
    */
@@ -28,7 +28,7 @@ type IFonts = {
     flattenedStyle: StyleProp<TextStyle>,
     defaultTextStyle?: Pick<TextStyle, "color">
   ): StyleProp<TextStyle> | undefined;
-};
+}
 const moduleFontWeightToStyleFontWeight: Record<
   string,
   TextStyle["fontWeight"]

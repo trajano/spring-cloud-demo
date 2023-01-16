@@ -1,7 +1,7 @@
-export type JwtClaims = {
+export interface JwtClaims {
   sub: string;
   aud: string[];
   exp: number;
   iss: string;
   [key: string]: unknown;
-};
+}

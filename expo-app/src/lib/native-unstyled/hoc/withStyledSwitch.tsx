@@ -1,4 +1,3 @@
-import noop from "lodash/noop";
 import {
   ComponentType,
   forwardRef,
@@ -50,7 +49,7 @@ export function withStyledSwitch<
     const augmentedOnValueChange = useCallback(
       (nextValue: boolean) => {
         setInputState(value ? "enabled" : "default");
-        originalOnValueChange && originalOnValueChange(nextValue);
+        originalOnValueChange?.(nextValue);
       },
       [setInputState, originalOnValueChange, value]
     );

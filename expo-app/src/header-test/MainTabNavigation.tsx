@@ -1,12 +1,13 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { ParamListBase } from "@react-navigation/native";
 
 import { HeaderDxStackNavigation } from "./HeaderDxStackNavigation";
 import { NativeStackNavigation } from "./NativeStackNavigation";
 
-export type MainTabParamList = {
+export interface MainTabParamList extends ParamListBase {
   HeaderDxStack: undefined;
   NativeStack: undefined;
-};
+}
 
 const MainTab = createBottomTabNavigator<MainTabParamList>();
 export function MainTabNavigation() {

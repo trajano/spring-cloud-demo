@@ -9,5 +9,5 @@ import {
  * makes it a bit easier to work with.
  */
 export default function useColorScheme(): NonNullable<ColorSchemeName> {
-  return _useColorScheme() as NonNullable<ColorSchemeName>;
+  return _useColorScheme()!;
 }

@@ -14,13 +14,13 @@ import { useTheming } from "../ThemeContext";
 import { doStyleWrap } from "./doStyleWrap";
 import { hocDisplayName } from "./hocDisplayName";
 
-export type WithStyledProps = {
+export interface WithStyledProps {
   /**
    * Specifies that the style props are stripped out before calling the component.
    * This is disabled by default on production for performance, but enabled on development.
    */
   stripStyledPropsToWrappedComponent?: boolean;
-};
+}
 
 /**
  * This wraps a view component so the styles are exposed.

@@ -1,4 +1,5 @@
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { ParamListBase } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import { HeaderDxLarge } from "../lib/stack-navigator-header-dx";
@@ -7,12 +8,12 @@ import { HeaderDxProvider } from "../lib/stack-navigator-header-dx/HeaderDxConte
 import { HeaderDxOneViewScreen } from "./HeaderDxOneViewScreen";
 import { MainTabParamList } from "./MainTabNavigation";
 
-export type HeaderDxStackParamList = {
+export interface HeaderDxStackParamList extends ParamListBase {
   SampleScrollView: undefined;
   SmallHeader: undefined;
   TransparentHeader: undefined;
   TransparentSmallHeader: undefined;
-};
+}
 
 const HeaderDxStack = createStackNavigator<HeaderDxStackParamList>();
 

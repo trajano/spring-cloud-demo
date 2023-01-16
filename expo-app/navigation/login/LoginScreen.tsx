@@ -82,7 +82,7 @@ export function LoginForm() {
         anchor={<Button onPress={openMenu} title={baseUrl.toString()} />}
       >
         <Menu.Item
-          onPress={() => setAndSaveBaseUrlAsync(BASE_URL)}
+          onPress={() => setAndSaveBaseUrlAsync(BASE_URL!)}
           title={BASE_URL}
         />
         {Platform.OS === "web" && (

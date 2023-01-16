@@ -36,7 +36,7 @@ export async function jwtVerify<P extends JwtClaims>(
     }).verify(jwt);
     const payload = JSON.parse(jwsResult.payload.toString()) as P;
     if (
-      payload.aud &&
+      Array.isArray(payload.aud) &&
       payload.exp &&
       payload.sub &&
       payload.iss === issuer &&

@@ -25,7 +25,7 @@ export type ThemeTextStyle = Pick<
 /**
  *
  */
-export type ColorSchemes = {
+export interface ColorSchemes {
   /**
    * Theme when using a dark color mode
    */
@@ -38,4 +38,4 @@ export type ColorSchemes = {
    * Other named themes.
    */
   [name: string]: ColorSchemeColors;
-};
+}

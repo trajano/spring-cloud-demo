@@ -19,10 +19,10 @@ function lookupLayerColor(
     requestedLayerColor.indexOf(":")
   );
   const isForeground = requestedLayerColor.endsWith(":f");
-  const layer = colorSchemeColors.layers[layerName];
-  if (!layer) {
+  if (!(layerName in colorSchemeColors.layers)) {
     return requestedLayerColor;
   }
+  const layer = colorSchemeColors.layers[layerName];
   if (isForeground) {
     if (typeof layer[0] === "object" && layer[0].hasOwnProperty("500")) {
       return lookupColor(layer[0]["500"], colorSchemeColors);

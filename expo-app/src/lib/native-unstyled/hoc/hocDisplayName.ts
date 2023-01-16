@@ -9,7 +9,7 @@ export function hocDisplayName<Q>(
   Component: ComponentType<Q>
 ): string | undefined {
   if (__DEV__) {
-    const displayName = Component.displayName || Component.name || "Component";
+    const displayName = Component.displayName ?? Component.name;
     return `${hocName}(${displayName})`;
   } else {
     return Component.displayName;

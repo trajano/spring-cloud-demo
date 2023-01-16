@@ -11,7 +11,10 @@ import {
 
 import { BlurView, Text, useRefreshControl } from "../src/lib/native-unstyled";
 
-type AsyncStorageSection = { key: string; data: string[] };
+interface AsyncStorageSection {
+  key: string;
+  data: string[];
+}
 type AsyncStorageSectionListData = SectionListData<string, AsyncStorageSection>;
 function tokenReplacer(this: any, key: string, value: any): any {
   if (

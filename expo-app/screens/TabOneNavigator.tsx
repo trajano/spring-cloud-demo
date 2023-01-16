@@ -1,19 +1,28 @@
 import { FontAwesome } from "@expo/vector-icons";
+import { CompositeScreenProps } from "@react-navigation/native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   createStackNavigator,
   Header,
   StackHeaderProps,
+  StackScreenProps,
 } from "@react-navigation/stack";
 import { useCallback } from "react";
-import { Pressable } from "react-native";
+import {
+  Pressable,
+  PressableStateCallbackType,
+  StyleProp,
+  ViewStyle,
+} from "react-native";
 
+import {
+  MainDrawerParamList,
+  MainDrawerTabOneParamList,
+  RootStackParamList,
+} from "../navigation/paramLists";
 import { HeaderDx } from "../src/lib/stack-navigator-header-dx/HeaderDx";
 import { HeaderDxProvider } from "../src/lib/stack-navigator-header-dx/HeaderDxContext";
-import {
-  MainDrawerTabOneParamList,
-  MainDrawerTabOneScreenProps,
-} from "../types";
-import { OneViewScreen } from "./OneViewScreen";
+import { OneViewScreen, OneViewTransparentHeader } from "./OneViewScreen";
 import { SystemFontsScreen } from "./SystemFontsScreen";
 import TabOneScreen from "./TabOneScreen";
 const Stack = createStackNavigator<MainDrawerTabOneParamList>();
@@ -47,18 +56,24 @@ function LoggingHeader({
     />
   );
 }
-
-export function TabOne({
+function pressedStyle({
+  pressed,
+}: PressableStateCallbackType): StyleProp<ViewStyle> {
+  return { opacity: pressed ? 0.5 : 1 };
+}
+export function TabOneNavigator({
   navigation,
-}: MainDrawerTabOneScreenProps<"TabOneScreen">): JSX.Element {
+}: CompositeScreenProps<
+  StackScreenProps<MainDrawerParamList, "TabOne">,
+  NativeStackScreenProps<RootStackParamList>
+>): JSX.Element {
+  const navigateToModal = useCallback(
+    () => navigation.navigate("Modal"),
+    [navigation]
+  );
   const defaultHeaderRight = useCallback(
     () => (
-      <Pressable
-        onPress={() => navigation.navigate("Modal")}
-        style={({ pressed }) => ({
-          opacity: pressed ? 0.5 : 1,
-        })}
-      >
+      <Pressable onPress={navigateToModal} style={pressedStyle}>
         <FontAwesome name="info-circle" size={25} style={{ marginRight: 15 }} />
       </Pressable>
     ),
@@ -106,7 +121,7 @@ export function TabOne({
         />
         <Stack.Screen
           name="OneViewTransparentHeader"
-          component={OneViewScreen}
+          component={OneViewTransparentHeader}
           options={{
             header: LoggingHeader,
             title: "One View Transparent Header",

@@ -5,7 +5,7 @@ import type { ColorSchemeName } from "react-native";
 import type { ColorSchemes } from "./Themes";
 import type { Typography } from "./Typography";
 
-type ColorThemeProviderProps = {
+interface ColorThemeProviderProps {
   colorSchemeColors?: ColorSchemes;
   /**
    * Color scheme to use.  If falsy it will use the system if not available it will use the default.
@@ -20,8 +20,8 @@ type ColorThemeProviderProps = {
    * @param nextColorScheme color scheme, nullable to allow clearing the value.
    */
   onColorSchemeChange?: (nextColorScheme: ColorSchemeName) => void;
-};
-type FontThemeProviderProps = {
+}
+interface FontThemeProviderProps {
   /**
    * expo-font module assets to load up.
    */
@@ -30,8 +30,8 @@ type FontThemeProviderProps = {
    * A list of roles for the text to provide repetitive text styles.
    */
   textRoles?: Record<string, Typography>;
-};
-type LocalizationThemeProviderProps = {
+}
+interface LocalizationThemeProviderProps {
   /**
    * Locale to use.  If not present it will use the system if not available it will use the default.
    */
@@ -53,7 +53,7 @@ type LocalizationThemeProviderProps = {
    * @param nextLocale locale, nullable to allow clearing the value.
    */
   onLocaleChange?: (nextLocale: string | null) => void;
-};
+}
 export type ThemeProviderProps = PropsWithChildren<
   ColorThemeProviderProps &
     FontThemeProviderProps &

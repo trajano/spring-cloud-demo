@@ -1,18 +1,21 @@
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useCallback } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 
+import { RootStackParamList } from "../navigation/paramLists";
 import { Text, View } from "../src/lib/native-unstyled";
-import { RootStackScreenProps } from "../types";
 
 export default function NotFoundScreen({
   navigation,
-}: RootStackScreenProps<"NotFound">) {
+}: NativeStackScreenProps<RootStackParamList, "NotFound">) {
+  const navigateBackToRoot = useCallback(
+    () => navigation.replace("Root"),
+    [navigation]
+  );
   return (
     <View style={styles.container}>
       <Text style={styles.title}>This screen doesn't exist.</Text>
-      <TouchableOpacity
-        onPress={() => navigation.replace("Root")}
-        style={styles.link}
-      >
+      <TouchableOpacity onPress={navigateBackToRoot} style={styles.link}>
         <Text style={styles.linkText}>Go to home screen!</Text>
       </TouchableOpacity>
     </View>

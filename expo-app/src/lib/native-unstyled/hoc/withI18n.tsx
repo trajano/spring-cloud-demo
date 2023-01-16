@@ -12,7 +12,7 @@ import { TextInputProps, TextProps } from "react-native";
 import { useTheming } from "../ThemeContext";
 import { hocDisplayName } from "./hocDisplayName";
 
-type I18nProps = {
+interface I18nProps {
   _t?: string;
   /**
    * Key for `accessibilityLabel`
@@ -27,8 +27,8 @@ type I18nProps = {
    */
   _rkl?: string;
   _tp?: Record<string, unknown>;
-};
-type I18nHocOptions = {
+}
+interface I18nHocOptions {
   /**
    * This is a mapping of localization key props to the real prop.
    * This is added in addition to
@@ -45,7 +45,7 @@ type I18nHocOptions = {
    * If true, then the children are replaced with the value of `_t`.
    */
   _tIsChild?: boolean;
-};
+}
 export function withI18n<P extends Q & I18nProps, Q extends TextProps, T>(
   Component: ComponentType<Q>,
   {

@@ -228,7 +228,7 @@ export default function TabTwoScreen({
         }}
       />
       <Text>
-        {scrollInfo?.contentOffset.x} {scrollInfo?.contentOffset.y}
+        {scrollInfo.contentOffset.x} {scrollInfo.contentOffset.y}
       </Text>
       <Text>{JSON.stringify(scrollViewLayout)}</Text>
       <Text>
@@ -254,7 +254,7 @@ export default function TabTwoScreen({
 
       <Text fg="blue">{AuthState[authState]}</Text>
       <Text>
-        {scrollInfo?.contentOffset.x} {scrollInfo?.contentOffset.y}
+        {scrollInfo.contentOffset.x} {scrollInfo.contentOffset.y}
       </Text>
       <Text>{JSON.stringify(scrollInfo, null, 2)}</Text>
       <View

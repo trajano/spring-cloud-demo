@@ -1,15 +1,15 @@
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { ComponentType, useMemo } from "react";
+import { useMemo } from "react";
 import { useWindowDimensions } from "react-native";
 
-import { MainDrawerParamList } from "../types";
+import { MainDrawerParamList } from "../navigation/paramLists";
 import { AsyncStorageScreen } from "./AsyncStorageScreen";
 import { EnvironmentScreen } from "./EnvironmentScreen";
 import { ExpoUpdateScreen } from "./ExpoUpdateScreen";
 import { JustScrollView } from "./JustScrollView";
 import { StackNavigatorScrollView } from "./StackNavigatorScrollView";
 import { SystemFontsScreen } from "./SystemFontsScreen";
-import { TabOne } from "./TabOne";
+import { TabOneNavigator } from "./TabOneNavigator";
 const Drawer = createDrawerNavigator<MainDrawerParamList>();
 export function DrawerNavigator() {
   const { width, height } = useWindowDimensions();
@@ -29,7 +29,7 @@ export function DrawerNavigator() {
     >
       <Drawer.Screen
         name="TabOne"
-        component={TabOne as ComponentType}
+        component={TabOneNavigator}
         options={{ headerShown: false }}
       />
       <Drawer.Screen

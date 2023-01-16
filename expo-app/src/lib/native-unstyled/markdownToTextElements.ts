@@ -5,18 +5,18 @@ import { Text } from "react-native";
 
 import { withReplacedWithNativeFonts } from "./hoc/withReplacedWithNativeFonts";
 
-type TextNode = {
+interface TextNode {
   type: "text";
   parent?: FormatNode;
   isCode: boolean;
   content: string;
-};
-type FormatNode = {
+}
+interface FormatNode {
   parent?: FormatNode;
   type: "format";
   format: "" | string;
   children: Node[];
-};
+}
 type Node = TextNode | FormatNode;
 
 /**
@@ -36,7 +36,7 @@ export function inlineMarkdownToTextElements(
   s: string,
   markdownIt: MarkdownIT = new MarkdownIT()
 ): JSX.Element {
-  const tokens: Token[] = markdownIt.parseInline(s, null)[0].children || [];
+  const tokens: Token[] = markdownIt.parseInline(s, null)[0].children ?? [];
 
   const tree: Node = {
     type: "format",

@@ -38,7 +38,7 @@ function AssetsLoaded({
       <Text>{updateChecked ? "Running latest" : "Checking for update"}</Text>
       <Text>
         {backendReachable ? "Connected" : "Disconnected"}:{" "}
-        {endpointConfiguration?.pingEndpoint}
+        {endpointConfiguration.pingEndpoint}
       </Text>
       <Text>{BASE_URL}</Text>
     </View>

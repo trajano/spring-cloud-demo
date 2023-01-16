@@ -14,13 +14,13 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuthenticated } from "../authenticated-context";
+import { MainDrawerTabOneParamList } from "../navigation/paramLists";
 import { ScrollView, Text, useTheming, View } from "../src/lib/native-unstyled";
 import { useAlert } from "../src/lib/native-unstyled/useAlert";
-import { MainDrawerTabOneParamList } from "../types";
 export default function TabOneScreen({
   navigation,
   route,
-}: StackScreenProps<MainDrawerTabOneParamList>) {
+}: StackScreenProps<MainDrawerTabOneParamList, "TabOneScreen">) {
   const { logoutAsync, refreshAsync, accessToken, oauthToken, baseUrl } =
     useAuth();
   const { claims, internalState } = useAuthenticated();

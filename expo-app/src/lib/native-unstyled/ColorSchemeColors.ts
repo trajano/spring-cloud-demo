@@ -20,7 +20,7 @@ type ColorLayers = UnswatchedColorLayers | [Color, Color];
  */
 type UnswatchedColorLayers = [string, string];
 
-export type ColorSchemeColors = {
+export interface ColorSchemeColors {
   /**
    * This are the layers used by the root views
    */
@@ -93,4 +93,4 @@ export type ColorSchemeColors = {
    * Aliased colors.
    */
   aliases: Record<string, Color>;
-};
+}

@@ -11,7 +11,10 @@ import { BlurView, Text, View } from "../src/lib/native-unstyled";
 
 const specimenText =
   "The quick brown fox jumped over the two lazy dogs. 13-8 0 96?";
-type FontSectionData = { fontFamily: string; specimen: string };
+interface FontSectionData {
+  fontFamily: string;
+  specimen: string;
+}
 const variantSuffixes = [
   "Black",
   "Bold",
@@ -62,8 +65,8 @@ export function hasNoVariantSuffix(fontFamily: string): boolean {
   return (
     variantSuffixes
       .flatMap((suffix) => [`_${suffix}`, `-${suffix}`])
-      .findIndex(
-        (suffix) => fontFamily.toLowerCase().indexOf(suffix.toLowerCase()) >= 0
+      .findIndex((suffix) =>
+        fontFamily.toLowerCase().includes(suffix.toLowerCase())
       ) === -1
   );
 }

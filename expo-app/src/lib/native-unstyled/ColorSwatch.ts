@@ -4,7 +4,7 @@
  * Or use https://github.com/arnelenero/simpler-color to have it computed as part of your
  * code base.
  */
-export type ColorSwatch = {
+export interface ColorSwatch {
   "50": string;
   "100": string;
   "200": string;
@@ -15,4 +15,4 @@ export type ColorSwatch = {
   "700": string;
   "800": string;
   "900": string;
-};
+}

@@ -1,5 +1,5 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Animated, useWindowDimensions } from "react-native";
+import { Animated } from "react-native";
 
 import { useRefreshControl } from "../lib/native-unstyled";
 import { NativeStackParamList } from "./NativeStackNavigation";

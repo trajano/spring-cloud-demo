@@ -23,10 +23,10 @@ import { NetworkLoggerTab } from "../screens/NetworkLoggerTab";
 import NotFoundScreen from "../screens/NotFoundScreen";
 import { TextTab } from "../screens/TextTab";
 import { ActivityIndicator, useTheming } from "../src/lib/native-unstyled";
-import { RootStackParamList, RootTabParamList } from "../types";
 import LinkingConfiguration from "./LinkingConfiguration";
 import { LoginNavigator } from "./login/LoginNavigator";
 import { AuthenticatedEndpointConfiguration } from "./login/types";
+import { RootStackParamList, RootTabParamList } from "./paramLists";
 
 const PERSISTENCE_KEY = "NAVIGATION_STATE_V1";
 function cleanAuthEvent({
