@@ -77,7 +77,7 @@ export function TabOneNavigator({
         <FontAwesome name="info-circle" size={25} style={{ marginRight: 15 }} />
       </Pressable>
     ),
-    []
+    [navigateToModal]
   );
 
   return (

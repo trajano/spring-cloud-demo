@@ -1,6 +1,5 @@
 import { useHeaderHeight } from "@react-navigation/elements";
 import { StackScreenProps } from "@react-navigation/stack";
-import { ListRenderItemInfo } from "@shopify/flash-list";
 import { useMounted } from "@trajano/react-hooks";
 import { useAuth } from "@trajano/spring-docker-auth-context";
 import { useCallback, useState } from "react";
@@ -9,13 +8,13 @@ import {
   LayoutChangeEvent,
   LayoutRectangle,
   StyleSheet,
-  useWindowDimensions,
+  useWindowDimensions
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuthenticated } from "../authenticated-context";
 import { MainDrawerTabOneParamList } from "../navigation/paramLists";
-import { ScrollView, Text, useTheming, View } from "../src/lib/native-unstyled";
+import { ScrollView, Text, useRefreshControl, useTheming, View } from "../src/lib/native-unstyled";
 import { useAlert } from "../src/lib/native-unstyled/useAlert";
 export default function TabOneScreen({
   navigation,
@@ -55,7 +54,7 @@ export default function TabOneScreen({
 
   const switchToSystemColorScheme = useCallback(() => {
     setColorScheme(null);
-  }, [colorScheme, setColorScheme]);
+  }, [setColorScheme]);
 
   const switchToSystemLocale = useCallback(() => {
     setLocale(null);
@@ -89,7 +88,7 @@ export default function TabOneScreen({
         onPress: logoutAsync,
       },
     ]);
-  }, [logoutAsync, alert]);
+  }, [logoutAsync, alert,t]);
 
   const headerTransparent = useCallback(() => {
     navigation.setOptions({ headerTransparent: true });
@@ -107,7 +106,7 @@ export default function TabOneScreen({
       width: 375,
       height: 603 - headerHeight, // this is the height with the header and status area minus the tab bar
     });
-  }, [navigation]);
+  }, [navigation, headerHeight]);
   const toOneViewTransparentHeader = useCallback(() => {
     navigation.navigate("OneViewTransparentHeader", {
       x: 0,
@@ -117,35 +116,10 @@ export default function TabOneScreen({
     });
   }, [navigation]);
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  const data = [
-    baseUrl,
-    process.env,
-    oauthToken,
-    claims,
-    accessToken?.slice(-5),
-    ...internalState,
-  ];
-  const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<any>) => (
-      <View>
-        <Text>{JSON.stringify(item, null, 2)}</Text>
-      </View>
-    ),
-    []
-  );
-
-  const refreshToken = useCallback(async () => {
-    setRefreshing(true);
-    await refreshAsync();
-    if (isMounted()) {
-      setRefreshing(false);
-    }
-  }, []);
+  const refreshControl = useRefreshControl(()=> refreshAsync());
 
   return (
-    <ScrollView contentInsetAdjustmentBehavior="automatic" onLayout={onLayout}>
+    <ScrollView contentInsetAdjustmentBehavior="automatic" onLayout={onLayout} refreshControl={refreshControl}>
       <View
         height={headerHeight - safeAreaInsetTop}
         borderWidth={1}

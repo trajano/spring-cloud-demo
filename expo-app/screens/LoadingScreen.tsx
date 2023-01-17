@@ -98,7 +98,7 @@ export function LoadingScreen({
       fromAnimationFinish + fromAuthState + fromExpoUpdate + fromFontsLoaded,
       4
     );
-  }, [fromAnimationFinish, fromAuthState, fromExpoUpdate, fromFontsLoaded]);
+  }, [fromAnimationFinish, fromAuthState, fromExpoUpdate, fromFontsLoaded, additionalResourceUpdate]);
 
   return (
     <>

@@ -34,7 +34,7 @@ export function AppProvider({
     () => ({ lastAuthEvents }),
     [lastAuthEvents]
   );
-  useEffect(() => subscribe(pushAuthEvent), []);
+  useEffect(() => subscribe(pushAuthEvent), [pushAuthEvent, subscribe]);
   return (
     <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
   );

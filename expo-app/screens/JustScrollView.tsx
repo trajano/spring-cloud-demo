@@ -52,7 +52,7 @@ export function JustScrollView() {
       new Date(Date.now() - 10).toISOString()
     );
     await forceCheckAuthStorageAsync();
-  }, []);
+  }, [baseUrl, forceCheckAuthStorageAsync]);
 
   const updateClock = useCallback(() => {
     timerRef.current = setTimeout(() => {
@@ -76,7 +76,7 @@ export function JustScrollView() {
     } else {
       return undefined;
     }
-  }, [timeRemaining < 0, accessTokenExpired]);
+  }, [timeRemaining, accessTokenExpired]);
 
   return (
     <Animated.ScrollView

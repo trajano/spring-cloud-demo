@@ -39,6 +39,6 @@ export function useStoredEndpointConfigurationEffect(
         }
       }
     })();
-  }, []);
+  }, [setDefaultEndpointConfiguration]);
   return defaultEndpointConfiguration;
 }

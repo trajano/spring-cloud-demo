@@ -161,15 +161,15 @@ interface HeaderScrollViewProps {
    * This will be fired to update the positions.
    */
   onScroll:
-    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
-    | undefined;
+  | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+  | undefined;
 
   /**
    * This will be handling the "snap back"
    */
   onScrollEndDrag:
-    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
-    | undefined;
+  | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+  | undefined;
   containerPaddingTop: number;
   scrollIndicatorInsetTop: number;
 }
@@ -178,15 +178,15 @@ interface AnimatedHeaderScrollViewProps {
    * This will be fired to update the positions.
    */
   onScroll:
-    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
-    | undefined;
+  | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+  | undefined;
 
   /**
    * This will be handling the "snap back"
    */
   onScrollEndDrag:
-    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
-    | undefined;
+  | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+  | undefined;
   containerPaddingTop: Animated.Value;
   scrollIndicatorInsetTop: Animated.Value;
 }
@@ -223,6 +223,7 @@ export function useHeaderDx(
   const route = useRoute();
   const { forRoute, updateRoute } = useContext(HeaderDxContext);
   const { positionY, scrollView, finalPositionY, layout } = forRoute(route);
+  /* eslint-disable react-hooks/exhaustive-deps */
   const onScroll = useCallback(
     Animated.event(
       [
@@ -238,9 +239,10 @@ export function useHeaderDx(
     ),
     [positionY]
   );
+  /* eslint-enable react-hooks/exhaustive-deps */
   const onScrollEndDrag = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      console.log("onScrollEndDrag")
+      console.log("onScrollEndDrag");
       /*
        * updateRoute(route, event.nativeEvent.contentOffset.y, scrollViewRef);
        * snap back
@@ -262,7 +264,12 @@ export function useHeaderDx(
         height: layout.height ?? 0,
       },
     ],
-    [inContentContainerStyle, contentContainerStylePaddingTop, layout.height, layout.width]
+    [
+      inContentContainerStyle,
+      contentContainerStylePaddingTop,
+      layout.height,
+      layout.width,
+    ]
   );
 
   const refreshControl:

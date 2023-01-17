@@ -1,17 +1,34 @@
 import "@testing-library/jest-native/extend-expect";
-import { act, render, screen } from "@testing-library/react-native";
+import { act, render, renderHook, screen } from "@testing-library/react-native";
+import { FontSource } from "expo-font";
 import { View } from "react-native";
 
-import { useFonts } from "./Fonts";
 import { ThemeProvider } from "./ThemeContext";
+import { useReplaceWithNativeFontCallback } from "./replaceStyleWithNativeFont";
+import { useExpoFonts } from "./useExpoFonts";
 
-describe("replaceWithNativeFont", () => {
-  beforeEach(() => {
-    jest.useFakeTimers();
+describe("useReplaceWithNativeFontCallback", () => {
+  it("should return undefined", async () => {
+    const { result } = renderHook(() => {
+      const [loaded, loadedFonts] = useExpoFonts([]);
+      return useReplaceWithNativeFontCallback(loaded, loadedFonts);
+    }, {});
+
+    const replaceWithNativeFont0 = result.current;
+    expect(replaceWithNativeFont0({})).toBeUndefined();
+    await act(() => Promise.resolve());
+    const replaceWithNativeFont1 = result.current;
+    expect(replaceWithNativeFont1({})).toBeUndefined();
   });
-  it("should return empty", () => {
+});
+describe("replaceWithNativeFont", () => {
+  it("should return empty", async () => {
     function MyComponent() {
-      const { replaceWithNativeFont } = useFonts();
+      const [loaded, loadedFonts] = useExpoFonts([]);
+      const replaceWithNativeFont = useReplaceWithNativeFontCallback(
+        loaded,
+        loadedFonts
+      );
       const style = replaceWithNativeFont({});
       return <View testID="blah" style={style} />;
     }
@@ -21,12 +38,18 @@ describe("replaceWithNativeFont", () => {
       </ThemeProvider>
     );
     expect(screen.getByTestId("blah")).not.toHaveProp("style");
+    await act(() => Promise.resolve());
+    expect(screen.getByTestId("blah")).not.toHaveProp("style");
     unmount();
   });
 
-  it("should render fonts", () => {
+  it("should render fonts", async () => {
     function MyComponent() {
-      const { replaceWithNativeFont } = useFonts();
+      const [loaded, loadedFonts] = useExpoFonts([]);
+      const replaceWithNativeFont = useReplaceWithNativeFontCallback(
+        loaded,
+        loadedFonts
+      );
       const style = replaceWithNativeFont({
         fontFamily: "something",
         fontWeight: "300",
@@ -38,6 +61,8 @@ describe("replaceWithNativeFont", () => {
         <MyComponent />
       </ThemeProvider>
     );
+
+    await act(() => Promise.resolve());
     expect(screen.getByTestId("blah").props.style).toStrictEqual({
       fontFamily: "something",
       fontWeight: "300",
@@ -45,9 +70,13 @@ describe("replaceWithNativeFont", () => {
     unmount();
   });
 
-  it("should render fonts with default colors", () => {
+  it("should render fonts with default colors", async () => {
     function MyComponent() {
-      const { replaceWithNativeFont } = useFonts();
+      const [loaded, loadedFonts] = useExpoFonts([]);
+      const replaceWithNativeFont = useReplaceWithNativeFontCallback(
+        loaded,
+        loadedFonts
+      );
       const style = replaceWithNativeFont(
         { fontFamily: "something", fontWeight: "300" },
         { color: "pink" }
@@ -59,6 +88,8 @@ describe("replaceWithNativeFont", () => {
         <MyComponent />
       </ThemeProvider>
     );
+
+    await act(() => Promise.resolve());
     expect(screen.getByTestId("blah").props.style).toStrictEqual({
       color: "pink",
       fontFamily: "something",
@@ -67,9 +98,13 @@ describe("replaceWithNativeFont", () => {
     unmount();
   });
 
-  it("should render fonts overriding default colors", () => {
+  it("should render fonts overriding default colors", async () => {
     function MyComponent() {
-      const { replaceWithNativeFont } = useFonts();
+      const [loaded, loadedFonts] = useExpoFonts([]);
+      const replaceWithNativeFont = useReplaceWithNativeFontCallback(
+        loaded,
+        loadedFonts
+      );
       const style = replaceWithNativeFont(
         { fontFamily: "something", fontWeight: "300", color: "yellow" },
         { color: "pink" }
@@ -81,6 +116,8 @@ describe("replaceWithNativeFont", () => {
         <MyComponent />
       </ThemeProvider>
     );
+
+    await act(() => Promise.resolve());
     expect(screen.getByTestId("blah").props.style).toStrictEqual({
       color: "yellow",
       fontFamily: "something",
@@ -89,7 +126,7 @@ describe("replaceWithNativeFont", () => {
     unmount();
   });
 
-  it("should render fonts provided", () => {
+  it("should render fonts provided", async () => {
     const mockFont = {
       useFonts: jest.fn(),
 
@@ -110,7 +147,11 @@ describe("replaceWithNativeFont", () => {
       IBMPlexSans_700Bold_Italic: 14,
     };
     function MyComponent() {
-      const { replaceWithNativeFont } = useFonts([mockFont]);
+      const [loaded, loadedFonts] = useExpoFonts([mockFont]);
+      const replaceWithNativeFont = useReplaceWithNativeFontCallback(
+        loaded,
+        loadedFonts
+      );
       const style = replaceWithNativeFont({
         fontFamily: "IBMPlexSans",
         fontWeight: "300",
@@ -123,9 +164,7 @@ describe("replaceWithNativeFont", () => {
         <MyComponent />
       </ThemeProvider>
     );
-    act(() => {
-      jest.runAllTicks();
-    });
+    await act(() => Promise.resolve());
     expect(screen.getByTestId("blah").props.style).toStrictEqual({
       fontFamily: "IBMPlexSans_300Light",
     });

@@ -66,9 +66,9 @@ export function ExpoUpdateScreen(): ReactElement<
       data: [],
     },
   ]);
-  async function computeSectionsWithPromises(): Promise<
+  const computeSectionsWithPromises = useCallback(async (): Promise<
     SectionListData<any>[]
-  > {
+  > => {
     const replacements: Record<string, any> = {
       "expo-update.logEntries": await readLogEntriesAsync(),
     };
@@ -77,14 +77,14 @@ export function ExpoUpdateScreen(): ReactElement<
         ? { key: section.key!, data: replacements[section.key!] }
         : section
     );
-  }
+  },[sections])
   const renderSectionHeader = useCallback(
     ({ section }: { section: SectionListData<any, any> }) => (
       <BlurView intensity={90} padding={16}>
         <Text bold>{section.key}</Text>
       </BlurView>
     ),
-    [sections]
+    []
   );
   const renderItem = useCallback(
     ({ item }: SectionListRenderItemInfo<any>) => (
@@ -92,7 +92,7 @@ export function ExpoUpdateScreen(): ReactElement<
         <Text color="silver">{JSON.stringify(item, tokenReplacer, 2)}</Text>
       </View>
     ),
-    [sections]
+    []
   );
   const refreshControl = useRefreshControl(async () => {
     await checkForUpdateAsync();
@@ -103,7 +103,7 @@ export function ExpoUpdateScreen(): ReactElement<
       (async () => {
         setSections(await computeSectionsWithPromises());
       })();
-    }, [])
+    }, [computeSectionsWithPromises, setSections])
   );
   return (
     <SectionList<any>

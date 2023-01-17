@@ -1,14 +1,17 @@
 import Constants from "expo-constants";
 import * as Font from "expo-font";
 import isEmpty from "lodash/isEmpty";
+import omit from "lodash/omit";
 import pickBy from "lodash/pickBy";
-import { TextStyle } from "react-native";
+import { useCallback } from "react";
+import { StyleProp, TextStyle } from "react-native";
 function fontAvailable(fontFamily: string): boolean {
   return (
     Font.isLoaded(fontFamily) ||
     Constants.systemFonts.findIndex((f) => f === fontFamily) !== -1
   );
 }
+/** @testonly */
 export function replaceStyleWithNativeFont(
   { fontFamily, fontWeight, fontStyle, ...rest }: TextStyle,
   fonts: Record<string, string>,
@@ -64,4 +67,32 @@ export function replaceStyleWithNativeFont(
     }
   }
   return isEmpty(ret) ? undefined : pickBy(ret);
+}
+
+export function useReplaceWithNativeFontCallback(
+  loaded: boolean,
+  loadedFonts: Record<string, string>
+): (
+  flattenedStyle: TextStyle,
+  defaultTextStyle?: TextStyle
+) => StyleProp<TextStyle> | undefined {
+  const replaceWithNativeFont = useCallback(
+    (flattenedStyle: TextStyle, defaultTextStyle: TextStyle = {}) => {
+      if (loaded) {
+        return replaceStyleWithNativeFont(
+          flattenedStyle,
+          loadedFonts,
+          defaultTextStyle
+        );
+      } else {
+        const ret = omit(
+          { ...defaultTextStyle, ...flattenedStyle },
+          "fontFamily"
+        );
+        return isEmpty(ret) ? undefined : pickBy(ret);
+      }
+    },
+    [loaded, loadedFonts]
+  );
+  return replaceWithNativeFont;
 }

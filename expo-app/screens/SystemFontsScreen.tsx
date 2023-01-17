@@ -107,13 +107,13 @@ export function SystemFontsScreen(): ReactElement<
     ({ section }: { section: SectionListData<any, any> }) => (
       <SectionHeader fontFamily={section.key} />
     ),
-    [sections]
+    []
   );
   const renderItem = useCallback(
     ({ item }: SectionListRenderItemInfo<FontSectionData>) => (
       <SpecimenView fontFamily={item.fontFamily} specimen={item.specimen} />
     ),
-    [sections]
+    []
   );
 
   return (

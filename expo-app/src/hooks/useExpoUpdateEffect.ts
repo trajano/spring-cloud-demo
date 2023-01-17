@@ -41,5 +41,5 @@ export function useExpoUpdateEffect() {
   useEffect(() => {
     const sub = addListener(checkForUpdate);
     return () => sub.remove();
-  }, []);
+  }, [checkForUpdate]);
 }

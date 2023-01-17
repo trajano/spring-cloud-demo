@@ -80,7 +80,7 @@ export function AuthenticatedProvider({
     } catch (_e: unknown) {
       return Promise.resolve(undefined);
     }
-  }, [verifyClaims, jwtVerify, accessToken, baseUrl, issuer, clientId]);
+  }, [verifyClaims, accessToken, baseUrl, issuer, clientId]);
 
   useAsyncSetEffect(verifyToken, setClaims, []);
 
@@ -109,7 +109,7 @@ export function AuthenticatedProvider({
       });
       return () => eventStream.current?.close();
     }
-  }, [verified, username, accessToken]);
+  }, [baseUrl, isMounted, verified, username, accessToken]);
 
   const whoami = useCallback(async () => {
     console.log({ whoamiCall: accessToken?.slice(-5) });
@@ -123,7 +123,7 @@ export function AuthenticatedProvider({
       credentials: "omit",
     });
     return r.json();
-  }, [accessToken, authorization]);
+  }, [accessToken, baseUrl, whoAmIEndpoint, authorization]);
 
   const contextValue = useMemo<IAuthenticated>(
     () => ({

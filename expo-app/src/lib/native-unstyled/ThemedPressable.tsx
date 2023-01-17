@@ -115,7 +115,7 @@ export function ThemedPressable({
         originalOnPressOut(event);
       }
     },
-    [originalOnPressOut, pressOutAnimationTiming, bg, pressStateRef]
+    [originalOnPressOut, pressOutAnimationTiming]
   );
   return (
     <Pressable

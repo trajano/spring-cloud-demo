@@ -120,9 +120,9 @@ export function EnvironmentScreen(): ReactElement<
       data: [],
     },
   ]);
-  async function computeSectionsWithPromises(): Promise<
+  const computeSectionsWithPromises = useCallback(async (): Promise<
     SectionListData<any>[]
-  > {
+  > => {
     const replacements: Record<string, any> = {
       "expo-localization.Locales": await Promise.resolve(
         Localization.getLocales()
@@ -141,14 +141,14 @@ export function EnvironmentScreen(): ReactElement<
         ? { key: section.key!, data: replacements[section.key!] }
         : section
     );
-  }
+  }, [sections]);
   const renderSectionHeader = useCallback(
     ({ section }: { section: SectionListData<any, any> }) => (
       <BlurView intensity={90} padding={16}>
         <Text bold>{section.key}</Text>
       </BlurView>
     ),
-    [sections]
+    []
   );
   const renderItem = useCallback(
     ({ item }: SectionListRenderItemInfo<any>) => (
@@ -156,7 +156,7 @@ export function EnvironmentScreen(): ReactElement<
         <Text color="silver">{JSON.stringify(item, tokenReplacer, 2)}</Text>
       </View>
     ),
-    [sections]
+    []
   );
 
   useFocusEffect(
@@ -164,7 +164,7 @@ export function EnvironmentScreen(): ReactElement<
       (async () => {
         setSections(await computeSectionsWithPromises());
       })();
-    }, [])
+    }, [computeSectionsWithPromises, setSections])
   );
   return (
     <SectionList<any>

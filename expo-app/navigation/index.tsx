@@ -90,7 +90,7 @@ export default function Navigation() {
     AsyncStorage.setItem(PERSISTENCE_KEY, JSON.stringify(state));
   }, []);
 
-  useEffect(() => auth.subscribe(authEventHandler), []);
+  useEffect(() => auth.subscribe(authEventHandler), [auth, authEventHandler]);
 
   const endpointConfiguration =
     auth.endpointConfiguration as AuthenticatedEndpointConfiguration;

@@ -2,7 +2,9 @@ import {
   DefaultTheme,
   Theme as ReactNavigationTheme,
 } from "@react-navigation/native";
+import isEmpty from "lodash/isEmpty";
 import noop from "lodash/noop";
+import omit from "lodash/omit";
 import {
   createContext,
   useCallback,
@@ -10,15 +12,20 @@ import {
   useMemo,
   useState,
 } from "react";
+import { StyleProp, TextStyle } from "react-native";
 
 import { ColorSchemeColors } from "./ColorSchemeColors";
-import { useFonts } from "./Fonts";
 import { ITheme } from "./ITheme";
 import { ThemeProviderProps } from "./ThemeProviderProps";
 import { defaultColorSchemeColors } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from "./defaultColorSchemes/defaultLightColorSchemeColors";
+import {
+  replaceStyleWithNativeFont,
+  useReplaceWithNativeFontCallback,
+} from "./replaceStyleWithNativeFont";
 import { useConfiguredColorSchemes } from "./useConfiguredColorScheme";
 import { useConfiguredLocale } from "./useConfiguredLocale";
+import { useExpoFonts } from "./useExpoFonts";
 
 const ThemeContext = createContext<ITheme>({
   colorScheme: "light",
@@ -28,7 +35,7 @@ const ThemeContext = createContext<ITheme>({
   locale: "en",
   setColorScheme: noop,
   setLocale: noop,
-  replaceWithNativeFont: () => ({}),
+  replaceWithNativeFont: (inStyle) => inStyle,
   typography: () => ({}),
   t: () => "",
   fontsLoaded: false,
@@ -60,8 +67,6 @@ export function ThemeProvider({
     onLocaleChange,
     i18nOptions
   );
-
-  const [fontsLoaded, setFontsLoaded] = useState(false);
 
   const colors = useMemo(
     () => colorSchemeColors[colorScheme],
@@ -95,8 +100,11 @@ export function ThemeProvider({
     },
     [textRoles]
   );
-  const { replaceWithNativeFont } = useFonts(fontModules, () =>
-    setFontsLoaded(true)
+
+  const [fontsLoaded, loadedFonts] = useExpoFonts(fontModules);
+  const replaceWithNativeFont = useReplaceWithNativeFontCallback(
+    fontsLoaded,
+    loadedFonts
   );
   const contextValue = useMemo<ITheme>(
     () => ({

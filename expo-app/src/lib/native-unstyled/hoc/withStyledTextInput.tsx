@@ -40,7 +40,12 @@ export function withStyledTextInput<
   }
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
   function useWrapped(
-    { editable, onFocus: originalOnFocus = noop, onBlur, ...props }: P,
+    {
+      editable,
+      onFocus: originalOnFocus = noop,
+      onBlur: originalOnBlur = noop,
+      ...props
+    }: P,
     ref: Ref<T>
   ): ReactElement<Q> {
     const { colors } = useTheming();
@@ -57,7 +62,6 @@ export function withStyledTextInput<
       [setInputState, originalOnFocus, editable]
     );
 
-    const originalOnBlur = useCallback(onBlur ?? noop, [onBlur]);
     const augmentedOnBlur = useCallback(
       (ev: Parameters<NonNullable<TextInputProps["onBlur"]>>[0]) => {
         if (editable !== false) {

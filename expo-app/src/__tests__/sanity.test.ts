@@ -1,4 +1,5 @@
 import { BASE_URL } from "@env";
+import isEmpty from "lodash/isEmpty";
 import pickBy from "lodash/pickBy";
 /**
  * tests for understanding of standard library
@@ -14,4 +15,11 @@ it("should remove undefined", () => {
 
 it("should not crash importing BASE_URL whether it has a value or not", () => {
   expect(BASE_URL ?? "a").toBeTruthy();
+});
+
+it("isEmpty", () => {
+  expect(isEmpty(undefined)).toBeTruthy();
+  expect(isEmpty("")).toBeTruthy();
+  expect(isEmpty([])).toBeTruthy();
+  expect(isEmpty({})).toBeTruthy();
 });

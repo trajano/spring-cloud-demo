@@ -165,7 +165,7 @@ export default function TabTwoScreen({
       // console.log({ onFocus: e });
       scrollViewRef.current?.scrollTo({ y: 10, animated: true });
     },
-    [scrollViewRef.current]
+    []
   );
 
   const handleScrollButton = useCallback(() => {
@@ -177,7 +177,7 @@ export default function TabTwoScreen({
       navigation.setOptions({
         title: JSON.stringify(defaultTypography),
       });
-    }, [defaultTypography])
+    }, [navigation, defaultTypography])
   );
 
   const onLayout = useCallback(

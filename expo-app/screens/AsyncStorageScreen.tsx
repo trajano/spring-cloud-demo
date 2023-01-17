@@ -26,17 +26,19 @@ function tokenReplacer(this: any, key: string, value: any): any {
     return value;
   }
 }
+
+async function storageToSections(): Promise<AsyncStorageSectionListData[]> {
+  const keys = await AsyncStorage.getAllKeys();
+  const kvps = await AsyncStorage.multiGet(
+    [...keys].sort((a, b) => a.localeCompare(b))
+  );
+  return kvps.reduce<AsyncStorageSectionListData[]>(
+    (prev, kvp: KeyValuePair) => [...prev, { key: kvp[0], data: [kvp[1]!] }],
+    []
+  );
+}
+
 export function AsyncStorageScreen() {
-  async function storageToSections(): Promise<AsyncStorageSectionListData[]> {
-    const keys = await AsyncStorage.getAllKeys();
-    const kvps = await AsyncStorage.multiGet(
-      [...keys].sort((a, b) => a.localeCompare(b))
-    );
-    return kvps.reduce<AsyncStorageSectionListData[]>(
-      (prev, kvp: KeyValuePair) => [...prev, { key: kvp[0], data: [kvp[1]!] }],
-      []
-    );
-  }
 
   const [sections, setSections] = useDeepState<AsyncStorageSectionListData[]>(
     []
@@ -49,7 +51,7 @@ export function AsyncStorageScreen() {
       (async () => {
         setSections(await storageToSections());
       })();
-    }, [])
+    }, [setSections])
   );
 
   const renderItem = useCallback(
