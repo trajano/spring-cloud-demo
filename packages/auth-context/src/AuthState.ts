@@ -1,6 +1,6 @@
 export enum AuthState {
   /**
-   * Inital state. In this state all the auth data is pulled from storage. This
+   * Initial state. In this state all the auth data is pulled from storage. This
    * is the only time with the exception of
    * {@link IAuth.forceCheckAuthStorageAsync} where the OAuth token data is read
    * from {@link AuthStore}.
