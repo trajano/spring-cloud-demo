@@ -2,7 +2,8 @@ import * as RN from "react-native";
 import { StyleProp } from "react-native";
 
 /**
- * Style props.  Deprecated values are omitted.  Shadow props are also omitted in favor of elevation
+ * Style props. Deprecated values are omitted. Shadow props are also omitted in
+ * favor of elevation
  */
 export type StyleProps = Omit<
   RN.ViewStyle,
@@ -19,21 +20,19 @@ export type StyleProps = Omit<
   | "shadowRadius"
 > & {
   /**
-   * If true, the existing `style` attribute will be extended.  If false then the stylings will not modify the existing style attribute.  Defaults to true.
+   * If true, the existing `style` attribute will be extended. If false then the
+   * stylings will not modify the existing style attribute. Defaults to true.
    */
   extendStyle?: boolean;
-  /**
-   * Existing style.
-   */
+  /** Existing style. */
   style?: StyleProp<unknown>;
 
-  /**
-   * Background color alias.
-   */
+  /** Background color alias. */
   bg?: string;
 
   /**
-   * Elevation.  This replaces the shadow props and made to work the same way in both Android and iOS when applied as a prop.
+   * Elevation. This replaces the shadow props and made to work the same way in
+   * both Android and iOS when applied as a prop.
    */
   elevation?: number;
 };

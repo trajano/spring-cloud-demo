@@ -4,8 +4,8 @@ import { JwtClaims } from "./JwtClaims";
 
 export interface IAuthenticated {
   /**
-   * Some state goes here that's populated from the event stream.
-   * This may be a type parameter later.
+   * Some state goes here that's populated from the event stream. This may be a
+   * type parameter later.
    */
   internalState: string[];
   username: string;
@@ -13,8 +13,6 @@ export interface IAuthenticated {
   claims?: JwtClaims;
   dbLoaded: boolean;
   db?: SQLite.Database;
-  /**
-   * This invokes the whoami endpoint
-   */
+  /** This invokes the whoami endpoint */
   whoami(): Promise<Record<string, unknown>>;
 }

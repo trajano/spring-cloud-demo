@@ -7,10 +7,10 @@ import { createContext, useCallback, useContext, useMemo } from "react";
 
 import { ColorSchemeColors } from "./ColorSchemeColors";
 import { ITheme } from "./ITheme";
+import { ThemeProviderProps } from "./ThemeProviderProps";
 import { defaultColorSchemeColors } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from "./defaultColorSchemes/defaultLightColorSchemeColors";
 import { useReplaceWithNativeFontCallback } from "./replaceStyleWithNativeFont";
-import { ThemeProviderProps } from "./ThemeProviderProps";
 import { useConfiguredColorSchemes } from "./useConfiguredColorScheme";
 import { useConfiguredLocale } from "./useConfiguredLocale";
 import { useExpoFonts } from "./useExpoFonts";

@@ -1,6 +1,6 @@
 /**
- * Type definitions for React Navigation.  The typings of react-native navigation does not
- * work correctly if `interface` was used instead of `type`.
+ * Type definitions for React Navigation. The typings of react-native navigation
+ * does not work correctly if `interface` was used instead of `type`.
  */
 /* eslint @typescript-eslint/consistent-type-definitions: ["error", "type"] */
 import { NavigatorScreenParams } from "@react-navigation/native";

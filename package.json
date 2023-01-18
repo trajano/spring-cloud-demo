@@ -11,8 +11,7 @@
     "nohoist": [
       "**/babel*",
       "**/eslint",
-      "**/eslint-config-*",
-      "**/eslint-plugin-*",
+      "**/eslint-*",
       "**/jest*",
       "**/prettier",
       "**/prettier-plugin-*",

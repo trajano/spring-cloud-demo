@@ -8,9 +8,7 @@ export const defaultLightColorSchemeColors: ColorSchemeColors = {
     enabled: [DefaultTheme.colors.text, DefaultTheme.colors.card],
     disabled: [DefaultTheme.colors.border, "transparent"],
     default: [DefaultTheme.colors.text, DefaultTheme.colors.card],
-    /**
-     * Color for the placeholder text which can vary depending on field state.
-     */
+    /** Color for the placeholder text which can vary depending on field state. */
     placeholderText: {
       enabled: DefaultTheme.colors.notification,
       disabled: DefaultTheme.colors.notification,
@@ -22,7 +20,8 @@ export const defaultLightColorSchemeColors: ColorSchemeColors = {
       default: DefaultTheme.colors.border,
     },
     /**
-     * Color for the selection highlight and cursor color. Applicable only on focused.
+     * Color for the selection highlight and cursor color. Applicable only on
+     * focused.
      */
     selection: DefaultTheme.colors.text,
     switch: {

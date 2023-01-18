@@ -11,9 +11,9 @@ import {
 } from "react";
 import { SwitchProps } from "react-native";
 
-import { lookupColor } from "../lookupColor";
 import { StyleProps } from "../StyleProps";
 import { useTheming } from "../ThemeContext";
+import { lookupColor } from "../lookupColor";
 import { InputState } from "./InputState";
 import { doStyleWrap } from "./doStyleWrap";
 import { hocDisplayName } from "./hocDisplayName";
@@ -21,10 +21,11 @@ import { WithStyledProps } from "./withStyled";
 
 /**
  * This wraps a view component so the styles are exposed.
- * @param Component component to wrap
- * @param options options for the HoC building
- * @typeParam Q the props for the wrapped component
- * @typeParam O options for the HoC building
+ *
+ * @typeParam Q The props for the wrapped component
+ * @typeParam O Options for the HoC building
+ * @param Component Component to wrap
+ * @param options Options for the HoC building
  * @returns A named exotic componentwith P props that accepts a ref
  */
 export function withStyledSwitch<

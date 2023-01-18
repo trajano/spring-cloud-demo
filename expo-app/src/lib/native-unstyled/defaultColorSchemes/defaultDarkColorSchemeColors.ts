@@ -7,9 +7,7 @@ export const defaultDarkColorSchemeColors: ColorSchemeColors = {
     enabled: [DarkTheme.colors.text, DarkTheme.colors.card],
     disabled: [DarkTheme.colors.border, "transparent"],
     default: [DarkTheme.colors.text, DarkTheme.colors.card],
-    /**
-     * Color for the placeholder text which can vary depending on field state.
-     */
+    /** Color for the placeholder text which can vary depending on field state. */
     placeholderText: {
       enabled: DarkTheme.colors.border,
       disabled: DarkTheme.colors.border,
@@ -21,12 +19,11 @@ export const defaultDarkColorSchemeColors: ColorSchemeColors = {
       default: DarkTheme.colors.border,
     },
     /**
-     * Color for the selection highlight and cursor color. Applicable only on focused.
+     * Color for the selection highlight and cursor color. Applicable only on
+     * focused.
      */
     selection: DarkTheme.colors.text,
-    /**
-     * Color for the Switch thumb.
-     */
+    /** Color for the Switch thumb. */
     switch: {
       thumb: DarkTheme.colors.text,
       true: DarkTheme.colors.primary,

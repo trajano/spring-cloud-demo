@@ -7,9 +7,7 @@ type ErrorViewProps = StyleProps & {
   exception: unknown;
 };
 
-/**
- * This is a error view that will take up the full area that is given to it.
- */
+/** This is a error view that will take up the full area that is given to it. */
 export const ErrorView = memo(({ exception }: ErrorViewProps) => {
   if (!exception) {
     return <SimpleErrorView message="Exception passed was null or undefined" />;

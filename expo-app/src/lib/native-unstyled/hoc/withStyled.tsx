@@ -16,18 +16,20 @@ import { hocDisplayName } from "./hocDisplayName";
 
 export interface WithStyledProps {
   /**
-   * Specifies that the style props are stripped out before calling the component.
-   * This is disabled by default on production for performance, but enabled on development.
+   * Specifies that the style props are stripped out before calling the
+   * component. This is disabled by default on production for performance, but
+   * enabled on development.
    */
   stripStyledPropsToWrappedComponent?: boolean;
 }
 
 /**
  * This wraps a view component so the styles are exposed.
- * @param Component component to wrap
- * @param options options for the HoC building
- * @typeParam Q the props for the wrapped component
- * @typeParam O options for the HoC building
+ *
+ * @typeParam Q The props for the wrapped component
+ * @typeParam O Options for the HoC building
+ * @param Component Component to wrap
+ * @param options Options for the HoC building
  * @returns A named exotic componentwith P props that accepts a ref
  */
 export function withStyled<

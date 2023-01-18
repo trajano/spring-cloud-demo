@@ -4,10 +4,9 @@ import { utcToZonedTime } from "date-fns-tz";
 import * as Localization from "expo-localization";
 
 /**
- *
+ * @param now Now in UTC
+ * @param timeZone Time zone
  * @testonly
- * @param now now in UTC
- * @param timeZone time zone
  */
 export function millisecondsBeforeNextDay(
   now: number | Date,
@@ -21,7 +20,8 @@ export function millisecondsBeforeNextDay(
   return diff === 86400000 ? 0 : diff;
 }
 /**
- * This extends the useClockState but is specific for a given day based on the local timezone
+ * This extends the useClockState but is specific for a given day based on the
+ * local timezone
  */
 export function useDayClockState(): Date {
   const defaultCalendar = Localization.getCalendars()[0];

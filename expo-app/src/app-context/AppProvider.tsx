@@ -8,9 +8,9 @@ import { useLastAuthEvents } from "./useLastAuthEvents";
 
 /**
  * Provides the context to the React application.
- * @param props provider initalization props
- * @return context provider.
  *
+ * @param props Provider initalization props
+ * @returns Context provider.
  */
 export function AppProvider({
   children,
@@ -20,16 +20,14 @@ export function AppProvider({
 }: AppProviderProps): JSX.Element {
   const { subscribe } = useAuth();
   /**
-   * Last auth events.  Eventually this will be removed and placed with the app rather than the context.
-   * Kept for debugging.
+   * Last auth events. Eventually this will be removed and placed with the app
+   * rather than the context. Kept for debugging.
    */
   const [lastAuthEvents, pushAuthEvent] = useLastAuthEvents(
     logAuthEventFilterPredicate,
     logAuthEventSize
   );
-  /**
-   * Context value. Memoized.
-   */
+  /** Context value. Memoized. */
   const contextValue = useMemo<IAppContext>(
     () => ({ lastAuthEvents }),
     [lastAuthEvents]

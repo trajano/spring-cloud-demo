@@ -1,8 +1,6 @@
 import { TextStyle } from "react-native";
 
-/**
- * These are the styles that represent a specific typography.
- */
+/** These are the styles that represent a specific typography. */
 export interface Typography {
   fontFamily?: TextStyle["fontFamily"];
   fontWeight?: TextStyle["fontWeight"];

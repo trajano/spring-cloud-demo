@@ -14,36 +14,27 @@ import { hocDisplayName } from "./hocDisplayName";
 
 interface I18nProps {
   _t?: string;
-  /**
-   * Key for `accessibilityLabel`
-   */
+  /** Key for `accessibilityLabel` */
   _a?: string;
-  /**
-   * Key for `placeholder`
-   */
+  /** Key for `placeholder` */
   _p?: string;
-  /**
-   * Key for `returnKeyLabel`.  This is Android only.
-   */
+  /** Key for `returnKeyLabel`. This is Android only. */
   _rkl?: string;
   _tp?: Record<string, unknown>;
 }
 interface I18nHocOptions {
   /**
-   * This is a mapping of localization key props to the real prop.
-   * This is added in addition to
-   * ```
-   * {
-   * _a: "accessibilityLabel" ,
-   * _p: "placeholder",
-   * _rkl: "returnKeyLabel"
-   * }
-   * ```
+   * This is a mapping of localization key props to the real prop. This is added
+   * in addition to
+   *
+   *     {
+   *       "_a": "accessibilityLabel",
+   *       "_p": "placeholder",
+   *       "_rkl": "returnKeyLabel"
+   *     }
    */
   localizedMap?: Record<string, keyof Omit<TextInputProps, "children">>;
-  /**
-   * If true, then the children are replaced with the value of `_t`.
-   */
+  /** If true, then the children are replaced with the value of `_t`. */
   _tIsChild?: boolean;
 }
 export function withI18n<P extends Q & I18nProps, Q extends TextProps, T>(

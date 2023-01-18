@@ -1,7 +1,7 @@
 /**
  * This provides a boiler plate code for a React context.
- * @module
  *
+ * @module
  */
 export * from "./AppProvider";
 export type { AppProviderProps } from "./AppProviderProps";

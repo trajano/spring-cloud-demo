@@ -10,9 +10,7 @@ import { ColorSchemeColors } from "./ColorSchemeColors";
 import { StyleProps } from "./StyleProps";
 import { lookupColor } from "./lookupColor";
 
-/**
- * Style prop keys.  Its a mapping from a prop key to the style prop.
- */
+/** Style prop keys. Its a mapping from a prop key to the style prop. */
 const stylePropKeyMapping: [string, string][] = [
   ["backfaceVisibility", "backfaceVisibility"],
   ["borderBottomEndRadius", "borderBottomEndRadius"],
@@ -101,7 +99,8 @@ const stylePropKeyMapping: [string, string][] = [
 ];
 
 /**
- * Color style prop keys.  Its a mapping from a prop key to the style prop.  These are specific for colors.
+ * Color style prop keys. Its a mapping from a prop key to the style prop. These
+ * are specific for colors.
  */
 const colorStylePropKeyMapping: [string, string][] = [
   ["backgroundColor", "backgroundColor"],
@@ -119,9 +118,7 @@ const colorStylePropKeyMapping: [string, string][] = [
   ["fg", "color"],
 ];
 
-/**
- * The prop keys used by styles.
- */
+/** The prop keys used by styles. */
 const stylePropKeys = [
   "bold",
   "italic",
@@ -282,10 +279,12 @@ const elevationToShadow = [
 ];
 
 /**
- * Given props of a component, extract the style related utility props and compute the stylesheet.  It memoizes the props
- * @param props props
- * @param colorSchemeColors color scheme colors for color lookups
- * @returns style prop, may be undefined if empty.
+ * Given props of a component, extract the style related utility props and
+ * compute the stylesheet. It memoizes the props
+ *
+ * @param props Props
+ * @param colorSchemeColors Color scheme colors for color lookups
+ * @returns Style prop, may be undefined if empty.
  */
 function doPropsToStyleSheet(
   props: Omit<StyleProps, "role" | "size">,
@@ -294,8 +293,9 @@ function doPropsToStyleSheet(
   const accumulatedStyle: Record<string, unknown> = {};
   /**
    * Look up the prop value if present compute it as the style key
-   * @param propKey prop key
-   * @param styleKey style key
+   *
+   * @param propKey Prop key
+   * @param styleKey Style key
    */
   function add(propKey: string, styleKey: string) {
     if (
@@ -307,8 +307,9 @@ function doPropsToStyleSheet(
   }
   /**
    * Look up the prop value if present compute the color as the style key
-   * @param propKey prop key
-   * @param styleKey style key
+   *
+   * @param propKey Prop key
+   * @param styleKey Style key
    */
   function addColor(propKey: string, styleKey: string) {
     if (
@@ -369,7 +370,8 @@ export const propsToStyleSheet = memoize(
     JSON.stringify([pick(props, stylePropKeys), colorSchemeColors])
 );
 /**
- * Omits styled props.  This is only enabled on `__DEV__`
+ * Omits styled props. This is only enabled on `__DEV__`
+ *
  * @param props
  * @returns
  */

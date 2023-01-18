@@ -13,9 +13,13 @@ function resolveInitialState<T extends string>(
   return nextState;
 }
 /**
- * If the value is null on storage it will not use the state.  This is limited to strings.
+ * If the value is null on storage it will not use the state. This is limited to
+ * strings.
+ *
  * @param storageKey AsyncStorage key
- * @param initialState initial state if not available in the storage.  If it is in the storage the value in the storage will be used.  This may not be undefined.
+ * @param initialState Initial state if not available in the storage. If it is
+ *   in the storage the value in the storage will be used. This may not be
+ *   undefined.
  */
 export function useStoredState<T extends string>(
   storageKey: string,

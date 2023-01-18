@@ -15,15 +15,18 @@ import { Animated, Text, TextProps } from "react-native";
 import { hocDisplayName } from "./hocDisplayName";
 
 /**
- * This is a simple HoC that is a noop that supports ref forwarding.  The ref fowarding logic is added
- * as [refs are not passed through](https://reactjs.org/docs/higher-order-components.html#refs-arent-passed-through)
+ * This is a simple HoC that is a noop that supports ref forwarding. The ref
+ * fowarding logic is added as [refs are not passed
+ * through](https://reactjs.org/docs/higher-order-components.html#refs-arent-passed-through)
  * HoCs by default.
- * @param Component component to wrap
- * @param _options options for the HoC building
- * @typeParam P the exposed props of the higher order component (does not require Q props)
- * @typeParam Q the props for the wrapped component
- * @typeParam T type for ref attribute of the wrapped component
- * @typeParam O options for the HoC building
+ *
+ * @typeParam P The exposed props of the higher order component (does not
+ *   require Q props)
+ * @typeParam Q The props for the wrapped component
+ * @typeParam T Type for ref attribute of the wrapped component
+ * @typeParam O Options for the HoC building
+ * @param Component Component to wrap
+ * @param _options Options for the HoC building
  * @returns A named exotic componentwith P props that accepts a ref
  */
 function hoc<P extends Q, Q extends object, T, O = object>(
@@ -41,15 +44,19 @@ function hoc<P extends Q, Q extends object, T, O = object>(
 }
 
 /**
- * This is a HoC that implements the template method design pattern.  It uses functions passed in as references to do the work.
- * @param Component component to wrap
- * @param name name of the HoC to be added to the displayName
- * @param wrapper the function that gets called that wraps the original component.  Unlike a typical HoC this passes the the ref from forward.
- * @param options options for the HoC building
- * @typeParam P the exposed props of the higher order component (does not require Q props)
- * @typeParam Q the props for the wrapped component
- * @typeParam T type for ref attribute of the wrapped component
- * @typeParam O options for the HoC building
+ * This is a HoC that implements the template method design pattern. It uses
+ * functions passed in as references to do the work.
+ *
+ * @typeParam P The exposed props of the higher order component (does not
+ *   require Q props)
+ * @typeParam Q The props for the wrapped component
+ * @typeParam T Type for ref attribute of the wrapped component
+ * @typeParam O Options for the HoC building
+ * @param Component Component to wrap
+ * @param name Name of the HoC to be added to the displayName
+ * @param wrapper The function that gets called that wraps the original
+ *   component. Unlike a typical HoC this passes the the ref from forward.
+ * @param options Options for the HoC building
  * @returns A named exotic componentwith P props that accepts a ref
  */
 function hocTemplate<P extends Q, Q extends object, T, O = object>(

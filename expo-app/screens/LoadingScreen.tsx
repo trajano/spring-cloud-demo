@@ -46,8 +46,9 @@ function AssetsLoaded({
 }
 
 /**
- * This is an exmaple of how NOT to do a loading screen.  The load screen ideally should
- * transition to your app's main screen, but this just spits out debug info.
+ * This is an exmaple of how NOT to do a loading screen. The load screen ideally
+ * should transition to your app's main screen, but this just spits out debug
+ * info.
  */
 export function LoadingScreen({
   loadedAssets,

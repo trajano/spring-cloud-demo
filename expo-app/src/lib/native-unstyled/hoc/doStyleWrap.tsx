@@ -9,6 +9,7 @@ import { propsToStyleSheet, withoutStyledProps } from "../propsToStyleSheet";
 
 /**
  * Wrapper function creator for styles.
+ *
  * @param Component
  * @param param1
  * @param ref

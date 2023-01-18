@@ -1,6 +1,6 @@
 /**
- * Higher Order Components that are used to wrap existing components to augment styles
- * and other things.
+ * Higher Order Components that are used to wrap existing components to augment
+ * styles and other things.
  */
 export { withI18n } from "./withI18n";
 export { withReplacedWithNativeFonts } from "./withReplacedWithNativeFonts";

@@ -4,7 +4,8 @@ import { RefreshControlProps } from "react-native";
 import { StyledProps } from "./StyledProps";
 import { RefreshControl } from "./components";
 /**
- * This is a hook that provides a simplified API for common operations on RefreshControl.
+ * This is a hook that provides a simplified API for common operations on
+ * RefreshControl.
  */
 export function useRefreshControl(
   onRefresh: () => Promise<void>,

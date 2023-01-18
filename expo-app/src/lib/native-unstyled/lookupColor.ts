@@ -39,14 +39,15 @@ function lookupLayerColor(
 }
 
 /**
- * Given a color, resolve based on the aliases
- * The color can be requested as any standard react-native color value or
- * `color.swatchvalue` (with the . means it is a swatch lookup)
- * `layer:f` or `layer:b` (with the : means its a layer look up)  Layer lookup will be done first then the alias will be looked up.  The `:b` is optional, only `:f`  needs to be explicit
+ * Given a color, resolve based on the aliases The color can be requested as any
+ * standard react-native color value or `color.swatchvalue` (with the . means it
+ * is a swatch lookup) `layer:f` or `layer:b` (with the : means its a layer look
+ * up) Layer lookup will be done first then the alias will be looked up. The
+ * `:b` is optional, only `:f` needs to be explicit
  *
- * @param requestedColor the requested color.
+ * @param requestedColor The requested color.
  * @param colorSchemeColors
- * @return a color value.  This will never return null.
+ * @returns A color value. This will never return null.
  */
 export function lookupColor(
   requestedColor: RN.ColorValue | string,

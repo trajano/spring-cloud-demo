@@ -57,10 +57,7 @@ const SpecimenView = memo(
   )
 );
 
-/**
- *
- * @testonly
- */
+/** @testonly */
 export function hasNoVariantSuffix(fontFamily: string): boolean {
   return (
     variantSuffixes

@@ -1,7 +1,9 @@
 /**
- * Exports React Native Core Components.
- * It excludes the following which should use Pressable: Button, TouchableHighlight, TouchableOpacity and TouchableWithoutFeedback.
+ * Exports React Native Core Components. It excludes the following which should
+ * use Pressable: Button, TouchableHighlight, TouchableOpacity and
+ * TouchableWithoutFeedback.
  * https://reactnative.dev/docs/next/components-and-apis
+ *
  * @module
  */
 import { BlurView as ExpoBlurView } from "expo-blur";
@@ -43,23 +45,15 @@ export const RefreshControl = withStyled(withI18n(RNRefreshControl));
 export const ScrollView = withStyledScrollView(withI18n(RNScrollView));
 export const SectionList = withStyledScrollView(withI18n(RNSectionList));
 
-/**
- * Expo BlurView
- */
+/** Expo BlurView */
 export const BlurView = withStyled(withI18n(ExpoBlurView));
-/**
- * Expo LinearGradient
- */
+/** Expo LinearGradient */
 export const LinearGradient = withStyled(withI18n(ExpoLinearGradient));
 
-/**
- * Switch
- */
+/** Switch */
 export const Switch = withStyledSwitch(withI18n(RNSwitch));
 
-/**
- * TextInput
- */
+/** TextInput */
 export const TextInput = withStyledTextInput(
   withI18n(
     withTextRole(
@@ -78,8 +72,9 @@ export const TextInput = withStyledTextInput(
 );
 
 /**
- * This is a non-animated version of Text.  Primarily used for Markdown to Text components.
- * This component type is not exposed outside as it is used internally only.
+ * This is a non-animated version of Text. Primarily used for Markdown to Text
+ * components. This component type is not exposed outside as it is used
+ * internally only.
  */
 export const Text = withStyledText(
   withI18n(

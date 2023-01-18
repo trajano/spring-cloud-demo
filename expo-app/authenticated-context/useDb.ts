@@ -18,7 +18,13 @@ export function useDb(databaseName: string): DbState {
       undefined,
       undefined,
       (nextDb) => {
-        dbRef.current = nextDb;
+        nextDb.exec(
+          [{ sql: "PRAGMA foreign_keys = ON;", args: [] }],
+          false,
+          () => {
+            dbRef.current = nextDb;
+          }
+        );
       }
     );
     return () => {

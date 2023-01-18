@@ -30,9 +30,7 @@ interface HeaderDxRouteState {
   finalPositionY: number;
   layout: StackHeaderProps["layout"];
 }
-/**
- * Keeps track of the position and the scroll view reference for each route.
- */
+/** Keeps track of the position and the scroll view reference for each route. */
 interface HeaderDxState {
   forRoute(route: Route<string>): HeaderDxRouteState;
   forRouteForHeader(
@@ -74,7 +72,8 @@ export function HeaderDxProvider({
 }: PropsWithChildren<{
   initialRouteStates?: Record<string, HeaderDxRouteState>;
   /**
-   * triggered when the route data has been updated.  Can be used to save
+   * Triggered when the route data has been updated. Can be used to save
+   *
    * @param routeKey
    * @param state
    * @returns
@@ -153,16 +152,12 @@ export function HeaderDxProvider({
   );
 }
 interface HeaderScrollViewProps {
-  /**
-   * This will be fired to update the positions.
-   */
+  /** This will be fired to update the positions. */
   onScroll:
     | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
     | undefined;
 
-  /**
-   * This will be handling the "snap back"
-   */
+  /** This will be handling the "snap back" */
   onScrollEndDrag:
     | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
     | undefined;
@@ -170,16 +165,12 @@ interface HeaderScrollViewProps {
   scrollIndicatorInsetTop: number;
 }
 interface AnimatedHeaderScrollViewProps {
-  /**
-   * This will be fired to update the positions.
-   */
+  /** This will be fired to update the positions. */
   onScroll:
     | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
     | undefined;
 
-  /**
-   * This will be handling the "snap back"
-   */
+  /** This will be handling the "snap back" */
   onScrollEndDrag:
     | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
     | undefined;

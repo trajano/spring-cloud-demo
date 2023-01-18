@@ -1,8 +1,6 @@
 import { render, screen } from "@testing-library/react-native";
 import { View, ViewProps } from "react-native";
-/**
- * tests for understanding of standard library with JSX
- */
+/** Tests for understanding of standard library with JSX */
 it("should remove undefined", () => {
   const prop: ViewProps = { accessibilityLabel: "foo" };
   render(

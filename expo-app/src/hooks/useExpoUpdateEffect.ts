@@ -9,8 +9,8 @@ import { useCallback, useEffect } from "react";
 import { useAlert } from "../lib/native-unstyled";
 
 /**
- * This subscribes to Expo Update notifications and alerts the user when there's a new update.
- * This is not available on "development mode"
+ * This subscribes to Expo Update notifications and alerts the user when there's
+ * a new update. This is not available on "development mode"
  */
 export function useExpoUpdateEffect() {
   const { alert } = useAlert();

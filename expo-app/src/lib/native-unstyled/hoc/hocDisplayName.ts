@@ -1,9 +1,6 @@
 import { ComponentType } from "react";
 
-/**
- *
- * @param Component
- */
+/** @param Component */
 export function hocDisplayName<Q>(
   hocName: string,
   Component: ComponentType<Q>

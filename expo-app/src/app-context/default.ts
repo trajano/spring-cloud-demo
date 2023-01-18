@@ -1,7 +1,7 @@
 import { IAppContext } from "./IAppContext";
 
 /**
- * Default context implementation that would provide stubs or null object values.
- *
+ * Default context implementation that would provide stubs or null object
+ * values.
  */
 export default {} as IAppContext;

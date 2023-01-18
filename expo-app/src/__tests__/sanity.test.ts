@@ -1,9 +1,7 @@
 import { BASE_URL } from "@env";
 import isEmpty from "lodash/isEmpty";
 import pickBy from "lodash/pickBy";
-/**
- * tests for understanding of standard library
- */
+/** Tests for understanding of standard library */
 it("should remove undefined", () => {
   const prop = { _a: "foo" };
   const prop2 = { _a: undefined, accessibilityLabel: "bar" };

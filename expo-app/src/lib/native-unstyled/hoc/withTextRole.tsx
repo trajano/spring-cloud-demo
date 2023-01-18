@@ -14,15 +14,18 @@ import { useTheming } from "../ThemeContext";
 import { hocDisplayName } from "./hocDisplayName";
 
 /**
- * This is a simple HoC that is a noop that supports ref forwarding.  The ref fowarding logic is added
- * as [refs are not passed through](https://reactjs.org/docs/higher-order-components.html#refs-arent-passed-through)
+ * This is a simple HoC that is a noop that supports ref forwarding. The ref
+ * fowarding logic is added as [refs are not passed
+ * through](https://reactjs.org/docs/higher-order-components.html#refs-arent-passed-through)
  * HoCs by default.
- * @param Component component to wrap
- * @param options options for the HoC building
- * @typeParam P the exposed props of the higher order component (does not require Q props)
- * @typeParam Q the props for the wrapped component
- * @typeParam T type for ref attribute of the wrapped component
- * @typeParam O options for the HoC building
+ *
+ * @typeParam P The exposed props of the higher order component (does not
+ *   require Q props)
+ * @typeParam Q The props for the wrapped component
+ * @typeParam T Type for ref attribute of the wrapped component
+ * @typeParam O Options for the HoC building
+ * @param Component Component to wrap
+ * @param options Options for the HoC building
  * @returns A named exotic componentwith P props that accepts a ref
  */
 export function withTextRole<

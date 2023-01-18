@@ -11,28 +11,26 @@ import type { ColorSwatch } from "./ColorSwatch";
 import { useTheming } from "./ThemeContext";
 type ThemedPressableProps = PressableProps & {
   /**
-   * Background color.  If this is a swatch the rule would be
-   * normal state 500
-   * pressed state 300 (lighten on dark mode) or 700 (darken on light mode)
-   * long pressed will flash the 100 and 900 temporarily
+   * Background color. If this is a swatch the rule would be normal state 500
+   * pressed state 300 (lighten on dark mode) or 700 (darken on light mode) long
+   * pressed will flash the 100 and 900 temporarily
    *
    * On non-swatch it does a lighten 15% or darken 15% for the other state.
    */
   bg: ColorSwatch;
 
-  /**
-   * Foreground color.  If this is a swatch the rule would be
-   * normal 500 only.
-   */
+  /** Foreground color. If this is a swatch the rule would be normal 500 only. */
   fg: ColorSwatch;
 
   /**
-   * This is the background color to use when the pressable is disabled.  Only 500 would be used.  If not specified then the value of `bg` is used.
+   * This is the background color to use when the pressable is disabled. Only
+   * 500 would be used. If not specified then the value of `bg` is used.
    */
   disabledBg?: ColorSwatch;
 
   /**
-   * This is the background color to use when the pressable is disabled.  Only 500 would be used.  If not specified then the value of `fg` is used.
+   * This is the background color to use when the pressable is disabled. Only
+   * 500 would be used. If not specified then the value of `fg` is used.
    */
   disabledFg?: ColorSwatch;
 
@@ -40,7 +38,8 @@ type ThemedPressableProps = PressableProps & {
 };
 
 /**
- * This extends a pressable such that some style props with regards to color are passed in.  It does this through a context.
+ * This extends a pressable such that some style props with regards to color are
+ * passed in. It does this through a context.
  */
 export function ThemedPressable({
   bg,
@@ -131,7 +130,7 @@ export function ThemedPressable({
   );
 }
 /**
- *```tsx
- *<ThemedPressable >
- *```
+ * ```tsx
+ * <ThemedPressable >
+ * ```
  */

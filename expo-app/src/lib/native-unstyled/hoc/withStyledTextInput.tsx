@@ -8,25 +8,26 @@ import {
   Ref,
   RefAttributes,
   useCallback,
-  useState
+  useState,
 } from "react";
 import { TextInputProps } from "react-native";
 
-import { lookupColor } from "../lookupColor";
 import { StyleProps } from "../StyleProps";
 import { TextStyleProps } from "../TextStyleProps";
 import { useTheming } from "../ThemeContext";
+import { lookupColor } from "../lookupColor";
+import type { InputState } from "./InputState";
 import { doStyleWrap } from "./doStyleWrap";
 import { hocDisplayName } from "./hocDisplayName";
-import type { InputState } from "./InputState";
 import { WithStyledProps } from "./withStyled";
 
 /**
  * This wraps a view component so the styles are exposed.
- * @param Component component to wrap
- * @param options options for the HoC building
- * @typeParam Q the props for the wrapped component
- * @typeParam O options for the HoC building
+ *
+ * @typeParam Q The props for the wrapped component
+ * @typeParam O Options for the HoC building
+ * @param Component Component to wrap
+ * @param options Options for the HoC building
  * @returns A named exotic componentwith P props that accepts a ref
  */
 export function withStyledTextInput<

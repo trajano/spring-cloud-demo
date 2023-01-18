@@ -57,8 +57,10 @@ function useReplacedWithNativeFonts(
 }
 
 /**
- * This replaces the friendly font faces with the native font faces.  In addition this will also replacce the color with the default if not specified.
- * @param Component component
+ * This replaces the friendly font faces with the native font faces. In addition
+ * this will also replacce the color with the default if not specified.
+ *
+ * @param Component Component
  * @returns
  */
 export function withReplacedWithNativeFonts<

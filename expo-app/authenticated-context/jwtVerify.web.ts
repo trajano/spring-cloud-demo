@@ -5,11 +5,10 @@ import * as pako from "pako";
 import { JwtClaims } from "./JwtClaims";
 
 /**
- *
- * @param accessToken access token (may be a compressed JWT)
+ * @param accessToken Access token (may be a compressed JWT)
  * @param jwksUrl
  * @param clientId
- * @return the payload converted to an object
+ * @returns The payload converted to an object
  */
 export async function jwtVerify<P extends JwtClaims>(
   accessToken: string | null,

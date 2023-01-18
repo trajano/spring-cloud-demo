@@ -5,6 +5,7 @@ interface DbUnloadedState {
 type DbState = DbUnloadedState;
 /**
  * WebSQL lite is not supported on the web specifically on firefox
+ *
  * @param databaseName
  * @returns
  */

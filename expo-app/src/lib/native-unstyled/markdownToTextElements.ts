@@ -26,10 +26,11 @@ type Node = TextNode | FormatNode;
 const FontSubsitutedText = withReplacedWithNativeFonts(Text);
 
 /**
- * Converts a limitted markdown string into text components.  The input is limited to
- * be a single line (no block support), bold and italic only.
- * @param s markdown string.
- * @param markdownIt parser.  If not specified, one will be provided.
+ * Converts a limitted markdown string into text components. The input is
+ * limited to be a single line (no block support), bold and italic only.
+ *
+ * @param s Markdown string.
+ * @param markdownIt Parser. If not specified, one will be provided.
  * @returns
  */
 export function inlineMarkdownToTextElements(
