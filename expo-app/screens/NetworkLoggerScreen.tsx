@@ -11,13 +11,16 @@ import NetworkLogger from "react-native-network-logger";
 export function NetworkLoggerScreen({
   navigation,
 }: NativeStackScreenProps<any, "NetworkLoggerScreen">) {
-  const networkInfoHandler = useCallback((nextState: NetInfoState) => {
-    navigation.setOptions({
-      title: `${NetInfoStateType[nextState.type]} c=${
-        nextState.isConnected
-      } i=${nextState.isInternetReachable} s=${AppState.currentState}`,
-    });
-  },[navigation]);
+  const networkInfoHandler = useCallback(
+    (nextState: NetInfoState) => {
+      navigation.setOptions({
+        title: `${NetInfoStateType[nextState.type]} c=${
+          nextState.isConnected
+        } i=${nextState.isInternetReachable} s=${AppState.currentState}`,
+      });
+    },
+    [navigation]
+  );
   useFocusEffect(
     useCallback(() => {
       const cancelNetInfoSubscription =

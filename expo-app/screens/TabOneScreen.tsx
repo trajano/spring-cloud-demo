@@ -8,13 +8,19 @@ import {
   LayoutChangeEvent,
   LayoutRectangle,
   StyleSheet,
-  useWindowDimensions
+  useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuthenticated } from "../authenticated-context";
 import { MainDrawerTabOneParamList } from "../navigation/paramLists";
-import { ScrollView, Text, useRefreshControl, useTheming, View } from "../src/lib/native-unstyled";
+import {
+  ScrollView,
+  Text,
+  useRefreshControl,
+  useTheming,
+  View,
+} from "../src/lib/native-unstyled";
 import { useAlert } from "../src/lib/native-unstyled/useAlert";
 export default function TabOneScreen({
   navigation,
@@ -88,7 +94,7 @@ export default function TabOneScreen({
         onPress: logoutAsync,
       },
     ]);
-  }, [logoutAsync, alert,t]);
+  }, [logoutAsync, alert, t]);
 
   const headerTransparent = useCallback(() => {
     navigation.setOptions({ headerTransparent: true });
@@ -116,10 +122,14 @@ export default function TabOneScreen({
     });
   }, [navigation]);
 
-  const refreshControl = useRefreshControl(()=> refreshAsync());
+  const refreshControl = useRefreshControl(() => refreshAsync());
 
   return (
-    <ScrollView contentInsetAdjustmentBehavior="automatic" onLayout={onLayout} refreshControl={refreshControl}>
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      onLayout={onLayout}
+      refreshControl={refreshControl}
+    >
       <View
         height={headerHeight - safeAreaInsetTop}
         borderWidth={1}

@@ -77,7 +77,7 @@ export function ExpoUpdateScreen(): ReactElement<
         ? { key: section.key!, data: replacements[section.key!] }
         : section
     );
-  },[sections])
+  }, [sections]);
   const renderSectionHeader = useCallback(
     ({ section }: { section: SectionListData<any, any> }) => (
       <BlurView intensity={90} padding={16}>

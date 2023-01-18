@@ -39,7 +39,6 @@ async function storageToSections(): Promise<AsyncStorageSectionListData[]> {
 }
 
 export function AsyncStorageScreen() {
-
   const [sections, setSections] = useDeepState<AsyncStorageSectionListData[]>(
     []
   );

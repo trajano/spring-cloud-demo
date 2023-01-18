@@ -1,18 +1,15 @@
 import { Route, useRoute } from "@react-navigation/native";
 import { StackHeaderProps } from "@react-navigation/stack";
 import { useAsyncSetEffect, useDeepState } from "@trajano/react-hooks";
-import Constants from "expo-constants";
 import { DeviceType, getDeviceTypeAsync } from "expo-device";
 import noop from "lodash/noop";
 import {
-  cloneElement,
   createContext,
   PropsWithChildren,
+  ReactElement,
   RefObject,
   useCallback,
   useContext,
-  ReactElement,
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -23,8 +20,6 @@ import {
   RefreshControlProps,
   ScrollView,
   ScrollViewProps,
-  StatusBar,
-  ViewProps,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -161,15 +156,15 @@ interface HeaderScrollViewProps {
    * This will be fired to update the positions.
    */
   onScroll:
-  | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
-  | undefined;
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
 
   /**
    * This will be handling the "snap back"
    */
   onScrollEndDrag:
-  | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
-  | undefined;
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
   containerPaddingTop: number;
   scrollIndicatorInsetTop: number;
 }
@@ -178,15 +173,15 @@ interface AnimatedHeaderScrollViewProps {
    * This will be fired to update the positions.
    */
   onScroll:
-  | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
-  | undefined;
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
 
   /**
    * This will be handling the "snap back"
    */
   onScrollEndDrag:
-  | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
-  | undefined;
+    | ((event: NativeSyntheticEvent<NativeScrollEvent>) => void)
+    | undefined;
   containerPaddingTop: Animated.Value;
   scrollIndicatorInsetTop: Animated.Value;
 }

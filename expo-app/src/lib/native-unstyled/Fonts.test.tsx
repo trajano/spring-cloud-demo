@@ -1,6 +1,5 @@
 import "@testing-library/jest-native/extend-expect";
 import { act, render, renderHook, screen } from "@testing-library/react-native";
-import { FontSource } from "expo-font";
 import { View } from "react-native";
 
 import { ThemeProvider } from "./ThemeContext";

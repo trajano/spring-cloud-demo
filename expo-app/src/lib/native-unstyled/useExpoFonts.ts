@@ -39,16 +39,9 @@ export function useExpoFonts(
       if (loaded) {
         return;
       }
-      /*
-       * loadAsync can handle ignoring the `useFont` function so there is no need to
-       * remap.
-       */
-      await Promise.all(
-        (fontModules as Record<string, FontSource>[]).map(loadAsync)
-      );
-
       const nextFontsLoaded: Record<string, string> = {};
-      fontModules.forEach((fontModule) => {
+      const collectedSources: Record<string, FontSource> = {};
+      for (const fontModule of fontModules) {
         for (const fontName in fontModule) {
           if (
             typeof fontModule[fontName] === "function" ||
@@ -56,6 +49,7 @@ export function useExpoFonts(
           ) {
             continue;
           }
+          collectedSources[fontName] = fontModule[fontName] as FontSource;
           const [fontFamily, fontWeight, fontStyle] = splitName(fontName);
           nextFontsLoaded[`${fontFamily}:${fontWeight}:${fontStyle}`] =
             fontName;
@@ -65,7 +59,8 @@ export function useExpoFonts(
             nextFontsLoaded[`${fontFamily}:bold:${fontStyle}`] = fontName;
           }
         }
-      });
+      }
+      await loadAsync(collectedSources);
       setLoadedFontFamilies(nextFontsLoaded);
       setLoaded(true);
     })();

@@ -20,15 +20,18 @@
       "**/type-graphql*"
     ]
   },
+  "scripts": {},
   "resolutions": {
+    "@babel/core": "^7.20.2",
+    "babel-loader": "^8.3.0",
     "react": "18.1.0",
     "react-dom": "18.1.0",
-    "react-test-renderer": "18.1.0",
-    "react-native": "0.70.5"
+    "react-native": "0.70.5",
+    "react-test-renderer": "18.1.0"
   },
-  "scripts": {},
+  "dependencies": {},
   "devDependencies": {
-    "lerna": "^6.4.0"
-  },
-  "dependencies": {}
+    "@commitlint/config-conventional": "^17.4.2",
+    "commitlint": "^17.4.2"
+  }
 }

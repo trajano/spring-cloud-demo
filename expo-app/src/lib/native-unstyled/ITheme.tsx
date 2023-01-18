@@ -12,21 +12,10 @@ export interface ITheme {
   colors: ColorSchemeColors;
   reactNavigationTheme: ReactNavigationTheme;
   /**
-   * Sets to the color scheme
-   * @param colorScheme color scheme if null it will switch to the system color scheme.
-   */
-  setColorScheme(colorScheme: ColorSchemeName | null): void;
-  /**
    * Default typography.  This is only set to the value specified in the provider once the loading
    * has been completed to prevent missing font messages.  This also specifies the colors.
    */
   defaultTypography: TextStyle;
-  /**
-   * This obtains the typography for a given text role and an optional size.
-   * @param role text role.
-   * @param size text role size.
-   */
-  typography(role?: string, size?: string): TextStyle;
   /**
    * Indicates the the fonts registered in the theme have all been loaded.
    */
@@ -35,6 +24,17 @@ export interface ITheme {
    * Language tag for the current locale.
    */
   locale: string;
+  /**
+   * Sets to the color scheme
+   * @param colorScheme color scheme if null it will switch to the system color scheme.
+   */
+  setColorScheme(colorScheme: ColorSchemeName | null): void;
+  /**
+   * This obtains the typography for a given text role and an optional size.
+   * @param role text role.
+   * @param size text role size.
+   */
+  typography(role?: string, size?: string): TextStyle;
   /**
    * @param locale locale to switch to or swith to the first system locale or default
    */

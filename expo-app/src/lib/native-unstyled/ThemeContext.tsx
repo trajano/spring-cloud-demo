@@ -2,27 +2,15 @@ import {
   DefaultTheme,
   Theme as ReactNavigationTheme,
 } from "@react-navigation/native";
-import isEmpty from "lodash/isEmpty";
 import noop from "lodash/noop";
-import omit from "lodash/omit";
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
-import { StyleProp, TextStyle } from "react-native";
+import { createContext, useCallback, useContext, useMemo } from "react";
 
 import { ColorSchemeColors } from "./ColorSchemeColors";
 import { ITheme } from "./ITheme";
-import { ThemeProviderProps } from "./ThemeProviderProps";
 import { defaultColorSchemeColors } from "./defaultColorSchemes";
 import { defaultLightColorSchemeColors } from "./defaultColorSchemes/defaultLightColorSchemeColors";
-import {
-  replaceStyleWithNativeFont,
-  useReplaceWithNativeFontCallback,
-} from "./replaceStyleWithNativeFont";
+import { useReplaceWithNativeFontCallback } from "./replaceStyleWithNativeFont";
+import { ThemeProviderProps } from "./ThemeProviderProps";
 import { useConfiguredColorSchemes } from "./useConfiguredColorScheme";
 import { useConfiguredLocale } from "./useConfiguredLocale";
 import { useExpoFonts } from "./useExpoFonts";
