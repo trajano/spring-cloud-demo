@@ -28,9 +28,10 @@
     "react-native": "0.70.5",
     "react-test-renderer": "18.1.0"
   },
-  "dependencies": {},
-  "devDependencies": {
+  "dependencies": {
     "@commitlint/config-conventional": "^17.4.2",
-    "commitlint": "^17.4.2"
-  }
+    "commitlint": "^17.4.2",
+    "lefthook": "^1.2.7"
+  },
+  "devDependencies": {}
 }
