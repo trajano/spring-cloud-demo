@@ -17,6 +17,7 @@ import {
   Animated,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   RefreshControlProps,
   ScrollView,
   ScrollViewProps,
@@ -230,7 +231,7 @@ export function useHeaderDx(
           },
         },
       ],
-      { useNativeDriver: true }
+      { useNativeDriver: Platform.OS !== "web" }
     ),
     [positionY]
   );

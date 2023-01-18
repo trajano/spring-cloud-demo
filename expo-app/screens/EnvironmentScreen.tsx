@@ -98,7 +98,7 @@ export function EnvironmentScreen(): ReactElement<
     },
     {
       key: `expo-constants.manifest2.${Platform.OS}`,
-      data: [(manifest2 as unknown as Record<string, unknown>)[Platform.OS]],
+      data: manifest2 ? [(manifest2 as unknown as Record<string, unknown>)[Platform.OS]] : [],
     },
     {
       key: "expo-file-system",

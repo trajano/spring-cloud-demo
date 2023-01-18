@@ -2,6 +2,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import {
   Animated,
   GestureResponderEvent,
+  Platform,
   Pressable,
   PressableProps,
 } from "react-native";
@@ -75,7 +76,7 @@ export function ThemedPressable({
       Animated.timing(pressStateRef.current, {
         toValue: 1,
         duration: 100,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== "web",
       }),
     [pressStateRef]
   );
@@ -84,7 +85,7 @@ export function ThemedPressable({
       Animated.timing(pressStateRef.current, {
         toValue: 2,
         duration: 100,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== "web",
       }),
     [pressStateRef]
   );
@@ -93,7 +94,7 @@ export function ThemedPressable({
       Animated.timing(pressStateRef.current, {
         toValue: 0,
         duration: 50,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== "web",
       }),
     [pressStateRef]
   );
