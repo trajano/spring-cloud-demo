@@ -9,11 +9,7 @@ import {
 } from "react-native";
 
 import type { MainDrawerTabOneParamList } from "../navigation/paramLists";
-import {
-  ScrollView,
-  Text,
-  useRefreshControl,
-} from "../src/lib/native-unstyled";
+import { Text, useRefreshControl } from "../src/lib/native-unstyled";
 import { useHeaderDx } from "../src/lib/stack-navigator-header-dx/HeaderDxContext";
 
 export function OneViewTransparentHeader({

@@ -3,7 +3,7 @@
  * @module
  *
  */
+export * from "./AppProvider";
 export type { AppProviderProps } from "./AppProviderProps";
 export type { IAppContext as AppContext } from "./IAppContext";
-export * from "./AppProvider";
 export * from "./useApp";

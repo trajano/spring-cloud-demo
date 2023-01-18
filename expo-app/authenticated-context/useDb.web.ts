@@ -8,7 +8,7 @@ type DbState = DbUnloadedState;
  * @param databaseName
  * @returns
  */
-export function useDb(databaseName: string): DbState {
+export function useDb(_databaseName: string): DbState {
   return {
     loaded: false,
     db: undefined,

@@ -6,17 +6,17 @@ import * as Lexend from "@expo-google-fonts/lexend";
 import * as NotoSans from "@expo-google-fonts/noto-sans";
 import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
 import { FontAwesome } from "@expo/vector-icons";
+import { useAsyncStorage } from "@react-native-async-storage/async-storage";
 import { AuthProvider } from "@trajano/spring-docker-auth-context";
 import Constants from "expo-constants";
 import "expo-dev-client";
 import { deactivateKeepAwake, ExpoKeepAwakeTag } from "expo-keep-awake";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { ColorSchemeName, LogBox, useWindowDimensions } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { LoadingScreen } from "../../screens/LoadingScreen";
 import { AppProvider } from "../app-context";
-import { useStoredState } from "../hooks/useStoredState";
 import { AppLoading } from "../lib/app-loading";
 import {
   ActivityIndicator,
@@ -44,15 +44,38 @@ export default function App() {
       deactivateKeepAwake(ExpoKeepAwakeTag);
     }
   }, []);
-  const [storedLocale, setStoredLocale] = useStoredState<string>(
-    "locale",
-    null
-  );
-  const [storedColorScheme, setStoredColorScheme] = useStoredState<
-    NonNullable<ColorSchemeName>
-  >("colorScheme", null);
+  const storedLocale = useAsyncStorage("locale");
+  const storedColorScheme = useAsyncStorage("colorScheme");
   const { width, height } = useWindowDimensions();
+  const [initialLocale, setInitialLocale] = useState<string | null>(null);
+  const [initialColorScheme, setInitialColorScheme] =
+    useState<ColorSchemeName | null>(null);
 
+  const setStoredColorScheme = useCallback(
+    async (nextColorScheme: ColorSchemeName) => {
+      if (nextColorScheme) {
+        storedColorScheme.setItem(nextColorScheme);
+      }
+    },
+    [storedColorScheme]
+  );
+  const setStoredLocale = useCallback(
+    async (nextLocale: string | null) => {
+      if (nextLocale) {
+        storedLocale.setItem(nextLocale);
+      }
+    },
+    [storedLocale]
+  );
+
+  useEffect(() => {
+    (async () => {
+      const nextInitialLocale = await storedLocale.getItem();
+      const nextInitialColorScheme = await storedColorScheme.getItem();
+      setInitialLocale(nextInitialLocale);
+      setInitialColorScheme(nextInitialColorScheme as ColorSchemeName);
+    })();
+  }, [storedLocale, storedColorScheme]);
   return (
     <SafeAreaProvider
       initialMetrics={{
@@ -67,8 +90,8 @@ export default function App() {
     >
       <AuthProvider defaultEndpointConfiguration={defaultEndpointConfiguration}>
         <ThemeProvider
-          colorScheme={storedColorScheme}
-          locale={storedLocale}
+          colorScheme={initialColorScheme}
+          locale={initialLocale}
           defaultColorScheme="light"
           fontModules={[
             NotoSans,

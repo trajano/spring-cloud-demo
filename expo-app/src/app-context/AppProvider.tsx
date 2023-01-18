@@ -1,4 +1,4 @@
-import { useAuth, AuthEvent } from "@trajano/spring-docker-auth-context";
+import { AuthEvent, useAuth } from "@trajano/spring-docker-auth-context";
 import { useEffect, useMemo } from "react";
 
 import { AppContext } from "./AppContext";

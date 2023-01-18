@@ -1,23 +1,9 @@
-import {
-  EventArg,
-  useNavigation,
-  useNavigationBuilder,
-  useNavigationContainerRef,
-  useNavigationState,
-  useTheme as useNavigationTheme,
-} from "@react-navigation/native";
+import { useTheme as useNavigationTheme } from "@react-navigation/native";
 import { StackHeaderProps } from "@react-navigation/stack";
 import { BlurView } from "expo-blur";
-import Constants from "expo-constants";
 import { DeviceType } from "expo-device";
-import { ReactElement, useEffect, useCallback } from "react";
-import {
-  StatusBar,
-  Animated,
-  LayoutChangeEvent,
-  Text,
-  View,
-} from "react-native";
+import { ReactElement, useCallback } from "react";
+import { Animated, LayoutChangeEvent, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useHeaderDxContext } from "./HeaderDxContext";

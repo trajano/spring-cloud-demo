@@ -1,5 +1,5 @@
 import Constants from "expo-constants";
-import { ReactElement, memo, useCallback } from "react";
+import { memo, ReactElement, useCallback } from "react";
 import {
   SectionList,
   SectionListData,

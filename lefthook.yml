@@ -12,7 +12,7 @@ pre-commit:
     lint-app:
       root: expo-app/
       glob: "**/*.{js,ts,tsx}"
-      run: yarn eslint --fix {staged_files}
+      run: yarn eslint {staged_files}
 
     test-auth:
       root: packages/auth-context/
@@ -25,7 +25,7 @@ pre-commit:
     lint-auth:
       root: packages/auth-context/
       glob: "**/*.{js,ts,tsx}"
-      run: yarn eslint --fix {staged_files}
+      run: yarn eslint {staged_files}
 
 commit-msg:
   parallel: true
