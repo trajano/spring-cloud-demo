@@ -4,7 +4,7 @@ pre-commit:
     test-app:
       root: expo-app/
       glob: "**/*.{json,js,ts,tsx}"
-      run: yarn test
+      run: yarn test --findRelatedTests {staged_files}
     tsc-app:
       root: expo-app/
       glob: "**/*.{json,js,ts,tsx}"
@@ -17,7 +17,7 @@ pre-commit:
     test-auth:
       root: packages/auth-context/
       glob: "**/*.{json,js,ts,tsx}"
-      run: yarn test
+      run: yarn test --findRelatedTests {staged_files}
     tsc-auth:
       root: packages/auth-context/
       glob: "**/*.{json,js,ts,tsx}"
