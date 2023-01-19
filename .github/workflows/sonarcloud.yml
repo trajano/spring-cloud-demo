@@ -27,6 +27,10 @@ jobs:
           args: >
             -Dsonar.organization=trajano
             -Dsonar.projectKey=spring-docker-swarm-expo-app
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.coverage.exclusions=**/*.test.*,src/__tests__/*,example/**
+            -Dsonar.cpd.exclusions=**/*.test.*,src/__tests__/*
+            -Dsonar.exclusions=example/**
       - name: SonarCloud Scan auth-context
         uses: SonarSource/sonarcloud-github-action@master
         env:
@@ -37,3 +41,6 @@ jobs:
           args: >
             -Dsonar.organization=trajano
             -Dsonar.projectKey=spring-docker-swarm-auth-context
+            -Dsonar.coverage.exclusions=**/*.test.*,src/__tests__/*,example/**
+            -Dsonar.cpd.exclusions=**/*.test.*,src/__tests__/*
+            -Dsonar.exclusions=example/**

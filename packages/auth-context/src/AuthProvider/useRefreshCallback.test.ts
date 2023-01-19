@@ -31,11 +31,11 @@ test('mostly mocked', async () => {
     expires_in: 600,
   };
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..oauthToken',
+    'auth.https://asdf.com/..oauthToken',
     JSON.stringify(oldAccessToken)
   );
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..tokenExpiresAt',
+    'auth.https://asdf.com/..tokenExpiresAt',
     addMilliseconds(Date.now(), 600000).toISOString()
   );
 
@@ -45,9 +45,9 @@ test('mostly mocked', async () => {
   const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
   const netInfoState = {} as NetInfoState;
   const authClient = jest.mocked(
-    new AuthClient(buildSimpleEndpointConfiguration('http://asdf.com/'))
+    new AuthClient(buildSimpleEndpointConfiguration('https://asdf.com/'))
   );
-  const authStorage = new AuthStore('auth', 'http://asdf.com/');
+  const authStorage = new AuthStore('auth', 'https://asdf.com/');
   const { result } = renderHook<
     RefreshCallbackProps<unknown>,
     () => Promise<void>
@@ -89,9 +89,9 @@ test('no token stored', async () => {
   const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
   const netInfoState = {} as NetInfoState;
   const authClient = jest.mocked(
-    new AuthClient(buildSimpleEndpointConfiguration('http://asdf.com/'))
+    new AuthClient(buildSimpleEndpointConfiguration('https://asdf.com/'))
   );
-  const authStorage = new AuthStore('auth', 'http://asdf.com/');
+  const authStorage = new AuthStore('auth', 'https://asdf.com/');
   const { result } = renderHook<
     RefreshCallbackProps<Record<string, unknown>>,
     () => Promise<void>
@@ -125,11 +125,11 @@ test('forced refresh while not token is not refreshable', async () => {
     expires_in: 600,
   };
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..oauthToken',
+    'auth.https://asdf.com/..oauthToken',
     JSON.stringify(oldAccessToken)
   );
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..tokenExpiresAt',
+    'auth.https://asdf.com/..tokenExpiresAt',
     addMilliseconds(Date.now(), 600000).toISOString()
   );
 
@@ -141,9 +141,9 @@ test('forced refresh while not token is not refreshable', async () => {
   const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
   const netInfoState = {} as NetInfoState;
   const authClient = jest.mocked(
-    new AuthClient(buildSimpleEndpointConfiguration('http://asdf.com/'))
+    new AuthClient(buildSimpleEndpointConfiguration('https://asdf.com/'))
   );
-  const authStorage = new AuthStore('auth', 'http://asdf.com/');
+  const authStorage = new AuthStore('auth', 'https://asdf.com/');
   const { result } = renderHook<
     RefreshCallbackProps<Record<string, unknown>>,
     () => Promise<void>
@@ -178,11 +178,11 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
     expires_in: 600,
   };
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..oauthToken',
+    'auth.https://asdf.com/..oauthToken',
     JSON.stringify(oldAccessToken)
   );
   await AsyncStorage.setItem(
-    'auth.http://asdf.com/..tokenExpiresAt',
+    'auth.https://asdf.com/..tokenExpiresAt',
     addMilliseconds(Date.now(), 600000).toISOString()
   );
 
@@ -192,9 +192,9 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
   const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
   const netInfoState = {} as NetInfoState;
   const authClient = jest.mocked(
-    new AuthClient(buildSimpleEndpointConfiguration('http://asdf.com/'))
+    new AuthClient(buildSimpleEndpointConfiguration('https://asdf.com/'))
   );
-  const authStorage = new AuthStore('auth', 'http://asdf.com/');
+  const authStorage = new AuthStore('auth', 'https://asdf.com/');
   const setOAuthToken = jest.fn();
   const setTokenExpiresAt = jest.fn();
   const onRefreshError = jest.fn();
