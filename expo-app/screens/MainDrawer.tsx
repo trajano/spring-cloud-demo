@@ -2,7 +2,6 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import { useMemo } from "react";
 import { useWindowDimensions } from "react-native";
 
-import { MainDrawerParamList } from "../navigation/paramLists";
 import { AsyncStorageScreen } from "./AsyncStorageScreen";
 import { EnvironmentScreen } from "./EnvironmentScreen";
 import { ExpoUpdateScreen } from "./ExpoUpdateScreen";
@@ -10,6 +9,7 @@ import { JustScrollView } from "./JustScrollView";
 import { StackNavigatorScrollView } from "./StackNavigatorScrollView";
 import { SystemFontsScreen } from "./SystemFontsScreen";
 import { TabOneNavigator } from "./TabOneNavigator";
+import { MainDrawerParamList } from "../navigation/paramLists";
 const Drawer = createDrawerNavigator<MainDrawerParamList>();
 export function DrawerNavigator() {
   const { width, height } = useWindowDimensions();

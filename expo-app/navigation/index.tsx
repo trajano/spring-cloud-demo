@@ -15,6 +15,10 @@ import {
 import { ComponentProps, useCallback, useEffect, useState } from "react";
 import { Linking, Platform, StyleSheet } from "react-native";
 
+import LinkingConfiguration from "./LinkingConfiguration";
+import { LoginNavigator } from "./login/LoginNavigator";
+import { AuthenticatedEndpointConfiguration } from "./login/types";
+import { RootStackParamList, RootTabParamList } from "./paramLists";
 import { AuthenticatedProvider } from "../authenticated-context";
 import { DrawerNavigator } from "../screens/MainDrawer";
 import ModalScreen from "../screens/ModalScreen";
@@ -22,10 +26,6 @@ import { NetworkLoggerTab } from "../screens/NetworkLoggerTab";
 import NotFoundScreen from "../screens/NotFoundScreen";
 import { TextTab } from "../screens/TextTab";
 import { ActivityIndicator, useTheming } from "../src/lib/native-unstyled";
-import LinkingConfiguration from "./LinkingConfiguration";
-import { LoginNavigator } from "./login/LoginNavigator";
-import { AuthenticatedEndpointConfiguration } from "./login/types";
-import { RootStackParamList, RootTabParamList } from "./paramLists";
 
 const PERSISTENCE_KEY = "NAVIGATION_STATE_V1";
 function cleanAuthEvent({

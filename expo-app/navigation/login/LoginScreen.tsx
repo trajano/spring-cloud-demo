@@ -11,11 +11,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { Menu, Provider } from "react-native-paper";
 
-import { Text, TextInput } from "../../src/lib/native-unstyled";
 import type {
   AuthenticatedEndpointConfiguration,
   LoginStackScreenProps,
 } from "./types";
+import { Text, TextInput } from "../../src/lib/native-unstyled";
 
 export function LoginForm() {
   const { loginAsync, backendReachable, baseUrl, setEndpointConfiguration } =

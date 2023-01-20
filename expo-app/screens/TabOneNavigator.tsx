@@ -15,6 +15,9 @@ import {
   ViewStyle,
 } from "react-native";
 
+import { OneViewScreen, OneViewTransparentHeader } from "./OneViewScreen";
+import { SystemFontsScreen } from "./SystemFontsScreen";
+import TabOneScreen from "./TabOneScreen";
 import {
   MainDrawerParamList,
   MainDrawerTabOneParamList,
@@ -22,9 +25,6 @@ import {
 } from "../navigation/paramLists";
 import { HeaderDx } from "../src/lib/stack-navigator-header-dx/HeaderDx";
 import { HeaderDxProvider } from "../src/lib/stack-navigator-header-dx/HeaderDxContext";
-import { OneViewScreen, OneViewTransparentHeader } from "./OneViewScreen";
-import { SystemFontsScreen } from "./SystemFontsScreen";
-import TabOneScreen from "./TabOneScreen";
 const Stack = createStackNavigator<MainDrawerTabOneParamList>();
 
 function LoggingHeader({

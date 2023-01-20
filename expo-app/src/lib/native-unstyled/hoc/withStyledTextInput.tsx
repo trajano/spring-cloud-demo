@@ -12,14 +12,14 @@ import {
 } from "react";
 import { TextInputProps } from "react-native";
 
-import { StyleProps } from "../StyleProps";
-import { TextStyleProps } from "../TextStyleProps";
-import { useTheming } from "../ThemeContext";
-import { lookupColor } from "../lookupColor";
 import type { InputState } from "./InputState";
 import { doStyleWrap } from "./doStyleWrap";
 import { hocDisplayName } from "./hocDisplayName";
 import { WithStyledProps } from "./withStyled";
+import { StyleProps } from "../StyleProps";
+import { TextStyleProps } from "../TextStyleProps";
+import { useTheming } from "../ThemeContext";
+import { lookupColor } from "../lookupColor";
 
 /**
  * This wraps a view component so the styles are exposed.

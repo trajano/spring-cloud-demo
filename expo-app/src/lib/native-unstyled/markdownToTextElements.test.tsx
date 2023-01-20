@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react-native";
 
-import { Text } from "../native-unstyled";
 import { inlineMarkdownToTextElements } from "./markdownToTextElements";
+import { Text } from "../native-unstyled";
 
 describe("markdownToTextElements", () => {
   it("empty string", () => {

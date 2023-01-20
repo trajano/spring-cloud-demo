@@ -2,11 +2,11 @@ import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { ParamListBase } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
+import { HeaderDxOneViewScreen } from "./HeaderDxOneViewScreen";
+import { MainTabParamList } from "./MainTabNavigation";
 import { HeaderDxLarge } from "../lib/stack-navigator-header-dx";
 import { HeaderDx } from "../lib/stack-navigator-header-dx/HeaderDx";
 import { HeaderDxProvider } from "../lib/stack-navigator-header-dx/HeaderDxContext";
-import { HeaderDxOneViewScreen } from "./HeaderDxOneViewScreen";
-import { MainTabParamList } from "./MainTabNavigation";
 
 export interface HeaderDxStackParamList extends ParamListBase {
   SampleScrollView: undefined;

@@ -1,9 +1,9 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Animated } from "react-native";
 
-import { useRefreshControl } from "../lib/native-unstyled";
 import { NativeStackParamList } from "./NativeStackNavigation";
 import { OneViewContent } from "./OneViewContent";
+import { useRefreshControl } from "../lib/native-unstyled";
 
 export function NativeOneViewScreen({
   navigation,

@@ -1,8 +1,8 @@
 import { memo } from "react";
 
-import type { StyleProps } from "../../lib/native-unstyled";
 import { SimpleErrorView } from "./SimpleErrorView";
 import { StackTraceErrorView } from "./StackTraceErrorView";
+import type { StyleProps } from "../../lib/native-unstyled";
 type ErrorViewProps = StyleProps & {
   exception: unknown;
 };

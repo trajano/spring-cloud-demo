@@ -1,11 +1,11 @@
 import { TEXT_TEST } from "@env";
+import { FontAwesome } from "@expo/vector-icons";
 import * as IBMPlexMono from "@expo-google-fonts/ibm-plex-mono";
 import * as IBMPlexSans from "@expo-google-fonts/ibm-plex-sans";
 import * as IslandMoments from "@expo-google-fonts/island-moments";
 import * as Lexend from "@expo-google-fonts/lexend";
 import * as NotoSans from "@expo-google-fonts/noto-sans";
 import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
-import { FontAwesome } from "@expo/vector-icons";
 import { useAsyncStorage } from "@react-native-async-storage/async-storage";
 import { AuthProvider } from "@trajano/spring-docker-auth-context";
 import Constants from "expo-constants";
@@ -15,6 +15,7 @@ import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { ColorSchemeName, LogBox, useWindowDimensions } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { useStoredEndpointConfigurationEffect } from "./useStoredEndpointConfigurationEffect";
 import { LoadingScreen } from "../../screens/LoadingScreen";
 import { AppProvider } from "../app-context";
 import { AppLoading } from "../lib/app-loading";
@@ -24,7 +25,6 @@ import {
   ThemeProvider,
   View,
 } from "../lib/native-unstyled";
-import { useStoredEndpointConfigurationEffect } from "./useStoredEndpointConfigurationEffect";
 
 const TextTest = lazy(() => import("../../screens/TextTest"));
 const Navigation = lazy(() => import("../../navigation"));

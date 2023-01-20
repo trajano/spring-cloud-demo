@@ -30,8 +30,8 @@ export type MainDrawerParamList = {
 
 export type MainDrawerTabOneParamList = {
   TabOneScreen: undefined;
-  OneView: LayoutRectangle;
-  OneViewTransparentHeader: LayoutRectangle;
+  OneView: LayoutRectangle | undefined;
+  OneViewTransparentHeader: LayoutRectangle | undefined;
   SystemFonts: undefined;
 };
 

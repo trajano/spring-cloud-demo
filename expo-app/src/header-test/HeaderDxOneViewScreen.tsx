@@ -7,10 +7,10 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-import { useRefreshControl } from "../lib/native-unstyled";
-import { useHeaderDx } from "../lib/stack-navigator-header-dx/HeaderDxContext";
 import { HeaderDxStackParamList } from "./HeaderDxStackNavigation";
 import { OneViewContent } from "./OneViewContent";
+import { useRefreshControl } from "../lib/native-unstyled";
+import { useHeaderDx } from "../lib/stack-navigator-header-dx/HeaderDxContext";
 
 export function HeaderDxOneViewScreen({
   navigation,

@@ -9,11 +9,11 @@ import {
 } from "react";
 import { ScrollViewProps } from "react-native";
 
-import { StyleProps } from "../StyleProps";
-import { useTheming } from "../ThemeContext";
 import { doStyleWrap } from "./doStyleWrap";
 import { hocDisplayName } from "./hocDisplayName";
 import { WithStyledProps } from "./withStyled";
+import { StyleProps } from "../StyleProps";
+import { useTheming } from "../ThemeContext";
 
 /**
  * This wraps a ScrollView component so the styles are exposed. In addition it

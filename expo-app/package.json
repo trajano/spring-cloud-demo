@@ -21,11 +21,18 @@
     "settings": {
       "import/ignore": [
         "react-native"
-      ]
+      ],
+      "import/resolver": {
+        "typescript": {
+          "project": "./tsconfig.json"
+        }
+      }
     },
     "extends": [
       "@react-native-community",
       "plugin:@typescript-eslint/strict",
+      "plugin:import/recommended",
+      "plugin:import/typescript",
       "plugin:jest/recommended",
       "plugin:react-hooks/recommended",
       "plugin:testing-library/react",
@@ -54,6 +61,14 @@
         "warn",
         {
           "argsIgnorePattern": "^_"
+        }
+      ],
+      "import/no-unresolved": [
+        "error",
+        {
+          "ignore": [
+            "@env"
+          ]
         }
       ],
       "react-hooks/exhaustive-deps": "error",
@@ -164,6 +179,8 @@
     "eslint": "^8.32.0",
     "eslint-config-universe": "^11.1.1",
     "eslint-import-resolver-node": "^0.3.7",
+    "eslint-import-resolver-typescript": "^3.5.3",
+    "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-jest": "^27.2.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-testing-library": "^5.9.1",

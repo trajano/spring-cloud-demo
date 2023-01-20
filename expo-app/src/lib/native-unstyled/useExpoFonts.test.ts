@@ -1,6 +1,6 @@
+import { FontAwesome } from "@expo/vector-icons";
 import * as NotoSans from "@expo-google-fonts/noto-sans";
 import * as NotoSansMono from "@expo-google-fonts/noto-sans-mono";
-import { FontAwesome } from "@expo/vector-icons";
 import { act, renderHook } from "@testing-library/react-native";
 
 import { useExpoFonts } from "./useExpoFonts";

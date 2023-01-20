@@ -1,6 +1,6 @@
-import { ColorSchemes } from "../Themes";
 import { defaultDarkColorSchemeColors } from "./defaultDarkColorSchemeColors";
 import { defaultLightColorSchemeColors } from "./defaultLightColorSchemeColors";
+import { ColorSchemes } from "../Themes";
 
 /**
  * Default color schemes. These are kept as minimal as possible as this was

@@ -9,10 +9,10 @@ import {
 } from "react";
 import { StyleProp } from "react-native";
 
-import { StyleProps } from "../StyleProps";
-import { useTheming } from "../ThemeContext";
 import { doStyleWrap } from "./doStyleWrap";
 import { hocDisplayName } from "./hocDisplayName";
+import { StyleProps } from "../StyleProps";
+import { useTheming } from "../ThemeContext";
 
 export interface WithStyledProps {
   /**

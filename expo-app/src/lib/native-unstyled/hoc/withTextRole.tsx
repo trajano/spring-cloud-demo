@@ -10,8 +10,8 @@ import {
 } from "react";
 import { TextProps } from "react-native";
 
-import { useTheming } from "../ThemeContext";
 import { hocDisplayName } from "./hocDisplayName";
+import { useTheming } from "../ThemeContext";
 
 /**
  * This is a simple HoC that is a noop that supports ref forwarding. The ref

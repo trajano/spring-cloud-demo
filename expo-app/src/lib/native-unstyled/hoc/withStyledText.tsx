@@ -9,12 +9,12 @@ import {
 } from "react";
 import { StyleProp } from "react-native";
 
-import { StyleProps } from "../StyleProps";
-import { TextStyleProps } from "../TextStyleProps";
-import { useTheming } from "../ThemeContext";
 import { doStyleWrap } from "./doStyleWrap";
 import { hocDisplayName } from "./hocDisplayName";
 import { WithStyledProps } from "./withStyled";
+import { StyleProps } from "../StyleProps";
+import { TextStyleProps } from "../TextStyleProps";
+import { useTheming } from "../ThemeContext";
 
 /**
  * This wraps a view component so the styles are exposed.

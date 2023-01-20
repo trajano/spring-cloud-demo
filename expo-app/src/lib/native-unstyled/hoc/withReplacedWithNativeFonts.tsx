@@ -13,8 +13,8 @@ import {
 } from "react";
 import { StyleProp, StyleSheet, TextStyle } from "react-native";
 
-import { useTheming } from "../ThemeContext";
 import { hocDisplayName } from "./hocDisplayName";
+import { useTheming } from "../ThemeContext";
 
 function useReplacedWithNativeFonts(
   style?: StyleProp<TextStyle>,

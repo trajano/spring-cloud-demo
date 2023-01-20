@@ -9,8 +9,8 @@ import {
 } from "react";
 import { TextInputProps, TextProps } from "react-native";
 
-import { useTheming } from "../ThemeContext";
 import { hocDisplayName } from "./hocDisplayName";
+import { useTheming } from "../ThemeContext";
 
 interface I18nProps {
   _t?: string;

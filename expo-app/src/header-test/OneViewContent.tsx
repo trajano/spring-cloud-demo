@@ -9,9 +9,9 @@ import Constants from "expo-constants";
 import { memo, useCallback, useState } from "react";
 import { Button } from "react-native";
 
-import { Text, View } from "../lib/native-unstyled";
 import { HeaderDxStackParamList } from "./HeaderDxStackNavigation";
 import { NativeStackParamList } from "./NativeStackNavigation";
+import { Text, View } from "../lib/native-unstyled";
 
 export const OneViewContent = memo(
   ({ route }: { route: RouteProp<ParamListBase> }) => {

@@ -11,13 +11,13 @@ import {
 } from "react";
 import { SwitchProps } from "react-native";
 
-import { StyleProps } from "../StyleProps";
-import { useTheming } from "../ThemeContext";
-import { lookupColor } from "../lookupColor";
 import { InputState } from "./InputState";
 import { doStyleWrap } from "./doStyleWrap";
 import { hocDisplayName } from "./hocDisplayName";
 import { WithStyledProps } from "./withStyled";
+import { StyleProps } from "../StyleProps";
+import { useTheming } from "../ThemeContext";
+import { lookupColor } from "../lookupColor";
 
 /**
  * This wraps a view component so the styles are exposed.
