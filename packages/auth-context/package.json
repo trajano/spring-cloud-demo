@@ -180,6 +180,5 @@
         "preset": "angular"
       }
     }
-  },
-  "lint-staged": { "*.{ts,tsx,js}": "eslint --fix", "*.json": "prettier --write"}
+  }
 }
