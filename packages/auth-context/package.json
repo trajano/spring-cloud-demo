@@ -67,12 +67,11 @@
       ]
     },
     "extends": [
-      "@react-native-community",
+      "@trajano",
       "plugin:@typescript-eslint/strict",
       "plugin:jest/recommended",
       "plugin:react-hooks/recommended",
-      "plugin:testing-library/react",
-      "prettier"
+      "plugin:testing-library/react"
     ],
     "rules": {
       "arrow-body-style": "error",
@@ -115,13 +114,12 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.12",
-    "@trajano/eslint-config": "1.0.0",
-    "@react-native-community/eslint-config": "^3.0.2",
     "@react-native-community/netinfo": "9.3.5",
     "@release-it/conventional-changelog": "^5.0.0",
     "@testing-library/jest-native": "^5.4.1",
     "@testing-library/react-hooks": "^8.0.1",
     "@testing-library/react-native": "^11.5.0",
+    "@trajano/eslint-config": "1.0.0",
     "@types/jest": "^29.2.4",
     "@types/react": "~18.0.24",
     "@types/react-native": "~0.70.6",
