@@ -3,7 +3,7 @@ import {
   NetInfoState,
   NetInfoStateType,
 } from '@react-native-community/netinfo';
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react-native';
 
 import { useAppStateWithNetInfoRefresh } from './useAppStateWithNetInfoRefresh';
 import {

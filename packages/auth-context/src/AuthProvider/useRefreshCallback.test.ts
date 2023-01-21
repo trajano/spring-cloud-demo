@@ -1,7 +1,6 @@
-import { expect, jest, test } from '@jest/globals';
 import AsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import type { NetInfoState } from '@react-native-community/netinfo';
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { addMilliseconds } from 'date-fns';
 import type { Dispatch, SetStateAction } from 'react';
 
@@ -221,7 +220,7 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
       authClient,
     },
   });
-  const { waitFor, rerender: rerenderNeedsEffect } = renderHook<
+  const { rerender: rerenderNeedsEffect } = renderHook<
     NeedsRefreshEffectProps,
     void
   >((props) => useNeedsRefreshEffect(props), {

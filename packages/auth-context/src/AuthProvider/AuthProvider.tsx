@@ -15,7 +15,6 @@ import { useAppStateRefreshingEffect } from './useAppStateRefreshingEffect';
 import { useBackendFailureTimeoutEffect } from './useBackendFailureTimeoutEffect';
 import { useInitialAuthStateEffect } from './useInitialAuthStateEffect';
 import { useNeedsRefreshEffect } from './useNeedsRefreshEffect';
-import { usePreventAppFromGettingStuckOnRefreshEffect } from './usePreventAppFromGettingStuckOnRefreshEffect';
 import { useRefreshCallback } from './useRefreshCallback';
 import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
 import { useTokenExpirationTimeoutEffect } from './useTokenExpirationTimeoutEffect';
@@ -265,14 +264,6 @@ export function AuthProvider<A = unknown>({
     authClient,
     netInfoState,
     backendReachable,
-  });
-
-  usePreventAppFromGettingStuckOnRefreshEffect({
-    authState,
-    setAuthState,
-    notify,
-    backendReachable,
-    tokenExpiresAt,
   });
 
   useInitialAuthStateEffect({

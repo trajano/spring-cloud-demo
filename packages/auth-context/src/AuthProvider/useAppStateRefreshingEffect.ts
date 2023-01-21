@@ -38,7 +38,7 @@ export function useAppStateRefreshingEffect({
             type: 'CheckRefresh',
             authState,
             reason:
-              'AuthState === REFRESHING and AppState just switched to active, forcing recheck',
+              'AuthState === REFRESHING but AppState just switched to active, forcing recheck',
             backendReachable,
             tokenExpiresAt,
             tokenExpired,

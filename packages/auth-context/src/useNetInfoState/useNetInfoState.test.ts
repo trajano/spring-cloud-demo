@@ -1,4 +1,4 @@
-import { act, cleanup, renderHook } from '@testing-library/react-hooks';
+import { act, cleanup, renderHook } from '@testing-library/react-native';
 
 import { useNetInfoState } from './useNetInfoState';
 afterEach(cleanup);
@@ -7,7 +7,7 @@ beforeEach(() => {
 });
 
 it('should switch to connected', async () => {
-  const { result, waitFor } = renderHook(() =>
+  const { result } = renderHook(() =>
     useNetInfoState({ pingEndpoint: 'https://api.trajano.net/ping' })
   );
   // initial value
@@ -17,8 +17,8 @@ it('should switch to connected', async () => {
     isInternetReachable: null,
     details: null,
   });
-  act(() => jest.runAllTicks());
-  await waitFor(() => expect(result.current.isConnected).toBeTruthy());
+  await act(() => Promise.resolve());
+  expect(result.current.isConnected).toBeTruthy();
 });
 afterEach(() => {
   jest.useRealTimers();
