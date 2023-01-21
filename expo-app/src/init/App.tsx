@@ -14,6 +14,7 @@ import { deactivateKeepAwake, ExpoKeepAwakeTag } from "expo-keep-awake";
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { ColorSchemeName, LogBox, useWindowDimensions } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { OverflowMenuProvider } from "react-navigation-header-buttons";
 
 import { useStoredEndpointConfigurationEffect } from "./useStoredEndpointConfigurationEffect";
 import { LoadingScreen } from "../../screens/LoadingScreen";
@@ -128,7 +129,9 @@ export default function App() {
                 <TextTest />
               ) : (
                 <AppProvider>
-                  <Navigation />
+                  <OverflowMenuProvider>
+                    <Navigation />
+                  </OverflowMenuProvider>
                 </AppProvider>
               )}
             </Suspense>
