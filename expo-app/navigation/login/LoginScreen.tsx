@@ -53,8 +53,8 @@ export function LoginForm() {
     }
   }
 
-  async function setAndSaveBaseUrlAsync(baseUrl: string) {
-    const configuration = buildSimpleEndpointConfiguration(baseUrl);
+  async function setAndSaveBaseUrlAsync(nextBaseUrl: string) {
+    const configuration = buildSimpleEndpointConfiguration(nextBaseUrl);
     await AsyncStorage.setItem(
       "ENDPOINT_CONFIGURATION",
       JSON.stringify(configuration)
