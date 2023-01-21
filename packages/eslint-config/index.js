@@ -14,9 +14,12 @@ module.exports = {
     "import/ignore": ["react-native"],
     "import/resolver": {
       typescript: {
-        project: process.cwd() + "./tsconfig.json",
+        project: process.cwd() + "tsconfig.json",
       },
     },
+  },
+  parserOptions: {
+    project: [process.cwd() + "tsconfig.json"],
   },
   rules: {
     "arrow-body-style": "error",

@@ -53,6 +53,10 @@
       "@commitlint/config-conventional"
     ]
   },
+  "lint-staged": {
+    "*.{ts,tsx,js}": "eslint --fix",
+    "*.json": "prettier --write"
+  },
   "prettier": {
     "quoteProps": "consistent",
     "singleQuote": true,
@@ -61,11 +65,6 @@
     "useTabs": false
   },
   "eslintConfig": {
-    "parserOptions": {
-      "project": [
-        "./tsconfig.json"
-      ]
-    },
     "extends": [
       "@trajano",
       "plugin:@typescript-eslint/strict",

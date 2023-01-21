@@ -16,17 +16,27 @@
       "eslint:recommended",
       "prettier"
     ],
+    "plugins": [
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": "error"
+    },
     "env": {
       "node": true
     },
     "root": true
   },
+  "lint-staged": {
+    "*.js": "eslint --fix",
+    "*.json": "prettier --write"
+  },
   "dependencies": {
-	  "eslint":"^8.3.2",
-	  "prettier": "^2.8.3",
     "@react-native-community/eslint-config": "^3.2.0",
+    "eslint": "^8.3.2",
     "eslint-config-universe": "^11.1.1",
     "eslint-import-resolver-typescript": "^3.5.3",
-    "eslint-plugin-testing-library": "^5.9.1"
+    "eslint-plugin-testing-library": "^5.9.1",
+    "prettier": "^2.8.3"
   }
 }
