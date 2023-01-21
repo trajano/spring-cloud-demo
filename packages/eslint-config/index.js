@@ -39,6 +39,7 @@ module.exports = {
         argsIgnorePattern: "^_",
       },
     ],
+    // this is for import Constants from 'expo-constants';
     "import/no-named-as-default": "off",
     "import/no-unresolved": [
       "error",
