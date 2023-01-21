@@ -181,5 +181,5 @@
       }
     }
   },
-  "lint-staged": { "*.{ts,tsx,js}": "eslint --fix"}
+  "lint-staged": { "*.{ts,tsx,js}": "eslint --fix", "*.json": "prettier --write"}
 }
