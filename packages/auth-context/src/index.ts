@@ -9,3 +9,4 @@ export type { EndpointConfiguration } from './EndpointConfiguration';
 export type { IAuth } from './IAuth';
 export { useAuth } from './useAuth';
 export { validateEndpointConfiguration } from './validateEndpointConfiguration';
+export type { OAuthToken } from './OAuthToken';
