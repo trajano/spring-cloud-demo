@@ -18,7 +18,7 @@ export function buildSimpleEndpointConfiguration(
     }
   }
   return {
-    baseUrl: baseUrl,
+    baseUrl,
     authorizationEndpoint: `${baseUrl}auth`,
     refreshEndpoint: `${baseUrl}refresh`,
     revocationEndpoint: `${baseUrl}logout`,

@@ -1,12 +1,13 @@
 import { renderHook } from '@testing-library/react-hooks';
 import type { Dispatch, SetStateAction } from 'react';
-import type { AuthEvent } from '../AuthEvent';
-import { AuthState } from '../AuthState';
+
 import {
   BackendFailureTimeoutProps,
   BackendFailureTimeoutState,
   useBackendFailureTimeoutEffect,
 } from './useBackendFailureTimeoutEffect';
+import type { AuthEvent } from '../AuthEvent';
+import { AuthState } from '../AuthState';
 beforeEach(() => {
   jest.useFakeTimers({ advanceTimers: true });
 });

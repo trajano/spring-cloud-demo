@@ -1,7 +1,7 @@
 import { AuthenticationClientError } from './AuthenticationClientError';
-import { basicAuthorization } from './basicAuthorization';
 import type { EndpointConfiguration } from './EndpointConfiguration';
 import type { OAuthToken } from './OAuthToken';
+import { basicAuthorization } from './basicAuthorization';
 
 export interface IAuthClient<A = unknown> {
   authenticateAsync(authenticationRequest: A): Promise<[OAuthToken, Response]>;
@@ -117,7 +117,7 @@ export class AuthClient<A = unknown> implements IAuthClient<A> {
     const responseBody = await response.text();
     try {
       return JSON.parse(responseBody) as X;
-    } catch (e) {
+    } catch (_e: unknown) {
       throw new AuthenticationClientError(
         response,
         responseBody,

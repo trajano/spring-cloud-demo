@@ -1,6 +1,5 @@
-import * as React from 'react';
-
 import { AuthState } from '@trajano/spring-docker-auth-context';
+import * as React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function App() {

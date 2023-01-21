@@ -10,13 +10,14 @@ import { addMilliseconds, subMilliseconds } from 'date-fns';
 import fetchMock from 'fetch-mock';
 import React, { useCallback, useEffect } from 'react';
 import { AppState, Pressable, Text } from 'react-native';
+
+import { AuthProvider } from './AuthProvider';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import { AuthStore } from '../AuthStore';
-import { buildSimpleEndpointConfiguration } from '../buildSimpleEndpointConfiguration';
 import type { OAuthToken } from '../OAuthToken';
+import { buildSimpleEndpointConfiguration } from '../buildSimpleEndpointConfiguration';
 import { useAuth } from '../useAuth';
-import { AuthProvider } from './AuthProvider';
 
 const specimenInstant = new Date('2022-11-11T12:00:00Z');
 let globalFetch: typeof fetch;

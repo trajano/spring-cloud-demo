@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction, useEffect } from 'react';
 import { AppState } from 'react-native';
+
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 /** @testonly */

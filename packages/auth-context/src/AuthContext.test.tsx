@@ -7,6 +7,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { act } from 'react-test-renderer';
+
 import { AuthState } from './AuthState';
 import type { EndpointConfiguration } from './EndpointConfiguration';
 import { useAuth } from './useAuth';

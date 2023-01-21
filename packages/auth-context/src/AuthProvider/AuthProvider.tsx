@@ -8,16 +8,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AuthClient } from '../AuthClient';
-import { AuthContext } from '../AuthContext';
-import { AuthenticationClientError } from '../AuthenticationClientError';
-import type { AuthEvent } from '../AuthEvent';
-import { AuthState } from '../AuthState';
-import { AuthStore, IAuthStore } from '../AuthStore';
-import type { EndpointConfiguration } from '../EndpointConfiguration';
-import type { IAuth } from '../IAuth';
-import type { OAuthToken } from '../OAuthToken';
-import { validateEndpointConfiguration } from '../validateEndpointConfiguration';
+
 import { initialAuthEventReducer } from './initialAuthEventReducer';
 import { isTokenExpired } from './isTokenExpired';
 import { useAppStateRefreshingEffect } from './useAppStateRefreshingEffect';
@@ -28,6 +19,16 @@ import { usePreventAppFromGettingStuckOnRefreshEffect } from './usePreventAppFro
 import { useRefreshCallback } from './useRefreshCallback';
 import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
 import { useTokenExpirationTimeoutEffect } from './useTokenExpirationTimeoutEffect';
+import { AuthClient } from '../AuthClient';
+import { AuthContext } from '../AuthContext';
+import type { AuthEvent } from '../AuthEvent';
+import { AuthState } from '../AuthState';
+import { AuthStore, IAuthStore } from '../AuthStore';
+import { AuthenticationClientError } from '../AuthenticationClientError';
+import type { EndpointConfiguration } from '../EndpointConfiguration';
+import type { IAuth } from '../IAuth';
+import type { OAuthToken } from '../OAuthToken';
+import { validateEndpointConfiguration } from '../validateEndpointConfiguration';
 
 type AuthContextProviderProps = PropsWithChildren<{
   /** Default endpoint configuration */
@@ -288,7 +289,7 @@ export function AuthProvider<A = unknown>({
     authState,
     setAuthState,
     notify,
-    backendReachable: backendReachable,
+    backendReachable,
     refreshAsync,
     onRefreshError,
   });

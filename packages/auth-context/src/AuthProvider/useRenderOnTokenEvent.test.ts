@@ -4,14 +4,15 @@ import {
   NetInfoStateType,
 } from '@react-native-community/netinfo';
 import { renderHook } from '@testing-library/react-hooks';
-import type { EndpointConfiguration } from '../EndpointConfiguration';
-import { useNetInfoState } from '../useNetInfoState';
+
 import { useAppStateWithNetInfoRefresh } from './useAppStateWithNetInfoRefresh';
 import {
   RenderOnTokenEventProps,
   RenderOnTokenEventState,
   useRenderOnTokenEvent,
 } from './useRenderOnTokenEvent';
+import type { EndpointConfiguration } from '../EndpointConfiguration';
+import { useNetInfoState } from '../useNetInfoState';
 
 jest.mock('./useAppStateWithNetInfoRefresh');
 jest.mock('../useNetInfoState');

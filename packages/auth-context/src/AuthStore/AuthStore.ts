@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { add, isBefore, parseISO, subMilliseconds } from 'date-fns';
-import type { OAuthToken } from '../OAuthToken';
+
 import type { IAuthStore } from './IAuthStore';
 import { isValidOAuthToken } from './isValidOAuthToken';
+import type { OAuthToken } from '../OAuthToken';
 export class AuthStore implements IAuthStore {
   /** Storage prefix with the trailing `.` */
   private storagePrefix: string;

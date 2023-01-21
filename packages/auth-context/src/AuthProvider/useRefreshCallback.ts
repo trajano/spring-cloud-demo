@@ -1,10 +1,11 @@
 import type { NetInfoState } from '@react-native-community/netinfo';
 import { Dispatch, SetStateAction, useCallback, useRef } from 'react';
+
 import type { AuthClient } from '../AuthClient';
-import { AuthenticationClientError } from '../AuthenticationClientError';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import type { IAuthStore } from '../AuthStore';
+import { AuthenticationClientError } from '../AuthenticationClientError';
 import type { OAuthToken } from '../OAuthToken';
 
 /** @testonly */

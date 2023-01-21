@@ -1,4 +1,5 @@
 import { act, cleanup, renderHook } from '@testing-library/react-hooks';
+
 import { useNetInfoState } from './useNetInfoState';
 afterEach(cleanup);
 beforeEach(() => {

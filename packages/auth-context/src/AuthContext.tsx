@@ -1,13 +1,14 @@
 import noop from 'lodash/noop';
 import { createContext } from 'react';
+
 import { AuthState } from './AuthState';
-import { buildSimpleEndpointConfiguration } from './buildSimpleEndpointConfiguration';
 import type { IAuth } from './IAuth';
+import { buildSimpleEndpointConfiguration } from './buildSimpleEndpointConfiguration';
 
 export const AuthContext = createContext<IAuth>({
-  loginAsync: () => Promise.reject(),
+  loginAsync: () => Promise.reject(new Error()),
   logoutAsync: () => Promise.resolve(),
-  refreshAsync: () => Promise.reject(),
+  refreshAsync: () => Promise.reject(new Error()),
   setEndpointConfiguration: noop,
   subscribe: () => noop,
   forceCheckAuthStorageAsync: () => Promise.resolve(),

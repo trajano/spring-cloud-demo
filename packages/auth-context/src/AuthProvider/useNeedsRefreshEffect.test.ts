@@ -1,11 +1,12 @@
 import { renderHook } from '@testing-library/react-hooks';
 import type { Dispatch, SetStateAction } from 'react';
-import type { AuthEvent } from '../AuthEvent';
-import { AuthState } from '../AuthState';
+
 import {
   NeedsRefreshEffectProps,
   useNeedsRefreshEffect,
 } from './useNeedsRefreshEffect';
+import type { AuthEvent } from '../AuthEvent';
+import { AuthState } from '../AuthState';
 
 test('happy path with one cycle and updating all the way to needs refresh', () => {
   const setAuthState = jest.fn() as jest.Mocked<

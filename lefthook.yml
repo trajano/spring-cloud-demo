@@ -3,11 +3,11 @@ pre-commit:
   commands:
     test-app:
       root: expo-app/
-      glob: "**/*.{json,js,ts,tsx}"
+      glob: "**/*.{js,ts,tsx}"
       run: yarn test --findRelatedTests --passWithNoTests {staged_files}
     tsc-app:
       root: expo-app/
-      glob: "**/*.{json,js,ts,tsx}"
+      glob: "**/*.{js,ts,tsx}"
       run: yarn tsc --noEmit
     lint-app:
       root: expo-app/
@@ -16,11 +16,11 @@ pre-commit:
 
     test-auth:
       root: packages/auth-context/
-      glob: "**/*.{json,js,ts,tsx}"
+      glob: "**/*.{js,ts,tsx}"
       run: yarn test --findRelatedTests --passWithNoTests {staged_files}
     tsc-auth:
       root: packages/auth-context/
-      glob: "**/*.{json,js,ts,tsx}"
+      glob: "**/*.{js,ts,tsx}"
       run: yarn tsc --noEmit
     lint-auth:
       root: packages/auth-context/

@@ -4,17 +4,18 @@ import type { NetInfoState } from '@react-native-community/netinfo';
 import { act, renderHook } from '@testing-library/react-hooks';
 import { addMilliseconds } from 'date-fns';
 import type { Dispatch, SetStateAction } from 'react';
+
+import {
+  NeedsRefreshEffectProps,
+  useNeedsRefreshEffect,
+} from './useNeedsRefreshEffect';
+import { RefreshCallbackProps, useRefreshCallback } from './useRefreshCallback';
 import { buildSimpleEndpointConfiguration } from '..';
 import { AuthClient } from '../AuthClient';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import { AuthStore } from '../AuthStore';
 import type { OAuthToken } from '../OAuthToken';
-import {
-  NeedsRefreshEffectProps,
-  useNeedsRefreshEffect,
-} from './useNeedsRefreshEffect';
-import { RefreshCallbackProps, useRefreshCallback } from './useRefreshCallback';
 
 jest.mock('../AuthClient');
 afterEach(() => {

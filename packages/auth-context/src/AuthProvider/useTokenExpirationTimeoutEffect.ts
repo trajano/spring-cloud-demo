@@ -1,7 +1,8 @@
 import { Dispatch, SetStateAction, useEffect, useRef } from 'react';
+
+import { isTokenExpired } from './isTokenExpired';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
-import { isTokenExpired } from './isTokenExpired';
 
 /** @testonly */
 export interface TokenExpirationTimeoutEffectProps {

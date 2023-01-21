@@ -14,8 +14,8 @@ export type RootStackParamList = {
 
 export type RootTabParamList = {
   MainDrawer: NavigatorScreenParams<MainDrawerParamList>;
-  TabTwo: {};
-  NetworkLogger: {};
+  TabTwo: undefined
+  NetworkLogger: undefined;
 };
 
 export type MainDrawerParamList = {

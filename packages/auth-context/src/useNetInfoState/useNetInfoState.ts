@@ -3,8 +3,9 @@ import NetInfo, {
   NetInfoStateType,
 } from '@react-native-community/netinfo';
 import { useEffect, useReducer } from 'react';
-import type { EndpointConfiguration } from '../EndpointConfiguration';
+
 import { netInfoStateReducer } from './netInfoStateReducer';
+import type { EndpointConfiguration } from '../EndpointConfiguration';
 
 /**
  * Similar to the function of @react-native-community/netinfo useNetInfo, but

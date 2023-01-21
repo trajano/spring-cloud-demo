@@ -11,13 +11,14 @@ import {
 import fetchMock from 'fetch-mock-jest';
 import React, { useCallback, useEffect, useState } from 'react';
 import { AppState, Pressable, Text } from 'react-native';
-import { AuthenticationClientError } from '../AuthenticationClientError';
+
+import { AuthProvider } from './AuthProvider';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
-import { buildSimpleEndpointConfiguration } from '../buildSimpleEndpointConfiguration';
+import { AuthenticationClientError } from '../AuthenticationClientError';
 import type { OAuthToken } from '../OAuthToken';
+import { buildSimpleEndpointConfiguration } from '../buildSimpleEndpointConfiguration';
 import { useAuth } from '../useAuth';
-import { AuthProvider } from './AuthProvider';
 let fetchConfigResponse: (new () => Response) | undefined;
 beforeEach(() => {
   fetchConfigResponse = fetchMock.config.Response;

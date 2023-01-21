@@ -1,9 +1,10 @@
 import { Dispatch, useEffect } from 'react';
 import { AppState } from 'react-native';
+
+import { isTokenExpired } from './isTokenExpired';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import type { OAuthToken } from '../OAuthToken';
-import { isTokenExpired } from './isTokenExpired';
 /** @testonly */
 export interface AppStateRefreshingProps {
   authState: AuthState;

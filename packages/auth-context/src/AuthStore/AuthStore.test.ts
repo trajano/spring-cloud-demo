@@ -1,5 +1,5 @@
-import type { OAuthToken } from '../OAuthToken';
 import { AuthStore } from './AuthStore';
+import type { OAuthToken } from '../OAuthToken';
 afterEach(() => {
   jest.useRealTimers();
 });

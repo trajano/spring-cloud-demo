@@ -1,5 +1,5 @@
-import type { OAuthToken } from '../OAuthToken';
 import { isValidOAuthToken } from './isValidOAuthToken';
+import type { OAuthToken } from '../OAuthToken';
 
 it('should work with valid', () => {
   expect(

@@ -1,9 +1,10 @@
 import { Dispatch, SetStateAction, useCallback, useEffect } from 'react';
+
+import { isTokenExpired } from './isTokenExpired';
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 import type { IAuthStore } from '../AuthStore';
 import type { OAuthToken } from '../OAuthToken';
-import { isTokenExpired } from './isTokenExpired';
 
 /** @testonly */
 export interface InitialAuthStateProps {

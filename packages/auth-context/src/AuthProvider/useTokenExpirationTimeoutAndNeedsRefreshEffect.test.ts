@@ -1,7 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import type { Dispatch, SetStateAction } from 'react';
-import type { AuthEvent } from '../AuthEvent';
-import { AuthState } from '../AuthState';
+
 import {
   NeedsRefreshEffectProps,
   useNeedsRefreshEffect,
@@ -11,6 +10,8 @@ import {
   TokenExpirationTimeoutState,
   useTokenExpirationTimeoutEffect,
 } from './useTokenExpirationTimeoutEffect';
+import type { AuthEvent } from '../AuthEvent';
+import { AuthState } from '../AuthState';
 beforeEach(() => {
   jest.useFakeTimers({ advanceTimers: true });
 });

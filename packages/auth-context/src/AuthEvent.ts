@@ -1,4 +1,5 @@
 import type { NetInfoState } from '@react-native-community/netinfo';
+
 import type { AuthState } from './AuthState';
 interface CommonAuthEvent {
   type: string;
