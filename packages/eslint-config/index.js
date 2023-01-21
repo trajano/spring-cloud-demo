@@ -52,5 +52,6 @@ module.exports = {
     "react-hooks/exhaustive-deps": "error",
     "react/react-in-jsx-scope": "off",
   },
+  ignorePatterns: ["coverage/", "dist/", "lib/", "node_modules/"],
   root: true,
 };

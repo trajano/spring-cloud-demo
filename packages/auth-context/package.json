@@ -71,10 +71,6 @@
     ],
     "root": true
   },
-  "eslintIgnore": [
-    "node_modules/",
-    "lib/"
-  ],
   "jest": {
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
