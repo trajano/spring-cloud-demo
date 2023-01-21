@@ -25,7 +25,6 @@ module.exports = {
     "arrow-body-style": "error",
     eqeqeq: "error",
     "logical-assignment-operators": ["error", "never"],
-    "multiline-comment-style": "error",
     "prefer-arrow-callback": "error",
     "prefer-const": "error",
     "prefer-numeric-literals": "error",
