@@ -8,7 +8,7 @@ module.exports = {
     "plugin:react-hooks/recommended",
     "plugin:testing-library/react",
     "universe/native",
-    "prettier",
+    "prettier", // must be last
   ],
   settings: {
     "import/ignore": ["react-native"],
@@ -23,11 +23,9 @@ module.exports = {
   },
   rules: {
     "arrow-body-style": "error",
-    curly: "error",
     eqeqeq: "error",
     "logical-assignment-operators": ["error", "never"],
     "multiline-comment-style": "error",
-    "no-floating-decimal": "error",
     "prefer-arrow-callback": "error",
     "prefer-const": "error",
     "prefer-numeric-literals": "error",

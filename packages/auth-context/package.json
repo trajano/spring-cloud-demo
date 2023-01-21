@@ -56,7 +56,7 @@
   "lint-staged": {
     "*.{ts,tsx}": "yarn-or-npm test --findRelatedTests --passWithNoTests",
     "*.{ts,tsx,js}": "eslint --fix",
-    "*.json": "prettier --write"
+    "*.{json,md}": "prettier --write"
   },
   "prettier": {
     "quoteProps": "consistent",
