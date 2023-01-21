@@ -13,62 +13,8 @@
     "web": "expo start --web"
   },
   "eslintConfig": {
-    "parserOptions": {
-      "project": [
-        "./tsconfig.json"
-      ]
-    },
-    "settings": {
-      "import/ignore": [
-        "react-native"
-      ],
-      "import/resolver": {
-        "typescript": {
-          "project": "./tsconfig.json"
-        }
-      }
-    },
     "extends": [
       "@trajano"
-    ],
-    "rules": {
-      "arrow-body-style": "error",
-      "curly": "error",
-      "eqeqeq": "error",
-      "logical-assignment-operators": [
-        "error",
-        "never"
-      ],
-      "multiline-comment-style": "error",
-      "no-floating-decimal": "error",
-      "prefer-arrow-callback": "error",
-      "prefer-const": "error",
-      "prefer-numeric-literals": "error",
-      "prefer-object-spread": "error",
-      "prefer-template": "error",
-      "yoda": "error",
-      "@typescript-eslint/ban-types": "off",
-      "@typescript-eslint/member-ordering": "warn",
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        {
-          "argsIgnorePattern": "^_"
-        }
-      ],
-      "import/no-named-as-default": "off",
-      "import/no-unresolved": [
-        "error",
-        {
-          "ignore": [
-            "@env"
-          ]
-        }
-      ],
-      "react-hooks/exhaustive-deps": "error",
-      "react/react-in-jsx-scope": "off"
-    },
-    "ignorePatterns": [
-      "node_modules"
     ]
   },
   "jest": {

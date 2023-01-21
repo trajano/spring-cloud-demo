@@ -54,6 +54,7 @@
     ]
   },
   "lint-staged": {
+    "*.{ts,tsx}": "tsc --noEmit",
     "*.{ts,tsx,js}": "eslint --fix",
     "*.json": "prettier --write"
   },
@@ -66,29 +67,8 @@
   },
   "eslintConfig": {
     "extends": [
-      "@trajano",
-      "plugin:@typescript-eslint/strict",
-      "plugin:jest/recommended",
-      "plugin:react-hooks/recommended",
-      "plugin:testing-library/react"
+      "@trajano"
     ],
-    "rules": {
-      "arrow-body-style": "error",
-      "curly": "error",
-      "eqeqeq": "error",
-      "logical-assignment-operators": "error",
-      "multiline-comment-style": "error",
-      "no-floating-decimal": "error",
-      "prefer-arrow-callback": "error",
-      "prefer-const": "error",
-      "prefer-numeric-literals": "error",
-      "prefer-object-spread": "error",
-      "prefer-template": "error",
-      "yoda": "error",
-      "@typescript-eslint/ban-types": "off",
-      "@typescript-eslint/member-ordering": "warn",
-      "@typescript-eslint/no-invalid-void-type": "off"
-    },
     "root": true
   },
   "eslintIgnore": [
