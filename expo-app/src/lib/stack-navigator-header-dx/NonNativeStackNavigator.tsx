@@ -22,8 +22,7 @@ export function NonNativeStackNavigator({
   initialRouteName,
   children,
   screenListeners,
-  screenOptions,
-  defaultScreenOptions: _defaultScreenOptions,
+  screenOptions: _defaultScreenOptions,
   ...rest
 }: NonNativeStackNavigatorProps) {
   const { state, descriptors, navigation } = useNavigationBuilder<
@@ -37,7 +36,7 @@ export function NonNativeStackNavigator({
     initialRouteName,
     children,
     screenListeners,
-    screenOptions,
+    screenOptions: _defaultScreenOptions,
   });
   return (
     <NonNativeStackView

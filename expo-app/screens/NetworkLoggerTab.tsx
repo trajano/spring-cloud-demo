@@ -5,7 +5,7 @@ const Stack = createNativeStackNavigator();
 export function NetworkLoggerTab() {
   return (
     <Stack.Navigator
-      defaultScreenOptions={{
+      screenOptions={{
         headerLargeTitle: false,
       }}
     >

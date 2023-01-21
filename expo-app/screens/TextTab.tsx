@@ -5,7 +5,7 @@ const Stack = createNativeStackNavigator();
 export function TextTab() {
   return (
     <Stack.Navigator
-      defaultScreenOptions={{
+      screenOptions={{
         headerLargeTitle: true,
       }}
     >

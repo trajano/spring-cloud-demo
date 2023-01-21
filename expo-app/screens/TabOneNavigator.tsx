@@ -83,7 +83,7 @@ export function TabOneNavigator({
   return (
     <HeaderDxProvider>
       <Stack.Navigator
-        defaultScreenOptions={{
+        screenOptions={{
           headerRight: defaultHeaderRight,
           headerMode: "float",
         }}

@@ -29,15 +29,7 @@
       }
     },
     "extends": [
-      "@react-native-community",
-      "plugin:@typescript-eslint/strict",
-      "plugin:import/recommended",
-      "plugin:import/typescript",
-      "plugin:jest/recommended",
-      "plugin:react-hooks/recommended",
-      "plugin:testing-library/react",
-      "prettier",
-      "universe/native"
+      "@trajano"
     ],
     "rules": {
       "arrow-body-style": "error",
@@ -162,6 +154,7 @@
     "@react-native-community/eslint-config": "^3.2.0",
     "@testing-library/jest-native": "^5.4.1",
     "@testing-library/react-native": "^11.5.0",
+    "@trajano/eslint-config": "1.0.0",
     "@types/fbemitter": "^2.0.32",
     "@types/jest": "^29.2.6",
     "@types/markdown-it": "^12.2.3",
