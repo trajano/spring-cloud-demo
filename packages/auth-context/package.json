@@ -48,11 +48,6 @@
     "test": "jest",
     "typescript": "tsc --noEmit"
   },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
   "lint-staged": {
     "*.{ts,tsx}": "yarn-or-npm test --findRelatedTests --passWithNoTests",
     "*.{ts,tsx,js}": "eslint --fix",
