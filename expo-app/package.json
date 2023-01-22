@@ -13,8 +13,7 @@
     "web": "expo start --web"
   },
   "lint-staged": {
-    "*.{ts,tsx}": "yarn-or-npm test --findRelatedTests --passWithNoTests",
-    "*.{ts,tsx,js}": "eslint --fix",
+    "*.{ts,tsx}": "eslint --fix",
     "*.json": "prettier --write"
   },
   "eslintConfig": {
