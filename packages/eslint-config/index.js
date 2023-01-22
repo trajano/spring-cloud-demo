@@ -1,7 +1,6 @@
 module.exports = {
   extends: [
-    "@react-native-community",
-    "plugin:@typescript-eslint/strict",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:import/typescript",
     "plugin:jest/recommended",
     "plugin:react-hooks/recommended",
