@@ -5,6 +5,7 @@
   "workspaces": {
     "packages": [
       "packages/eslint-config",
+      "packages/react-navigation-header-buttons",
       "packages/react-hooks",
       "packages/*",
       "expo-app"
