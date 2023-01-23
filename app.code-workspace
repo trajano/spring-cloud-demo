@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "path": "expo-app"
+    },
+    {
+      "path": "packages/auth-context"
+    },
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "jest.disabledWorkspaceFolders": [
+      ".",
+      "packages/react-navigation-header-buttons"
+    ]
+  }
+}

@@ -19,12 +19,12 @@
       "**/prettier",
       "**/prettier-plugin-*",
       "**/webpack*",
-      "**/type-graphql*"
+      "**/type-graphql*",
+      "react-navigation-header-buttons/react-native"
     ]
   },
   "scripts": {
-    "postinstall": "husky install || true",
-    "pre-commit": "lint-staged"
+    "postinstall": "husky install || true"
   },
   "lint-staged": {
     "*.json": "prettier --write"
