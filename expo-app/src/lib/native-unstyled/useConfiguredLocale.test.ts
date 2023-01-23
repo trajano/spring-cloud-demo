@@ -1,4 +1,4 @@
-import { act, renderHook } from "@testing-library/react-hooks";
+import { act, renderHook } from "@testing-library/react-native";
 import noop from "lodash/noop";
 
 import { useConfiguredLocale } from "./useConfiguredLocale";

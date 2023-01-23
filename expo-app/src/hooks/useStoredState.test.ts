@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { act, renderHook } from "@testing-library/react-hooks";
+import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import { useStoredState } from "./useStoredState";
 afterEach(async () => {
@@ -18,16 +18,16 @@ it("should work like normal", () => {
 });
 
 it("should work like normal with async storage check", async () => {
-  const { result, waitForNextUpdate, unmount } = renderHook(() =>
+  const { result, unmount } = renderHook(() =>
     useStoredState<string>("foo", "bar")
   );
   let [state, setState] = result.current;
   expect(state).toBe("bar");
+  await act(() => Promise.resolve());
   /*
    * expect(await AsyncStorage.getItem("foo")).toBeNull() cannot be performed as it switches the context
    * and the set state is called during that time causing an `act` warning
    */
-  await waitForNextUpdate();
   expect(await AsyncStorage.getItem("foo")).toBe("bar");
   act(() => setState("foo"));
   [state] = result.current;
@@ -37,15 +37,16 @@ it("should work like normal with async storage check", async () => {
 });
 
 it("should work like normal with function", async () => {
-  const { result, waitForNextUpdate, unmount } = renderHook(() =>
+  const { result, unmount } = renderHook(() =>
     useStoredState<string>("foo", () => "bar")
   );
   let [state, setState] = result.current;
   expect(state).toBe("bar");
-  await waitForNextUpdate();
+  await act(() => Promise.resolve());
+
   expect(await AsyncStorage.getItem("foo")).toBe("bar");
   act(() => {
-    setState((prev) => `${prev}foo`);
+    setState((prev) => `${prev as string}foo`);
   });
   [state] = result.current;
   expect(state).toBe("barfoo");
@@ -55,7 +56,7 @@ it("should work like normal with function", async () => {
 
 it("should work restore data from storage using value", async () => {
   await AsyncStorage.setItem("foo", "XXX");
-  const { result, waitFor, unmount } = renderHook(() =>
+  const { result, unmount } = renderHook(() =>
     useStoredState<string>("foo", "bar")
   );
   let [state, setState] = result.current;
@@ -73,7 +74,7 @@ it("should work restore data from storage using value", async () => {
   expect(await AsyncStorage.getItem("foo")).toBe("foo");
 
   // now update it using the functional version
-  act(() => setState((prev) => `BLAH${prev}`));
+  act(() => setState((prev) => `BLAH${prev as string}`));
   [state, setState] = result.current;
   expect(state).toBe("BLAHfoo");
   expect(await AsyncStorage.getItem("foo")).toBe("BLAHfoo");
@@ -83,7 +84,7 @@ it("should work restore data from storage using value", async () => {
 
 it("should work restore data from storage using function initializer", async () => {
   await AsyncStorage.setItem("foo", "XXX");
-  const { result, waitFor, unmount } = renderHook(() =>
+  const { result, unmount } = renderHook(() =>
     useStoredState<string>("foo", () => "bar")
   );
   const [state] = result.current;
@@ -108,9 +109,7 @@ it("should work with null initial state", async () => {
 
 it("should work with null initial state and load stored value", async () => {
   await AsyncStorage.setItem("foo", "XXX");
-  const { result, waitFor, unmount } = renderHook(() =>
-    useStoredState("foo", null)
-  );
+  const { result, unmount } = renderHook(() => useStoredState("foo", null));
   const [state] = result.current;
   expect(state).toBeNull();
   // at this point the set state is with "XXX"
@@ -123,7 +122,7 @@ it("should work with null initial state and load stored value", async () => {
 
 it("should allow clearing an item", async () => {
   await AsyncStorage.setItem("foo", "XXX");
-  const { result, waitFor, unmount } = renderHook(() =>
+  const { result, unmount } = renderHook(() =>
     useStoredState<string>("foo", "bar")
   );
   let [state, setState] = result.current;

@@ -48,6 +48,16 @@ module.exports = {
     "react-hooks/exhaustive-deps": "error",
     "react/react-in-jsx-scope": "off",
   },
-  ignorePatterns: ["coverage/", "dist/", "lib/", "node_modules/"],
+  overrides: [
+    {
+      files: ["*.test.ts", "*.test.tsx"],
+      rules: {
+        // these are needed until https://github.com/callstack/react-native-testing-library/issues/1276 is resolved
+        "@typescript-eslint/await-thenable": "off",
+        "@typescript-eslint/no-misused-promises": "off",
+      },
+    },
+  ],
+  ignorePatterns: ["coverage/", "node_modules/"],
   root: true,
 };
