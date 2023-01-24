@@ -1,4 +1,3 @@
-import { expect, jest } from '@jest/globals';
 import {
   NetInfoState,
   NetInfoStateType,
@@ -29,8 +28,8 @@ it('should return the state correctly when mocked', async () => {
       } as NetInfoState)
   );
   const { result } = renderHook<
-    RenderOnTokenEventProps,
-    RenderOnTokenEventState
+    RenderOnTokenEventState,
+    RenderOnTokenEventProps
   >((props) => useRenderOnTokenEvent(props), {
     initialProps: {
       endpointConfiguration,
@@ -39,4 +38,50 @@ it('should return the state correctly when mocked', async () => {
   expect(result.current.backendReachable).toBe(true);
   expect(result.current.netInfoState.isConnected).toBe(true);
   expect(result.current.netInfoState.isInternetReachable).toBe(true);
+});
+
+it('should handle state updates', async () => {
+  const endpointConfiguration = {} as EndpointConfiguration;
+  const mockUseAppStateWithNetInfoRefresh = jest.mocked(
+    useAppStateWithNetInfoRefresh
+  );
+  mockUseAppStateWithNetInfoRefresh.mockImplementation(() => 'active');
+  const mockUseNetInfoState = jest.mocked(useNetInfoState);
+  mockUseNetInfoState.mockImplementationOnce(
+    () =>
+      ({
+        isConnected: false,
+        isInternetReachable: false,
+      } as NetInfoState)
+  );
+  const { result, rerender } = renderHook<
+    RenderOnTokenEventState,
+    RenderOnTokenEventProps
+  >((props) => useRenderOnTokenEvent(props), {
+    initialProps: {
+      endpointConfiguration,
+    },
+  });
+  expect(result.current.backendReachable).toBe(false);
+
+  mockUseNetInfoState.mockImplementationOnce(
+    () =>
+      ({
+        isConnected: true,
+        isInternetReachable: false,
+      } as NetInfoState)
+  );
+  rerender({endpointConfiguration});
+  expect(result.current.backendReachable).toBe(false);
+
+  mockUseNetInfoState.mockImplementationOnce(
+    () =>
+      ({
+        isConnected: true,
+        isInternetReachable: true,
+      } as NetInfoState)
+  );
+  rerender({endpointConfiguration});
+  expect(result.current.backendReachable).toBe(true);
+
 });
