@@ -1,0 +1,46 @@
+@startuml AuthState
+state Initial : read token data from store
+[*] --> Initial : app not in memory\nand started up
+
+state "Token available" as Authenticated {
+  state " " as needsRefreshPin <<inputPin>>
+  state " " as authenticatedPin <<inputPin>>
+  needsRefreshPin --> NeedsRefresh
+  authenticatedPin --> AuthenticatedOnline
+  state "Needs Refresh" as NeedsRefresh: token no longer valid
+  state Refreshing: refresh endpoint being called\nwaiting on response
+  state "Authenticated" as AuthenticatedOnline: token valid\nconnection available
+  state "Backend Inaccessible" as BackendInaccessible: connection to the backend\nis not available
+  state "Backend Failure" as BackendFailure: refresh failed\ndue to backend error
+  state "Token Removal" as TokenRemoval #yellow: token is being removed
+  NeedsRefresh -> Refreshing: backend available
+  Refreshing -right-> AuthenticatedOnline: valid token received
+  Refreshing -[#8B8000]-> TokenRemoval: 401 received
+  AuthenticatedOnline -[#red,bold]-> BackendInaccessible : ping failure
+  BackendInaccessible ---> NeedsRefresh : ping working
+  NeedsRefresh -[#8B8000]-> BackendInaccessible : ping failure
+  Refreshing -[#8B8000]-> BackendFailure : 500 received
+  BackendFailure --> NeedsRefresh : failure retry timeout
+  AuthenticatedOnline --> TokenRemoval : sign out
+}
+
+state "No token available" as NoToken {
+  state " " as unauthenticatedPin <<inputPin>>
+  state Unauthenticated : no token data available,\nbackend is available
+  state "Backend Inaccessible" as UnauthenticatedOffline #red : backend is not reachable
+  unauthenticatedPin --> Unauthenticated : backend available
+  unauthenticatedPin -[#8B8000]-> UnauthenticatedOffline : ping failure
+  Unauthenticated -[#red,bold]-> UnauthenticatedOffline : ping failure
+  UnauthenticatedOffline -[#red,bold]-> Unauthenticated : ping working
+  Unauthenticated --> authenticatedPin : sign in
+
+}
+
+
+Initial --> unauthenticatedPin : no token data found
+Initial --> needsRefreshPin : token daata found
+TokenRemoval --> unauthenticatedPin
+
+state AppActivate <<start>>
+AppActivate --> needsRefreshPin : app was activated\nfrom memory
+@enduml

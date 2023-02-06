@@ -1,0 +1,35 @@
+@startuml AuthState
+state Initial : read token data from store
+[*] --> Initial : app not in memory\nand started up
+
+state "Token available" as Authenticated {
+  state Refreshing: refresh endpoint being called\nwaiting on response
+  state "Needs Refresh" as NeedsRefresh: token no longer valid
+  state "Backend Inaccessible" as BackendInaccessible: connection to the backend\nis not available
+  state "Backend Failure" as BackendFailure: refresh failed due to backend error
+  state "Authenticated" as AuthenticatedOnline: valid token,\nconnection available
+  [*] --> NeedsRefresh
+  NeedsRefresh --> Refreshing: backend available
+  Refreshing --> AuthenticatedOnline: valid token received
+  Refreshing --> NoToken: 401 received
+}
+
+state "No token available" as NoToken {
+  state Unauthenticated : no token data available,\nbackend is not checked
+  [*] --> Unauthenticated
+}
+
+Initial --> NoToken
+Initial --> Authenticated
+NeedsRefresh --> BackendInaccessible
+BackendInaccessible --> NeedsRefresh : backend reachable
+NeedsRefresh --> BackendFailure
+BackendFailure --> NeedsRefresh : failure retry timeout
+
+AuthenticatedOnline --> NoToken : sign out
+AuthenticatedOnline --> BackendInaccessible : ping failure
+Unauthenticated --> AuthenticatedOnline : sign in
+
+state AppActivate <<start>>
+AppActivate --> Authenticated : app was activated\nfrom memory
+@enduml
