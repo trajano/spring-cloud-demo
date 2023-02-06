@@ -37,6 +37,12 @@ module.exports = {
         argsIgnorePattern: "^_",
       },
     ],
+    "@typescript-eslint/no-floating-promises": [
+      "error",
+      {
+        ignoreIIFE: true,
+      },
+    ],
     // this is for import Constants from 'expo-constants';
     "import/no-named-as-default": "off",
     "import/no-unresolved": [
@@ -50,11 +56,16 @@ module.exports = {
   },
   overrides: [
     {
-      files: ["*.test.ts", "*.test.tsx"],
+      files: ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/*"],
+      plugins: ["jest"],
       rules: {
-        // these are needed until https://github.com/callstack/react-native-testing-library/issues/1276 is resolved
-        "@typescript-eslint/await-thenable": "off",
         "@typescript-eslint/no-misused-promises": "off",
+        "@typescript-eslint/unbound-method": [
+          "error",
+          {
+            ignoreStatic: true,
+          },
+        ],
       },
     },
   ],

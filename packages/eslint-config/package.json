@@ -1,40 +1,44 @@
 {
   "name": "@trajano/eslint-config",
   "version": "1.0.0",
-  "main": "index.js",
-  "license": "EPL-2.0",
   "private": true,
+  "license": "EPL-2.0",
+  "main": "index.js",
   "scripts": {
     "lint": "eslint index.js",
-    "test": "eslint index.js",
-    "prepare": "eslint index.js"
-  },
-  "devDependencies": {},
-  "eslintConfig": {
-    "extends": [
-      "eslint:recommended",
-      "prettier"
-    ],
-    "plugins": [
-      "prettier"
-    ],
-    "rules": {
-      "prettier/prettier": "error"
-    },
-    "env": {
-      "node": true
-    },
-    "root": true
+    "prepare": "eslint index.js",
+    "test": "eslint index.js"
   },
   "lint-staged": {
     "*.js": "eslint --fix",
     "*.{json,md}": "prettier --write"
   },
+  "eslintConfig": {
+    "env": {
+      "node": true
+    },
+    "plugins": [
+      "prettier"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": "error"
+    },
+    "root": true
+  },
   "dependencies": {
-    "eslint": "^8.3.2",
+    "eslint": "^8.33.0",
     "eslint-config-universe": "^11.1.1",
+    "eslint-import-resolver-typescript": "^3.5.3",
+    "eslint-plugin-jest": "^27.2.1",
     "eslint-plugin-testing-library": "^5.9.1",
     "prettier": "^2.8.3",
     "prettier-plugin-jsdoc": "^0.4.2"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.5"
   }
 }
