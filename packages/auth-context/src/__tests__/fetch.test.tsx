@@ -70,10 +70,11 @@ describe('http', () => {
     const response = await fetch('https://trajano.net/bad-request');
     expect(response.status).toBe(0);
   });
-  it('Response.error type check', async () => {
+  it('Response.error type check', () => {
     fetchMock.config.Response = Response;
     expect(Response.error() instanceof Response).toBe(true);
     expect(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       fetchMock.config.Response.prototype.isPrototypeOf(Response.error())
     ).toBe(true);
   });

@@ -63,6 +63,10 @@ export function useTokenExpirationTimeoutEffect({
         authState,
         reason: 'useTokenExpirationTimeoutEffect dependency update',
         tokenExpiresAt,
+        tokenExpired: isTokenExpired(
+          tokenExpiresAt,
+          timeBeforeExpirationRefresh
+        ),
       });
       updateStateOnTimeout();
     }

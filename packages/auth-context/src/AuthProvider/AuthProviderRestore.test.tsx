@@ -10,6 +10,7 @@ import { addMilliseconds, subMilliseconds } from 'date-fns';
 import fetchMock from 'fetch-mock';
 import React, { useCallback, useEffect } from 'react';
 import { AppState, Pressable, Text } from 'react-native';
+import { act } from 'react-test-renderer';
 
 import { AuthProvider } from './AuthProvider';
 import type { AuthEvent } from '../AuthEvent';
@@ -23,10 +24,10 @@ const specimenInstant = new Date('2022-11-11T12:00:00Z');
 let globalFetch: typeof fetch;
 let fetchConfigResponse: (new () => Response) | undefined;
 beforeEach(() => {
-  jest.useFakeTimers({ advanceTimers: true });
+  jest.useFakeTimers({ advanceTimers: false });
   jest.setSystemTime(specimenInstant);
   AppState.currentState = 'active';
-  AsyncStorage.clear();
+  AsyncStorage.clear().catch(console.error);
   fetchConfigResponse = fetchMock.config.Response;
   globalFetch = global.fetch;
   global.fetch = fetchMock.sandbox() as unknown as typeof fetch;
@@ -149,15 +150,18 @@ it('Restore saved not expired', async () => {
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: 'Authenticated',
-        accessToken: 'oldAccessToken',
+        type: 'TokenExpiration',
+        reason: 'active token restored from storage on initial state',
       } as Partial<AuthEvent>)
     )
   );
   expect(screen.getByTestId('accessToken')).toHaveTextContent('oldAccessToken');
+  expect(screen.getByTestId('hello')).toHaveTextContent('NEEDS_REFRESH');
+  await act(() => Promise.resolve());
   expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
+  expect(screen.getByTestId('accessToken')).toHaveTextContent('newAccessToken');
   expect(screen.getByTestId('accessTokenExpiresOn')).toHaveTextContent(
-    addMilliseconds(specimenInstant, 600000).toISOString()
+    addMilliseconds(specimenInstant, 600100).toISOString()
   );
   await waitFor(() => expect(jest.getTimerCount()).toBe(1));
   unmount();

@@ -19,7 +19,7 @@ test('happy path with one cycle and updating all the way to needs refresh', () =
     return Promise.resolve();
   }) as jest.Mocked<() => Promise<void>>;
 
-  renderHook<NeedsRefreshEffectProps, void>(
+  renderHook<void, NeedsRefreshEffectProps>(
     (props) => useNeedsRefreshEffect(props),
     {
       initialProps: {
@@ -47,7 +47,7 @@ test('backend not accessible', () => {
     return Promise.resolve();
   }) as jest.Mocked<() => Promise<void>>;
 
-  renderHook<NeedsRefreshEffectProps, void>(
+  renderHook<void, NeedsRefreshEffectProps>(
     (props) => useNeedsRefreshEffect(props),
     {
       initialProps: {
@@ -79,7 +79,7 @@ test('backend not accessible #2', () => {
     return Promise.resolve();
   }) as jest.Mocked<() => Promise<void>>;
 
-  renderHook<NeedsRefreshEffectProps, void>(
+  renderHook<void, NeedsRefreshEffectProps>(
     (props) => useNeedsRefreshEffect(props),
     {
       initialProps: {

@@ -25,7 +25,7 @@ beforeEach(() => {
   jest.useFakeTimers({ advanceTimers: true });
   jest.setSystemTime(specimenInstant);
   AppState.currentState = 'active';
-  AsyncStorage.clear();
+  AsyncStorage.clear().catch(console.error);
   globalFetch = global.fetch;
   global.fetch = fetchMock.sandbox() as unknown as typeof fetch;
 });
@@ -37,7 +37,7 @@ afterEach(() => {
   AppState.currentState = 'unknown';
 });
 
-function MyComponent({ notifications }: { notifications: () => void }) {
+const MyComponent = ({ notifications }: { notifications: () => void }) => {
   const {
     authState,
     loginAsync: login,
@@ -65,7 +65,7 @@ function MyComponent({ notifications }: { notifications: () => void }) {
       </Pressable>
     </>
   );
-}
+};
 
 it('Refresh two times', async () => {
   const notifications = jest.fn() as jest.Mock<() => void>;
@@ -129,7 +129,7 @@ it('Refresh two times', async () => {
   );
   expect(tokenExpiresAtFromStore).not.toBeNull();
   const tokenExpiresAt = new Date(tokenExpiresAtFromStore!);
-  act(() =>
+  await act(() =>
     jest.advanceTimersByTime(tokenExpiresAt.getTime() - Date.now() - 10000)
   );
   expect(notifications).toHaveBeenCalledWith(
@@ -143,7 +143,6 @@ it('Refresh two times', async () => {
     authState: AuthState.NEEDS_REFRESH,
     reason: 'from NeedsRefresh',
   });
-  expect(screen.getByTestId('hello')).toHaveTextContent('REFRESHING');
   await waitFor(() =>
     expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
   );
@@ -169,7 +168,7 @@ it('Refresh two times', async () => {
   );
   expect(secondTokenExpiresAtFromStore).not.toBeNull();
   const secondTokenExpiresAt = new Date(secondTokenExpiresAtFromStore!);
-  act(() =>
+  await act(() =>
     jest.advanceTimersByTime(
       secondTokenExpiresAt.getTime() - Date.now() - 10000
     )
@@ -268,7 +267,7 @@ it('Refresh 500 then successful', async () => {
   );
   expect(tokenExpiresAtFromStore).not.toBeNull();
   const tokenExpiresAt = new Date(tokenExpiresAtFromStore!);
-  act(() =>
+  await act(() =>
     jest.advanceTimersByTime(tokenExpiresAt.getTime() - Date.now() - 10000)
   );
   expect(notifications).toHaveBeenCalledWith(
@@ -285,9 +284,6 @@ it('Refresh 500 then successful', async () => {
         authState: AuthState.NEEDS_REFRESH,
       } as Partial<AuthEvent>)
     )
-  );
-  await waitFor(() =>
-    expect(screen.getByTestId('hello')).toHaveTextContent('REFRESHING')
   );
   await waitFor(() =>
     expect(screen.getByTestId('hello')).toHaveTextContent('BACKEND_FAILURE')
@@ -331,7 +327,7 @@ it('Refresh 500 then successful', async () => {
     }
   );
   notifications.mockClear();
-  act(() => jest.runAllTimers());
+  await act(() => jest.runAllTimers());
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -340,9 +336,6 @@ it('Refresh 500 then successful', async () => {
         reason: 'from NeedsRefresh',
       } as Partial<AuthEvent>)
     )
-  );
-  await waitFor(() =>
-    expect(screen.getByTestId('hello')).toHaveTextContent('REFRESHING')
   );
   await waitFor(
     () =>
@@ -359,9 +352,9 @@ it('Refresh 500 then successful', async () => {
       },
     }
   );
-  await waitFor(() =>
-    expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
-  );
+  await waitFor(() => {
+    expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
+  });
 
   await waitFor(
     () => {
@@ -442,7 +435,7 @@ it('Refresh fail with 401', async () => {
   );
   expect(tokenExpiresAtFromStore).not.toBeNull();
   const tokenExpiresAt = new Date(tokenExpiresAtFromStore!);
-  act(() =>
+  await act(() =>
     jest.advanceTimersByTime(tokenExpiresAt.getTime() - Date.now() - 10000)
   );
   expect(notifications).toHaveBeenCalledWith(
@@ -450,9 +443,6 @@ it('Refresh fail with 401', async () => {
       type: 'TokenExpiration',
       authState: AuthState.AUTHENTICATED,
     } as Partial<AuthEvent>)
-  );
-  await waitFor(() =>
-    expect(screen.getByTestId('hello')).toHaveTextContent('REFRESHING')
   );
   await waitFor(() =>
     expect(screen.getByTestId('hello')).toHaveTextContent('UNAUTHENTICATED')

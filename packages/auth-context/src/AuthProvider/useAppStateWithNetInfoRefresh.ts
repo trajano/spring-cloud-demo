@@ -15,7 +15,7 @@ export function useAppStateWithNetInfoRefresh(): AppStateStatus {
         (nextAppState) => {
           if (nextAppState === 'active') {
             // if the app switches to active, force a NetInfo refresh
-            NetInfo.refresh();
+            NetInfo.refresh().catch(console.error);
           }
           setAppState(nextAppState);
         }

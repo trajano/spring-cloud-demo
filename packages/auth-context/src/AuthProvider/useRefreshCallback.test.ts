@@ -18,7 +18,7 @@ import type { OAuthToken } from '../OAuthToken';
 
 jest.mock('../AuthClient');
 afterEach(() => {
-  AsyncStorage.clear();
+  AsyncStorage.clear().catch(console.error);
 });
 
 test('mostly mocked', async () => {
@@ -49,8 +49,8 @@ test('mostly mocked', async () => {
   );
   const authStorage = new AuthStore('auth', 'https://asdf.com/');
   const { result } = renderHook<
-    RefreshCallbackProps<unknown>,
-    () => Promise<void>
+    () => Promise<void>,
+    RefreshCallbackProps<unknown>
   >((props) => useRefreshCallback(props), {
     initialProps: {
       authState: AuthState.NEEDS_REFRESH,
@@ -93,8 +93,8 @@ test('no token stored', async () => {
   );
   const authStorage = new AuthStore('auth', 'https://asdf.com/');
   const { result } = renderHook<
-    RefreshCallbackProps<Record<string, unknown>>,
-    () => Promise<void>
+    () => Promise<void>,
+    RefreshCallbackProps<Record<string, unknown>>
   >((props) => useRefreshCallback(props), {
     initialProps: {
       authState: AuthState.NEEDS_REFRESH,
@@ -145,8 +145,8 @@ test('forced refresh while not token is not refreshable', async () => {
   );
   const authStorage = new AuthStore('auth', 'https://asdf.com/');
   const { result } = renderHook<
-    RefreshCallbackProps<Record<string, unknown>>,
-    () => Promise<void>
+    () => Promise<void>,
+    RefreshCallbackProps<Record<string, unknown>>
   >((props) => useRefreshCallback(props), {
     initialProps: {
       authState: AuthState.NEEDS_REFRESH,
@@ -186,10 +186,8 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
     addMilliseconds(Date.now(), 600000).toISOString()
   );
 
-  const setAuthState = jest.fn() as jest.Mocked<
-    Dispatch<SetStateAction<AuthState>>
-  >;
-  const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
+  const setAuthState = jest.fn<Dispatch<SetStateAction<AuthState>>, []>();
+  const notify = jest.fn<(event: AuthEvent) => void, []>();
   const netInfoState = {} as NetInfoState;
   const authClient = jest.mocked(
     new AuthClient(buildSimpleEndpointConfiguration('https://asdf.com/'))
@@ -199,8 +197,8 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
   const setTokenExpiresAt = jest.fn();
   const onRefreshError = jest.fn();
   const { result, rerender: rerenderRefreshCallback } = renderHook<
-    RefreshCallbackProps<Record<string, unknown>>,
-    () => Promise<void>
+    () => Promise<void>,
+    RefreshCallbackProps<Record<string, unknown>>
   >((props) => useRefreshCallback(props), {
     initialProps: {
       authState: AuthState.NEEDS_REFRESH,
@@ -221,8 +219,8 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
     },
   });
   const { rerender: rerenderNeedsEffect } = renderHook<
-    NeedsRefreshEffectProps,
-    void
+    void,
+    NeedsRefreshEffectProps
   >((props) => useNeedsRefreshEffect(props), {
     initialProps: {
       authState: AuthState.NEEDS_REFRESH,
@@ -328,6 +326,8 @@ test('token not refreshable then it becomes refreshable with needsRefreshEffect'
   });
 
   expect(setAuthState).toHaveBeenLastCalledWith(AuthState.REFRESHING);
+  // authClient.refreshAsync is a mock so the following is safe
+  // eslint-disable-next-line @typescript-eslint/unbound-method
   await waitFor(() => expect(authClient.refreshAsync).toHaveBeenCalledTimes(1));
   await waitFor(() =>
     expect(setAuthState).toHaveBeenLastCalledWith(AuthState.AUTHENTICATED)

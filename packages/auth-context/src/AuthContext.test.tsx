@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   render,
   screen,
@@ -6,7 +7,6 @@ import {
 } from '@testing-library/react-native';
 import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
-import { act } from 'react-test-renderer';
 
 import { AuthState } from './AuthState';
 import type { EndpointConfiguration } from './EndpointConfiguration';
@@ -58,7 +58,7 @@ it('default context values', async () => {
   }
 
   render(<MyComponent />);
-  act(() => jest.runAllTicks());
+  await act(() => Promise.resolve());
   expect(screen.getByTestId('hello')).toHaveTextContent('INITIAL');
   await waitFor(() => {
     expect(screen.getByTestId('login')).toHaveTextContent('login');

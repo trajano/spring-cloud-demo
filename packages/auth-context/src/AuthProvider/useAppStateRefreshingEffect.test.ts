@@ -12,7 +12,7 @@ describe('useAppStateRefreshingEffect', () => {
   it('should render hook', async () => {
     const setAuthState = jest.fn();
     const notify = jest.fn();
-    renderHook(async (props) => useAppStateRefreshingEffect(props), {
+    renderHook((props) => useAppStateRefreshingEffect(props), {
       initialProps: {
         authState: AuthState.AUTHENTICATED,
         setAuthState,
@@ -28,14 +28,14 @@ describe('useAppStateRefreshingEffect', () => {
         timeBeforeExpirationRefresh: 10000,
       },
     });
-    expect(notify).not.toBeCalled();
-    expect(setAuthState).not.toBeCalled();
+    expect(notify).not.toHaveBeenCalled();
+    expect(setAuthState).not.toHaveBeenCalled();
     await act(() => Promise.resolve());
-    expect(notify).not.toBeCalled();
-    expect(setAuthState).not.toBeCalled();
+    expect(notify).not.toHaveBeenCalled();
+    expect(setAuthState).not.toHaveBeenCalled();
   });
 
-  it('should handle refreshing state', async () => {
+  it('should handle refreshing state', () => {
     let capturedHandler: (state: AppStateStatus) => void = noop;
     const mockUnsubscribeListener = jest.fn();
     const mockAddListener = jest
@@ -43,7 +43,11 @@ describe('useAppStateRefreshingEffect', () => {
       .mockImplementation((nextEvent, nextCapturedHandler) => {
         expect(nextEvent).toBe('change');
         capturedHandler = nextCapturedHandler;
-        return { remove: () => mockUnsubscribeListener() };
+        return {
+          remove: () => {
+            mockUnsubscribeListener();
+          },
+        };
       });
 
     const setAuthState = jest.fn();
@@ -67,21 +71,21 @@ describe('useAppStateRefreshingEffect', () => {
         },
       }
     );
-    expect(notify).not.toBeCalled();
-    expect(setAuthState).not.toBeCalled();
-    expect(mockAddListener).toBeCalledTimes(1);
+    expect(notify).not.toHaveBeenCalled();
+    expect(setAuthState).not.toHaveBeenCalled();
+    expect(mockAddListener).toHaveBeenCalledTimes(1);
     expect(capturedHandler).not.toBe(noop);
-    expect(mockUnsubscribeListener).not.toBeCalled();
+    expect(mockUnsubscribeListener).not.toHaveBeenCalled();
 
     capturedHandler('active');
-    expect(setAuthState).toBeCalledWith(AuthState.AUTHENTICATED);
+    expect(setAuthState).toHaveBeenCalledWith(AuthState.AUTHENTICATED);
 
     unmount();
-    expect(mockAddListener).toBeCalledTimes(1);
-    expect(mockUnsubscribeListener).toBeCalledTimes(1);
+    expect(mockAddListener).toHaveBeenCalledTimes(1);
+    expect(mockUnsubscribeListener).toHaveBeenCalledTimes(1);
   });
 
-  it('should handle refreshing state expired', async () => {
+  it('should handle refreshing state expired', () => {
     let capturedHandler: (state: AppStateStatus) => void = noop;
     const mockUnsubscribeListener = jest.fn();
     const mockAddListener = jest
@@ -89,7 +93,11 @@ describe('useAppStateRefreshingEffect', () => {
       .mockImplementation((nextEvent, nextCapturedHandler) => {
         expect(nextEvent).toBe('change');
         capturedHandler = nextCapturedHandler;
-        return { remove: () => mockUnsubscribeListener() };
+        return {
+          remove: () => {
+            mockUnsubscribeListener();
+          },
+        };
       });
 
     const setAuthState = jest.fn();
@@ -113,17 +121,17 @@ describe('useAppStateRefreshingEffect', () => {
         },
       }
     );
-    expect(notify).not.toBeCalled();
-    expect(setAuthState).not.toBeCalled();
-    expect(mockAddListener).toBeCalledTimes(1);
+    expect(notify).not.toHaveBeenCalled();
+    expect(setAuthState).not.toHaveBeenCalled();
+    expect(mockAddListener).toHaveBeenCalledTimes(1);
     expect(capturedHandler).not.toBe(noop);
-    expect(mockUnsubscribeListener).not.toBeCalled();
+    expect(mockUnsubscribeListener).not.toHaveBeenCalled();
 
     capturedHandler('active');
-    expect(setAuthState).toBeCalledWith(AuthState.NEEDS_REFRESH);
+    expect(setAuthState).toHaveBeenCalledWith(AuthState.NEEDS_REFRESH);
 
     unmount();
-    expect(mockAddListener).toBeCalledTimes(1);
-    expect(mockUnsubscribeListener).toBeCalledTimes(1);
+    expect(mockAddListener).toHaveBeenCalledTimes(1);
+    expect(mockUnsubscribeListener).toHaveBeenCalledTimes(1);
   });
 });

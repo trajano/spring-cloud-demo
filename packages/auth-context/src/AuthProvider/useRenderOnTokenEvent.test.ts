@@ -15,7 +15,7 @@ import { useNetInfoState } from '../useNetInfoState';
 
 jest.mock('./useAppStateWithNetInfoRefresh');
 jest.mock('../useNetInfoState');
-it('should return the state correctly when mocked', async () => {
+it('should return the state correctly when mocked', () => {
   const endpointConfiguration = {} as EndpointConfiguration;
   jest.mocked(useAppStateWithNetInfoRefresh).mockImplementation(() => 'active');
   jest.mocked(useNetInfoState).mockImplementation(
@@ -40,7 +40,7 @@ it('should return the state correctly when mocked', async () => {
   expect(result.current.netInfoState.isInternetReachable).toBe(true);
 });
 
-it('should handle state updates', async () => {
+it('should handle state updates', () => {
   const endpointConfiguration = {} as EndpointConfiguration;
   const mockUseAppStateWithNetInfoRefresh = jest.mocked(
     useAppStateWithNetInfoRefresh
@@ -71,7 +71,7 @@ it('should handle state updates', async () => {
         isInternetReachable: false,
       } as NetInfoState)
   );
-  rerender({endpointConfiguration});
+  rerender({ endpointConfiguration });
   expect(result.current.backendReachable).toBe(false);
 
   mockUseNetInfoState.mockImplementationOnce(
@@ -81,7 +81,6 @@ it('should handle state updates', async () => {
         isInternetReachable: true,
       } as NetInfoState)
   );
-  rerender({endpointConfiguration});
+  rerender({ endpointConfiguration });
   expect(result.current.backendReachable).toBe(true);
-
 });

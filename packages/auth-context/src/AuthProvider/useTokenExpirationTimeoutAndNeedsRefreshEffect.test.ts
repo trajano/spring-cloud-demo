@@ -13,14 +13,14 @@ import {
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
 beforeEach(() => {
-  jest.useFakeTimers({ advanceTimers: true });
+  jest.useFakeTimers({ advanceTimers: false });
 });
 
 afterEach(() => {
   jest.useRealTimers();
 });
 
-test('happy path from intial to authenticated to needs refresh then back to authenticated', () => {
+test('happy path from intial to authenticated to needs refresh then back to authenticated', async () => {
   const specimenTime = new Date('2025-01-01T03:00:00Z');
 
   jest.setSystemTime(specimenTime);
@@ -36,8 +36,8 @@ test('happy path from intial to authenticated to needs refresh then back to auth
   >;
 
   const { rerender: rerenderTokenExpirationTimeout } = renderHook<
-    TokenExpirationTimeoutEffectProps,
-    TokenExpirationTimeoutState
+    TokenExpirationTimeoutState,
+    TokenExpirationTimeoutEffectProps
   >((props) => useTokenExpirationTimeoutEffect(props), {
     initialProps: {
       authState: AuthState.INITIAL,
@@ -49,8 +49,8 @@ test('happy path from intial to authenticated to needs refresh then back to auth
   });
 
   const { rerender: rerenderNeedsRefresh } = renderHook<
-    NeedsRefreshEffectProps,
-    void
+    void,
+    NeedsRefreshEffectProps
   >((props) => useNeedsRefreshEffect(props), {
     initialProps: {
       authState: AuthState.INITIAL,
@@ -87,11 +87,11 @@ test('happy path from intial to authenticated to needs refresh then back to auth
   });
 
   expect(jest.getTimerCount()).toBe(1);
-  act(() => jest.advanceTimersByTime(60000));
+  await act(() => jest.advanceTimersByTime(60000));
   jest.advanceTimersByTime(49999);
   expect(setAuthState).toHaveBeenCalledTimes(1);
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:02:49.999Z'));
-  act(() => jest.advanceTimersByTime(1));
+  await act(() => jest.advanceTimersByTime(1));
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:02:50.000Z'));
   expect(setAuthState).toHaveBeenCalledTimes(2);
   expect(setAuthState).toHaveBeenLastCalledWith(AuthState.NEEDS_REFRESH);
@@ -134,7 +134,7 @@ test('happy path from intial to authenticated to needs refresh then back to auth
   jest.advanceTimersByTime(49999);
   expect(setAuthState).toHaveBeenCalledTimes(3);
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:04:49.999Z'));
-  act(() => jest.advanceTimersByTime(1));
+  await act(() => jest.advanceTimersByTime(1));
   expect(new Date()).toStrictEqual(new Date('2025-01-01T03:04:50.000Z'));
   expect(setAuthState).toHaveBeenCalledTimes(4);
   expect(setAuthState).toHaveBeenLastCalledWith(AuthState.NEEDS_REFRESH);

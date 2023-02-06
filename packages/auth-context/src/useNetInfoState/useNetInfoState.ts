@@ -43,9 +43,11 @@ export function useNetInfoState(
         }
       );
 
-      NetInfo.refresh().then((nextNetInfoState) => {
-        updateNetInfoState(nextNetInfoState);
-      });
+      NetInfo.refresh()
+        .then((nextNetInfoState) => {
+          updateNetInfoState(nextNetInfoState);
+        })
+        .catch(console.error);
       return () => {
         unsubscribeNetInfo();
         onNetInfoUnsubscribe?.();

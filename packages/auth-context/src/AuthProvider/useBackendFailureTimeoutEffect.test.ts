@@ -25,7 +25,7 @@ test('active backend failure', () => {
     Dispatch<SetStateAction<AuthState>>
   >;
   const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
-  renderHook<BackendFailureTimeoutProps, BackendFailureTimeoutState>(
+  renderHook<BackendFailureTimeoutState, BackendFailureTimeoutProps>(
     (props) => useBackendFailureTimeoutEffect(props),
     {
       initialProps: {
@@ -57,7 +57,7 @@ test('do nothing when not authenticated', () => {
     Dispatch<SetStateAction<AuthState>>
   >;
   const notify = jest.fn() as jest.Mocked<(event: AuthEvent) => void>;
-  renderHook<BackendFailureTimeoutProps, BackendFailureTimeoutState>(
+  renderHook<BackendFailureTimeoutState, BackendFailureTimeoutProps>(
     (props) => useBackendFailureTimeoutEffect(props),
     {
       initialProps: {
@@ -94,8 +94,8 @@ test('activate and then cancel backend failure timer', () => {
     Dispatch<SetStateAction<AuthState>>
   >;
   const { rerender } = renderHook<
-    BackendFailureTimeoutProps,
-    BackendFailureTimeoutState
+    BackendFailureTimeoutState,
+    BackendFailureTimeoutProps
   >((props) => useBackendFailureTimeoutEffect(props), {
     initialProps: {
       authState: AuthState.AUTHENTICATED,

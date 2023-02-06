@@ -20,7 +20,9 @@ it('does not work with empty dep list', () => {
     useEffect(() => {
       effectCallback();
       setMyState(Date.now());
-      return () => effectCleanup();
+      return () => {
+        effectCleanup();
+      };
     }, []);
     return myState;
   }
@@ -71,7 +73,9 @@ it('works with dep list', () => {
     useEffect(() => {
       effectCallback();
       setMyState(Date.now());
-      return () => effectCleanup();
+      return () => {
+        effectCleanup();
+      };
     }, [state, nonState]);
     return myState;
   }

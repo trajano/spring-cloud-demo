@@ -25,7 +25,7 @@ export function useInitialAuthStateEffect({
   setOAuthToken,
   setTokenExpiresAt,
 }: InitialAuthStateProps) {
-  const setInitialAuthState = useCallback(async () => {
+  const setInitialAuthStateAsync = useCallback(async () => {
     /* istanbul ignore next */
     if (__DEV__) {
       if (authState !== AuthState.INITIAL) {
@@ -51,24 +51,21 @@ export function useInitialAuthStateEffect({
     setOAuthToken(nextOAuthToken);
     setTokenExpiresAt(nextTokenExpiresAt);
 
+    // regardless whether token present and not expired yet, refresh is needed
+    // but the event will have different reasons.
+    setAuthState(AuthState.NEEDS_REFRESH);
+
     if (!isTokenExpired(nextTokenExpiresAt, timeBeforeExpirationRefresh)) {
-      // token present and not expired yet, so authenticated
-      setAuthState(AuthState.AUTHENTICATED);
-      notify({
-        type: 'Authenticated',
-        authState,
-        reason: 'active token restored from storage on intial state',
-        accessToken: nextOAuthToken.access_token,
-        authorization: `Bearer ${nextOAuthToken.access_token}`,
-        tokenExpiresAt: nextTokenExpiresAt,
-      });
-    } else {
-      // token has expired so needs refresh
-      setAuthState(AuthState.NEEDS_REFRESH);
       notify({
         type: 'TokenExpiration',
         authState,
-        reason: 'expired token restored from storage on intial state',
+        reason: 'active token restored from storage on initial state',
+      });
+    } else {
+      notify({
+        type: 'TokenExpiration',
+        authState,
+        reason: 'expired token restored from storage on initial state',
       });
     }
   }, [
@@ -82,7 +79,7 @@ export function useInitialAuthStateEffect({
   ]);
   useEffect(() => {
     if (authState === AuthState.INITIAL) {
-      setInitialAuthState();
+      setInitialAuthStateAsync().catch(console.error);
     }
-  }, [authState, setInitialAuthState]);
+  }, [authState, setInitialAuthStateAsync]);
 }

@@ -5,17 +5,17 @@ beforeEach(() => {
 afterEach(() => {
   jest.useRealTimers();
 });
-it('Expired on the spot', async () => {
+it('Expired on the spot', () => {
   jest.setSystemTime(new Date('2022-01-01T00:00:00Z'));
   expect(isTokenExpired(new Date('2022-01-01T00:00:00Z'), 10000)).toBeTruthy();
 });
 
-it('Expired in window', async () => {
+it('Expired in window', () => {
   jest.setSystemTime(new Date('2022-01-01T00:00:00Z'));
   expect(isTokenExpired(new Date('2022-01-01T00:00:10Z'), 10000)).toBeTruthy();
 });
 
-it('Expired in window with advancing timers', async () => {
+it('Expired in window with advancing timers', () => {
   jest.setSystemTime(new Date('2022-01-01T00:00:00Z'));
 
   const expiresAt = new Date('2022-01-01T00:00:20Z');
@@ -28,7 +28,7 @@ it('Expired in window with advancing timers', async () => {
   expect(isTokenExpired(expiresAt, 10000)).toBeTruthy();
 });
 
-it('Expired when null', async () => {
+it('Expired when null', () => {
   jest.setSystemTime(new Date('2022-01-01T00:00:00Z'));
 
   expect(isTokenExpired(null, 10000)).toBeTruthy();

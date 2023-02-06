@@ -23,7 +23,7 @@ let fetchConfigResponse: (new () => Response) | undefined;
 beforeEach(() => {
   fetchConfigResponse = fetchMock.config.Response;
   AppState.currentState = 'active';
-  AsyncStorage.clear();
+  AsyncStorage.clear().catch(console.error);
 });
 afterEach(cleanup);
 afterEach(() => {
@@ -44,7 +44,7 @@ it('AsyncStorage works', async () => {
 });
 
 describe('with component', () => {
-  function MyComponent({
+  const MyComponent = ({
     notifications,
     onLoginFailure,
     onRender,
@@ -52,7 +52,7 @@ describe('with component', () => {
     notifications: () => void;
     onLoginFailure?: (e: unknown) => void;
     onRender?: () => void;
-  }) {
+  }) => {
     const {
       authState,
       loginAsync,
@@ -94,7 +94,7 @@ describe('with component', () => {
         </Pressable>
       </>
     );
-  }
+  };
 
   it('UNAUTHENTICATED', async () => {
     const notifications = jest.fn() as jest.Mock<() => void>;
@@ -268,8 +268,8 @@ describe('with component', () => {
   });
 
   it('Failed login', async () => {
-    const notifications = jest.fn() as jest.Mock<() => void>;
-    const onLoginFailure = jest.fn() as jest.Mock<(e: unknown) => void>;
+    const notifications = jest.fn<void, []>();
+    const onLoginFailure = jest.fn<void, [e: unknown]>();
     fetchMock
       .get('https://asdf.com/ping', { body: { ok: true } })
       .post('https://asdf.com/auth', {
@@ -308,7 +308,8 @@ describe('with component', () => {
     );
     expect(onLoginFailure).toHaveBeenCalledTimes(1);
     expect(onLoginFailure).toHaveBeenCalledWith(new Error('HTTP Error 401'));
-    const failedCall = onLoginFailure.mock.calls[0][0];
+    const failedCall =
+      onLoginFailure.mock.calls[0] && onLoginFailure.mock.calls[0][0];
     expect(failedCall instanceof AuthenticationClientError).toBeTruthy();
     expect(
       failedCall instanceof AuthenticationClientError &&
@@ -318,8 +319,8 @@ describe('with component', () => {
   });
 
   it('Failed login 500', async () => {
-    const notifications = jest.fn() as jest.Mock<() => void>;
-    const onLoginFailure = jest.fn() as jest.Mock<(e: unknown) => void>;
+    const notifications = jest.fn<void, []>();
+    const onLoginFailure = jest.fn<void, [e: unknown]>();
     fetchMock
       .get('https://asdf.com/ping', { body: { ok: true } })
       .post('https://asdf.com/auth', {
@@ -358,7 +359,8 @@ describe('with component', () => {
     );
     expect(onLoginFailure).toHaveBeenCalledTimes(1);
     expect(onLoginFailure).toHaveBeenCalledWith(new Error('HTTP Error 500'));
-    const failedCall = onLoginFailure.mock.calls[0][0];
+    const failedCall =
+      onLoginFailure.mock.calls[0] && onLoginFailure.mock.calls[0][0];
     expect(failedCall instanceof AuthenticationClientError).toBeTruthy();
     expect(
       failedCall instanceof AuthenticationClientError &&
@@ -367,7 +369,7 @@ describe('with component', () => {
     unmount();
   });
 
-  it('Invalid base URL', async () => {
+  it('Invalid base URL', () => {
     const notifications = jest.fn() as jest.Mock<() => void>;
     fetchMock.get('https://asdf.com/ping', { ok: true });
     expect(() => {

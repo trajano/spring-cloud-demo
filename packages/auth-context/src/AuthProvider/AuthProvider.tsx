@@ -4,12 +4,10 @@ import React, {
   ReactElement,
   useCallback,
   useMemo,
-  useReducer,
   useRef,
   useState,
 } from 'react';
 
-import { initialAuthEventReducer } from './initialAuthEventReducer';
 import { isTokenExpired } from './isTokenExpired';
 import { useAppStateRefreshingEffect } from './useAppStateRefreshingEffect';
 import { useBackendFailureTimeoutEffect } from './useBackendFailureTimeoutEffect';
@@ -107,27 +105,14 @@ export function AuthProvider<A = unknown>({
   const [tokenExpiresAt, setTokenExpiresAt] = useDateState(0);
 
   /**
-   * Last auth events. Eventually this will be removed and placed with the app
-   * rather than the context. Kept for debugging.
-   */
-  const [initialAuthEvents, pushAuthEvent] = useReducer(
-    initialAuthEventReducer,
-    []
-  );
-
-  /**
    * Notifies subscribers. There's a specific handler if it is "Unauthenticated"
    * that the provider handles. These and other functions are not wrapped in
    * useCallback because when any of the state changes it will render these
    * anyway and we're not optimizing from the return value either.
    */
-  const notify = useCallback(
-    (event: AuthEvent) => {
-      pushAuthEvent(event);
-      subscribersRef.current.forEach((fn) => fn(event));
-    },
-    [pushAuthEvent]
-  );
+  const notify = useCallback((event: AuthEvent) => {
+    subscribersRef.current.forEach((fn) => fn(event));
+  }, []);
 
   const { backendReachable, netInfoState } = useRenderOnTokenEvent({
     endpointConfiguration,
@@ -316,7 +301,7 @@ export function AuthProvider<A = unknown>({
       lastCheckAt: new Date(),
       oauthToken,
       tokenExpiresAt,
-      initialAuthEvents,
+      initialAuthEvents: [],
       forceCheckAuthStorageAsync,
       loginAsync,
       logoutAsync,
@@ -332,7 +317,6 @@ export function AuthProvider<A = unknown>({
       endpointConfiguration,
       tokenExpirationTimeout,
       backendFailureTimeout,
-      initialAuthEvents,
       timeBeforeExpirationRefresh,
       forceCheckAuthStorageAsync,
       loginAsync,

@@ -85,7 +85,7 @@ export interface IAuth<A = unknown> {
    * @param fn Callback function that receives events
    * @returns Function to unsubscribe
    */
-  subscribe(fn: (event: AuthEvent) => void): () => void;
+  subscribe: (fn: (event: AuthEvent) => void) => () => void;
   /**
    * This performs the call to the authentication server with the credentials
    * provided. If the authentication was successful it provide the API response
@@ -96,21 +96,21 @@ export interface IAuth<A = unknown> {
    * @returns The fetch API response
    * @throws AuthenticationClientError
    */
-  loginAsync(authenticationCredentials: A): Promise<Response>;
+  loginAsync: (authenticationCredentials: A) => Promise<Response>;
   /** Refreshes the token outside of the schedule. */
-  refreshAsync(): Promise<void>;
+  refreshAsync: () => Promise<void>;
   /** Revokes the token */
-  logoutAsync(): Promise<void>;
+  logoutAsync: () => Promise<void>;
   /**
    * Sets the endpoint configuration for the context. This allows switching
    * between backends.
    *
    * @param next Next endpoint configuration.
    */
-  setEndpointConfiguration(next: EndpointConfiguration): void;
+  setEndpointConfiguration: (next: EndpointConfiguration) => void;
   /**
    * Force check of the auth storage data. This is primarily used for testing
    * purposes as the data is not normally modified outside the context.
    */
-  forceCheckAuthStorageAsync(): Promise<void>;
+  forceCheckAuthStorageAsync: () => Promise<void>;
 }

@@ -40,14 +40,14 @@ function Example() {
   );
 }
 
-test('examples of some things', () => {
+test('examples of some things', async () => {
   const expectedUsername = 'Ada Lovelace';
 
   render(<Example />);
 
   fireEvent.changeText(screen.getByTestId('input'), expectedUsername);
   fireEvent.press(screen.getByText('Print Username'));
-  act(() => jest.advanceTimersToNextTimer());
+  await act(() => jest.advanceTimersToNextTimer());
   const usernameOutput = screen.getByTestId('printed-username');
 
   // Using `toHaveTextContent` matcher from `@testing-library/jest-native` package.
