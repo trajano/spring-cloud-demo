@@ -6,7 +6,10 @@ export default function App() {
   const [result, setResult] = React.useState<number | undefined>();
 
   React.useEffect(() => {
-    Promise.resolve(AuthState.AUTHENTICATED).then(setResult);
+    (async () => {
+      const nextResult = await Promise.resolve(AuthState.AUTHENTICATED);
+      setResult(nextResult);
+    })();
   }, []);
 
   return (
