@@ -7,7 +7,7 @@ import {
 import { format, hoursToMilliseconds, Locale } from "date-fns";
 import * as dateFnsLocales from "date-fns/locale";
 import * as Localization from "expo-localization";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { Menu, Provider } from "react-native-paper";
 
@@ -36,22 +36,16 @@ export function LoginForm() {
     setVisible(false);
   }
 
-  async function handleLogin() {
-    try {
-      setIsLoggingIn(true);
-      return loginAsync({
-        username,
-        password: "password123",
-        server_uri: "http://ca1:8080",
-        authenticated: true,
-        accessTokenExpiresInMillis: 120000,
-        // thirty day expiration of refresh token
-        refreshTokenExpiresInMillis: hoursToMilliseconds(24 * 30),
-      });
-    } finally {
-      setIsLoggingIn(false);
-    }
-  }
+  const handleLogin = useCallback(() => {
+    setIsLoggingIn(true);
+    loginAsync({
+      username,
+      authenticated: true,
+      accessTokenExpiresInMillis: 120000,
+      // thirty day expiration of refresh token
+      refreshTokenExpiresInMillis: hoursToMilliseconds(24 * 30),
+    }).finally(() => setIsLoggingIn(false));
+  }, [loginAsync, username]);
 
   async function setAndSaveBaseUrlAsync(nextBaseUrl: string) {
     const configuration = buildSimpleEndpointConfiguration(nextBaseUrl);
@@ -82,12 +76,18 @@ export function LoginForm() {
         anchor={<Button onPress={openMenu} title={baseUrl.toString()} />}
       >
         <Menu.Item
-          onPress={() => setAndSaveBaseUrlAsync(BASE_URL!)}
+          onPress={() => {
+            setAndSaveBaseUrlAsync(BASE_URL!).catch(console.error);
+          }}
           title={BASE_URL}
         />
         {Platform.OS === "web" && (
           <Menu.Item
-            onPress={() => setAndSaveBaseUrlAsync("http://localhost:28082/")}
+            onPress={() => {
+              setAndSaveBaseUrlAsync("http://localhost:28082/").catch(
+                console.error
+              );
+            }}
             title="Local server"
           />
         )}

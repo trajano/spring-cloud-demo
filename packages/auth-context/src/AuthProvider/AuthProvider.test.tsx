@@ -2,6 +2,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import '@testing-library/jest-native/extend-expect';
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -70,7 +71,7 @@ describe('with component', () => {
         onLoginFailure?.(e);
       }
     }, [loginAsync, onLoginFailure]);
-    const handleLogout = useCallback(() => logoutAsync(), [logoutAsync]);
+    const handleLogout = useCallback(() => logoutAsync(true), [logoutAsync]);
     useEffect(() => subscribe(notifications), [notifications, subscribe]);
     onRender?.();
     return (
@@ -183,6 +184,7 @@ describe('with component', () => {
     );
 
     fireEvent.press(screen.getByTestId('logout'));
+    await act(() => Promise.resolve());
     await waitFor(() =>
       expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)
@@ -448,6 +450,7 @@ describe('with component', () => {
     });
 
     fireEvent.press(screen.getByTestId('logout'));
+    await act(() => Promise.resolve());
     await waitFor(() =>
       expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)
@@ -497,6 +500,7 @@ describe('with component', () => {
       )
     );
     fireEvent.press(screen.getByTestId('logout'));
+    await act(() => Promise.resolve());
     await waitFor(() =>
       expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)
@@ -542,6 +546,7 @@ describe('with component', () => {
       )
     );
     fireEvent.press(screen.getByTestId('logout'));
+    await act(() => Promise.resolve());
     await waitFor(() =>
       expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)
@@ -590,6 +595,7 @@ describe('with component', () => {
       )
     );
     fireEvent.press(screen.getByTestId('logout'));
+    await act(() => Promise.resolve());
     await waitFor(() =>
       expect(notifications).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'LoggedOut' } as Partial<AuthEvent>)

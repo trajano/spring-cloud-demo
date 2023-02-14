@@ -17,6 +17,7 @@ config.resolver.nodeModulesPaths = [
 ];
 // 3. Force Metro to resolve (sub)dependencies only from the `nodeModulesPaths`
 config.resolver.disableHierarchicalLookup = true;
+
 config.resolver.assetExts.push("json");
 
 let currentBlockList = config.resolver.blockList;
@@ -24,5 +25,5 @@ if (!Array.isArray(currentBlockList)) {
   currentBlockList = [currentBlockList];
 }
 config.resolver.blockList = [...currentBlockList, /\\.git/];
-//console.log(config);
+console.log(config)
 module.exports = config;

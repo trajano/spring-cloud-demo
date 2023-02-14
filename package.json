@@ -11,16 +11,19 @@
       "expo-app"
     ],
     "nohoist": [
-      "*/eslint-config",
       "**/babel*",
       "**/eslint",
+      "**/@typescript-eslint/*",
       "**/eslint-*",
       "**/jest*",
       "**/prettier",
       "**/prettier-plugin-*",
       "**/webpack*",
+      "**/typescript",
+      "typescript",
       "**/type-graphql*",
-      "react-navigation-header-buttons/react-native"
+      "react-navigation-header-buttons/react-native",
+      "**/typescript"
     ]
   },
   "scripts": {
@@ -38,11 +41,12 @@
     "react-test-renderer": "18.1.0"
   },
   "devDependencies": {
-    "@commitlint/config-conventional": "^17.4.2",
-    "commitlint": "^17.4.2",
+    "@commitlint/config-conventional": "^17.4.3",
+    "commitlint": "^17.4.3",
     "husky": "^8.0.0",
-    "lint-staged": "^13.1.0",
-    "prettier": "^2.8.3",
-    "prettier-plugin-packagejson": "^2.4.0"
-  }
+    "lint-staged": "^13.1.2",
+    "prettier": "^2.8.4",
+    "prettier-plugin-packagejson": "^2.4.3"
+  },
+  "packageManager": "yarn@1.22.19"
 }

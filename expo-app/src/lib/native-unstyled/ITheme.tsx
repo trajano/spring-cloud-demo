@@ -28,19 +28,19 @@ export interface ITheme {
    * @param colorScheme Color scheme if null it will switch to the system color
    *   scheme.
    */
-  setColorScheme(colorScheme: ColorSchemeName | null): void;
+  setColorScheme: (colorScheme: ColorSchemeName | null) => void;
   /**
    * This obtains the typography for a given text role and an optional size.
    *
    * @param role Text role.
    * @param size Text role size.
    */
-  typography(role?: string, size?: string): TextStyle;
+  typography: (role?: string, size?: string) => TextStyle;
   /**
    * @param locale Locale to switch to or swith to the first system locale or
    *   default
    */
-  setLocale(locale: string | null): void;
+  setLocale: (locale: string | null) => void;
   /**
    * Translator function. Maybe relocate it to it's own package later to
    * separate it from theme.
@@ -48,15 +48,15 @@ export interface ITheme {
    * @param scope
    * @param options
    */
-  t(scope: Readonly<Scope>, options?: TranslateOptions): string;
+  t: (scope: Readonly<Scope>, options?: TranslateOptions) => string;
   /**
    * Replace the data with a native font. May return undefined if it will yield
    * an empty object.
    *
    * @param flattenedStyle Style must be flattened before this method is called.
    */
-  replaceWithNativeFont(
+  replaceWithNativeFont: (
     flattenedStyle: TextStyle,
     defaultTextStyle?: TextStyle
-  ): StyleProp<TextStyle> | undefined;
+  ) => StyleProp<TextStyle> | undefined;
 }

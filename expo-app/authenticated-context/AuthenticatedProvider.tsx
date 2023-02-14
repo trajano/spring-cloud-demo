@@ -89,7 +89,7 @@ export function AuthenticatedProvider({
      * this should be refactored to it's own file to provide the data stream
      * log.warn({ verified, username })
      */
-    if (verified && username) {
+    if (verified && username && accessToken) {
       eventStream.current = new EventSource<string>(
         new URL("/grpc/Echo/echoStream", baseUrl),
         {

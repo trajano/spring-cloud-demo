@@ -5,23 +5,39 @@ state Initial : read token data from store
 state "Token available" as Authenticated {
   state " " as needsRefreshPin <<inputPin>>
   state " " as authenticatedPin <<inputPin>>
+  state " " as backgroundedPin <<inputPin>>
+  ' needsRefreshPin --> Restoring
   needsRefreshPin --> NeedsRefresh
   authenticatedPin --> AuthenticatedOnline
-  state "Needs Refresh" as NeedsRefresh: token no longer valid
+  backgroundedPin --> Backgrounded
+  state "Needs Refresh" as NeedsRefresh: token may no longer be valid
   state Refreshing: refresh endpoint being called\nwaiting on response
-  state "Authenticated" as AuthenticatedOnline: token valid\nconnection available
+  state "Authenticated" as AuthenticatedOnline: token available\ntoken not expired\nconnection available
   state "Backend Inaccessible" as BackendInaccessible: connection to the backend\nis not available
   state "Backend Failure" as BackendFailure: refresh failed\ndue to backend error
-  state "Token Removal" as TokenRemoval #yellow: token is being removed
-  NeedsRefresh -> Refreshing: backend available
-  Refreshing -right-> AuthenticatedOnline: valid token received
-  Refreshing -[#8B8000]-> TokenRemoval: 401 received
-  AuthenticatedOnline -[#red,bold]-> BackendInaccessible : ping failure
-  BackendInaccessible ---> NeedsRefresh : ping working
-  NeedsRefresh -[#8B8000]-> BackendInaccessible : ping failure
-  Refreshing -[#8B8000]-> BackendFailure : 500 received
+  state "Token Removal" as TokenRemoval <<join>>
+  state "Backgrounded" as Backgrounded: app is no longer active
+
+  note bottom of TokenRemoval
+    token is being removed
+  end note
+  ' state "Restoring" as Restoring: app is active\nin foreground
+
+  NeedsRefresh --> Refreshing: backend available\nand token expired
+  NeedsRefresh --> AuthenticatedOnline: backend available\nand token not expired
+  Refreshing --> AuthenticatedOnline: valid token received
+  Refreshing --[#8B8000]-> TokenRemoval: 401 received
+  AuthenticatedOnline --[#red,bold]-> BackendInaccessible : ping failure
+  AuthenticatedOnline --> NeedsRefresh : token nearly expired
+  BackendInaccessible --> NeedsRefresh : ping working
+  NeedsRefresh --[#8B8000]-> BackendInaccessible : ping failure
+  Refreshing --[#8B8000]-> BackendFailure : 500 received
   BackendFailure --> NeedsRefresh : failure retry timeout
   AuthenticatedOnline --> TokenRemoval : sign out
+  Backgrounded --> NeedsRefresh: app activated
+  ' Backgrounded -> Restoring: app activated
+  ' Restoring -> NeedsRefresh: app restored
+
 }
 
 state "No token available" as NoToken {
@@ -29,18 +45,91 @@ state "No token available" as NoToken {
   state Unauthenticated : no token data available,\nbackend is available
   state "Backend Inaccessible" as UnauthenticatedOffline #red : backend is not reachable
   unauthenticatedPin --> Unauthenticated : backend available
-  unauthenticatedPin -[#8B8000]-> UnauthenticatedOffline : ping failure
-  Unauthenticated -[#red,bold]-> UnauthenticatedOffline : ping failure
-  UnauthenticatedOffline -[#red,bold]-> Unauthenticated : ping working
+  unauthenticatedPin --[#8B8000]-> UnauthenticatedOffline : ping failure
+  Unauthenticated --[#red,bold]-> UnauthenticatedOffline : ping failure
+  UnauthenticatedOffline --[#red,bold]-> Unauthenticated : ping working
   Unauthenticated --> authenticatedPin : sign in
 
 }
 
 
 Initial --> unauthenticatedPin : no token data found
-Initial --> needsRefreshPin : token daata found
+Initial --> needsRefreshPin : token data found
 TokenRemoval --> unauthenticatedPin
 
-state AppActivate <<start>>
-AppActivate --> needsRefreshPin : app was activated\nfrom memory
+' state AppActivate <<start>>
+' AppActivate --> needsRefreshPin : app was activated\nfrom memory
+state AppBackgrounded <<start>>
+AppBackgrounded --> backgroundedPin : app was sent\nto background
+
+@enduml
+
+@startuml
+state "No token available" as NoToken {
+  state " " as unauthenticatedPin <<inputPin>>
+  state "Unauthenticated Online" as Unauthenticated : no token data available,\nbackend is available
+  state "Unauthenticated Offline" as UnauthenticatedOffline #red : backend is not reachable
+  unauthenticatedPin --> Unauthenticated : backend available
+  unauthenticatedPin --[#8B8000]-> UnauthenticatedOffline : ping failure
+  Unauthenticated --[#red,bold]-> UnauthenticatedOffline : ping failure
+  UnauthenticatedOffline --[#red,bold]-> Unauthenticated : ping working
+}
+@enduml
+
+
+@startuml
+state "No token available" as NoToken {
+  state " " as unauthenticatedPin <<inputPin>>
+
+  unauthenticatedPin --> Unauthenticated : [backendAccessible]
+  unauthenticatedPin --[#8B8000]-> UnauthenticatedOffline : [not backendAccessible]
+
+  state "Unauthenticated Online" as Unauthenticated {
+
+    state "Effect" as a
+    state c <<choice>>
+
+    a-->c
+    c--> UnauthenticatedOffline: [not backendAccessible]
+    a-->a: NetInfo update
+
+
+  }
+  state "Unauthenticated Offline" as UnauthenticatedOffline {
+
+    state "Effect" as a2
+    state c2 <<choice>>
+
+    a2-->c2
+    c2--> Unauthenticated: [backendAccessible]
+    a2-->a2: NetInfo update
+
+  }
+}
+@enduml
+
+@startuml
+state "No token available" as NoToken {
+  state " " as unauthenticatedPin <<inputPin>>
+
+  unauthenticatedPin --> Unauthenticated : [backendAccessible]
+  unauthenticatedPin --[#8B8000]-> UnauthenticatedOffline : [not backendAccessible]
+
+  state "Unauthenticated Online" as Unauthenticated : no token data available,\nbackend is available
+  state "Unauthenticated Offline" as UnauthenticatedOffline #red : backend is not reachable
+  state c <<choice>>
+  Unauthenticated-->c : effect fired
+  c-->Unauthenticated
+  c--> UnauthenticatedOffline: [not backendAccessible]
+  Unauthenticated-->Unauthenticated: NetInfo update
+
+
+  state c2 <<choice>>
+
+  UnauthenticatedOffline-->c2: effect fired
+  c2-->UnauthenticatedOffline
+  c2--> Unauthenticated: [backendAccessible]
+  UnauthenticatedOffline-->UnauthenticatedOffline: NetInfo update
+
+}
 @enduml

@@ -59,4 +59,23 @@ export enum AuthState {
    * @category Token not available
    */
   UNAUTHENTICATED_OFFLINE,
+  /**
+   * The application was sent to the background while it had the token.
+   *
+   * @category Token available
+   */
+  BACKGROUNDED,
+  /**
+   * The application was brought back to the foreground when it had a token. The
+   * token does not need to be valid or
+   *
+   * @category Token available
+   */
+  RESTORING,
+  /**
+   * The application has determined that it needs to remove the token.
+   *
+   * @category Token available
+   */
+  TOKEN_REMOVAL,
 }

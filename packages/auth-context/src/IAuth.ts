@@ -99,8 +99,18 @@ export interface IAuth<A = unknown> {
   loginAsync: (authenticationCredentials: A) => Promise<Response>;
   /** Refreshes the token outside of the schedule. */
   refreshAsync: () => Promise<void>;
-  /** Revokes the token */
-  logoutAsync: () => Promise<void>;
+  /**
+   * Revokes the token. Will fail if the user is not authenticated.
+   *
+   * @param forced If true, then auth state is not checked and the tokens are
+   *   forcibly removed. Defaults to false.
+   * @param postLogoutCallback This is invoked after the logout has been
+   *   processed.
+   */
+  logoutAsync: (
+    forced?: boolean,
+    postLogoutCallback?: () => void
+  ) => Promise<void>;
   /**
    * Sets the endpoint configuration for the context. This allows switching
    * between backends.

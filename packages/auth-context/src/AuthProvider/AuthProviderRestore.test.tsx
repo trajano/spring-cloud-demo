@@ -124,7 +124,7 @@ it('Restore saved not expired', async () => {
   );
 
   const notifications = jest.fn() as jest.Mock<() => void>;
-  fetchMock.get('https://asdf.com/ping', { body: { ok: true } }).post(
+  fetchMock.get('https://asdf.com/ping', { body: { ok: true } }).postOnce(
     'https://asdf.com/refresh',
     new Promise((res) =>
       setTimeout(res, 100, {
@@ -156,12 +156,10 @@ it('Restore saved not expired', async () => {
     )
   );
   expect(screen.getByTestId('accessToken')).toHaveTextContent('oldAccessToken');
-  expect(screen.getByTestId('hello')).toHaveTextContent('NEEDS_REFRESH');
-  await act(() => Promise.resolve());
   expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
-  expect(screen.getByTestId('accessToken')).toHaveTextContent('newAccessToken');
+  expect(screen.getByTestId('accessToken')).toHaveTextContent('oldAccessToken');
   expect(screen.getByTestId('accessTokenExpiresOn')).toHaveTextContent(
-    addMilliseconds(specimenInstant, 600100).toISOString()
+    addMilliseconds(specimenInstant, 600000).toISOString()
   );
   await waitFor(() => expect(jest.getTimerCount()).toBe(1));
   unmount();

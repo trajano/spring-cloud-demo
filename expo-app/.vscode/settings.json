@@ -1,3 +1,7 @@
 {
-    "jest.jestCommandLine": "yarn test"
+  "jest.jestCommandLine": "yarn test",
+  "sonarlint.connectedMode.project": {
+    "connectionId": "trajano",
+    "projectKey": "spring-docker-swarm-expo-app"
+  }
 }

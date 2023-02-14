@@ -7,6 +7,12 @@
       "path": "packages/auth-context"
     },
     {
+      "path": "packages/react-hooks"
+    },
+    {
+      "path": "packages/react-navigation-header-buttons"
+    },
+    {
       "path": "."
     }
   ],
@@ -14,6 +20,11 @@
     "jest.disabledWorkspaceFolders": [
       ".",
       "packages/react-navigation-header-buttons"
-    ]
+    ],
+    "files.exclude": {
+      "expo-app/": true,
+      "packages/": true,
+      "node_modules/": true
+    }
   }
 }

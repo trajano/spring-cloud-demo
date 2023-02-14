@@ -138,11 +138,12 @@ it('Refresh two times', async () => {
       authState: AuthState.AUTHENTICATED,
     } as Partial<AuthEvent>)
   );
-  expect(notifications).toHaveBeenCalledWith({
-    type: 'Refreshing',
-    authState: AuthState.NEEDS_REFRESH,
-    reason: 'from NeedsRefresh',
-  });
+  expect(notifications).toHaveBeenCalledWith(
+    expect.objectContaining({
+      type: 'Refreshing',
+      authState: AuthState.NEEDS_REFRESH,
+    }) as Partial<AuthEvent>
+  );
   await waitFor(() =>
     expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
   );
@@ -280,7 +281,6 @@ it('Refresh 500 then successful', async () => {
     expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'Refreshing',
-        reason: 'from NeedsRefresh',
         authState: AuthState.NEEDS_REFRESH,
       } as Partial<AuthEvent>)
     )
@@ -333,7 +333,6 @@ it('Refresh 500 then successful', async () => {
       expect.objectContaining({
         type: 'Refreshing',
         authState: AuthState.NEEDS_REFRESH,
-        reason: 'from NeedsRefresh',
       } as Partial<AuthEvent>)
     )
   );

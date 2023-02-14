@@ -91,7 +91,10 @@ export default function TabOneScreen({
       {
         style: "destructive",
         text: "Yes",
-        onPress: logoutAsync,
+        onPress: () => {
+          console.log("LOGOUT");
+          logoutAsync(true).catch(console.error);
+        },
       },
     ]);
   }, [logoutAsync, alert, t]);

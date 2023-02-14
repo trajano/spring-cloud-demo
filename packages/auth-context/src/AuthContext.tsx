@@ -5,7 +5,7 @@ import { AuthState } from './AuthState';
 import type { IAuth } from './IAuth';
 import { buildSimpleEndpointConfiguration } from './buildSimpleEndpointConfiguration';
 
-export const AuthContext = createContext<IAuth>({
+export const AuthContext = createContext<IAuth<any>>({
   loginAsync: () => Promise.reject(new Error()),
   logoutAsync: () => Promise.resolve(),
   refreshAsync: () => Promise.reject(new Error()),
