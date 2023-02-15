@@ -2,6 +2,7 @@ import {
   DefaultTheme,
   Theme as ReactNavigationTheme,
 } from "@react-navigation/native";
+import { Scope, TranslateOptions } from "i18n-js/typings";
 import noop from "lodash/noop";
 import { createContext, useCallback, useContext, useMemo } from "react";
 
@@ -78,7 +79,7 @@ export function ThemeProvider({
     (role?: string, size?: string) => {
       if (!role) {
         return {};
-      } else if (`${role}.${size}` in textRoles) {
+      } else if (size && `${role}.${size}` in textRoles) {
         return textRoles[`${role}.${size}`];
       } else if (role in textRoles) {
         return textRoles[role];
@@ -105,7 +106,7 @@ export function ThemeProvider({
       replaceWithNativeFont,
       setColorScheme,
       setLocale,
-      t,
+      t: t as (scope: Readonly<Scope>, options?: TranslateOptions) => string,
       typography,
     }),
     [

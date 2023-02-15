@@ -1,3 +1,4 @@
+import { FontSource } from "expo-font";
 import type { Dict, I18nOptions } from "i18n-js";
 import type { PropsWithChildren } from "react";
 import type { ColorSchemeName } from "react-native";
@@ -27,7 +28,7 @@ interface ColorThemeProviderProps {
 }
 interface FontThemeProviderProps {
   /** Expo-font module assets to load up. */
-  fontModules?: any[];
+  fontModules?: Record<string, FontSource | Function>[];
   /** A list of roles for the text to provide repetitive text styles. */
   textRoles?: Record<string, Typography>;
 }

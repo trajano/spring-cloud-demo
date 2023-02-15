@@ -1,5 +1,5 @@
 import { Theme as ReactNavigationTheme } from "@react-navigation/native";
-import { Scope, TranslateOptions } from "i18n-js/typings";
+import { Scope, TranslateOptions } from "i18n-js";
 import { ColorSchemeName, StyleProp, TextStyle } from "react-native";
 
 import { ColorSchemeColors } from "./ColorSchemeColors";
