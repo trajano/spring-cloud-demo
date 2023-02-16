@@ -10,7 +10,6 @@ import { addMilliseconds, subMilliseconds } from 'date-fns';
 import fetchMock from 'fetch-mock';
 import React, { useCallback, useEffect } from 'react';
 import { AppState, Pressable, Text } from 'react-native';
-import { act } from 'react-test-renderer';
 
 import { AuthProvider } from './AuthProvider';
 import type { AuthEvent } from '../AuthEvent';

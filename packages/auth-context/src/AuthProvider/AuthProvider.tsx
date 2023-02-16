@@ -11,7 +11,7 @@ import React, {
 import { isTokenExpired } from './isTokenExpired';
 import { AuthClient } from '../AuthClient';
 import { AuthContext } from '../AuthContext';
-import { AuthenticationClientError , AuthenticationClientError } from '../AuthenticationClientError';
+import { AuthenticationClientError } from '../AuthenticationClientError';
 import { AuthStore, IAuthStore } from '../AuthStore';
 import type { EndpointConfiguration } from '../EndpointConfiguration';
 import type { IAuth } from '../IAuth';
@@ -25,6 +25,8 @@ import { useNoTokenAvailableEffect } from './useNoTokenAvailableEffect';
 import { useRefreshCallback } from './useRefreshCallback';
 import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
 import { useTokenAvailableEffect } from './useTokenAvailableEffect';
+import type { AuthEvent } from '../AuthEvent';
+import { AuthState } from '../AuthState';
 
 type AuthContextProviderProps = PropsWithChildren<{
   /** Default endpoint configuration */
@@ -122,9 +124,9 @@ export function AuthProvider<A = unknown>({
   const subscribe = useCallback((fn: (event: AuthEvent) => void) => {
     subscribersRef.current.push(fn);
     return () =>
-      (subscribersRef.current = subscribersRef.current.filter(
-        (subscription) => !Object.is(subscription, fn)
-      ));
+    (subscribersRef.current = subscribersRef.current.filter(
+      (subscription) => !Object.is(subscription, fn)
+    ));
   }, []);
 
   /**
@@ -283,7 +285,7 @@ export function AuthProvider<A = unknown>({
       ),
       authorization:
         !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&
-        !!oauthToken
+          !!oauthToken
           ? `Bearer ${oauthToken.access_token}`
           : null,
       authState,
