@@ -58,7 +58,11 @@
     "singleQuote": true,
     "tabWidth": 2,
     "trailingComma": "es5",
-    "useTabs": false
+    "useTabs": false,
+    "plugins": [
+      "prettier-plugin-jsdoc",
+      "prettier-plugin-packagejson"
+    ]
   },
   "eslintConfig": {
     "extends": [
@@ -81,19 +85,23 @@
     "testEnvironment": "node"
   },
   "dependencies": {
-    "@trajano/react-hooks": "2.0.1",
+    "@trajano/react-hooks": "^2.0.1",
     "date-fns": "^2.29.3",
+    "eslint": "^8.34.0",
     "js-base64": "^3.7.5",
+    "lodash": "^4.17.21",
     "react-test-renderer": "18.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.12",
+    "@react-native-async-storage/async-storage": "^1.17.11",
     "@react-native-community/netinfo": "9.3.5",
     "@release-it/conventional-changelog": "^5.0.0",
     "@testing-library/jest-native": "^5.4.1",
     "@testing-library/react-native": "^11.5.2",
     "@trajano/eslint-config": "1.0.0",
     "@types/jest": "^29.4.0",
+    "@types/lodash": "^4.14.191",
     "@types/react": "~18.0.24",
     "@types/react-native": "~0.70.6",
     "fetch-mock-jest": "^1.5.1",

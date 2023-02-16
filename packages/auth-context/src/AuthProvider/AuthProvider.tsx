@@ -19,7 +19,6 @@ import type { OAuthToken } from '../OAuthToken';
 import { useAppActiveState } from '../useAppActiveState';
 import { useBackendReachable } from '../useBackendReachable';
 import { validateEndpointConfiguration } from '../validateEndpointConfiguration';
-import { useBackendFailureTimeoutEffect } from './useBackendFailureTimeoutEffect';
 import { useInitialAuthStateEffect } from './useInitialAuthStateEffect';
 import { useNoTokenAvailableEffect } from './useNoTokenAvailableEffect';
 import { useRefreshCallback } from './useRefreshCallback';
@@ -112,13 +111,6 @@ export function AuthProvider<A = unknown>({
 
   const { netInfoState } = useRenderOnTokenEvent({
     endpointConfiguration,
-  });
-
-  const { timeout: backendFailureTimeout } = useBackendFailureTimeoutEffect({
-    authState,
-    setAuthState,
-    notify,
-    backendFailureTimeout: 60000,
   });
 
   const subscribe = useCallback((fn: (event: AuthEvent) => void) => {
@@ -309,7 +301,6 @@ export function AuthProvider<A = unknown>({
       backendReachable,
       tokenExpiresAt,
       endpointConfiguration,
-      backendFailureTimeout,
       timeBeforeExpirationRefresh,
       forceCheckAuthStorageAsync,
       loginAsync,

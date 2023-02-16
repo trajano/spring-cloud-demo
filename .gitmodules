@@ -4,7 +4,3 @@
 [submodule "packages/react-hooks"]
 	path = packages/react-hooks
 	url = https://github.com/trajano/react-hooks
-[submodule "packages/react-navigation-header-buttons"]
-	path = packages/react-navigation-header-buttons
-	url = https://github.com/trajano/react-navigation-header-buttons
-	branch = patch-1

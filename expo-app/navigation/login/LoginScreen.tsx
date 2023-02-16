@@ -77,7 +77,7 @@ export function LoginForm() {
       >
         <Menu.Item
           onPress={() => {
-            setAndSaveBaseUrlAsync(BASE_URL!).catch(console.error);
+            setAndSaveBaseUrlAsync(BASE_URL!);
           }}
           title={BASE_URL}
         />
