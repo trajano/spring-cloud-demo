@@ -9,24 +9,22 @@ import React, {
 } from 'react';
 
 import { isTokenExpired } from './isTokenExpired';
-import { useBackendFailureTimeoutEffect } from './useBackendFailureTimeoutEffect';
-import { useInitialAuthStateEffect } from './useInitialAuthStateEffect';
-import { useNoTokenAvailableEffect } from './useNoTokenAvailableEffect';
-import { useRefreshCallback } from './useRefreshCallback';
-import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
-import { useTokenAvailableEffect } from './useTokenAvailableEffect';
 import { AuthClient } from '../AuthClient';
 import { AuthContext } from '../AuthContext';
-import type { AuthEvent } from '../AuthEvent';
-import { AuthState } from '../AuthState';
+import { AuthenticationClientError , AuthenticationClientError } from '../AuthenticationClientError';
 import { AuthStore, IAuthStore } from '../AuthStore';
-import { AuthenticationClientError } from '../AuthenticationClientError';
 import type { EndpointConfiguration } from '../EndpointConfiguration';
 import type { IAuth } from '../IAuth';
 import type { OAuthToken } from '../OAuthToken';
 import { useAppActiveState } from '../useAppActiveState';
 import { useBackendReachable } from '../useBackendReachable';
 import { validateEndpointConfiguration } from '../validateEndpointConfiguration';
+import { useBackendFailureTimeoutEffect } from './useBackendFailureTimeoutEffect';
+import { useInitialAuthStateEffect } from './useInitialAuthStateEffect';
+import { useNoTokenAvailableEffect } from './useNoTokenAvailableEffect';
+import { useRefreshCallback } from './useRefreshCallback';
+import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
+import { useTokenAvailableEffect } from './useTokenAvailableEffect';
 
 type AuthContextProviderProps = PropsWithChildren<{
   /** Default endpoint configuration */
@@ -78,11 +76,6 @@ export function AuthProvider<A = unknown>({
     [setEndpointConfiguration]
   );
 
-  // const onRefreshError = useCallback(
-  //   (reason: unknown) =>
-  //     inOnRefreshError ? inOnRefreshError(reason) : console.error(reason),
-  //   [inOnRefreshError]
-  // );
   /**
    * Auth storage. If inAuthStorage is provided it will use that otherwise it
    * will create a new one.
@@ -118,15 +111,6 @@ export function AuthProvider<A = unknown>({
   const { netInfoState } = useRenderOnTokenEvent({
     endpointConfiguration,
   });
-
-  // const { timeout: tokenExpirationTimeout } = useTokenExpirationTimeoutEffect({
-  //   authState,
-  //   setAuthState,
-  //   maxTimeoutForRefreshCheck: 60000,
-  //   timeBeforeExpirationRefresh,
-  //   tokenExpiresAt,
-  //   notify,
-  // });
 
   const { timeout: backendFailureTimeout } = useBackendFailureTimeoutEffect({
     authState,
@@ -288,25 +272,6 @@ export function AuthProvider<A = unknown>({
     setTokenExpiresAt,
   });
 
-  // useNeedsRefreshEffect({
-  //   authState,
-  //   setAuthState,
-  //   notify,
-  //   backendReachable,
-  //   refreshAsync,
-  //   onRefreshError,
-  // });
-
-  // useAppStateRefreshingEffect({
-  //   authState,
-  //   setAuthState,
-  //   notify,
-  //   oauthToken,
-  //   tokenExpiresAt,
-  //   backendReachable,
-  //   timeBeforeExpirationRefresh,
-  // });
-
   // Temporarily disable react-hooks/exhaustive-deps since we want the timeouts to trigger.
   /* eslint-disable react-hooks/exhaustive-deps */
   const contextValue: IAuth<A> = useMemo(
@@ -354,12 +319,6 @@ export function AuthProvider<A = unknown>({
   );
   /* eslint-enable react-hooks/exhaustive-deps */
 
-  // console.log({
-  //   authState,
-  //   oauthToken,
-  //   backendReachable,
-  //   appActive
-  // });
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
