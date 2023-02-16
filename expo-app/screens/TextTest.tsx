@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useDayClockState } from "../src/hooks/useDayClockState";
 import {
+  ColorSchemeColors,
   ScrollView,
   Text,
   TextInput,
@@ -13,6 +14,7 @@ import {
 } from "../src/lib/native-unstyled";
 import { propsToStyleSheet } from "../src/lib/native-unstyled/propsToStyleSheet";
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 const isHermes = () => !!(global as any).HermesInternal;
 export function TextTest() {
   const {
@@ -124,7 +126,7 @@ export function TextTest() {
       >
         <Text color="black">
           {JSON.stringify(
-            propsToStyleSheet({ elevation: 5 }, {} as any),
+            propsToStyleSheet({ elevation: 5 }, {} as ColorSchemeColors),
             null,
             2
           )}

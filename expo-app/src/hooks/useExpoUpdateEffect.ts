@@ -15,7 +15,7 @@ import { useAlert } from "../lib/native-unstyled";
 export function useExpoUpdateEffect() {
   const { alert } = useAlert();
   const checkForUpdate = useCallback(
-    async (event: UpdateEvent) => {
+    (event: UpdateEvent) => {
       if (event.type === UpdateEventType.UPDATE_AVAILABLE) {
         alert(
           "Update available",
@@ -27,8 +27,8 @@ export function useExpoUpdateEffect() {
             },
             {
               text: "Reload",
-              onPress: async () => {
-                await reloadAsync();
+              onPress: () => {
+                reloadAsync().catch(console.error);
               },
             },
           ]

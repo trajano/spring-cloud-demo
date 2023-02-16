@@ -43,14 +43,23 @@ export function withStyledSwitch<
     ref: Ref<T>
   ): ReactElement<Q> {
     const { colors } = useTheming();
-    const [inputState, setInputState] = useState<InputState>(
-      disabled === true ? "disabled" : value ? "enabled" : "default"
-    );
+    const [inputState, setInputState] = useState<InputState>(() => {
+      if (disabled) {
+        return "disabled";
+      } else if (value === true) {
+        return "enabled";
+      } else {
+        return "disabled";
+      }
+    });
 
     const augmentedOnValueChange = useCallback(
       (nextValue: boolean) => {
         setInputState(value ? "enabled" : "default");
-        originalOnValueChange?.(nextValue);
+        const res = originalOnValueChange?.(nextValue);
+        if (res instanceof Promise) {
+          res.catch(console.error);
+        }
       },
       [setInputState, originalOnValueChange, value]
     );

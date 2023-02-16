@@ -11,6 +11,7 @@ import { AuthProvider } from "@trajano/spring-docker-auth-context";
 import Constants from "expo-constants";
 import "expo-dev-client";
 import { deactivateKeepAwake, ExpoKeepAwakeTag } from "expo-keep-awake";
+import { Dict } from "i18n-js";
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { ColorSchemeName, LogBox, useWindowDimensions } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -42,7 +43,7 @@ export default function App() {
   const defaultEndpointConfiguration = useStoredEndpointConfigurationEffect();
   useEffect(() => {
     if (!__DEV__) {
-      deactivateKeepAwake(ExpoKeepAwakeTag);
+      deactivateKeepAwake(ExpoKeepAwakeTag).catch(console.error);
     }
   }, []);
   const storedLocale = useAsyncStorage("locale");
@@ -53,17 +54,17 @@ export default function App() {
     useState<ColorSchemeName | null>(null);
 
   const setStoredColorScheme = useCallback(
-    async (nextColorScheme: ColorSchemeName) => {
+    (nextColorScheme: ColorSchemeName) => {
       if (nextColorScheme) {
-        storedColorScheme.setItem(nextColorScheme);
+        storedColorScheme.setItem(nextColorScheme).catch(console.error);
       }
     },
     [storedColorScheme]
   );
   const setStoredLocale = useCallback(
-    async (nextLocale: string | null) => {
+    (nextLocale: string | null) => {
       if (nextLocale) {
-        storedLocale.setItem(nextLocale);
+        storedLocale.setItem(nextLocale).catch(console.error);
       }
     },
     [storedLocale]
@@ -108,10 +109,10 @@ export default function App() {
             "sans-serif": { fontFamily: "Lexend" },
           }}
           translations={{
-            en: require("../i18n/en.json"),
-            "en-US": require("../i18n/en-US.json"),
-            "en-CA": require("../i18n/en-CA.json"),
-            ja: require("../i18n/ja.json"),
+            en: require("../i18n/en.json") as Dict,
+            "en-US": require("../i18n/en-US.json") as Dict,
+            "en-CA": require("../i18n/en-CA.json") as Dict,
+            ja: require("../i18n/ja.json") as Dict,
           }}
           onColorSchemeChange={setStoredColorScheme}
           onLocaleChange={setStoredLocale}

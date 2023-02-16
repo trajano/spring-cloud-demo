@@ -79,7 +79,7 @@ export function inlineMarkdownToTextElements(
     }
   }
 
-  function convertTreeToElements(node: Node, index?: number): JSX.Element {
+  function convertTreeToElements(node: Node, index: number): JSX.Element {
     if (node.type === "text" && node.isCode) {
       return createElement(
         FontSubsitutedText,
@@ -109,7 +109,7 @@ export function inlineMarkdownToTextElements(
       return createElement(FontSubsitutedText, {}, node.children[0].content);
     } else if (!node.parent && node.children.length === 1) {
       // if root node with only one child element just return the child element
-      return convertTreeToElements(node.children[0]);
+      return convertTreeToElements(node.children[0], 0);
     } else {
       const children = node.children.map((child, childIndex) =>
         convertTreeToElements(child, childIndex)
@@ -136,5 +136,5 @@ export function inlineMarkdownToTextElements(
     }
   }
 
-  return convertTreeToElements(tree);
+  return convertTreeToElements(tree, 0);
 }

@@ -58,7 +58,7 @@ it("translate to just en", () => {
   expect(t("switchToDarkColorScheme")).toBe("Switch to Dark Colour Scheme");
 });
 
-it("translate switching", () => {
+it("translate switching", async () => {
   const translations = {
     en: {
       switchToDarkColorScheme: "Switch to Dark Colour Scheme",
@@ -85,7 +85,7 @@ it("translate switching", () => {
   expect(t("switchToDarkColorScheme")).toBe(
     translations.en.switchToDarkColorScheme
   );
-  act(() => setLocale("ja"));
+  await act(() => setLocale("ja"));
   expect(t("switchToDarkColorScheme")).toBe(
     translations.ja.switchToDarkColorScheme
   );

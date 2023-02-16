@@ -5,13 +5,13 @@ import { useStoredState } from "./useStoredState";
 afterEach(async () => {
   await AsyncStorage.clear();
 });
-it("should work like normal", () => {
+it("should work like normal", async () => {
   const { result, unmount } = renderHook(() =>
     useStoredState<string>("foo", "bar")
   );
   let [state, setState] = result.current;
   expect(state).toBe("bar");
-  act(() => setState("foo"));
+  await act(() => setState("foo"));
   [state] = result.current;
   expect(state).toBe("foo");
   unmount();
@@ -29,7 +29,7 @@ it("should work like normal with async storage check", async () => {
    * and the set state is called during that time causing an `act` warning
    */
   expect(await AsyncStorage.getItem("foo")).toBe("bar");
-  act(() => setState("foo"));
+  await act(() => setState("foo"));
   [state] = result.current;
   expect(state).toBe("foo");
   expect(await AsyncStorage.getItem("foo")).toBe("foo");
@@ -45,7 +45,7 @@ it("should work like normal with function", async () => {
   await act(() => Promise.resolve());
 
   expect(await AsyncStorage.getItem("foo")).toBe("bar");
-  act(() => {
+  await act(() => {
     setState((prev) => `${prev as string}foo`);
   });
   [state] = result.current;
@@ -68,13 +68,13 @@ it("should work restore data from storage using value", async () => {
 
   // update it as usual
   setState = result.current[1];
-  act(() => setState("foo"));
+  await act(() => setState("foo"));
   [state, setState] = result.current;
   expect(state).toBe("foo");
   expect(await AsyncStorage.getItem("foo")).toBe("foo");
 
   // now update it using the functional version
-  act(() => setState((prev) => `BLAH${prev as string}`));
+  await act(() => setState((prev) => `BLAH${prev as string}`));
   [state, setState] = result.current;
   expect(state).toBe("BLAHfoo");
   expect(await AsyncStorage.getItem("foo")).toBe("BLAHfoo");
@@ -134,19 +134,19 @@ it("should allow clearing an item", async () => {
 
   // update it as usual
   setState = result.current[1];
-  act(() => setState(null));
+  await act(() => setState(null));
   [state, setState] = result.current;
   expect(state).toBe(null);
   expect(await AsyncStorage.getItem("foo")).toBeNull();
 
   // now update it using the functional version
-  act(() => setState(() => "BLAH BLAH"));
+  await act(() => setState(() => "BLAH BLAH"));
   [state, setState] = result.current;
   expect(state).toBe("BLAH BLAH");
   expect(await AsyncStorage.getItem("foo")).toBe("BLAH BLAH");
 
   // now update it using the value version
-  act(() => setState("BLEX"));
+  await act(() => setState("BLEX"));
   [state, setState] = result.current;
   expect(state).toBe("BLEX");
   expect(await AsyncStorage.getItem("foo")).toBe("BLEX");

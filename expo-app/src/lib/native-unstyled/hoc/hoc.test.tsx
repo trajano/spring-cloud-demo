@@ -116,7 +116,7 @@ describe("hoc", () => {
   });
 
   it("should pass ref for text", () => {
-    const callback = jest.fn();
+    const callback = jest.fn((ref: Text | null) => {});
     const HocText = hoc<TextProps, TextProps, Text>(Text);
     function MyComponent() {
       const textRef = useRef<Text>(null);
@@ -134,7 +134,7 @@ describe("hoc", () => {
   });
 
   it("should work the same way with normal Text", () => {
-    const callback = jest.fn();
+    const callback = jest.fn((ref: Text | null) => {});
     function MyComponent() {
       const textRef = useRef<Text>(null);
       useEffect(() => {

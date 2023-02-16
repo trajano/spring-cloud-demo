@@ -17,7 +17,7 @@ export function useLastAuthEvents(
         return [
           {
             ...nextAuthEvent,
-            key: nextAuthEvent.type + Date.now(),
+            key: `${nextAuthEvent.type}.${Date.now()}`,
             on: new Date(),
           },
           ...current,

@@ -65,14 +65,24 @@ export function lookupColor(
       swatchValue = requestedColor.substring(requestedColor.indexOf(".") + 1);
     }
     // resolve alias first
-    const aliased = colorSchemeColors.aliases[colorName] as any;
+    const aliased = colorSchemeColors.aliases[colorName];
     if (aliased) {
-      if (typeof aliased === "object" && aliased.hasOwnProperty(swatchValue)) {
-        return aliased[swatchValue] as string;
-      } else if (
+      if (
         typeof aliased === "object" &&
-        !aliased.hasOwnProperty(swatchValue)
+        aliased.hasOwnProperty(swatchValue) &&
+        (swatchValue === "50" ||
+          swatchValue === "100" ||
+          swatchValue === "200" ||
+          swatchValue === "300" ||
+          swatchValue === "400" ||
+          swatchValue === "500" ||
+          swatchValue === "600" ||
+          swatchValue === "700" ||
+          swatchValue === "800" ||
+          swatchValue === "900")
       ) {
+        return aliased[swatchValue];
+      } else if (aliased.hasOwnProperty("__TYPE__")) {
         return aliased as RN.ColorValue;
       } else if (typeof aliased === "string") {
         return aliased;

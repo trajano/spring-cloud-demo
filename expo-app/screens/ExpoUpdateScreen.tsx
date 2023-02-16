@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { useFocusEffect } from "@react-navigation/native";
 import { useDeepState } from "@trajano/react-hooks";
 import {
@@ -59,7 +61,7 @@ export function ExpoUpdateScreen(): ReactElement<
     },
     {
       key: "expo-update.manifest.assets",
-      data: updateManifest?.assets ?? [],
+      data: Array.isArray(updateManifest?.assets) ? updateManifest!.assets : [],
     },
     {
       key: "expo-update.logEntries",

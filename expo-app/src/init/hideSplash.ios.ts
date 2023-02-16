@@ -1,2 +1,2 @@
 import * as SplashScreen from "expo-splash-screen";
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(console.error);

@@ -1,5 +1,7 @@
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 global.Promise = require("promise");
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
 require("promise/lib/rejection-tracking").enable({
   allRejections: true,
   onUnhandled: (id: number, error: unknown) => {

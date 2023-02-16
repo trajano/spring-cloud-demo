@@ -36,7 +36,8 @@ function cleanAuthEvent({
   ...rest
 }: AuthEvent & Record<string, any>): string {
   return `${AuthState[authState]} [${type}] ${JSON.stringify({
-    accessToken: accessToken?.slice(-5),
+    accessToken:
+      typeof accessToken === "string" ? accessToken?.slice(-5) : undefined,
     ...rest,
   })}`;
 }
@@ -68,7 +69,7 @@ export default function Navigation() {
           // Only restore state if there's no deep link and we're not on web
           const savedStateString = await AsyncStorage.getItem(PERSISTENCE_KEY);
           const state = savedStateString
-            ? JSON.parse(savedStateString)
+            ? (JSON.parse(savedStateString) as NavigationState)
             : undefined;
 
           if (state !== undefined) {
@@ -81,12 +82,14 @@ export default function Navigation() {
     };
 
     if (!ready) {
-      restoreState();
+      restoreState().catch(console.error);
     }
   }, [ready]);
 
   const onStateChange = useCallback((state: NavigationState | undefined) => {
-    AsyncStorage.setItem(PERSISTENCE_KEY, JSON.stringify(state));
+    AsyncStorage.setItem(PERSISTENCE_KEY, JSON.stringify(state)).catch(
+      console.error
+    );
   }, []);
 
   useEffect(() => auth.subscribe(authEventHandler), [auth, authEventHandler]);

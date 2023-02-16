@@ -18,7 +18,11 @@ const moduleFontWeightToStyleFontWeight: Record<
 };
 function splitName(
   fontName: string
-): [TextStyle["fontFamily"], TextStyle["fontWeight"], TextStyle["fontStyle"]] {
+): [
+  NonNullable<TextStyle["fontFamily"]>,
+  NonNullable<TextStyle["fontWeight"]>,
+  NonNullable<TextStyle["fontStyle"]>
+] {
   const split = fontName.split("_", 3);
   return [
     split[0],

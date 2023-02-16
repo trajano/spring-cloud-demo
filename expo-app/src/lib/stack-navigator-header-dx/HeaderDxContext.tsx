@@ -32,16 +32,16 @@ interface HeaderDxRouteState {
 }
 /** Keeps track of the position and the scroll view reference for each route. */
 interface HeaderDxState {
-  forRoute(route: Route<string>): HeaderDxRouteState;
-  forRouteForHeader(
+  forRoute: (route: Route<string>) => HeaderDxRouteState;
+  forRouteForHeader: (
     route: Route<string>,
     layout: StackHeaderProps["layout"]
-  ): HeaderDxRouteState;
-  updateRoute(
+  ) => HeaderDxRouteState;
+  updateRoute: (
     route: Route<string>,
     positionY: number,
     scrollViewRef: RefObject<ScrollView>
-  ): HeaderDxRouteState;
+  ) => HeaderDxRouteState;
   deviceType: DeviceType;
 }
 const HeaderDxContext = createContext<HeaderDxState>({

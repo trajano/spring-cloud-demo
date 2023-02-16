@@ -1,6 +1,6 @@
 import isEmpty from "lodash/isEmpty";
 import { ComponentType, ReactElement, Ref } from "react";
-import { StyleProp } from "react-native";
+import { ViewStyle, StyleProp } from "react-native";
 
 import { ColorSchemeColors } from "../ColorSchemeColors";
 import { StyleProps } from "../StyleProps";
@@ -19,8 +19,9 @@ import { propsToStyleSheet, withoutStyledProps } from "../propsToStyleSheet";
  */
 export function doStyleWrap<
   P extends Q & StyleProps & TextStyleProps,
-  Q extends { style?: StyleProp<any> },
-  T
+  Q extends { style?: StyleProp<S> },
+  T,
+  S extends ViewStyle = ViewStyle
 >(
   Component: ComponentType<Q>,
   { style, ...rest }: P,

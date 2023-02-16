@@ -2,7 +2,7 @@ import { BASE_URL } from "@env";
 import { AuthState, useAuth } from "@trajano/spring-docker-auth-context";
 import { StatusBar } from "expo-status-bar";
 import { checkForUpdateAsync } from "expo-updates";
-import AnimatedLottieView from "lottie-react-native";
+import AnimatedLottieView, { AnimationObject } from "lottie-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -125,7 +125,9 @@ export function LoadingScreen({
               width: windowWidth > windowHeight ? windowHeight : windowWidth,
               height: windowWidth > windowHeight ? windowHeight : windowWidth,
             }}
-            source={require("../assets/lottie/28839-ikura-sushi.json")}
+            source={
+              require("../assets/lottie/28839-ikura-sushi.json") as AnimationObject
+            }
           />
         </View>
         {portrait && (

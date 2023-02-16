@@ -15,8 +15,10 @@ export function NetworkLoggerScreen({
     (nextState: NetInfoState) => {
       navigation.setOptions({
         title: `${NetInfoStateType[nextState.type]} c=${
-          nextState.isConnected
-        } i=${nextState.isInternetReachable} s=${AppState.currentState}`,
+          nextState.isConnected ? "Y" : "N"
+        } i=${nextState.isInternetReachable ? "Y" : "N"} s=${
+          AppState.currentState
+        }`,
       });
     },
     [navigation]

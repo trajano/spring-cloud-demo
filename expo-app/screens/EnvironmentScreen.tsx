@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { BASE_URL, TEXT_TEST } from "@env";
 import { useFocusEffect } from "@react-navigation/native";
 import { useDeepState } from "@trajano/react-hooks";
@@ -21,8 +23,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BlurView, Text, View } from "../src/lib/native-unstyled";
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 const isHermes = () => !!(global as any).HermesInternal;
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 const isRemoteDebug = () => !(global as any).nativeCallSyncHook;
+
 function tokenReplacer(this: any, key: string, value: any): any {
   if ((key === "key" || key === "hash") && typeof value === "string") {
     return `…${value.slice(-5)}`;

@@ -17,16 +17,17 @@ export function replaceStyleWithNativeFont(
   fonts: Record<string, string>,
   defaultTextStyle: TextStyle
 ): TextStyle | undefined {
-  let ret: TextStyle;
+  let ret: TextStyle | undefined = undefined;
   if (!fontFamily && !fontWeight && !fontStyle) {
     ret = { ...defaultTextStyle, ...rest };
-  } else {
+  } else if (fontFamily) {
     const fontFamilyForKey =
       fonts[`${fontFamily}:${fontWeight ?? "400"}:${fontStyle ?? "normal"}`];
     if (fontFamilyForKey) {
       ret = { ...defaultTextStyle, fontFamily: fontFamilyForKey, ...rest };
     } else if (
       fontWeight === "bold" &&
+      fontStyle &&
       fonts[`${fontFamily}:normal:${fontStyle}`]
     ) {
       // Allow for faux-bold fonts
@@ -38,6 +39,7 @@ export function replaceStyleWithNativeFont(
       };
     } else if (
       fontStyle === "italic" &&
+      fontWeight &&
       fonts[`${fontFamily}:${fontWeight}:normal`]
     ) {
       // Allow for faux-italic fonts
@@ -60,7 +62,7 @@ export function replaceStyleWithNativeFont(
         fontStyle: "italic",
         ...rest,
       };
-    } else if (fontFamily && !fontAvailable(fontFamily)) {
+    } else if (!fontAvailable(fontFamily)) {
       ret = { ...defaultTextStyle, fontWeight, fontStyle, ...rest };
     } else {
       ret = { ...defaultTextStyle, fontFamily, fontWeight, fontStyle, ...rest };
