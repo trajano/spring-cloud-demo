@@ -1,11 +1,11 @@
-FROM node:16.16.0 as doc-builder
+FROM node:16.19.0 as doc-builder
 RUN npm i -g @redocly/openapi-cli
 WORKDIR /w
 COPY redocly.yaml /w
 COPY src/openapi/* /w/src/openapi/
 RUN openapi bundle --output dist/openapi.json
 
-FROM gradle:7.5-jdk17 AS builder
+FROM gradle:8.0-jdk17 AS builder
 WORKDIR /w
 COPY ./ /w
 RUN --mount=type=cache,target=/home/gradle/.gradle/caches gradle build --no-daemon -x test

@@ -1,0 +1,2 @@
+org.springframework.boot.env.EnvironmentPostProcessor=\
+net.trajano.swarm.logging.autoconfig.TraceEnvironmentPostProcessor

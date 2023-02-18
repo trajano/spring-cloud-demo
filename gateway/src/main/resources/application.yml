@@ -176,6 +176,8 @@ management:
       enabled: true
   #  endpoint.gateway.enabled: true # default value
   endpoint:
+    gateway:
+      enabled: true
     health:
       enabled: true
       show-details: ALWAYS
@@ -186,8 +188,8 @@ management:
         include: health
     web:
       exposure:
-        #        include: health,gateway,info,caches
-        include: "*"
+#        include: health,gateway,info,caches
+         include: "*"
 logging:
   level:
     org.springframework.web.cors.reactive.DefaultCorsProcessor: trace

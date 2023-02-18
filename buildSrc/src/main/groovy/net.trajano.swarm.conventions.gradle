@@ -12,11 +12,12 @@ repositories {
     mavenCentral()
 }
 ext {
-    set('springCloudVersion', "2021.0.4")
-    set('springBootVersion', "2.7.5")
-    set('testcontainersVersion', "1.17.5")
-    set('grpcVersion', "1.50.2")
-    set('snakeyaml.version', '1.31')
+    set('springCloudVersion', "2022.0.1")
+    set('springBootVersion', "3.0.2")
+    set('testcontainersVersion', "1.17.6")
+    set('grpcVersion', "1.53.0")
+    set('protobufVersion', "3.21.12")
+    // set('snakeyaml.version', '1.31')
 }
 
 jar {

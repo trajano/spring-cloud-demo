@@ -41,7 +41,7 @@ public class GrpcServer implements DisposableBean {
     final var interceptor = GrpcTracing.create(tracing).newServerInterceptor();
     var b = ServerBuilder.forPort(port).executor(executor);
     grpcServices.forEach(b::addService);
-    log.info("{} listening on {}", "server", port);
+    log.info("{} listening on {} tracing {}", "server", port, tracing);
 
     this.healthStatusManager = new HealthStatusManager();
     this.server =

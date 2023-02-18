@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <property name="logging.pattern.level" value="%5p [%X{traceId:-},%X{spanId:-}]" />
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <springProfile name="json-logging">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">

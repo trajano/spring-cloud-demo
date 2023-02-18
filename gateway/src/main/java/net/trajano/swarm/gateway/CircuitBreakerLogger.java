@@ -18,8 +18,7 @@ public class CircuitBreakerLogger implements InitializingBean {
   @Override
   public void afterPropertiesSet() {
 
-    circuitBreakerRegistry
-        .getAllCircuitBreakers()
+    circuitBreakerRegistry.getAllCircuitBreakers().stream()
         .map(CircuitBreaker::getEventPublisher)
         .forEach(this::configureCircuitBreaker);
   }

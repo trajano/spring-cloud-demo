@@ -18,8 +18,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
@@ -31,7 +31,7 @@ import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-public class GrpcController {
+public class GrpcController implements InitializingBean {
 
   @Autowired private GrpcTracing grpcTracing;
 
@@ -72,8 +72,8 @@ public class GrpcController {
     return methodDescriptorBuilder.build();
   }
 
-  @PostConstruct
-  public void obtainDescriptorsFromServer() throws InterruptedException {
+  @Override
+  public void afterPropertiesSet() throws InterruptedException {
 
     managedChannel =
         ManagedChannelBuilder.forAddress("localhost", 50000)

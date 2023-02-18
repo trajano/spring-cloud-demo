@@ -20,8 +20,8 @@ jar {
 dependencies {
     api 'org.springframework.boot:spring-boot'
     api 'org.springframework.data:spring-data-redis'
-    api 'org.springframework.data:spring-data-r2dbc'
     api 'org.bitbucket.b_c:jose4j:0.8.0'
+    api 'io.micrometer:micrometer-observation'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

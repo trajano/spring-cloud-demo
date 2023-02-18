@@ -3,13 +3,13 @@ package net.trajano.swarm.sampleservice;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.concurrent.Executors;
-import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SampleServiceApplication {
+public class SampleServiceApplication implements InitializingBean {
 
   @Autowired private GrpcServer grpcServer;
 
@@ -18,8 +18,8 @@ public class SampleServiceApplication {
     SpringApplication.run(SampleServiceApplication.class, args);
   }
 
-  @PostConstruct
-  public void startServer() throws IOException {
+  @Override
+  public void afterPropertiesSet() {
 
     final var executorService = Executors.newSingleThreadExecutor();
     executorService.submit(

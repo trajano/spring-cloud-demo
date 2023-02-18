@@ -1,16 +1,17 @@
 version: "3.8"
 x-spring-environment: &springEnvironment
-#  SPRING_PROFILES_ACTIVE: json-logging
-  SPRING_REDIS_HOST: redis
-  SPRING_ZIPKIN_ENABLED: "false"
+  #  SPRING_PROFILES_ACTIVE: json-logging
+  SPRING_DATA_REDIS_HOST: redis
   LOGGING_LEVEL_NET_TRAJANO: debug
   LOGGING_LEVEL_ROOT: error
+  MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
 
 services:
   edge:
     image: traefik:latest
     ports:
-#      - 28083:8080
+      #      - 28083:8080
       - 28080:80
     command:
       - --global.checknewversion=false
@@ -63,7 +64,7 @@ services:
           - node.role == manager
       resources:
         limits:
-#          cpus: '0.5'
+          #          cpus: '0.5'
           memory: 32M
   gateway:
     build:
@@ -81,25 +82,25 @@ services:
       LOGGING_LEVEL_SECURITY: warn
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB_CORS_REACTIVE: trace
       GATEWAY_ROOTHTMLREDIRECTURI: http://localhost:28080/apidoc
-#      - SPRING_NETTY_LEAKDETECTION=paranoid
-#      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
-#      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
-#      - AWS_REGION=${AWS_REGION:-}
-#      - AUTH_OIDC_ALLOWEDISSUERS=https://accounts.google.com
-#      - OIDC_ISSUER=${GOOGLE_ISSUER:https://accounts.google.com}
-#      - OIDC_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
-#      - OIDC_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
-#      - OIDC_REDIRECT_URI=${GOOGLE_REDIRECT_URI:https://oauth.pstmn.io/v1/callback}
-#      - LOGGING_LEVEL_ORG_XBILL=trace
+      #      - SPRING_NETTY_LEAKDETECTION=paranoid
+      #      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      #      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      #      - AWS_REGION=${AWS_REGION:-}
+      #      - AUTH_OIDC_ALLOWEDISSUERS=https://accounts.google.com
+      #      - OIDC_ISSUER=${GOOGLE_ISSUER:https://accounts.google.com}
+      #      - OIDC_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      #      - OIDC_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      #      - OIDC_REDIRECT_URI=${GOOGLE_REDIRECT_URI:https://oauth.pstmn.io/v1/callback}
+      #      - LOGGING_LEVEL_ORG_XBILL=trace
       # - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CONTEXT_SUPPORT_APPLICATIONOBJECTSUPPORT=trace
       # - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB_REACTIVE_RESULT_METHOD=trace
-#      - LOGGING_LEVEL_IO_GRPC=trace
-#      - LOGGING_LEVEL_IO_NETTY=trace
+      #      - LOGGING_LEVEL_IO_GRPC=trace
+      #      - LOGGING_LEVEL_IO_NETTY=trace
       # - LOGGING_LEVEL_SECURITY=info
       # - LOGGING_LEVEL_NET_TRAJANO_SWARM_GATEWAY_DISCOVERY=debug
       #- LOGGING_LEVEL_ROOT=error
 
-#      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_SLEUTH=warn
+      #      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_SLEUTH=warn
     ports:
       - 28082:8080
     deploy:
@@ -132,7 +133,7 @@ services:
       update_config:
         order: start-first
         failure_action: pause
-#        parallelism: 1
+      #        parallelism: 1
       restart_policy:
         max_attempts: 1
       #replicas: 3
@@ -150,6 +151,7 @@ services:
       - daemon
       - redis
       - default
+      - kafka
   jwks-provider:
     build:
       context: .
@@ -189,19 +191,19 @@ services:
       resources:
         limits:
           memory: 128m
-#  db:
-#    image: mysql:8.0.30
-#    environment:
-#      MYSQL_ROOT_PASSWORD: somerootpassword
-#      MYSQL_USER: gateway-user
-#      MYSQL_PASSWORD: password123
-#      MYSQL_DATABASE: swarm
-#    ports:
-#      - 28084:3306
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 2g
+  #  db:
+  #    image: mysql:8.0.30
+  #    environment:
+  #      MYSQL_ROOT_PASSWORD: somerootpassword
+  #      MYSQL_USER: gateway-user
+  #      MYSQL_PASSWORD: password123
+  #      MYSQL_DATABASE: swarm
+  #    ports:
+  #      - 28084:3306
+  #    deploy:
+  #      resources:
+  #        limits:
+  #          memory: 2g
   redis:
     image: redis:7-alpine
     deploy:
@@ -218,15 +220,20 @@ services:
     image: docker.local/sample-service
     environment:
       <<: *springEnvironment
+    tty: true
+    ports:
+      - "28086:8080"
     deploy:
+      update_config:
+        order: start-first
       labels:
         docker.ids: sample
         docker.sample.path: /sample/**
         docker.sample.path.regexp: /sample/(?<remaining>.*)
         docker.sample.path.replacement: /$${remaining}
         # This indicates that the backend is a GRPC service rather than HTTP service, default is `http`
-#        docker.sample.protocol: grpc
-#        docker.sample.port: 50000
+      #        docker.sample.protocol: grpc
+      #        docker.sample.port: 50000
       resources:
         limits:
           memory: 256m
@@ -256,10 +263,10 @@ services:
       - services
     ports:
       - "28088:50000"
-#  tomcat:
-#    image: tomcat
-#    networks:
-#      - services
+  #  tomcat:
+  #    image: tomcat
+  #    networks:
+  #      - services
   whoami:
     image: containous/whoami
     deploy:
@@ -290,7 +297,65 @@ services:
       resources:
         limits:
           memory: 64m
-
+  kafka:
+    image: confluentinc/cp-kafka
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:32181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_HEAP_OPTS: -XX:MaxRAMPercentage=80
+    networks:
+      - kafka
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+  kafka-set-zipkin:
+    image: confluentinc/cp-kafka
+    networks:
+      - kafka
+    command: >
+      kafka-configs 
+        --bootstrap-server kafka:9092 
+        --alter 
+        --topic zipkin 
+        --add-config 
+          retention.ms=120000,segment.bytes=10485760
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 30s
+      resources:
+        limits:
+          memory: 256m
+  zookeeper:
+    image: confluentinc/cp-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 32181
+    networks:
+      - kafka
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+  zipkin:
+    image: openzipkin/zipkin
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_PORT_2181_TCP_ADDR: zookeeper:2181
+      HEALTHCHECK_IP: 127.0.0.1
+      JAVA_OPTS: >
+        -XX:+ExitOnOutOfMemoryError
+        -XX:MaxRAMPercentage=80
+    networks:
+      - kafka
+      - services
+    ports:
+      - "28087:9411"
+    deploy:
+      resources:
+        limits:
+          memory: 512m
 #  wsecho:
 #    image: solsson/websocat
 #    command: "--text ws-l:0.0.0.0:8080 broadcast:mirror:"
@@ -360,6 +425,9 @@ services:
 #      - services
 networks:
   daemon:
+    internal: true
+    attachable: false
+  kafka:
     internal: true
     attachable: false
   redis:

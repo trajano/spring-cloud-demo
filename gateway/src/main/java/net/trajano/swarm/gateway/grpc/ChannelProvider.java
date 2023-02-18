@@ -11,10 +11,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.stereotype.Component;
 import reactor.core.scheduler.Schedulers;
@@ -22,7 +22,7 @@ import reactor.core.scheduler.Schedulers;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class ChannelProvider implements DisposableBean {
+public class ChannelProvider implements InitializingBean, DisposableBean {
 
   private final GrpcTracing grpcTracing;
   private final MeterRegistry meterRegistry;
@@ -81,9 +81,9 @@ public class ChannelProvider implements DisposableBean {
         new ConnectionKey(serviceInstance), i -> buildForServiceInstance(serviceInstance));
   }
 
-  @PostConstruct
-  @SuppressWarnings("unused")
-  public void shutdownChannels() {
+  @Override
+  public void afterPropertiesSet() {
+    // TODO why do we need to do this?
 
     channelMap.values().forEach(ManagedChannel::shutdown);
     for (ManagedChannel channel : channelMap.values()) {

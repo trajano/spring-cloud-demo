@@ -4,9 +4,9 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.consumer.InvalidJwtException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono;
  * and not the user.
  */
 @Component
-public class WellKnownReactiveOidcService implements ReactiveOidcService {
+public class WellKnownReactiveOidcService implements ReactiveOidcService, InitializingBean {
 
   @Value("${auth.oidc.allowed-issuers:}") private String allowedIssuersCommaSeparatedList;
 
@@ -37,6 +37,15 @@ public class WellKnownReactiveOidcService implements ReactiveOidcService {
         .pathSegment(".well-known", "openid-configuration")
         .build()
         .toUri();
+  }
+
+  @Override
+  public void afterPropertiesSet() {
+
+    allowedIssuersSet =
+        Arrays.stream(allowedIssuersCommaSeparatedList.split(","))
+            .map(URI::create)
+            .collect(Collectors.toSet());
   }
 
   /**
@@ -102,15 +111,6 @@ public class WellKnownReactiveOidcService implements ReactiveOidcService {
               jwtClaims.setIssuer(issuer.toASCIIString());
               return jwtClaims;
             });
-  }
-
-  @PostConstruct
-  public void init() {
-
-    allowedIssuersSet =
-        Arrays.stream(allowedIssuersCommaSeparatedList.split(","))
-            .map(URI::create)
-            .collect(Collectors.toSet());
   }
 
   private Mono<JwtClaims> parseJwtClaimsJson(String claimsJson) {

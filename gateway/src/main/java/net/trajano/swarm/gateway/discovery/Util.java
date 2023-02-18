@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.validation.constraints.NotNull;
 import org.xbill.DNS.*;
 import org.xbill.DNS.lookup.LookupSession;
 import reactor.core.publisher.Flux;
@@ -145,7 +144,7 @@ public class Util {
    * @param traceIdString trace ID string
    * @return trace ID in AWS X-Ray format
    */
-  public static String toXRay(@NotNull String traceIdString) {
+  public static String toXRay(final String traceIdString) {
 
     if (traceIdString.matches("[0-9a-f]{32}")) {
       return String.format("1-%s-%s", traceIdString.substring(0, 8), traceIdString.substring(8));

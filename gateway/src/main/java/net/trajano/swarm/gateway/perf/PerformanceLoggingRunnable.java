@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.trajano.swarm.gateway.ExcludedPathPatterns;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.web.server.ServerWebExchange;
 
 @RequiredArgsConstructor
@@ -33,11 +33,12 @@ public class PerformanceLoggingRunnable implements Runnable {
     }
 
     final String requestURI = exchange.getRequest().getURI().toASCIIString();
-    final String method = exchange.getRequest().getMethodValue();
+    final String method = exchange.getRequest().getMethod().name();
 
     final long requestTimeNano = System.nanoTime() - startNanos;
     final double requestTimeInMillis = requestTimeNano * 0.000001;
-    final HttpStatus statusCode = Objects.requireNonNull(exchange.getResponse().getStatusCode());
+    final HttpStatusCode statusCode =
+        Objects.requireNonNull(exchange.getResponse().getStatusCode());
     final int status = statusCode.value();
     final String requestTimeInMillisText = String.format("%.03f", requestTimeInMillis);
     if (requestTimeInMillis > 5000) {
