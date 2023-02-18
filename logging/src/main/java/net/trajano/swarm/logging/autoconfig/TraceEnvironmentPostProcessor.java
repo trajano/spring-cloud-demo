@@ -15,9 +15,7 @@ class TraceEnvironmentPostProcessor implements EnvironmentPostProcessor {
   public void postProcessEnvironment(
       final ConfigurableEnvironment environment, final SpringApplication application) {
 
-    Map<String, Object> map = new HashMap<>();
-    // This doesn't work with all logging systems but it's a useful default so you see
-    // traces in logs without having to configure it.
+    final Map<String, Object> map = new HashMap<>();
     final boolean sleuthEnabled =
         environment.getProperty("spring.sleuth.enabled", Boolean.class, true);
     final boolean sleuthDefaultLoggingPatternEnabled =

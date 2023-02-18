@@ -3,6 +3,7 @@ package net.trajano.swarm.gateway.auth;
 import static net.trajano.swarm.gateway.ServerWebExchangeAttributes.JWT_CLAIMS;
 
 import com.google.common.net.HttpHeaders;
+import io.micrometer.core.instrument.Counter;
 import java.time.Duration;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -56,11 +57,14 @@ public class ProtectedResourceGatewayFilterFactory
 
   private final ClaimsService claimsService;
 
+  private final Counter successfulApiRequests;
+
   public ProtectedResourceGatewayFilterFactory(
       ReactiveDiscoveryClient discoveryClient,
       AuthProperties authProperties,
       ClaimsService claimsService,
       IdentityService<?, ?> identityService,
+      Counter successfulApiRequests,
       @Qualifier("penalty") Scheduler penaltyScheduler) {
 
     super(Config.class);
@@ -68,6 +72,7 @@ public class ProtectedResourceGatewayFilterFactory
     this.authProperties = authProperties;
     this.claimsService = claimsService;
     this.identityService = identityService;
+    this.successfulApiRequests = successfulApiRequests;
     this.penaltyScheduler = penaltyScheduler;
   }
 
@@ -112,6 +117,10 @@ public class ProtectedResourceGatewayFilterFactory
                                 exchange.getAttributes().put(JWT_CLAIMS, jwtClaims);
                                 return chain.filter(
                                     identityService.mutateDownstreamRequest(exchange, jwtClaims));
+                              })
+                          .doOnNext(
+                              a -> {
+                                successfulApiRequests.increment();
                               })
                           .onErrorResume(
                               SecurityException.class,

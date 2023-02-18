@@ -11,24 +11,22 @@ import org.springframework.data.redis.connection.lettuce.observability.Micromete
 @Configuration
 class ObservabilityConfiguration {
 
-    @Bean
-    public ClientResources clientResources(
-            ObservationRegistry observationRegistry,
-            @Value("${spring.data.redis.host:redis}") final String redisServiceName) {
+  @Bean
+  public ClientResources clientResources(
+      ObservationRegistry observationRegistry,
+      @Value("${spring.data.redis.host:redis}") final String redisServiceName) {
 
-        return ClientResources.builder()
-                .tracing(new MicrometerTracingAdapter(observationRegistry, redisServiceName))
-                .build();
-    }
+    return ClientResources.builder()
+        .tracing(new MicrometerTracingAdapter(observationRegistry, redisServiceName))
+        .build();
+  }
 
-    @Bean
-    public LettuceClientConfigurationBuilderCustomizer observabilityLettuceClientConfigurationBuilderCustomizer(
-            ClientResources clientResources) {
+  @Bean
+  public LettuceClientConfigurationBuilderCustomizer
+      observabilityLettuceClientConfigurationBuilderCustomizer(ClientResources clientResources) {
 
-        return clientConfigurationBuilder -> {
-            clientConfigurationBuilder.clientResources(clientResources);
-        };
-
-    }
-
+    return clientConfigurationBuilder -> {
+      clientConfigurationBuilder.clientResources(clientResources);
+    };
+  }
 }

@@ -1,11 +1,18 @@
 version: "3.8"
 x-spring-environment: &springEnvironment
   #  SPRING_PROFILES_ACTIVE: json-logging
-  SPRING_DATA_REDIS_HOST: redis
-  LOGGING_LEVEL_NET_TRAJANO: debug
-  LOGGING_LEVEL_ROOT: error
-  MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
-  MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
+  spring.data.redis.host: redis
+  logging.level.net.trajano: debug
+  logging.level.root: ERROR
+  management.tracing.sampling.probability: "1.0"
+  management.endpoints.web.exposure.include: "*"
+  management.metrics.export.cloudwatch.enabled: "false"
+  management.metrics.export.graphite.host: graphite
+  management.metrics.export.graphite.enabled: "true"
+  management.graphite.metrics.export.host: graphite
+  management.graphite.metrics.export.enabled: "true"
+  management.graphite.metrics.export.port: 9004
+  management.zipkin.tracing.endpoint: http://zipkin:9411/api/v2/spans
 
 services:
   edge:
@@ -334,6 +341,16 @@ services:
       ZOOKEEPER_CLIENT_PORT: 32181
     networks:
       - kafka
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+  graphite:
+    image: graphiteapp/graphite-statsd
+    networks:
+      - services
+    ports:
+      - "28090:80"
     deploy:
       resources:
         limits:

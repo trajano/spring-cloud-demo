@@ -2,6 +2,7 @@ package net.trajano.swarm.gateway.auth;
 
 import static reactor.core.publisher.Mono.fromCallable;
 
+import io.micrometer.core.instrument.Counter;
 import java.time.Duration;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -64,6 +65,8 @@ public abstract class AbstractAuthController<A, P> {
   @Qualifier("penalty") private Scheduler penaltyScheduler;
 
   @Autowired private Scheduler refreshTokenScheduler;
+
+  @Autowired private Counter successfulAuthenticationRequests;
 
   private void addCommonHeaders(ServerHttpResponse serverHttpResponse) {
 
@@ -130,6 +133,10 @@ public abstract class AbstractAuthController<A, P> {
               final var serverHttpResponse = serverWebExchange.getResponse();
               addCommonHeaders(serverHttpResponse);
               serverHttpResponse.setStatusCode(HttpStatus.OK);
+            })
+        .doOnNext(
+            serviceResponse -> {
+              successfulAuthenticationRequests.increment();
             })
         .switchIfEmpty(
             Mono.just(GatewayResponse.builder().ok(false).error("invalid_credentials").build())
