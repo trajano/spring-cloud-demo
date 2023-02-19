@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-docker compose pull &
+docker compose pull --ignore-buildable &
 ./gradlew spotlessApply
 docker compose build
 wait
