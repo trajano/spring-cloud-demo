@@ -1,8 +1,10 @@
 package net.trajano.swarm.sampleservice.echo;
 
+import io.micrometer.core.instrument.Counter;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -16,7 +18,10 @@ import reactor.core.publisher.Mono;
 @Component
 @RestController
 @Slf4j
+@RequiredArgsConstructor
 public class EchoController {
+
+  private final Counter successfulApiRequests;
 
   @PostMapping(
       path = "/Echo/echo",
@@ -24,6 +29,7 @@ public class EchoController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public Mono<EchoResponse> echo(@RequestBody EchoRequest request) {
 
+    successfulApiRequests.increment();
     return Mono.just(
             EchoResponse.builder().message(request.getMessage()).timestamp(Instant.now()).build())
         .delayElement(Duration.ofMillis(100L));

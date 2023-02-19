@@ -6,12 +6,19 @@ x-spring-environment: &springEnvironment
   logging.level.root: ERROR
   management.tracing.sampling.probability: "1.0"
   management.endpoints.web.exposure.include: "*"
-  management.metrics.export.cloudwatch.enabled: "false"
-  management.metrics.export.graphite.host: graphite
-  management.metrics.export.graphite.enabled: "true"
+  management.metrics.enable.all: "true"
+  management.metrics.tags.service: "{{.Service.Name}}"
+  management.metrics.tags.node: "{{.Node.Hostname}}"
+  #  management.metrics.export.cloudwatch.enabled: "false"
+#  management.metrics.export.graphite.host: graphite
+#  management.metrics.export.graphite.enabled: "true"
+  management.cloudwatch.metrics.export.enabled: "false"
   management.graphite.metrics.export.host: graphite
   management.graphite.metrics.export.enabled: "true"
-  management.graphite.metrics.export.port: 9004
+  management.graphite.metrics.export.port: 2004
+  management.graphite.metrics.export.graphiteTagsEnabled: "false"
+  management.graphite.metrics.export.tagsAsPrefix: service
+#  management.graphite.metrics.export.graphiteTagsEnabled: "false"
   management.zipkin.tracing.endpoint: http://zipkin:9411/api/v2/spans
 
 services:

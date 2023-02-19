@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class CounterProvider {
 
+  private String metricPrefix = "gateway";
+
   @Bean
   Counter invalidLogoutRequests(MeterRegistry meterRegistry) {
 
@@ -17,25 +19,39 @@ public class CounterProvider {
   @Bean
   Counter successfulLogoutRequests(MeterRegistry meterRegistry) {
 
-    return meterRegistry.counter("Logout.success", "group", "logout", "state", "ok");
+    return meterRegistry.counter(
+        metricPrefix + ".auth.logout.success", "group", "logout", "state", "ok");
   }
 
   @Bean
   Counter successfulRefreshRequests(MeterRegistry meterRegistry) {
 
-    return meterRegistry.counter("Refresh.success", "group", "refresh", "state", "ok");
+    return Counter.builder(metricPrefix + ".auth.refresh.success")
+        .tag("group", "refresh")
+        .tag("state", "ok")
+        .register(meterRegistry);
   }
 
   @Bean
   Counter successfulAuthenticationRequests(MeterRegistry meterRegistry) {
 
-    return meterRegistry.counter(
-        "Authentication.success", "group", "authentication", "state", "ok");
+    return Counter.builder(metricPrefix + ".auth.authentication.success")
+        .tag("group", "authentication")
+        .tag("state", "ok")
+        .register(meterRegistry);
   }
+
+  //  @Bean
+  //  MeterBinder successfulAuthenticationRequests() {
+  //    return registry -> Counter.builder("Authentication.success").register(registry);
+  //  }
 
   @Bean
   Counter successfulApiRequests(MeterRegistry meterRegistry) {
 
-    return meterRegistry.counter("API.success", "group", "api", "state", "ok");
+    return Counter.builder(metricPrefix + ".api.calls.success")
+        .tag("group", "api")
+        .tag("state", "ok")
+        .register(meterRegistry);
   }
 }
