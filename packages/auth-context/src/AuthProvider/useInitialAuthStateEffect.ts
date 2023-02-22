@@ -53,7 +53,7 @@ export function useInitialAuthStateEffect({
 
     // regardless whether token present and not expired yet, refresh is needed
     // but the event will have different reasons.
-    setAuthState(AuthState.NEEDS_REFRESH);
+    setAuthState(AuthState.RESTORING);
 
     if (!isTokenExpired(nextTokenExpiresAt, timeBeforeExpirationRefresh)) {
       notify({

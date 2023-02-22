@@ -5,13 +5,15 @@ import React, {
   useCallback,
   useMemo,
   useRef,
-  useState,
+  useState
 } from 'react';
 
-import { isTokenExpired } from './isTokenExpired';
+import noop from 'lodash/noop';
 import { AuthClient } from '../AuthClient';
 import { AuthContext } from '../AuthContext';
 import { AuthenticationClientError } from '../AuthenticationClientError';
+import type { AuthEvent } from '../AuthEvent';
+import { AuthState } from '../AuthState';
 import { AuthStore, IAuthStore } from '../AuthStore';
 import type { EndpointConfiguration } from '../EndpointConfiguration';
 import type { IAuth } from '../IAuth';
@@ -19,13 +21,12 @@ import type { OAuthToken } from '../OAuthToken';
 import { useAppActiveState } from '../useAppActiveState';
 import { useBackendReachable } from '../useBackendReachable';
 import { validateEndpointConfiguration } from '../validateEndpointConfiguration';
+import { isTokenExpired } from './isTokenExpired';
 import { useInitialAuthStateEffect } from './useInitialAuthStateEffect';
 import { useNoTokenAvailableEffect } from './useNoTokenAvailableEffect';
 import { useRefreshCallback } from './useRefreshCallback';
 import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
 import { useTokenAvailableEffect } from './useTokenAvailableEffect';
-import type { AuthEvent } from '../AuthEvent';
-import { AuthState } from '../AuthState';
 
 type AuthContextProviderProps = PropsWithChildren<{
   /** Default endpoint configuration */
@@ -68,7 +69,7 @@ export function AuthProvider<A = unknown>({
   storagePrefix = 'auth',
   // onRefreshError: inOnRefreshError,
   authStorage: inAuthStorage,
-  restoreAppDataAsyncCallback = () => Promise.resolve()
+  restoreAppDataAsyncCallback = noop
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
   const [endpointConfiguration, setEndpointConfiguration] = useState(
     defaultEndpointConfiguration
