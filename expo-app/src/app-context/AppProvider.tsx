@@ -5,6 +5,7 @@ import { AppContext } from "./AppContext";
 import { AppProviderProps } from "./AppProviderProps";
 import { IAppContext } from "./IAppContext";
 import { useLastAuthEvents } from "./useLastAuthEvents";
+import { AppEvent } from "./AppEvent";
 
 /**
  * Provides the context to the React application.
@@ -14,7 +15,7 @@ import { useLastAuthEvents } from "./useLastAuthEvents";
  */
 export function AppProvider({
   children,
-  logAuthEventFilterPredicate = (event: AuthEvent) =>
+  logAuthEventFilterPredicate = (event: AppEvent) =>
     event.type !== "Connection" && event.type !== "CheckRefresh",
   logAuthEventSize = 50,
 }: AppProviderProps): JSX.Element {

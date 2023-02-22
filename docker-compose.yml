@@ -9,6 +9,8 @@ x-spring-environment: &springEnvironment
   management.metrics.enable.all: "true"
   management.metrics.tags.service: "{{.Service.Name}}"
   management.metrics.tags.node: "{{.Node.Hostname}}"
+  management.metrics.tags.taskSlot: "{{.Task.Slot}}"
+  management.metrics.tags.taskName: "{{.Task.Name}}"
   #  management.metrics.export.cloudwatch.enabled: "false"
 #  management.metrics.export.graphite.host: graphite
 #  management.metrics.export.graphite.enabled: "true"
@@ -20,6 +22,16 @@ x-spring-environment: &springEnvironment
   management.graphite.metrics.export.tagsAsPrefix: service
 #  management.graphite.metrics.export.graphiteTagsEnabled: "false"
   management.zipkin.tracing.endpoint: http://zipkin:9411/api/v2/spans
+x-spring-labels: &springLabels
+  prometheus.path: /actuator/prometheus
+  prometheus.network: prometheus
+
+#x-common-spring: &commonSpring
+#  environment:
+#    <<: *springEnvironment
+#  deploy:
+#    labels:
+#      <<: *springLabels
 
 services:
   edge:
@@ -68,6 +80,7 @@ services:
     environment:
       NETWORKS: 1
       SERVICES: 1
+      NODES: 1
       TASKS: 1
     labels:
       - co.elastic.logs/enabled=false
@@ -86,6 +99,7 @@ services:
       target: gateway
     image: docker.local/gateway
     tty: true
+
     environment:
       <<: *springEnvironment
       DOCKER_DISCOVERY_SWARMMODE: "true"
@@ -119,6 +133,7 @@ services:
       - 28082:8080
     deploy:
       labels:
+        <<: *springLabels
         traefik.enable: "true"
         traefik.docker.network: edge
         traefik.http.routers.gateway.rule: "PathPrefix(`/`)"
@@ -164,8 +179,8 @@ services:
       - edge
       - daemon
       - redis
-      - default
       - kafka
+      - prometheus
   jwks-provider:
     build:
       context: .
@@ -175,12 +190,14 @@ services:
       <<: *springEnvironment
 
     networks:
-      - default
+      - prometheus
       - redis
     ports:
       - 28083:8080
     tty: true
     deploy:
+      labels:
+        <<: *springLabels
       resources:
         limits:
           memory: 256m
@@ -232,15 +249,16 @@ services:
       context: .
       target: sample-service
     image: docker.local/sample-service
-    environment:
-      <<: *springEnvironment
     tty: true
     ports:
       - "28086:8080"
+    environment:
+       <<: *springEnvironment
     deploy:
       update_config:
         order: start-first
       labels:
+        <<: *springLabels
         docker.ids: sample
         docker.sample.path: /sample/**
         docker.sample.path.regexp: /sample/(?<remaining>.*)
@@ -253,6 +271,7 @@ services:
           memory: 256m
     networks:
       - services
+      - prometheus
   grpc-sample:
     build:
       context: .
@@ -263,6 +282,7 @@ services:
     tty: true
     deploy:
       labels:
+        <<: *springLabels
         docker.ids: grpc
         docker.grpc.path: /grpc/**
         docker.grpc.path.regexp: /grpc/(?<remaining>.*)
@@ -275,6 +295,7 @@ services:
           memory: 256m
     networks:
       - services
+      - prometheus
     ports:
       - "28088:50000"
   #  tomcat:
@@ -362,6 +383,23 @@ services:
       resources:
         limits:
           memory: 256m
+  prometheus:
+    build:
+      context: .
+      target: prometheus
+    image: docker.local/prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    ports:
+      - "28091:9090"
+    networks:
+      - prometheus
+      - daemon
+#    logging:
+#      driver: none
+
   zipkin:
     image: openzipkin/zipkin
     environment:
@@ -455,6 +493,9 @@ networks:
     internal: true
     attachable: false
   redis:
+    internal: true
+    attachable: false
+  prometheus:
     internal: true
     attachable: false
   edge:

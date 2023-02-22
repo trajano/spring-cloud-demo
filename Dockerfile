@@ -87,3 +87,8 @@ HEALTHCHECK --interval=5s --start-period=60s \
 # Must be root in order to access /var/run/docker.sock
 # USER 5000
 EXPOSE 8080
+
+FROM prom/prometheus as prometheus
+COPY prometheus.yml /etc/prometheus/prometheus.yml
+#HEALTHCHECK --interval=5s --start-period=60s \
+#    CMD curl -sfIo /dev/null http://localhost:9090/-/healthy

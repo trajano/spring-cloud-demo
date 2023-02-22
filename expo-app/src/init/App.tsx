@@ -90,7 +90,10 @@ export default function App() {
         },
       }}
     >
-      <AuthProvider defaultEndpointConfiguration={defaultEndpointConfiguration}>
+      <AuthProvider
+        defaultEndpointConfiguration={defaultEndpointConfiguration}
+        restoreAppDataAsyncCallback={() => { console.log("data loaded"); }}
+      >
         <ThemeProvider
           colorScheme={initialColorScheme}
           locale={initialLocale}

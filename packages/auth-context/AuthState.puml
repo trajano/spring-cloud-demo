@@ -4,15 +4,16 @@ state Initial : read token data from store
 
 state "Token available" as Authenticated {
   state " " as needsRefreshPin <<inputPin>>
-  state " " as authenticatedPin <<inputPin>>
+  ' state " " as authenticatedPin <<inputPin>>
   state " " as backgroundedPin <<inputPin>>
   ' needsRefreshPin --> Restoring
-  needsRefreshPin --> NeedsRefresh
-  authenticatedPin --> AuthenticatedOnline
+  needsRefreshPin --> InitialLoad
+  ' authenticatedPin --> AuthenticatedOnline
   backgroundedPin --> Backgrounded
+  state "Restoring" as InitialLoad: token is available\nload any data for\nthe app from storage
   state "Needs Refresh" as NeedsRefresh: token may no longer be valid
   state Refreshing: refresh endpoint being called\nwaiting on response
-  state "Authenticated" as AuthenticatedOnline: token available\ntoken not expired\nconnection available
+  state "Online" as AuthenticatedOnline: token available\ntoken not expired\nconnection available
   state "Backend Inaccessible" as BackendInaccessible: connection to the backend\nis not available
   state "Backend Failure" as BackendFailure: refresh failed\ndue to backend error
   state "Token Removal" as TokenRemoval <<join>>
@@ -23,6 +24,7 @@ state "Token available" as Authenticated {
   end note
   ' state "Restoring" as Restoring: app is active\nin foreground
 
+  InitialLoad --> NeedsRefresh: data loaded
   NeedsRefresh --> Refreshing: backend available\nand token expired
   NeedsRefresh --> AuthenticatedOnline: backend available\nand token not expired
   Refreshing --> AuthenticatedOnline: valid token received
@@ -48,7 +50,7 @@ state "No token available" as NoToken {
   unauthenticatedPin --[#8B8000]-> UnauthenticatedOffline : ping failure
   Unauthenticated --[#red,bold]-> UnauthenticatedOffline : ping failure
   UnauthenticatedOffline --[#red,bold]-> Unauthenticated : ping working
-  Unauthenticated --> authenticatedPin : sign in
+  Unauthenticated --> needsRefreshPin : sign in
 
 }
 

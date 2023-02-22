@@ -43,6 +43,13 @@ type AuthContextProviderProps = PropsWithChildren<{
   /** Alternative auth storage. */
   authStorage?: IAuthStore;
   onRefreshError?: (reason: unknown) => void;
+  /**
+   * This is a callback that is called when in {@link AuthState.RESTORING} state.
+   * Defaults to noop.
+   *
+   * @callback
+   */
+  restoreAppDataAsyncCallback?: (() => void) | (() => PromiseLike<void>);
 }>;
 
 /**
@@ -61,6 +68,7 @@ export function AuthProvider<A = unknown>({
   storagePrefix = 'auth',
   // onRefreshError: inOnRefreshError,
   authStorage: inAuthStorage,
+  restoreAppDataAsyncCallback = () => Promise.resolve()
 }: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
   const [endpointConfiguration, setEndpointConfiguration] = useState(
     defaultEndpointConfiguration
@@ -92,6 +100,9 @@ export function AuthProvider<A = unknown>({
 
   /** Authentication state. */
   const [authState, setAuthState] = useState(AuthState.INITIAL);
+
+  /** Application data loaded state. */
+  const [appDataLoaded, setAppDataLoaded] = useState(false);
 
   /** OAuth token state. */
   const [oauthToken, setOAuthToken] = useDeepState<OAuthToken | null>(null);
@@ -238,6 +249,7 @@ export function AuthProvider<A = unknown>({
 
   useTokenAvailableEffect({
     appActive,
+    appDataLoaded,
     authState,
     authClient,
     backendReachable,
@@ -245,7 +257,10 @@ export function AuthProvider<A = unknown>({
     authStorage,
     timeBeforeExpirationRefresh,
     tokenExpiresAt,
+    maxTimeoutForRefreshCheckMs: 60000,
     notify,
+    restoreAppDataAsyncCallback,
+    setAppDataLoaded,
     setAuthState,
     setOAuthToken,
     setTokenExpiresAt,
@@ -253,6 +268,7 @@ export function AuthProvider<A = unknown>({
 
   useNoTokenAvailableEffect({
     appActive,
+    appDataLoaded,
     authState,
     authClient,
     backendReachable,
@@ -260,7 +276,10 @@ export function AuthProvider<A = unknown>({
     authStorage,
     timeBeforeExpirationRefresh,
     tokenExpiresAt,
+    maxTimeoutForRefreshCheckMs: 60000,
     notify,
+    restoreAppDataAsyncCallback,
+    setAppDataLoaded,
     setAuthState,
     setOAuthToken,
     setTokenExpiresAt,

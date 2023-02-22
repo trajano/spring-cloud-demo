@@ -1,17 +1,18 @@
-import { AuthEvent, useAuth } from "@trajano/spring-docker-auth-context";
+import { useAuth } from "@trajano/spring-docker-auth-context";
 import { useReducer } from "react";
+import { AppEvent } from "./AppEvent";
 
 import { LoggedAuthEvent } from "./LoggedAuthEvent";
 
 export function useLastAuthEvents(
-  logAuthEventFilterPredicate: (event: AuthEvent) => boolean,
+  logAuthEventFilterPredicate: (event: AppEvent) => boolean,
   logAuthEventSize: number
 ) {
   const { initialAuthEvents } = useAuth();
   return useReducer(
     (
       current: LoggedAuthEvent[],
-      nextAuthEvent: AuthEvent
+      nextAuthEvent: AppEvent
     ): LoggedAuthEvent[] => {
       if (logAuthEventFilterPredicate(nextAuthEvent)) {
         return [

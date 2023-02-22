@@ -12,8 +12,7 @@ public class CounterProvider {
   Counter successfulApiRequests(MeterRegistry meterRegistry) {
 
     return Counter.builder("sample.api.calls.success")
-        .tag("group", "sample")
-        .tag("state", "ok")
+        .description("Successful API calls")
         .register(meterRegistry);
   }
 }

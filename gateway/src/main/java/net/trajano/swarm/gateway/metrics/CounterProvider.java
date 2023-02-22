@@ -11,34 +11,47 @@ public class CounterProvider {
   private String metricPrefix = "gateway";
 
   @Bean
-  Counter invalidLogoutRequests(MeterRegistry meterRegistry) {
+  Counter attemptedAuthenticationRequests(MeterRegistry meterRegistry) {
 
-    return meterRegistry.counter("Logout.invalid", "group", "logout", "state", "invalid");
-  }
-
-  @Bean
-  Counter successfulLogoutRequests(MeterRegistry meterRegistry) {
-
-    return meterRegistry.counter(
-        metricPrefix + ".auth.logout.success", "group", "logout", "state", "ok");
-  }
-
-  @Bean
-  Counter successfulRefreshRequests(MeterRegistry meterRegistry) {
-
-    return Counter.builder(metricPrefix + ".auth.refresh.success")
-        .tag("group", "refresh")
-        .tag("state", "ok")
+    return Counter.builder(metricPrefix + ".authentication.attempted")
+        .description("Attempted authentication requests")
         .register(meterRegistry);
   }
 
   @Bean
-  Counter successfulAuthenticationRequests(MeterRegistry meterRegistry) {
+  Counter failedAuthenticationRequests(MeterRegistry meterRegistry) {
 
-    return Counter.builder(metricPrefix + ".auth.authentication.success")
-        .tag("group", "authentication")
-        .tag("state", "ok")
+    return Counter.builder(metricPrefix + ".authentication.failed")
+        .description("Failed authentication requests")
         .register(meterRegistry);
+  }
+
+  @Bean
+  Counter failedLogoutRequests(MeterRegistry meterRegistry) {
+
+    return Counter.builder(metricPrefix + ".logout.failed").register(meterRegistry);
+  }
+
+  @Bean
+  Counter succeededApiRequests(MeterRegistry meterRegistry) {
+
+    return Counter.builder(metricPrefix + ".api.succeeded")
+        .description("Successful API calls registered by the gateway")
+        .register(meterRegistry);
+  }
+
+  @Bean
+  Counter succeededAuthenticationRequests(MeterRegistry meterRegistry) {
+
+    return Counter.builder(metricPrefix + ".authentication.succeeded")
+        .description("Successful authentication requests")
+        .register(meterRegistry);
+  }
+
+  @Bean
+  Counter succeededLogoutRequests(MeterRegistry meterRegistry) {
+
+    return meterRegistry.counter(metricPrefix + ".logout.succeeded");
   }
 
   //  @Bean
@@ -47,11 +60,8 @@ public class CounterProvider {
   //  }
 
   @Bean
-  Counter successfulApiRequests(MeterRegistry meterRegistry) {
+  Counter successfulRefreshRequests(MeterRegistry meterRegistry) {
 
-    return Counter.builder(metricPrefix + ".api.calls.success")
-        .tag("group", "api")
-        .tag("state", "ok")
-        .register(meterRegistry);
+    return Counter.builder(metricPrefix + ".auth.refresh.success").register(meterRegistry);
   }
 }

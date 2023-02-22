@@ -17,6 +17,7 @@ export const useNeedsRefreshStateEffect = ({
     if (authState !== AuthState.NEEDS_REFRESH) {
       return noop;
     }
+
     if (!backendReachable) {
       setAuthState(AuthState.BACKEND_INACCESSIBLE);
     } else if (!isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh)) {

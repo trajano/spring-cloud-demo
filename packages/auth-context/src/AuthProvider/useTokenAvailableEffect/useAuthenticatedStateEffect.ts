@@ -14,6 +14,7 @@ export const useAuthenticatedStateEffect = ({
   backendReachable,
   timeBeforeExpirationRefresh,
   tokenExpiresAt,
+  maxTimeoutForRefreshCheckMs,
 }: InternalProviderState) => {
   const [lastCheck, updateLastCheck] = useReducer(() => Date.now(), Date.now());
   useEffect(() => {
@@ -38,7 +39,7 @@ export const useAuthenticatedStateEffect = ({
       timeToNextExpirationCheck(
         tokenExpiresAt,
         timeBeforeExpirationRefresh,
-        60000
+        maxTimeoutForRefreshCheckMs
       )
     );
     return () => clearTimeout(timeoutID);
@@ -50,5 +51,6 @@ export const useAuthenticatedStateEffect = ({
     setAuthState,
     timeBeforeExpirationRefresh,
     tokenExpiresAt,
+    maxTimeoutForRefreshCheckMs
   ]);
 };

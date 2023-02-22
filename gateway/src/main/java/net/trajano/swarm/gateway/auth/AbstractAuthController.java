@@ -44,6 +44,8 @@ import reactor.util.context.Context;
 @Slf4j
 public abstract class AbstractAuthController<A, P> {
 
+  @Autowired private Counter attemptedAuthenticationRequests;
+
   @Autowired private AuthProperties authProperties;
 
   @Autowired private Scheduler authenticationScheduler;
@@ -51,6 +53,8 @@ public abstract class AbstractAuthController<A, P> {
   @Autowired private ClaimsService claimsService;
 
   @Autowired private ClientManagementService clientManagementService;
+
+  @Autowired private Counter failedAuthenticationRequests;
 
   /** */
   @Autowired private IdentityService<A, P> identityService;
@@ -66,7 +70,7 @@ public abstract class AbstractAuthController<A, P> {
 
   @Autowired private Scheduler refreshTokenScheduler;
 
-  @Autowired private Counter successfulAuthenticationRequests;
+  @Autowired private Counter succeededAuthenticationRequests;
 
   private void addCommonHeaders(ServerHttpResponse serverHttpResponse) {
 
@@ -108,6 +112,7 @@ public abstract class AbstractAuthController<A, P> {
   public Mono<GatewayResponse> authenticate(
       @RequestBody Mono<A> authenticationRequestMono, ServerWebExchange serverWebExchange) {
 
+    attemptedAuthenticationRequests.increment();
     return validateClient(serverWebExchange)
         .transformDeferredContextual(
             (clientId, context) ->
@@ -136,12 +141,13 @@ public abstract class AbstractAuthController<A, P> {
             })
         .doOnNext(
             serviceResponse -> {
-              successfulAuthenticationRequests.increment();
+              succeededAuthenticationRequests.increment();
             })
         .switchIfEmpty(
             Mono.just(GatewayResponse.builder().ok(false).error("invalid_credentials").build())
                 .doOnNext(
                     response -> {
+                      failedAuthenticationRequests.increment();
                       final var serverHttpResponse = serverWebExchange.getResponse();
                       serverHttpResponse.setStatusCode(HttpStatus.UNAUTHORIZED);
                       serverHttpResponse
@@ -161,6 +167,7 @@ public abstract class AbstractAuthController<A, P> {
                 Mono.just(GatewayResponse.builder().ok(false).error("invalid_credentials").build())
                     .doOnNext(
                         response -> {
+                          failedAuthenticationRequests.increment();
                           final var serverHttpResponse = serverWebExchange.getResponse();
                           serverHttpResponse.setStatusCode(HttpStatus.UNAUTHORIZED);
                           serverHttpResponse
@@ -186,32 +193,6 @@ public abstract class AbstractAuthController<A, P> {
         .contextWrite(this::writeStartTimeToContext)
         .contextWrite(this::writeAuthenticationContext)
         .subscribeOn(authenticationScheduler);
-  }
-
-  private Context writeAuthenticationContext(Context context) {
-    return context.put(AuthenticationContext.class, new AuthenticationContext());
-  }
-
-  private Mono<? extends GatewayResponse> respondWithInvalidClientCredentials(
-      ServerWebExchange serverWebExchange) {
-
-    return Mono.just(new InvalidClientGatewayResponse())
-        .doOnNext(
-            response -> {
-              final var serverHttpResponse = serverWebExchange.getResponse();
-              serverHttpResponse.setStatusCode(HttpStatus.UNAUTHORIZED);
-              serverHttpResponse
-                  .getHeaders()
-                  .add(
-                      HttpHeaders.WWW_AUTHENTICATE,
-                      "Basic realm=\"%s\"".formatted(authProperties.getRealm()));
-            })
-        .delayElement(
-            Duration.ofMillis(authProperties.getPenaltyDelayInMillis()), penaltyScheduler);
-  }
-
-  private Mono<String> validateClient(ServerWebExchange serverWebExchange) {
-    return clientManagementService.obtainClientIdFromServerExchange(serverWebExchange);
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Bad request")
@@ -339,6 +320,25 @@ public abstract class AbstractAuthController<A, P> {
         .subscribeOn(refreshTokenScheduler);
   }
 
+  private Mono<? extends GatewayResponse> respondWithInvalidClientCredentials(
+      ServerWebExchange serverWebExchange) {
+
+    return Mono.just(new InvalidClientGatewayResponse())
+        .doOnNext(
+            response -> {
+              failedAuthenticationRequests.increment();
+              final var serverHttpResponse = serverWebExchange.getResponse();
+              serverHttpResponse.setStatusCode(HttpStatus.UNAUTHORIZED);
+              serverHttpResponse
+                  .getHeaders()
+                  .add(
+                      HttpHeaders.WWW_AUTHENTICATE,
+                      "Basic realm=\"%s\"".formatted(authProperties.getRealm()));
+            })
+        .delayElement(
+            Duration.ofMillis(authProperties.getPenaltyDelayInMillis()), penaltyScheduler);
+  }
+
   /**
    * Handle timeouts gracefully to the client when logging out. Returns an okay response.
    *
@@ -372,6 +372,14 @@ public abstract class AbstractAuthController<A, P> {
               serverHttpResponse.setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
               serverHttpResponse.getHeaders().add(HttpHeaders.RETRY_AFTER, "120");
             });
+  }
+
+  private Mono<String> validateClient(ServerWebExchange serverWebExchange) {
+    return clientManagementService.obtainClientIdFromServerExchange(serverWebExchange);
+  }
+
+  private Context writeAuthenticationContext(Context context) {
+    return context.put(AuthenticationContext.class, new AuthenticationContext());
   }
 
   private Context writeStartTimeToContext(Context ctx) {

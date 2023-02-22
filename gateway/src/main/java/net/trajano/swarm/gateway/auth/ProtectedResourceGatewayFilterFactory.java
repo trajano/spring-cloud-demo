@@ -57,14 +57,14 @@ public class ProtectedResourceGatewayFilterFactory
 
   private final ClaimsService claimsService;
 
-  private final Counter successfulApiRequests;
+  private final Counter succeededApiRequests;
 
   public ProtectedResourceGatewayFilterFactory(
       ReactiveDiscoveryClient discoveryClient,
       AuthProperties authProperties,
       ClaimsService claimsService,
       IdentityService<?, ?> identityService,
-      Counter successfulApiRequests,
+      Counter succeededApiRequests,
       @Qualifier("penalty") Scheduler penaltyScheduler) {
 
     super(Config.class);
@@ -72,7 +72,7 @@ public class ProtectedResourceGatewayFilterFactory
     this.authProperties = authProperties;
     this.claimsService = claimsService;
     this.identityService = identityService;
-    this.successfulApiRequests = successfulApiRequests;
+    this.succeededApiRequests = succeededApiRequests;
     this.penaltyScheduler = penaltyScheduler;
   }
 
@@ -120,7 +120,7 @@ public class ProtectedResourceGatewayFilterFactory
                               })
                           .doOnNext(
                               a -> {
-                                successfulApiRequests.increment();
+                                succeededApiRequests.increment();
                               })
                           .onErrorResume(
                               SecurityException.class,
