@@ -4,9 +4,9 @@ import { useBackendInaccessibleStateEffect } from './useBackendInaccessibleState
 import { useBackgroundedStateEffect } from './useBackgroundedStateEffect';
 import { useNeedsRefreshStateEffect } from './useNeedsRefreshStateEffect';
 import { useRefreshingStateEffect } from './useRefreshingStateEffect';
+import { useRestoringStateEffect } from './useRestoringStateEffect';
 import { useTokenRemovalState } from './useTokenRemovalState';
 import type { InternalProviderState } from '../InternalProviderState';
-import { useRestoringStateEffect } from './useRestoringStateEffect';
 
 export const useTokenAvailableEffect = (
   internalProviderState: InternalProviderState

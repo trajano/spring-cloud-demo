@@ -7,6 +7,7 @@ import type { InternalProviderState } from '../InternalProviderState';
 export const useTokenRemovalState = ({
   authStorage,
   authState,
+  signaled,
   notify,
   setAuthState,
   setAppDataLoaded,
@@ -14,7 +15,7 @@ export const useTokenRemovalState = ({
   setOAuthToken,
 }: InternalProviderState) => {
   useEffect(() => {
-    if (authState !== AuthState.TOKEN_REMOVAL) {
+    if (!signaled || authState !== AuthState.TOKEN_REMOVAL) {
       return noop;
     }
     (async () => {
@@ -33,8 +34,10 @@ export const useTokenRemovalState = ({
   }, [
     authState,
     authStorage,
+    signaled,
     notify,
     setAuthState,
+    setAppDataLoaded,
     setOAuthToken,
     setTokenExpiresAt,
   ]);

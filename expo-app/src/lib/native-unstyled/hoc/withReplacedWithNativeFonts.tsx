@@ -41,6 +41,7 @@ function useReplacedWithNativeFonts(
             fontStyle: flattenedStyle.fontStyle,
             color: flattenedStyle.color,
           }),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
           child.props.style,
         ],
       });

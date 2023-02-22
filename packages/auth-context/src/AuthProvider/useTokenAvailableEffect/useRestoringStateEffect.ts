@@ -1,5 +1,5 @@
 import noop from 'lodash/noop';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
 import { AuthState } from '../../AuthState';
 import type { InternalProviderState } from '../InternalProviderState';
@@ -8,25 +8,50 @@ export const useRestoringStateEffect = ({
   appActive,
   appDataLoaded,
   authState,
-  restoreAppDataAsyncCallback,
+  waitForSignalWhenDataIsLoaded,
+  notify,
   setAuthState,
   setAppDataLoaded,
 }: InternalProviderState) => {
+  const signalDataLoaded = useCallback(() => {
+    setAppDataLoaded(true);
+    setAuthState(AuthState.NEEDS_REFRESH);
+    notify({
+      type: 'DataLoaded',
+      authState,
+      reason: 'Data loaded signal called',
+    });
+  }, [authState, notify, setAppDataLoaded, setAuthState]);
+
   useEffect(() => {
     if (authState === AuthState.RESTORING) {
       if (__DEV__ && appDataLoaded) {
-        throw Error('attempted to restore while app data already loaded');
+        console.warn('attempted to restore while app data already loaded');
       }
-
-      if (!appDataLoaded) {
-        Promise.resolve(restoreAppDataAsyncCallback())
-          .then(() => {
-            setAppDataLoaded(true);
-            setAuthState(AuthState.NEEDS_REFRESH);
-          })
-          .catch(console.error);
+      if (waitForSignalWhenDataIsLoaded) {
+        notify({
+          type: 'WaitForDataLoaded',
+          authState,
+          reason: 'in Restoring state',
+          signalDataLoaded,
+        });
+      } else {
+        setAuthState(AuthState.NEEDS_REFRESH);
+        notify({
+          type: 'DataLoaded',
+          authState,
+          reason: 'automatically transitioning since wait is not required',
+        });
       }
     }
     return noop;
-  }, [appActive, authState, setAuthState]);
+  }, [
+    appActive,
+    appDataLoaded,
+    authState,
+    notify,
+    setAuthState,
+    signalDataLoaded,
+    waitForSignalWhenDataIsLoaded,
+  ]);
 };

@@ -1,57 +1,32 @@
 import { useDateState, useDeepState } from '@trajano/react-hooks';
 import React, {
-  PropsWithChildren,
   ReactElement,
   useCallback,
   useMemo,
+  useReducer,
   useRef,
-  useState
+  useState,
 } from 'react';
 
-import noop from 'lodash/noop';
-import { AuthClient } from '../AuthClient';
-import { AuthContext } from '../AuthContext';
-import { AuthenticationClientError } from '../AuthenticationClientError';
-import type { AuthEvent } from '../AuthEvent';
-import { AuthState } from '../AuthState';
-import { AuthStore, IAuthStore } from '../AuthStore';
-import type { EndpointConfiguration } from '../EndpointConfiguration';
-import type { IAuth } from '../IAuth';
-import type { OAuthToken } from '../OAuthToken';
-import { useAppActiveState } from '../useAppActiveState';
-import { useBackendReachable } from '../useBackendReachable';
-import { validateEndpointConfiguration } from '../validateEndpointConfiguration';
+import type { AuthProviderProps } from './AuthContextProviderProps';
 import { isTokenExpired } from './isTokenExpired';
 import { useInitialAuthStateEffect } from './useInitialAuthStateEffect';
 import { useNoTokenAvailableEffect } from './useNoTokenAvailableEffect';
 import { useRefreshCallback } from './useRefreshCallback';
 import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
 import { useTokenAvailableEffect } from './useTokenAvailableEffect';
-
-type AuthContextProviderProps = PropsWithChildren<{
-  /** Default endpoint configuration */
-  defaultEndpointConfiguration: EndpointConfiguration;
-  /**
-   * AsyncStorage prefix used to store the authentication data. Applicable only
-   * to the default auth store.
-   */
-  storagePrefix?: string;
-  /**
-   * Time in milliseconds to consider refreshing the access token. Defaults to
-   * 10 seconds.
-   */
-  timeBeforeExpirationRefresh?: number;
-  /** Alternative auth storage. */
-  authStorage?: IAuthStore;
-  onRefreshError?: (reason: unknown) => void;
-  /**
-   * This is a callback that is called when in {@link AuthState.RESTORING} state.
-   * Defaults to noop.
-   *
-   * @callback
-   */
-  restoreAppDataAsyncCallback?: (() => void) | (() => PromiseLike<void>);
-}>;
+import { AuthClient } from '../AuthClient';
+import { AuthContext } from '../AuthContext';
+import type { AuthEvent } from '../AuthEvent';
+import { AuthState } from '../AuthState';
+import { AuthStore } from '../AuthStore';
+import { AuthenticationClientError } from '../AuthenticationClientError';
+import type { EndpointConfiguration } from '../EndpointConfiguration';
+import type { IAuth } from '../IAuth';
+import type { OAuthToken } from '../OAuthToken';
+import { useAppActiveState } from '../useAppActiveState';
+import { useBackendReachable } from '../useBackendReachable';
+import { validateEndpointConfiguration } from '../validateEndpointConfiguration';
 
 /**
  * Auth provider starts at the INITIAL state in that state it will load up all
@@ -69,8 +44,9 @@ export function AuthProvider<A = unknown>({
   storagePrefix = 'auth',
   // onRefreshError: inOnRefreshError,
   authStorage: inAuthStorage,
-  restoreAppDataAsyncCallback = noop
-}: AuthContextProviderProps): ReactElement<AuthContextProviderProps> {
+  waitForSignalToStart = false,
+  waitForSignalWhenDataIsLoaded = false,
+}: AuthProviderProps): ReactElement<AuthProviderProps> {
   const [endpointConfiguration, setEndpointConfiguration] = useState(
     defaultEndpointConfiguration
   );
@@ -105,6 +81,8 @@ export function AuthProvider<A = unknown>({
   /** Application data loaded state. */
   const [appDataLoaded, setAppDataLoaded] = useState(false);
 
+  const [signaled, signalStart] = useReducer(() => true, !waitForSignalToStart);
+
   /** OAuth token state. */
   const [oauthToken, setOAuthToken] = useDeepState<OAuthToken | null>(null);
 
@@ -128,9 +106,9 @@ export function AuthProvider<A = unknown>({
   const subscribe = useCallback((fn: (event: AuthEvent) => void) => {
     subscribersRef.current.push(fn);
     return () =>
-    (subscribersRef.current = subscribersRef.current.filter(
-      (subscription) => !Object.is(subscription, fn)
-    ));
+      (subscribersRef.current = subscribersRef.current.filter(
+        (subscription) => !Object.is(subscription, fn)
+      ));
   }, []);
 
   /**
@@ -225,6 +203,7 @@ export function AuthProvider<A = unknown>({
 
   const backendReachable = useBackendReachable(endpointConfiguration);
   const appActive = useAppActiveState();
+
   const refreshAsync = useRefreshCallback({
     authState,
     setAuthState,
@@ -244,6 +223,7 @@ export function AuthProvider<A = unknown>({
     notify,
     setOAuthToken,
     setTokenExpiresAt,
+    signaled,
     authStorage,
     timeBeforeExpirationRefresh,
   });
@@ -251,16 +231,17 @@ export function AuthProvider<A = unknown>({
   useTokenAvailableEffect({
     appActive,
     appDataLoaded,
-    authState,
     authClient,
-    backendReachable,
-    oauthToken,
+    authState,
     authStorage,
+    backendReachable,
+    maxTimeoutForRefreshCheckMs: 60000,
+    oauthToken,
+    signaled,
     timeBeforeExpirationRefresh,
     tokenExpiresAt,
-    maxTimeoutForRefreshCheckMs: 60000,
+    waitForSignalWhenDataIsLoaded,
     notify,
-    restoreAppDataAsyncCallback,
     setAppDataLoaded,
     setAuthState,
     setOAuthToken,
@@ -270,16 +251,17 @@ export function AuthProvider<A = unknown>({
   useNoTokenAvailableEffect({
     appActive,
     appDataLoaded,
-    authState,
     authClient,
-    backendReachable,
-    oauthToken,
+    authState,
     authStorage,
+    backendReachable,
+    maxTimeoutForRefreshCheckMs: 60000,
+    oauthToken,
+    signaled,
     timeBeforeExpirationRefresh,
     tokenExpiresAt,
-    maxTimeoutForRefreshCheckMs: 60000,
+    waitForSignalWhenDataIsLoaded,
     notify,
-    restoreAppDataAsyncCallback,
     setAppDataLoaded,
     setAuthState,
     setOAuthToken,
@@ -295,9 +277,10 @@ export function AuthProvider<A = unknown>({
         tokenExpiresAt,
         timeBeforeExpirationRefresh
       ),
+      appDataLoaded: oauthToken ? appDataLoaded : true,
       authorization:
         !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&
-          !!oauthToken
+        !!oauthToken
           ? `Bearer ${oauthToken.access_token}`
           : null,
       authState,
@@ -313,9 +296,11 @@ export function AuthProvider<A = unknown>({
       logoutAsync,
       refreshAsync,
       setEndpointConfiguration: validatedSetEndpointConfiguration,
+      signalStart,
       subscribe,
     }),
     [
+      appDataLoaded,
       authState,
       oauthToken,
       backendReachable,
@@ -326,6 +311,7 @@ export function AuthProvider<A = unknown>({
       loginAsync,
       logoutAsync,
       refreshAsync,
+      signalStart,
       validatedSetEndpointConfiguration,
       subscribe,
     ]

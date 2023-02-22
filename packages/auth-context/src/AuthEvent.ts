@@ -68,6 +68,26 @@ type TokenExpirationEvent = CommonAuthEvent & {
   netInfoState?: NetInfoState;
   error?: Error;
 };
+type TokenLoadedEvent = CommonAuthEvent & {
+  type: 'TokenLoaded';
+};
+/**
+ * Fired soon after entering {@link AuthState.RESTORE} and provides a signal
+ * callback allowing the provider to know when the data has been loaded.
+ */
+export type WaitForDataLoadedEvent = CommonAuthEvent & {
+  type: 'WaitForDataLoaded';
+  /**
+   * This method should be called by a listener to indicate that the data is
+   * loaded
+   *
+   * @returns
+   */
+  signalDataLoaded: () => void;
+};
+type DataLoadedEvent = CommonAuthEvent & {
+  type: 'DataLoaded';
+};
 /**
  * This gets fired when there is a transition from authenticated to
  * unauthenticated. Or when the initial state had determined that the user is
@@ -91,8 +111,11 @@ export type AuthEvent =
   | AuthenticatedEvent
   | CheckRefreshEvent
   | ConnectionChangeEvent
+  | DataLoadedEvent
   | LoggedInEvent
   | LoggedOutEvent
   | RefreshingEvent
+  | TokenLoadedEvent
   | TokenExpirationEvent
-  | UnauthenticatedEvent;
+  | UnauthenticatedEvent
+  | WaitForDataLoadedEvent;

@@ -11,7 +11,7 @@ x-spring-environment: &springEnvironment
   management.metrics.tags.node: "{{.Node.Hostname}}"
   management.metrics.tags.taskSlot: "{{.Task.Slot}}"
   management.metrics.tags.taskName: "{{.Task.Name}}"
-  #  management.metrics.export.cloudwatch.enabled: "false"
+  management.metrics.export.cloudwatch.enabled: "false"
 #  management.metrics.export.graphite.host: graphite
 #  management.metrics.export.graphite.enabled: "true"
   management.cloudwatch.metrics.export.enabled: "false"

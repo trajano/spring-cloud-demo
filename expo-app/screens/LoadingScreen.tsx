@@ -18,11 +18,13 @@ import {
 function AssetsLoaded({
   loadedAssets,
   totalAssets,
+  appDataLoaded,
   animationDone,
   updateChecked,
 }: {
   loadedAssets: number;
   totalAssets: number;
+  appDataLoaded: boolean;
   animationDone: boolean;
   updateChecked: boolean;
 }) {
@@ -35,6 +37,7 @@ function AssetsLoaded({
       <Text>{AuthState[authState]}</Text>
       <Text>{fontsLoaded ? "Fonts loaded" : "Fonts not yet loaded"}</Text>
       <Text>{animationDone ? "Animation Done" : "Playing Animation"}</Text>
+      <Text>{appDataLoaded ? "App Data Loaded" : "App Data not loaded"}</Text>
       <Text>{updateChecked ? "Running latest" : "Checking for update"}</Text>
       <Text>
         {backendReachable ? "Connected" : "Disconnected"}:{" "}
@@ -58,12 +61,12 @@ export function LoadingScreen({
   const { colors, fontsLoaded } = useTheming();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const portrait = windowHeight > windowWidth;
-  const { authState } = useAuth();
+  const { authState, appDataLoaded } = useAuth();
   useExpoUpdateEffect();
 
   const [fromFontsLoaded, setFromFontsLoaded] = useState(fontsLoaded ? 1 : 0);
   const [fromAuthState, setFromAuthState] = useState(
-    authState === AuthState.INITIAL ? 0 : 1
+    authState === AuthState.INITIAL || authState === AuthState.RESTORING ? 0 : 1
   );
   const [fromExpoUpdate, setFromExpoUpdate] = useState(0);
   const [fromAnimationFinish, setAnimationFinish] = useState(0);
@@ -73,7 +76,11 @@ export function LoadingScreen({
   }, [fontsLoaded]);
 
   useEffect(() => {
-    setFromAuthState(authState === AuthState.INITIAL ? 0 : 1);
+    setFromAuthState(
+      authState === AuthState.INITIAL || authState === AuthState.RESTORING
+        ? 0
+        : 1
+    );
   }, [authState]);
 
   useEffect(() => {
@@ -95,13 +102,27 @@ export function LoadingScreen({
   }, []);
 
   useEffect(() => {
+    console.log(
+      JSON.stringify({
+        fromAnimationFinish,
+        fromAuthState,
+        fromExpoUpdate,
+        fromFontsLoaded,
+        appDataLoaded,
+      })
+    );
     additionalResourceUpdate(
-      fromAnimationFinish + fromAuthState + fromExpoUpdate + fromFontsLoaded,
-      4
+      fromAnimationFinish +
+        fromAuthState +
+        fromExpoUpdate +
+        fromFontsLoaded +
+        (appDataLoaded ? 1 : 0),
+      5
     );
   }, [
     fromAnimationFinish,
     fromAuthState,
+    appDataLoaded,
     fromExpoUpdate,
     fromFontsLoaded,
     additionalResourceUpdate,
@@ -132,6 +153,7 @@ export function LoadingScreen({
         </View>
         {portrait && (
           <AssetsLoaded
+            appDataLoaded={appDataLoaded}
             loadedAssets={loadedAssets}
             totalAssets={totalAssets}
             updateChecked={fromExpoUpdate === 1}

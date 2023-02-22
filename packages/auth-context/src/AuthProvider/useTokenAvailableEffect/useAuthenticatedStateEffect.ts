@@ -11,6 +11,7 @@ export const useAuthenticatedStateEffect = ({
   authState,
   setAuthState,
   notify,
+  signaled,
   backendReachable,
   timeBeforeExpirationRefresh,
   tokenExpiresAt,
@@ -18,7 +19,7 @@ export const useAuthenticatedStateEffect = ({
 }: InternalProviderState) => {
   const [lastCheck, updateLastCheck] = useReducer(() => Date.now(), Date.now());
   useEffect(() => {
-    if (authState !== AuthState.AUTHENTICATED) {
+    if (!signaled || authState !== AuthState.AUTHENTICATED) {
       return noop;
     }
     if (!backendReachable) {
@@ -47,10 +48,11 @@ export const useAuthenticatedStateEffect = ({
     authState,
     backendReachable,
     lastCheck,
+    signaled,
     notify,
     setAuthState,
     timeBeforeExpirationRefresh,
     tokenExpiresAt,
-    maxTimeoutForRefreshCheckMs
+    maxTimeoutForRefreshCheckMs,
   ]);
 };

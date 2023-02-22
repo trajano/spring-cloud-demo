@@ -1,13 +1,16 @@
 @startuml AuthState
+state Signal <<choice>>
 state Initial : read token data from store
-[*] --> Initial : app not in memory\nand started up
+[*] --> Signal : app not in memory\nand started up\nwait for startSignal
+Signal --> Initial : startSignal
 
 state "Token available" as Authenticated {
   state " " as needsRefreshPin <<inputPin>>
   ' state " " as authenticatedPin <<inputPin>>
   state " " as backgroundedPin <<inputPin>>
   ' needsRefreshPin --> Restoring
-  needsRefreshPin --> InitialLoad
+  state WaitForDataLoaded <<choice>>
+  needsRefreshPin --> InitialLoad : TokenLoaded
   ' authenticatedPin --> AuthenticatedOnline
   backgroundedPin --> Backgrounded
   state "Restoring" as InitialLoad: token is available\nload any data for\nthe app from storage
@@ -24,7 +27,8 @@ state "Token available" as Authenticated {
   end note
   ' state "Restoring" as Restoring: app is active\nin foreground
 
-  InitialLoad --> NeedsRefresh: data loaded
+  InitialLoad --> WaitForDataLoaded : start waiting for\ndata to be loaded
+  WaitForDataLoaded --> NeedsRefresh: data loaded
   NeedsRefresh --> Refreshing: backend available\nand token expired
   NeedsRefresh --> AuthenticatedOnline: backend available\nand token not expired
   Refreshing --> AuthenticatedOnline: valid token received

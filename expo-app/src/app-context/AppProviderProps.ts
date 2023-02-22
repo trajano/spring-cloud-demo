@@ -1,6 +1,7 @@
 /** @module */
 import { AuthEvent } from "@trajano/spring-docker-auth-context";
 import type { PropsWithChildren } from "react";
+
 import { AppEvent } from "./AppEvent";
 /** Provider initialization props */
 export type AppProviderProps = PropsWithChildren<{

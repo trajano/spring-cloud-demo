@@ -11,7 +11,7 @@ import { AuthProvider } from "@trajano/spring-docker-auth-context";
 import Constants from "expo-constants";
 import "expo-dev-client";
 import { deactivateKeepAwake, ExpoKeepAwakeTag } from "expo-keep-awake";
-import { Dict } from "i18n-js";
+import type { Dict } from "i18n-js";
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { ColorSchemeName, LogBox, useWindowDimensions } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -92,7 +92,8 @@ export default function App() {
     >
       <AuthProvider
         defaultEndpointConfiguration={defaultEndpointConfiguration}
-        restoreAppDataAsyncCallback={() => { console.log("data loaded"); }}
+        waitForSignalToStart
+        waitForSignalWhenDataIsLoaded
       >
         <ThemeProvider
           colorScheme={initialColorScheme}
@@ -121,26 +122,26 @@ export default function App() {
           onLocaleChange={setStoredLocale}
         >
           {/* <HeaderTestNavigationContainer /> */}
-          <AppLoading
-            initialAssets={[
-              // require("../../assets/lottie/28839-ikura-sushi.json"),
-              require("../../assets/images/icon.png"),
-            ]}
-            LoadingComponent={LoadingScreen}
-          >
-            <Suspense fallback={<SuspenseView />}>
-              {TEXT_TEST ? (
-                <TextTest />
-              ) : (
-                <AppProvider>
+          <AppProvider>
+            <AppLoading
+              initialAssets={[
+                // require("../../assets/lottie/28839-ikura-sushi.json"),
+                require("../../assets/images/icon.png"),
+              ]}
+              LoadingComponent={LoadingScreen}
+            >
+              <Suspense fallback={<SuspenseView />}>
+                {TEXT_TEST ? (
+                  <TextTest />
+                ) : (
                   <OverflowMenuProvider>
                     <Navigation />
                   </OverflowMenuProvider>
-                </AppProvider>
-              )}
-            </Suspense>
-            <StatusBar />
-          </AppLoading>
+                )}
+              </Suspense>
+              <StatusBar />
+            </AppLoading>
+          </AppProvider>
         </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>

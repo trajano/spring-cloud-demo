@@ -1,9 +1,10 @@
-import { AuthEvent } from "@trajano/spring-docker-auth-context";
+import { AuthState } from "@trajano/spring-docker-auth-context";
+import type { AuthEvent } from "@trajano/spring-docker-auth-context";
 
 export type AppEvent =
   | AuthEvent
   | {
       type: "App";
-      reason: string,
-      description: string;
+      authState: AuthState;
+      reason: string;
     };

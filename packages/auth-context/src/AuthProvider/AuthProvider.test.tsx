@@ -588,7 +588,6 @@ describe('with component', () => {
         <MyComponent notifications={notifications} />
       </AuthProvider>
     );
-
     await waitFor(() =>
       expect(screen.getByTestId('authState')).toHaveTextContent(
         'UNAUTHENTICATED'

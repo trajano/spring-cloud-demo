@@ -38,6 +38,11 @@ export interface IAuth<A = unknown> {
    */
   accessTokenExpired: boolean;
   /**
+   * Indicates that the app data is loaded from any data store. This is true
+   * when there's no token.
+   */
+  appDataLoaded: boolean;
+  /**
    * This specifies when the access token will expire. This may return an
    * arbitrary time value in the past if the access token or expiration is not
    * available.
@@ -123,4 +128,10 @@ export interface IAuth<A = unknown> {
    * purposes as the data is not normally modified outside the context.
    */
   forceCheckAuthStorageAsync: () => Promise<void>;
+  /**
+   * Signals the provider that all initialization is done for the provider
+   * (namely calls to {@link IAuth.subscribe}) before the token is determined to
+   * exist and leave {@link AuthState.INITIAL} state.
+   */
+  signalStart: () => void;
 }

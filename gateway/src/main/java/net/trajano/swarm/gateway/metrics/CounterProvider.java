@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 @Configuration
 public class CounterProvider {
@@ -22,8 +23,15 @@ public class CounterProvider {
   Counter failedAuthenticationRequests(MeterRegistry meterRegistry) {
 
     return Counter.builder(metricPrefix + ".authentication.failed")
-        .description("Failed authentication requests")
-        .register(meterRegistry);
+            .description("Failed authentication requests")
+            .register(meterRegistry);
+  }
+  @Bean
+  Counter failedAuthenticationRequestsDueToInvalidCredentials(MeterRegistry meterRegistry) {
+
+    return Counter.builder(metricPrefix + ".authentication.failure.invalid-credentials")
+            .description("Failed authentication requests")
+            .register(meterRegistry);
   }
 
   @Bean

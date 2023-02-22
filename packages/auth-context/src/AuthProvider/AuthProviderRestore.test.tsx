@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo, { NetInfoStateType } from '@react-native-community/netinfo';
 import '@testing-library/jest-native/extend-expect';
 import {
+  act,
   cleanup,
   render,
   screen,
@@ -20,6 +22,7 @@ import { buildSimpleEndpointConfiguration } from '../buildSimpleEndpointConfigur
 import { useAuth } from '../useAuth';
 
 const specimenInstant = new Date('2022-11-11T12:00:00Z');
+jest.mock('@react-native-community/netinfo');
 let globalFetch: typeof fetch;
 let fetchConfigResponse: (new () => Response) | undefined;
 beforeEach(() => {
@@ -30,6 +33,24 @@ beforeEach(() => {
   fetchConfigResponse = fetchMock.config.Response;
   globalFetch = global.fetch;
   global.fetch = fetchMock.sandbox() as unknown as typeof fetch;
+
+  jest.mocked(NetInfo).refresh.mockResolvedValue({
+    type: NetInfoStateType.wifi,
+    isConnected: true,
+    isInternetReachable: true,
+    details: {
+      ssid: null,
+      bssid: null,
+      strength: null,
+      ipAddress: null,
+      subnet: null,
+      frequency: null,
+      isConnectionExpensive: false,
+      linkSpeed: null,
+      rxLinkSpeed: null,
+      txLinkSpeed: null,
+    },
+  });
 });
 afterEach(cleanup);
 afterEach(() => {
@@ -40,17 +61,29 @@ afterEach(() => {
   AppState.currentState = 'unknown';
 });
 
-function MyComponent({ notifications }: { notifications: () => void }) {
+function MyComponent({
+  notifications,
+  signalToStart = false,
+}: {
+  notifications: (authEvent: AuthEvent) => void;
+  signalToStart?: boolean;
+}) {
   const {
     authState,
     loginAsync: login,
     tokenExpiresAt: accessTokenExpiresOn,
     accessToken,
     backendReachable,
+    signalStart,
     subscribe,
   } = useAuth();
   const doLogin = useCallback(async () => login({ user: 'test' }), [login]);
   useEffect(() => subscribe(notifications), [notifications, subscribe]);
+  useEffect(() => {
+    if (signalToStart) {
+      setTimeout(signalStart, 1000);
+    }
+  }, [signalToStart, signalStart]);
   return (
     <>
       <Text testID="hello">{AuthState[authState]}</Text>
@@ -149,7 +182,8 @@ it('Restore saved not expired', async () => {
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: 'TokenExpiration',
+        type: 'TokenLoaded',
+        authState: AuthState.INITIAL,
         reason: 'active token restored from storage on initial state',
       } as Partial<AuthEvent>)
     )
@@ -208,7 +242,7 @@ it('Restore saved expired', async () => {
 
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'TokenExpiration' } as Partial<AuthEvent>)
+      expect.objectContaining({ type: 'TokenLoaded' } as Partial<AuthEvent>)
     )
   );
   await waitFor(() =>
@@ -226,12 +260,180 @@ it('Restore saved expired', async () => {
   );
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'TokenExpiration' } as Partial<AuthEvent>)
+      expect.objectContaining({ type: 'TokenLoaded' } as Partial<AuthEvent>)
     )
   );
 
   unmount();
   expect(jest.getTimerCount()).toBe(0);
+});
+
+it('Restore saved expired with data load', async () => {
+  const oldAccessToken: OAuthToken = {
+    access_token: 'oldAccessToken',
+    refresh_token: 'RefreshToken',
+    token_type: 'Bearer',
+    expires_in: 600,
+  };
+  await AsyncStorage.setItem(
+    'auth.https://asdf.com/..oauthToken',
+    JSON.stringify(oldAccessToken)
+  );
+  await AsyncStorage.setItem(
+    'auth.https://asdf.com/..tokenExpiresAt',
+    subMilliseconds(specimenInstant, 600000).toISOString()
+  );
+
+  const authStore = new AuthStore('auth', 'https://asdf.com/');
+  expect(await authStore.isExpired()).toBeTruthy();
+
+  const dataLoaded = jest.fn() as jest.Mock<() => void>;
+  const notifications = jest.fn((authEvent: AuthEvent) => {
+    if (authEvent.type === 'WaitForDataLoaded') {
+      dataLoaded();
+      authEvent.signalDataLoaded();
+    }
+  });
+  fetchMock
+    .get('https://asdf.com/ping', { body: { ok: true } })
+    .post('https://asdf.com/refresh', {
+      body: {
+        access_token: 'newAccessToken',
+        refresh_token: 'NotThePreviousRefreshToken',
+        token_type: 'Bearer',
+        expires_in: 600,
+      } as OAuthToken,
+    });
+  const { unmount } = render(
+    <AuthProvider
+      defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
+        'https://asdf.com/'
+      )}
+      waitForSignalWhenDataIsLoaded
+    >
+      <MyComponent notifications={notifications} />
+    </AuthProvider>
+  );
+  expect(screen.getByTestId('hello')).toHaveTextContent('INITIAL');
+
+  await waitFor(() =>
+    expect(notifications).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'TokenLoaded' } as Partial<AuthEvent>)
+    )
+  );
+  await act(() => Promise.resolve());
+  expect(dataLoaded).toHaveBeenCalledTimes(1);
+  await waitFor(() =>
+    expect(notifications).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'Refreshing' } as Partial<AuthEvent>)
+    )
+  );
+  await waitFor(() =>
+    expect(notifications).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'Authenticated' } as Partial<AuthEvent>)
+    )
+  );
+  await waitFor(() =>
+    expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
+  );
+  await waitFor(() =>
+    expect(notifications).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'TokenLoaded' } as Partial<AuthEvent>)
+    )
+  );
+
+  unmount();
+  expect(jest.getTimerCount()).toBe(0);
+  expect(dataLoaded).toHaveBeenCalledTimes(1);
+});
+
+it('Restore saved expired with start signal and data load', async () => {
+  const oldAccessToken: OAuthToken = {
+    access_token: 'oldAccessToken',
+    refresh_token: 'RefreshToken',
+    token_type: 'Bearer',
+    expires_in: 600,
+  };
+  await AsyncStorage.setItem(
+    'auth.https://asdf.com/..oauthToken',
+    JSON.stringify(oldAccessToken)
+  );
+  await AsyncStorage.setItem(
+    'auth.https://asdf.com/..tokenExpiresAt',
+    subMilliseconds(specimenInstant, 600000).toISOString()
+  );
+
+  const authStore = new AuthStore('auth', 'https://asdf.com/');
+  expect(await authStore.isExpired()).toBeTruthy();
+
+  const dataLoaded = jest.fn() as jest.Mock<() => void>;
+  const notifications = jest.fn((authEvent: AuthEvent) => {
+    if (authEvent.type === 'WaitForDataLoaded') {
+      dataLoaded();
+      authEvent.signalDataLoaded();
+    }
+  });
+  fetchMock
+    .get('https://asdf.com/ping', { body: { ok: true } })
+    .post('https://asdf.com/refresh', {
+      body: {
+        access_token: 'newAccessToken',
+        refresh_token: 'NotThePreviousRefreshToken',
+        token_type: 'Bearer',
+        expires_in: 600,
+      } as OAuthToken,
+    });
+  const { unmount } = render(
+    <AuthProvider
+      defaultEndpointConfiguration={buildSimpleEndpointConfiguration(
+        'https://asdf.com/'
+      )}
+      waitForSignalToStart
+      waitForSignalWhenDataIsLoaded
+    >
+      <MyComponent notifications={notifications} signalToStart />
+    </AuthProvider>
+  );
+  await act(() => Promise.resolve());
+  expect(screen.getByTestId('hello')).toHaveTextContent('INITIAL');
+  await act(() => jest.advanceTimersByTime(1000));
+  await waitFor(() =>
+    expect(notifications).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'TokenLoaded' } as Partial<AuthEvent>)
+    )
+  );
+  expect(dataLoaded).toHaveBeenCalledTimes(1);
+  await act(() => Promise.resolve());
+  await waitFor(
+    () => {
+      expect(notifications).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'Refreshing' } as Partial<AuthEvent>)
+      );
+    },
+    {
+      onTimeout: (err) => {
+        console.log(notifications.mock.calls);
+        throw err;
+      },
+    }
+  );
+  await waitFor(() => {
+    expect(notifications).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'Authenticated' } as Partial<AuthEvent>)
+    );
+  });
+  await waitFor(() =>
+    expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED')
+  );
+  await waitFor(() =>
+    expect(notifications).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'TokenLoaded' } as Partial<AuthEvent>)
+    )
+  );
+
+  unmount();
+  expect(jest.getTimerCount()).toBe(0);
+  expect(dataLoaded).toHaveBeenCalledTimes(1);
 });
 
 it('Restore saved expired but broken token response', async () => {
@@ -336,9 +538,13 @@ it('Restore saved expired but 500 refresh response', async () => {
 
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'TokenExpiration' } as Partial<AuthEvent>)
+      expect.objectContaining({
+        type: 'TokenLoaded',
+        authState: AuthState.INITIAL,
+      } as Partial<AuthEvent>)
     )
   );
+  await act(() => Promise.resolve());
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'Refreshing' } as Partial<AuthEvent>)
@@ -396,9 +602,10 @@ it('Restore saved expired but error refresh response', async () => {
 
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'TokenExpiration' } as Partial<AuthEvent>)
+      expect.objectContaining({ type: 'TokenLoaded' } as Partial<AuthEvent>)
     )
   );
+  await act(() => Promise.resolve());
   await waitFor(() =>
     expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'Refreshing' } as Partial<AuthEvent>)

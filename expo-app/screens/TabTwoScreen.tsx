@@ -97,6 +97,7 @@ export default function TabTwoScreen({
             ...prevState,
             {
               name: action.eventName,
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
               event: action.event,
               key: `${action.eventName}-${Date.now()}`,
             },

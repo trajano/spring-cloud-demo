@@ -13,6 +13,7 @@ export interface InitialAuthStateProps {
   notify: (event: AuthEvent) => void;
   authStorage: IAuthStore;
   timeBeforeExpirationRefresh: number;
+  signaled: boolean;
   setOAuthToken: Dispatch<OAuthToken | null>;
   setTokenExpiresAt: Dispatch<Date | number>;
 }
@@ -22,6 +23,7 @@ export function useInitialAuthStateEffect({
   notify,
   timeBeforeExpirationRefresh,
   authStorage,
+  signaled,
   setOAuthToken,
   setTokenExpiresAt,
 }: InitialAuthStateProps) {
@@ -51,19 +53,16 @@ export function useInitialAuthStateEffect({
     setOAuthToken(nextOAuthToken);
     setTokenExpiresAt(nextTokenExpiresAt);
 
-    // regardless whether token present and not expired yet, refresh is needed
-    // but the event will have different reasons.
     setAuthState(AuthState.RESTORING);
-
     if (!isTokenExpired(nextTokenExpiresAt, timeBeforeExpirationRefresh)) {
       notify({
-        type: 'TokenExpiration',
+        type: 'TokenLoaded',
         authState,
         reason: 'active token restored from storage on initial state',
       });
     } else {
       notify({
-        type: 'TokenExpiration',
+        type: 'TokenLoaded',
         authState,
         reason: 'expired token restored from storage on initial state',
       });
@@ -78,8 +77,8 @@ export function useInitialAuthStateEffect({
     timeBeforeExpirationRefresh,
   ]);
   useEffect(() => {
-    if (authState === AuthState.INITIAL) {
+    if (signaled && authState === AuthState.INITIAL) {
       setInitialAuthStateAsync().catch(console.error);
     }
-  }, [authState, setInitialAuthStateAsync]);
+  }, [authState, signaled, setInitialAuthStateAsync]);
 }

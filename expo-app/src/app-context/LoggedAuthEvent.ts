@@ -1,5 +1,4 @@
-import { AuthEvent } from "@trajano/spring-docker-auth-context";
-import { AppEvent } from "./AppEvent";
+import type { AppEvent } from "./AppEvent";
 
 export type LoggedAuthEvent = AppEvent & {
   key: string;

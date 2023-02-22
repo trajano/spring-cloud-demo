@@ -19,6 +19,8 @@ export type InternalProviderState<T = unknown> = {
   backendReachable: boolean;
   authClient: AuthClient<T>;
   oauthToken: OAuthToken | null;
+  /** If true, the machine should start up now. */
+  signaled: boolean;
   /** When does the token expire */
   tokenExpiresAt: Date;
   /**
@@ -31,6 +33,10 @@ export type InternalProviderState<T = unknown> = {
    * than 60 seconds.
    */
   maxTimeoutForRefreshCheckMs: number;
+
+  /** Indicates that restoring from data needs a signal before moving to FSM */
+  waitForSignalWhenDataIsLoaded: boolean;
+
   /**
    * Notifies subscribers. There's a specific handler if it is "Unauthenticated"
    * that the provider handles. These and other functions are not wrapped in
@@ -42,10 +48,4 @@ export type InternalProviderState<T = unknown> = {
   setAuthState: Dispatch<AuthState>;
   setOAuthToken: Dispatch<OAuthToken | null>;
   setTokenExpiresAt: Dispatch<Date>;
-  /**
-   * This is a callback that is called when in {@link AuthState.RESTORING} state.
-   *
-   * @callback
-   */
-  restoreAppDataAsyncCallback: (() => void) | (() => PromiseLike<void>);
 };
