@@ -2,7 +2,7 @@ import { Dispatch, SetStateAction, useEffect } from 'react';
 
 import type { AuthEvent } from '../AuthEvent';
 import { AuthState } from '../AuthState';
-
+/** @deprecated */
 /** @testonly */
 export interface NeedsRefreshEffectProps {
   authState: AuthState;

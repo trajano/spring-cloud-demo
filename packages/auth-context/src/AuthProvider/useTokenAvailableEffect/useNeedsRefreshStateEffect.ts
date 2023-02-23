@@ -20,6 +20,12 @@ export const useNeedsRefreshStateEffect = ({
     }
 
     if (!backendReachable) {
+      notify({
+        type: 'PingFailed',
+        authState,
+        reason: `Backend was determined to be not reachable`,
+        backendReachable,
+      });
       setAuthState(AuthState.BACKEND_INACCESSIBLE);
     } else if (
       !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&

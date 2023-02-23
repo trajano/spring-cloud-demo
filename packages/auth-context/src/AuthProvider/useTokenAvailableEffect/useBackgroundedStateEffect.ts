@@ -7,18 +7,37 @@ import type { InternalProviderState } from '../InternalProviderState';
 
 export const useBackgroundedStateEffect = ({
   appActive,
+  notify,
+  backendReachable,
   authState,
   setAuthState,
+  signaled
 }: InternalProviderState) => {
   useEffect(() => {
-    if (authState === AuthState.BACKGROUNDED) {
+    if (!signaled) {
+    }
+    else if (authState === AuthState.BACKGROUNDED) {
       // if (appActive) {
       //   setAuthState(AuthState.NEEDS_REFRESH);
       // }
       (async () => {
         if (appActive) {
-          await NetInfo.refresh();
+          notify({
+            type: 'CheckRefresh',
+            authState,
+            reason: 'App was activated',
+            backendReachable,
+          });
+              await NetInfo.refresh();
+
           setAuthState(AuthState.NEEDS_REFRESH);
+        } else {
+          notify({
+            type: 'CheckRefresh',
+            authState,
+            reason: 'App was backgrounded',
+            backendReachable,
+          });
         }
       })();
     } else {
@@ -26,6 +45,5 @@ export const useBackgroundedStateEffect = ({
         setAuthState(AuthState.BACKGROUNDED);
       }
     }
-    return noop;
-  }, [appActive, authState, setAuthState]);
+  }, [appActive, authState, notify, backendReachable, setAuthState]);
 };

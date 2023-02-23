@@ -14,8 +14,11 @@ state "Token available" as Authenticated {
   ' authenticatedPin --> AuthenticatedOnline
   backgroundedPin --> Backgrounded
   state "Restoring" as InitialLoad: token is available\nload any data for\nthe app from storage
-  state "Needs Refresh" as NeedsRefresh: token may no longer be valid
+  ' state "Needs Refresh" as NeedsRefresh: token may no longer be valid
+  state "Dispatch" as NeedsRefresh #aaaaff: token and connection\nneed to be evaluated
   state Refreshing: refresh endpoint being called\nwaiting on response
+  state "Fresh Token" as FreshToken: got a new token
+  state FreshTokenWait <<choice>>
   state "Online" as AuthenticatedOnline: token available\ntoken not expired\nconnection available
   state "Backend Inaccessible" as BackendInaccessible: connection to the backend\nis not available
   state "Backend Failure" as BackendFailure: refresh failed\ndue to backend error
@@ -25,24 +28,33 @@ state "Token available" as Authenticated {
   note bottom of TokenRemoval
     token is being removed
   end note
+
   ' state "Restoring" as Restoring: app is active\nin foreground
 
+  FreshToken --> FreshTokenWait : start waiting for\nsignal that we\ncan move on
+  FreshTokenWait --> AuthenticatedOnline : signalTokenProcessed
   InitialLoad --> WaitForDataLoaded : start waiting for\ndata to be loaded
   WaitForDataLoaded --> NeedsRefresh: data loaded
   NeedsRefresh --> Refreshing: backend available\nand token expired
-  NeedsRefresh --> AuthenticatedOnline: backend available\nand token not expired
-  Refreshing --> AuthenticatedOnline: valid token received
+  NeedsRefresh --> FreshToken : backend available\nand token not expired
+  ' Refreshing --> FreshTokenWait: valid token received
+  Refreshing --> NeedsRefresh: valid token received
   Refreshing --[#8B8000]-> TokenRemoval: 401 received
-  AuthenticatedOnline --[#red,bold]-> BackendInaccessible : ping failure
-  AuthenticatedOnline --> NeedsRefresh : token nearly expired
+  'AuthenticatedOnline --[#red,bold]-> BackendInaccessible : ping failure
+  AuthenticatedOnline --[#red,bold]-> NeedsRefresh : ping failure\or token nearly\nexpired
+'  AuthenticatedOnline --> NeedsRefresh : token nearly expired
   BackendInaccessible --> NeedsRefresh : ping working
   NeedsRefresh --[#8B8000]-> BackendInaccessible : ping failure
-  Refreshing --[#8B8000]-> BackendFailure : 500 received
+  Refreshing --[#8B8000]-> BackendFailure : 500 received\nconnection failure
   BackendFailure --> NeedsRefresh : failure retry timeout
   AuthenticatedOnline --> TokenRemoval : sign out
-  Backgrounded --> NeedsRefresh: app activated
+  Backgrounded --> [*]: app activated\ngo back and wait for start signal
   ' Backgrounded -> Restoring: app activated
   ' Restoring -> NeedsRefresh: app restored
+  note bottom of FreshTokenWait
+    At this point an Axios
+    client can be configured
+  end note
 
 }
 
@@ -66,7 +78,7 @@ TokenRemoval --> unauthenticatedPin
 ' state AppActivate <<start>>
 ' AppActivate --> needsRefreshPin : app was activated\nfrom memory
 state AppBackgrounded <<start>>
-AppBackgrounded --> backgroundedPin : app was sent\nto background
+AppBackgrounded --> backgroundedPin : app was sent\nto background\nand token available
 
 @enduml
 

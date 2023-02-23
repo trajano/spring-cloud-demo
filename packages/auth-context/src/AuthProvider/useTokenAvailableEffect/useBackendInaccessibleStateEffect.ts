@@ -7,6 +7,7 @@ import type { InternalProviderState } from '../InternalProviderState';
 export const useBackendInaccessibleStateEffect = ({
   authState,
   backendReachable,
+  notify,
   setAuthState,
 }: InternalProviderState) => {
   useEffect(() => {
@@ -14,9 +15,16 @@ export const useBackendInaccessibleStateEffect = ({
       return noop;
     }
     if (backendReachable) {
+      notify({
+        type: 'PingSucceeded',
+        authState,
+        reason: `Backend was determined to be not reachable while authenticated`,
+        backendReachable,
+      });
+
       setAuthState(AuthState.NEEDS_REFRESH);
       return noop;
     }
     return noop;
-  }, [authState, backendReachable, setAuthState]);
+  }, [authState, backendReachable, notify, setAuthState]);
 };

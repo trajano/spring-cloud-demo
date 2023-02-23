@@ -15,10 +15,10 @@ export function StackNavigatorScrollViewScreen() {
         ({ key, on, authState, type, reason }: LoggedAuthEvent) => (
           <View key={key} borderBottomColor="silver" borderBottomWidth={1}>
             <View flexDirection="row">
-              <Text>{format(on, "HH:mm:ss")}</Text>
-              <Text>{AuthState[authState]}</Text>
+              <Text fontSize={16}>{format(on, "HH:mm:ss")}</Text>
+              <Text fontSize={16}>{AuthState[authState]}</Text>
               <FontAwesome name="arrow-circle-right" color="#ffffff" />
-              <Text>{type}</Text>
+              <Text fontSize={16}>{type}</Text>
             </View>
             <Text>{reason}</Text>
           </View>

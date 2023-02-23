@@ -37,23 +37,17 @@ export function AppProvider({
     () => ({ lastAuthEvents }),
     [lastAuthEvents]
   );
-  useEffect(() => {
-    console.log("Register log handler...");
-    return subscribe(({ type, authState, ...rest }: AuthEvent) => {
-      console.log(`${type} ${AuthState[authState]} ${JSON.stringify(rest)}`);
-    });
-  }, [subscribe]);
+  useEffect(() => subscribe(({ type, authState, ...rest }: AuthEvent) => {
+    console.log(`${type} ${AuthState[authState]} ${JSON.stringify(rest)}`);
+  }), [subscribe]);
   useEffect(() => subscribe(pushAuthEvent), [pushAuthEvent, subscribe]);
-  useEffect(() => {
-    console.log("Register loaded effect...");
-    return subscribe((event: AuthEvent) => {
-      if (event.type === "WaitForDataLoaded") {
-        pushAuthEvent({ type: "App", reason: "Data loaded", authState });
-        console.log("Data loaded");
-        event.signalDataLoaded();
-      }
-    });
-  }, [subscribe, authState, pushAuthEvent]);
+  useEffect(() => subscribe((event: AuthEvent) => {
+    if (event.type === "WaitForDataLoaded") {
+      pushAuthEvent({ type: "App", reason: "Data loaded", authState });
+      console.log("Data loaded");
+      event.signalDataLoaded();
+    }
+  }), [subscribe, authState, pushAuthEvent]);
   useEffect(() => {
     console.log("Starting...");
     signalStart();

@@ -51,6 +51,12 @@ type CheckRefreshEvent = CommonAuthEvent & {
 type RefreshingEvent = CommonAuthEvent & {
   type: 'Refreshing';
 };
+
+/** This gets fired when {@link IAuth.signalStart} is called. */
+type StartingEvent = CommonAuthEvent & {
+  type: 'Starting';
+};
+
 /**
  * Connection change event. This is explicity exported to allow better type
  * safety.
@@ -70,6 +76,14 @@ type TokenExpirationEvent = CommonAuthEvent & {
 };
 type TokenLoadedEvent = CommonAuthEvent & {
   type: 'TokenLoaded';
+};
+type PingFailedEvent = CommonAuthEvent & {
+  type: 'PingFailed';
+  backendReachable: boolean;
+};
+type PingSucceededEvent = CommonAuthEvent & {
+  type: 'PingSucceeded';
+  backendReachable: boolean;
 };
 /**
  * Fired soon after entering {@link AuthState.RESTORE} and provides a signal
@@ -114,7 +128,10 @@ export type AuthEvent =
   | DataLoadedEvent
   | LoggedInEvent
   | LoggedOutEvent
+  | PingFailedEvent
+  | PingSucceededEvent
   | RefreshingEvent
+  | StartingEvent
   | TokenLoadedEvent
   | TokenExpirationEvent
   | UnauthenticatedEvent

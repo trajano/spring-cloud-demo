@@ -1,6 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import { AuthState, useAuth } from "@trajano/spring-docker-auth-context";
+import {
+  OAuthToken,
+  AuthState,
+  useAuth,
+} from "@trajano/spring-docker-auth-context";
 import {
   addSeconds,
   formatISO,
@@ -50,7 +54,29 @@ export function JustScrollView() {
     AsyncStorage.setItem(
       `auth.${baseUrl.toString()}..tokenExpiresAt`,
       new Date(Date.now() - 10).toISOString()
-    ).then(() => forceCheckAuthStorageAsync()).catch(console.error);
+    )
+      .then(() => forceCheckAuthStorageAsync())
+      .catch(console.error);
+  }, [baseUrl, forceCheckAuthStorageAsync]);
+
+  const breakToken = useCallback(() => {
+    (async () => {
+      await AsyncStorage.setItem(
+        `auth.${baseUrl.toString()}..tokenExpiresAt`,
+        new Date(Date.now() + 15000).toISOString()
+      );
+      await AsyncStorage.setItem(
+        `auth.${baseUrl.toString()}..oauthToken`,
+        JSON.stringify({
+          access_token: "bad",
+          refresh_token: "badrefresh",
+          expires_in: 16,
+          token_type: "Bearer",
+        })
+      );
+
+      await forceCheckAuthStorageAsync();
+    })();
   }, [baseUrl, forceCheckAuthStorageAsync]);
 
   const updateClock = useCallback(() => {
@@ -64,7 +90,9 @@ export function JustScrollView() {
   }, [timerRef, tokenExpiresAt]);
   useFocusEffect(updateClock);
   const updateWhoAmI = useCallback(() => {
-    whoami().then((nextWhoAmI) => setWhoamiJson(JSON.stringify(nextWhoAmI, null, 2))).catch(console.error);
+    whoami()
+      .then((nextWhoAmI) => setWhoamiJson(JSON.stringify(nextWhoAmI, null, 2)))
+      .catch(console.error);
   }, [whoami]);
 
   const accessTokenBackgroundColor: ColorValue | undefined = useMemo(() => {
@@ -108,6 +136,7 @@ export function JustScrollView() {
       </Text>
 
       <Button onPress={expire}>Expire {baseUrl.toString()}</Button>
+      <Button onPress={breakToken}>Break Token</Button>
       <Button onPress={updateWhoAmI}>
         {
           (endpointConfiguration as AuthenticatedEndpointConfiguration)

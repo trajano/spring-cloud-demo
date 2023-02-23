@@ -26,6 +26,8 @@ export interface RefreshCallbackProps<T> {
 /**
  * This provides the refresh function. It is extracted so that specific tests
  * can be performed without relying on the whole component.
+ *
+ * @deprecated
  */
 export function useRefreshCallback<T>({
   authState,

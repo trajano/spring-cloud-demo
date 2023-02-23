@@ -12,7 +12,6 @@ import type { AuthProviderProps } from './AuthProviderProps';
 import { isTokenExpired } from './isTokenExpired';
 import { useInitialAuthStateEffect } from './useInitialAuthStateEffect';
 import { useNoTokenAvailableEffect } from './useNoTokenAvailableEffect';
-import { useRefreshCallback } from './useRefreshCallback';
 import { useRenderOnTokenEvent } from './useRenderOnTokenEvent';
 import { useTokenAvailableEffect } from './useTokenAvailableEffect';
 import { AuthClient } from '../AuthClient';
@@ -83,9 +82,6 @@ export function AuthProvider<A = unknown>({
     !waitForSignalWhenDataIsLoaded
   );
 
-  /** Signal that the context should start */
-  const [signaled, signalStart] = useReducer(() => true, !waitForSignalToStart);
-
   /** OAuth token state. */
   const [oauthToken, setOAuthToken] = useDeepState<OAuthToken | null>(null);
 
@@ -106,16 +102,26 @@ export function AuthProvider<A = unknown>({
     setAppDataLoaded(true);
   }, []);
 
-  const { netInfoState } = useRenderOnTokenEvent({
+  /** Signal that the context should start */
+  const [signaled, signalStart] = useReducer(() => {
+    notify({
+      type: 'Starting',
+      authState,
+      reason: 'Signal to start received.',
+    });
+    return true;
+  }, !waitForSignalToStart);
+
+  useRenderOnTokenEvent({
     endpointConfiguration,
   });
 
   const subscribe = useCallback((fn: (event: AuthEvent) => void) => {
     subscribersRef.current.push(fn);
     return () =>
-    (subscribersRef.current = subscribersRef.current.filter(
-      (subscription) => !Object.is(subscription, fn)
-    ));
+      (subscribersRef.current = subscribersRef.current.filter(
+        (subscription) => !Object.is(subscription, fn)
+      ));
   }, []);
 
   /**
@@ -207,12 +213,15 @@ export function AuthProvider<A = unknown>({
 
   const refreshAsync = useCallback(async () => {
     if (oauthToken) {
-      await authStorage.storeOAuthTokenAndGetExpiresAtAsync({ ...oauthToken, expires_in: -1 })
+      await authStorage.storeOAuthTokenAndGetExpiresAtAsync({
+        ...oauthToken,
+        expires_in: -1,
+      });
       await forceCheckAuthStorageAsync();
     } else {
-      throw new Error("no token to invalidate");
+      throw new Error('no token to invalidate');
     }
-  }, [])
+  }, [oauthToken, authStorage, forceCheckAuthStorageAsync]);
 
   useInitialAuthStateEffect({
     authState,
@@ -266,7 +275,6 @@ export function AuthProvider<A = unknown>({
   });
 
   // Temporarily disable react-hooks/exhaustive-deps since we want the timeouts to trigger.
-  /* eslint-disable react-hooks/exhaustive-deps */
   const contextValue: IAuth<A> = useMemo(
     () => ({
       accessToken: oauthToken?.access_token ?? null,
@@ -277,7 +285,7 @@ export function AuthProvider<A = unknown>({
       appDataLoaded: oauthToken ? appDataLoaded : true,
       authorization:
         !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&
-          !!oauthToken
+        !!oauthToken
           ? `Bearer ${oauthToken.access_token}`
           : null,
       authState,
@@ -314,7 +322,6 @@ export function AuthProvider<A = unknown>({
       validatedSetEndpointConfiguration,
     ]
   );
-  /* eslint-enable react-hooks/exhaustive-deps */
 
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>

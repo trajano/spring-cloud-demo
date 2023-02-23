@@ -23,6 +23,12 @@ export const useAuthenticatedStateEffect = ({
       return noop;
     }
     if (!backendReachable) {
+      notify({
+        type: 'PingFailed',
+        authState,
+        reason: `Backend was determined to be not reachable while authenticated`,
+        backendReachable,
+      });
       setAuthState(AuthState.BACKEND_INACCESSIBLE);
       return noop;
     }
@@ -30,7 +36,9 @@ export const useAuthenticatedStateEffect = ({
       notify({
         type: 'TokenExpiration',
         authState,
-        reason: `Token expires at ${formatISO(tokenExpiresAt)} in ${differenceInSeconds(tokenExpiresAt, Date.now())} seconds`,
+        reason: `Token expires at ${formatISO(
+          tokenExpiresAt
+        )} in ${differenceInSeconds(tokenExpiresAt, Date.now())} seconds`,
       });
       setAuthState(AuthState.NEEDS_REFRESH);
       return noop;

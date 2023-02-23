@@ -19,6 +19,12 @@ export const useBackendFailureStateEffect = ({
       type: 'CheckRefresh',
     });
     const timeoutID = setTimeout(() => {
+      notify({
+        authState,
+        reason:
+          'timeout for backend failure retry switching back to NeedsRefresh',
+        type: 'CheckRefresh',
+      });
       setAuthState(AuthState.NEEDS_REFRESH);
     }, 2000);
     return () => clearTimeout(timeoutID);
