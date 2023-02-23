@@ -1,6 +1,6 @@
 import { FontAwesome } from "@expo/vector-icons";
 import { AuthState } from "@trajano/spring-docker-auth-context";
-import { formatISO } from "date-fns";
+import { format } from "date-fns";
 import { Animated } from "react-native";
 
 import { useApp } from "../../src/app-context";
@@ -13,11 +13,13 @@ export function StackNavigatorScrollViewScreen() {
     <Animated.ScrollView contentInsetAdjustmentBehavior="automatic">
       {lastAuthEvents.map(
         ({ key, on, authState, type, reason }: LoggedAuthEvent) => (
-          <View key={key}>
-            <Text>{AuthState[authState]}</Text>
-            <FontAwesome name="arrow-circle-right" />
-            <Text fontWeight="bold">{type}</Text>{" "}
-            <Text>{formatISO(on, { representation: "time" })}</Text>
+          <View key={key} borderBottomColor="silver" borderBottomWidth={1}>
+            <View flexDirection="row">
+              <Text>{format(on, "HH:mm:ss")}</Text>
+              <Text>{AuthState[authState]}</Text>
+              <FontAwesome name="arrow-circle-right" color="#ffffff" />
+              <Text>{type}</Text>
+            </View>
             <Text>{reason}</Text>
           </View>
         )

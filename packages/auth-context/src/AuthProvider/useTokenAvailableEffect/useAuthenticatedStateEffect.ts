@@ -1,4 +1,4 @@
-import { formatISO } from 'date-fns';
+import { differenceInSeconds, formatISO } from 'date-fns';
 import noop from 'lodash/noop';
 import { useEffect, useReducer } from 'react';
 
@@ -30,7 +30,7 @@ export const useAuthenticatedStateEffect = ({
       notify({
         type: 'TokenExpiration',
         authState,
-        reason: `Token expires at ${formatISO(tokenExpiresAt)}`,
+        reason: `Token expires at ${formatISO(tokenExpiresAt)} in ${differenceInSeconds(tokenExpiresAt, Date.now())} seconds`,
       });
       setAuthState(AuthState.NEEDS_REFRESH);
       return noop;

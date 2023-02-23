@@ -14,5 +14,5 @@ export interface IAuthenticated {
   dbLoaded: boolean;
   db?: SQLite.Database;
   /** This invokes the whoami endpoint */
-  whoami(): Promise<Record<string, unknown>>;
+  whoami: () => Promise<Record<string, unknown>>;
 }

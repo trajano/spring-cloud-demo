@@ -1,4 +1,3 @@
-import { useAuth } from "@trajano/spring-docker-auth-context";
 import { useReducer } from "react";
 
 import { AppEvent } from "./AppEvent";
@@ -8,7 +7,6 @@ export function useLastAuthEvents(
   logAuthEventFilterPredicate: (event: AppEvent) => boolean,
   logAuthEventSize: number
 ) {
-  const { initialAuthEvents } = useAuth();
   return useReducer(
     (
       current: LoggedAuthEvent[],
@@ -19,18 +17,15 @@ export function useLastAuthEvents(
           {
             ...nextAuthEvent,
             key: `${nextAuthEvent.type}.${Date.now()}`,
+            reason: `${nextAuthEvent.type} ${nextAuthEvent.reason ?? ""}`,
             on: new Date(),
-          },
+          } as LoggedAuthEvent,
           ...current,
         ].slice(0, logAuthEventSize);
       } else {
         return current;
       }
     },
-    initialAuthEvents.map((event, index) => ({
-      ...event,
-      key: `initial.${index}`,
-      on: new Date(),
-    }))
+    []
   );
 }

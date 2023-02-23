@@ -8,7 +8,7 @@ import React, {
   useState,
 } from 'react';
 
-import type { AuthProviderProps } from './AuthContextProviderProps';
+import type { AuthProviderProps } from './AuthProviderProps';
 import { isTokenExpired } from './isTokenExpired';
 import { useInitialAuthStateEffect } from './useInitialAuthStateEffect';
 import { useNoTokenAvailableEffect } from './useNoTokenAvailableEffect';
@@ -79,8 +79,11 @@ export function AuthProvider<A = unknown>({
   const [authState, setAuthState] = useState(AuthState.INITIAL);
 
   /** Application data loaded state. */
-  const [appDataLoaded, setAppDataLoaded] = useState(false);
+  const [appDataLoaded, setAppDataLoaded] = useState(
+    !waitForSignalWhenDataIsLoaded
+  );
 
+  /** Signal that the context should start */
   const [signaled, signalStart] = useReducer(() => true, !waitForSignalToStart);
 
   /** OAuth token state. */
@@ -99,6 +102,10 @@ export function AuthProvider<A = unknown>({
     subscribersRef.current.forEach((fn) => fn(event));
   }, []);
 
+  const signalAppDataLoaded = useCallback(() => {
+    setAppDataLoaded(true);
+  }, []);
+
   const { netInfoState } = useRenderOnTokenEvent({
     endpointConfiguration,
   });
@@ -106,9 +113,9 @@ export function AuthProvider<A = unknown>({
   const subscribe = useCallback((fn: (event: AuthEvent) => void) => {
     subscribersRef.current.push(fn);
     return () =>
-      (subscribersRef.current = subscribersRef.current.filter(
-        (subscription) => !Object.is(subscription, fn)
-      ));
+    (subscribersRef.current = subscribersRef.current.filter(
+      (subscription) => !Object.is(subscription, fn)
+    ));
   }, []);
 
   /**
@@ -131,18 +138,11 @@ export function AuthProvider<A = unknown>({
           await authStorage.storeOAuthTokenAndGetExpiresAtAsync(nextOauthToken);
         setOAuthToken(nextOauthToken);
         setTokenExpiresAt(nextTokenExpiresAt);
-        setAuthState(AuthState.AUTHENTICATED);
+        setAppDataLoaded(!waitForSignalWhenDataIsLoaded);
+        setAuthState(AuthState.RESTORING);
         notify({
           type: 'LoggedIn',
           reason: 'Logged with credentials',
-          authState,
-          accessToken: nextOauthToken.access_token,
-          authorization: `Bearer ${nextOauthToken.access_token}`,
-          tokenExpiresAt: nextTokenExpiresAt,
-        });
-        notify({
-          type: 'Authenticated',
-          reason: 'Login',
           authState,
           accessToken: nextOauthToken.access_token,
           authorization: `Bearer ${nextOauthToken.access_token}`,
@@ -165,6 +165,7 @@ export function AuthProvider<A = unknown>({
       notify,
       setOAuthToken,
       setTokenExpiresAt,
+      waitForSignalWhenDataIsLoaded,
     ]
   );
 
@@ -204,18 +205,14 @@ export function AuthProvider<A = unknown>({
   const backendReachable = useBackendReachable(endpointConfiguration);
   const appActive = useAppActiveState();
 
-  const refreshAsync = useRefreshCallback({
-    authState,
-    setAuthState,
-    notify,
-    oauthToken,
-    authStorage,
-    setOAuthToken,
-    setTokenExpiresAt,
-    authClient,
-    netInfoState,
-    backendReachable,
-  });
+  const refreshAsync = useCallback(async () => {
+    if (oauthToken) {
+      await authStorage.storeOAuthTokenAndGetExpiresAtAsync({ ...oauthToken, expires_in: -1 })
+      await forceCheckAuthStorageAsync();
+    } else {
+      throw new Error("no token to invalidate");
+    }
+  }, [])
 
   useInitialAuthStateEffect({
     authState,
@@ -280,40 +277,41 @@ export function AuthProvider<A = unknown>({
       appDataLoaded: oauthToken ? appDataLoaded : true,
       authorization:
         !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&
-        !!oauthToken
+          !!oauthToken
           ? `Bearer ${oauthToken.access_token}`
           : null,
       authState,
       backendReachable,
       baseUrl: endpointConfiguration.baseUrl,
       endpointConfiguration,
-      lastCheckAt: new Date(),
-      oauthToken,
-      tokenExpiresAt,
-      initialAuthEvents: [],
       forceCheckAuthStorageAsync,
+      lastCheckAt: new Date(),
       loginAsync,
       logoutAsync,
+      oauthToken,
       refreshAsync,
       setEndpointConfiguration: validatedSetEndpointConfiguration,
+      signalAppDataLoaded,
       signalStart,
       subscribe,
+      tokenExpiresAt,
     }),
     [
       appDataLoaded,
       authState,
-      oauthToken,
       backendReachable,
-      tokenExpiresAt,
       endpointConfiguration,
-      timeBeforeExpirationRefresh,
       forceCheckAuthStorageAsync,
       loginAsync,
       logoutAsync,
+      oauthToken,
       refreshAsync,
+      signalAppDataLoaded,
       signalStart,
-      validatedSetEndpointConfiguration,
       subscribe,
+      timeBeforeExpirationRefresh,
+      tokenExpiresAt,
+      validatedSetEndpointConfiguration,
     ]
   );
   /* eslint-enable react-hooks/exhaustive-deps */

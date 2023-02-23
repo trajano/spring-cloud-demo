@@ -79,18 +79,19 @@ export interface IAuth<A = unknown> {
   backendReachable: boolean;
   /** When the last check for authentication state using timer effect was done. */
   lastCheckAt: Date;
+
   /**
-   * Authentication events that occured while the authstate was
-   * {@link AuthState.INITIAL}. This is provided as the {@link IAuth.subscribe}
-   * may not have been called yet to capture the logs.
+   * Force check of the auth storage data. This is primarily used for testing
+   * purposes as the data is not normally modified outside the context.
    */
-  initialAuthEvents: AuthEvent[];
+  forceCheckAuthStorageAsync: () => Promise<void>;
 
   /**
    * @param fn Callback function that receives events
    * @returns Function to unsubscribe
    */
   subscribe: (fn: (event: AuthEvent) => void) => () => void;
+
   /**
    * This performs the call to the authentication server with the credentials
    * provided. If the authentication was successful it provide the API response
@@ -102,8 +103,7 @@ export interface IAuth<A = unknown> {
    * @throws AuthenticationClientError
    */
   loginAsync: (authenticationCredentials: A) => Promise<Response>;
-  /** Refreshes the token outside of the schedule. */
-  refreshAsync: () => Promise<void>;
+
   /**
    * Revokes the token. Will fail if the user is not authenticated.
    *
@@ -116,6 +116,14 @@ export interface IAuth<A = unknown> {
     forced?: boolean,
     postLogoutCallback?: () => void
   ) => Promise<void>;
+
+  /**
+   * Refreshes the token outside of the schedule. This is done by invalidatign
+   * the token by adjusting the storage value such that the token is expired and
+   * updating the token expiration state.
+   */
+  refreshAsync: () => Promise<void>;
+
   /**
    * Sets the endpoint configuration for the context. This allows switching
    * between backends.
@@ -124,10 +132,10 @@ export interface IAuth<A = unknown> {
    */
   setEndpointConfiguration: (next: EndpointConfiguration) => void;
   /**
-   * Force check of the auth storage data. This is primarily used for testing
-   * purposes as the data is not normally modified outside the context.
+   * Signals the provider that the app data was loaded during the
+   * {@link AuthState.RESTORING} state.
    */
-  forceCheckAuthStorageAsync: () => Promise<void>;
+  signalAppDataLoaded: () => void;
   /**
    * Signals the provider that all initialization is done for the provider
    * (namely calls to {@link IAuth.subscribe}) before the token is determined to

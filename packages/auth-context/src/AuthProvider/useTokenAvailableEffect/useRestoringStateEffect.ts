@@ -15,27 +15,26 @@ export const useRestoringStateEffect = ({
 }: InternalProviderState) => {
   const signalDataLoaded = useCallback(() => {
     setAppDataLoaded(true);
-    setAuthState(AuthState.NEEDS_REFRESH);
-    notify({
-      type: 'DataLoaded',
-      authState,
-      reason: 'Data loaded signal called',
-    });
-  }, [authState, notify, setAppDataLoaded, setAuthState]);
+  }, [setAppDataLoaded]);
 
   useEffect(() => {
     if (authState === AuthState.RESTORING) {
-      if (__DEV__ && appDataLoaded) {
-        console.warn('attempted to restore while app data already loaded');
-      }
-      if (waitForSignalWhenDataIsLoaded) {
+      if (appDataLoaded && waitForSignalWhenDataIsLoaded) {
+        setAuthState(AuthState.NEEDS_REFRESH);
+        notify({
+          type: 'DataLoaded',
+          authState,
+          reason: 'Data loaded signal called, which set appDataLoaded to true',
+        });
+      } else if (!appDataLoaded && waitForSignalWhenDataIsLoaded) {
         notify({
           type: 'WaitForDataLoaded',
           authState,
           reason: 'in Restoring state',
           signalDataLoaded,
         });
-      } else {
+      } else if (!waitForSignalWhenDataIsLoaded) {
+        setAppDataLoaded(true);
         setAuthState(AuthState.NEEDS_REFRESH);
         notify({
           type: 'DataLoaded',
@@ -51,6 +50,7 @@ export const useRestoringStateEffect = ({
     authState,
     notify,
     setAuthState,
+    setAppDataLoaded,
     signalDataLoaded,
     waitForSignalWhenDataIsLoaded,
   ]);

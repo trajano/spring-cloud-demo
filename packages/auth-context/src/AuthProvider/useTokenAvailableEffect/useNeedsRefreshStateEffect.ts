@@ -8,6 +8,7 @@ import { isTokenExpired } from '../isTokenExpired';
 export const useNeedsRefreshStateEffect = ({
   authState,
   backendReachable,
+  oauthToken,
   setAuthState,
   notify,
   timeBeforeExpirationRefresh,
@@ -20,7 +21,18 @@ export const useNeedsRefreshStateEffect = ({
 
     if (!backendReachable) {
       setAuthState(AuthState.BACKEND_INACCESSIBLE);
-    } else if (!isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh)) {
+    } else if (
+      !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&
+      oauthToken
+    ) {
+      notify({
+        type: 'Authenticated',
+        authState,
+        reason: 'from NeedsRefeshStateEffect',
+        accessToken: oauthToken.access_token,
+        authorization: `Bearer ${oauthToken.access_token}`,
+        tokenExpiresAt,
+      });
       setAuthState(AuthState.AUTHENTICATED);
     } else {
       notify({
@@ -35,6 +47,7 @@ export const useNeedsRefreshStateEffect = ({
     authState,
     backendReachable,
     notify,
+    oauthToken,
     setAuthState,
     timeBeforeExpirationRefresh,
     tokenExpiresAt,
