@@ -128,7 +128,7 @@ describe('useAppStateRefreshingEffect', () => {
     expect(mockUnsubscribeListener).not.toHaveBeenCalled();
 
     capturedHandler('active');
-    expect(setAuthState).toHaveBeenCalledWith(AuthState.NEEDS_REFRESH);
+    expect(setAuthState).toHaveBeenCalledWith(AuthState.DISPATCHING);
 
     unmount();
     expect(mockAddListener).toHaveBeenCalledTimes(1);

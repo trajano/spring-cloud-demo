@@ -22,7 +22,7 @@ export const useBackendInaccessibleStateEffect = ({
         backendReachable,
       });
 
-      setAuthState(AuthState.NEEDS_REFRESH);
+      setAuthState(AuthState.DISPATCHING);
       return noop;
     }
     return noop;

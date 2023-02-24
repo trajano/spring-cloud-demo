@@ -57,7 +57,7 @@ export function useAppStateRefreshingEffect({
             });
           } else {
             // token has expired so needs refresh
-            setAuthState(AuthState.NEEDS_REFRESH);
+            setAuthState(AuthState.DISPATCHING);
             notify({
               type: 'TokenExpiration',
               authState,

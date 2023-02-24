@@ -10,7 +10,8 @@ export const useTokenRemovalState = ({
   signaled,
   notify,
   setAuthState,
-  setAppDataLoaded,
+  resetAppDataLoaded,
+  resetTokenProcessed,
   setTokenExpiresAt,
   setOAuthToken,
 }: InternalProviderState) => {
@@ -26,7 +27,8 @@ export const useTokenRemovalState = ({
         reason: 'Token removed',
       });
       setOAuthToken(null);
-      setAppDataLoaded(false);
+      resetAppDataLoaded();
+      resetTokenProcessed();
       setTokenExpiresAt(new Date(0));
       setAuthState(AuthState.UNAUTHENTICATED);
     })();
@@ -36,8 +38,9 @@ export const useTokenRemovalState = ({
     authStorage,
     signaled,
     notify,
+    resetAppDataLoaded,
+    resetTokenProcessed,
     setAuthState,
-    setAppDataLoaded,
     setOAuthToken,
     setTokenExpiresAt,
   ]);

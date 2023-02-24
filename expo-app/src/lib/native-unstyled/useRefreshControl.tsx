@@ -17,7 +17,7 @@ type RefreshControlProps = StyledProps<
  * RefreshControl.
  */
 export function useRefreshControl(
-  onRefresh: () => Promise<void>,
+  onRefresh: () => void | Promise<void>,
   { onError, ...refreshControlProps }: RefreshControlProps = {
     onError: console.error,
   }
@@ -25,7 +25,7 @@ export function useRefreshControl(
   const [refreshing, setRefreshing] = useState(false);
   const doRefresh = useCallback(() => {
     setRefreshing(true);
-    onRefresh()
+    Promise.resolve(onRefresh())
       .catch(onError)
       .finally(() => setRefreshing(false));
   }, [onRefresh, onError]);

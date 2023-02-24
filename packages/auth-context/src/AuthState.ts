@@ -28,13 +28,12 @@ export enum AuthState {
    */
   REFRESHING,
   /**
-   * In this state, the token was authenticated at one point but now needs to be
-   * refreshed. The access token is still available, but it is not guaranteed to
-   * be work successfully.
+   * This is a transitory state where it sets the next AuthState based on the
+   * current state of token expiration and connectivity to the backend.
    *
    * @category Token available
    */
-  NEEDS_REFRESH,
+  DISPATCHING,
   /**
    * In this state, the token was authenticated at one point but now needs to be
    * refreshed. The access token is still available, but it is not guaranteed to
@@ -60,11 +59,11 @@ export enum AuthState {
    */
   UNAUTHENTICATED_OFFLINE,
   /**
-   * The application was sent to the background while it had the token.
+   * The token available is usable right now.
    *
    * @category Token available
    */
-  BACKGROUNDED,
+  USABLE_TOKEN,
   /**
    * The application was brought back to the foreground when it had a token. The
    * token does not need to be valid or

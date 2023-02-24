@@ -1,4 +1,4 @@
-import { useDateState, useDeepState } from '@trajano/react-hooks';
+import { useDateState, useDeepState, useSignal } from '@trajano/react-hooks';
 import React, {
   ReactElement,
   useCallback,
@@ -45,6 +45,7 @@ export function AuthProvider<A = unknown>({
   authStorage: inAuthStorage,
   waitForSignalToStart = false,
   waitForSignalWhenDataIsLoaded = false,
+  waitForSignalWhenNewTokenIsProcessed = false,
 }: AuthProviderProps): ReactElement<AuthProviderProps> {
   const [endpointConfiguration, setEndpointConfiguration] = useState(
     defaultEndpointConfiguration
@@ -77,11 +78,6 @@ export function AuthProvider<A = unknown>({
   /** Authentication state. */
   const [authState, setAuthState] = useState(AuthState.INITIAL);
 
-  /** Application data loaded state. */
-  const [appDataLoaded, setAppDataLoaded] = useState(
-    !waitForSignalWhenDataIsLoaded
-  );
-
   /** OAuth token state. */
   const [oauthToken, setOAuthToken] = useDeepState<OAuthToken | null>(null);
 
@@ -89,28 +85,28 @@ export function AuthProvider<A = unknown>({
   const [tokenExpiresAt, setTokenExpiresAt] = useDateState(0);
 
   /**
+   * Signal that the context should start. Unlike the other signals this cannot
+   * be reset.
+   */
+  const [signaled, signalStart] = useReducer(() => true, !waitForSignalToStart);
+
+  /**
    * Notifies subscribers. There's a specific handler if it is "Unauthenticated"
-   * that the provider handles. These and other functions are not wrapped in
-   * useCallback because when any of the state changes it will render these
-   * anyway and we're not optimizing from the return value either.
+   * that the provider handles. This must only be built once otherwise there
+   * will be extra side effects being triggered.
    */
   const notify = useCallback((event: AuthEvent) => {
     subscribersRef.current.forEach((fn) => fn(event));
   }, []);
 
-  const signalAppDataLoaded = useCallback(() => {
-    setAppDataLoaded(true);
-  }, []);
-
-  /** Signal that the context should start */
-  const [signaled, signalStart] = useReducer(() => {
-    notify({
-      type: 'Starting',
-      authState,
-      reason: 'Signal to start received.',
-    });
-    return true;
-  }, !waitForSignalToStart);
+  /** Application data loaded signal. */
+  const [appDataLoaded, signalAppDataLoaded, resetAppDataLoaded] = useSignal(
+    !waitForSignalWhenDataIsLoaded
+  );
+  /** Token processed signal. */
+  const [tokenProcessed, signalTokenProcessed, resetTokenProcessed] = useSignal(
+    !waitForSignalWhenNewTokenIsProcessed
+  );
 
   useRenderOnTokenEvent({
     endpointConfiguration,
@@ -144,7 +140,7 @@ export function AuthProvider<A = unknown>({
           await authStorage.storeOAuthTokenAndGetExpiresAtAsync(nextOauthToken);
         setOAuthToken(nextOauthToken);
         setTokenExpiresAt(nextTokenExpiresAt);
-        setAppDataLoaded(!waitForSignalWhenDataIsLoaded);
+        resetAppDataLoaded();
         setAuthState(AuthState.RESTORING);
         notify({
           type: 'LoggedIn',
@@ -169,9 +165,9 @@ export function AuthProvider<A = unknown>({
       authState,
       authStorage,
       notify,
+      resetAppDataLoaded,
       setOAuthToken,
       setTokenExpiresAt,
-      waitForSignalWhenDataIsLoaded,
     ]
   );
 
@@ -246,12 +242,17 @@ export function AuthProvider<A = unknown>({
     signaled,
     timeBeforeExpirationRefresh,
     tokenExpiresAt,
+    tokenProcessed,
     waitForSignalWhenDataIsLoaded,
+    waitForSignalWhenNewTokenIsProcessed,
     notify,
-    setAppDataLoaded,
+    resetAppDataLoaded,
+    resetTokenProcessed,
     setAuthState,
     setOAuthToken,
     setTokenExpiresAt,
+    signalAppDataLoaded,
+    signalTokenProcessed,
   });
 
   useNoTokenAvailableEffect({
@@ -266,12 +267,17 @@ export function AuthProvider<A = unknown>({
     signaled,
     timeBeforeExpirationRefresh,
     tokenExpiresAt,
+    tokenProcessed,
     waitForSignalWhenDataIsLoaded,
+    waitForSignalWhenNewTokenIsProcessed,
     notify,
-    setAppDataLoaded,
+    resetAppDataLoaded,
+    resetTokenProcessed,
     setAuthState,
     setOAuthToken,
     setTokenExpiresAt,
+    signalAppDataLoaded,
+    signalTokenProcessed,
   });
 
   // Temporarily disable react-hooks/exhaustive-deps since we want the timeouts to trigger.

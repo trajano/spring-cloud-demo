@@ -1,22 +1,42 @@
 import { FontAwesome } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/core";
 import { AuthState } from "@trajano/spring-docker-auth-context";
 import { format } from "date-fns";
+import { useCallback } from "react";
 import { Animated } from "react-native";
 
-import { useApp } from "../../src/app-context";
-import { LoggedAuthEvent } from "../../src/app-context/LoggedAuthEvent";
-import { Text, View } from "../../src/lib/native-unstyled";
+import { useAppLog } from "../../src/lib/app-log";
+import { LoggedAuthEvent } from "../../src/lib/app-log/LoggedAuthEvent";
+import { Text, useRefreshControl, View } from "../../src/lib/native-unstyled";
 
 export function StackNavigatorScrollViewScreen() {
-  const { lastAuthEvents } = useApp();
+  const { loggedEvents, clearLog, updateLog } = useAppLog();
+  const refreshControl = useRefreshControl(() => {
+    clearLog();
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      updateLog();
+    }, [updateLog])
+  );
   return (
-    <Animated.ScrollView contentInsetAdjustmentBehavior="automatic">
-      {lastAuthEvents.map(
-        ({ key, on, authState, type, reason }: LoggedAuthEvent) => (
-          <View key={key} borderBottomColor="silver" borderBottomWidth={1}>
-            <View flexDirection="row">
+    <Animated.ScrollView
+      refreshControl={refreshControl}
+      contentInsetAdjustmentBehavior="automatic"
+    >
+      {loggedEvents.map(
+        ({ on, authState, type, reason }: LoggedAuthEvent, index) => (
+          <View
+            key={`.${index}` /* NOSONAR */}
+            borderBottomColor="silver"
+            borderBottomWidth={1}
+            paddingTop={index === 0 ? 0 : 16}
+            paddingBottom={16}
+          >
+            <View flexDirection="row" alignContent="center">
               <Text fontSize={16}>{format(on, "HH:mm:ss")}</Text>
-              <Text fontSize={16}>{AuthState[authState]}</Text>
+              <Text fontSize={16}>{authState ? AuthState[authState] : ""}</Text>
               <FontAwesome name="arrow-circle-right" color="#ffffff" />
               <Text fontSize={16}>{type}</Text>
             </View>

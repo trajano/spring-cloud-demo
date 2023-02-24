@@ -5,6 +5,6 @@ export type AppEvent =
   | AuthEvent
   | {
       type: "App";
-      authState: AuthState;
+      authState?: AuthState;
       reason: string;
     };

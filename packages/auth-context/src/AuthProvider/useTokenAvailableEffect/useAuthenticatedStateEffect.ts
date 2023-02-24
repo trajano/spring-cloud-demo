@@ -40,7 +40,7 @@ export const useAuthenticatedStateEffect = ({
           tokenExpiresAt
         )} in ${differenceInSeconds(tokenExpiresAt, Date.now())} seconds`,
       });
-      setAuthState(AuthState.NEEDS_REFRESH);
+      setAuthState(AuthState.DISPATCHING);
       return noop;
     }
     const timeoutID = setTimeout(

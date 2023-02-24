@@ -93,15 +93,16 @@ export function SystemFontsScreen(): ReactElement<
         })),
     ];
   }
-  const sections: SectionListData<FontSectionData>[] = Constants.systemFonts
-    .filter((name) => hasNoVariantSuffix(name))
-    .map((fontName) => ({
-      key: fontName,
-      data: fontSpecimens(fontName),
-    }));
+  const sections: SectionListData<FontSectionData, { key: string }>[] =
+    Constants.systemFonts
+      .filter((name) => hasNoVariantSuffix(name))
+      .map((fontName) => ({
+        key: fontName,
+        data: fontSpecimens(fontName),
+      }));
 
   const renderSectionHeader = useCallback(
-    ({ section }: { section: SectionListData<any, any> }) => (
+    ({ section }: { section: SectionListData<any, { key: string }> }) => (
       <SectionHeader fontFamily={section.key} />
     ),
     []
@@ -114,7 +115,7 @@ export function SystemFontsScreen(): ReactElement<
   );
 
   return (
-    <SectionList<FontSectionData>
+    <SectionList<FontSectionData, { key: string }>
       sections={sections}
       renderItem={renderItem}
       renderSectionHeader={renderSectionHeader}

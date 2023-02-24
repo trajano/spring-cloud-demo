@@ -7,23 +7,23 @@ Signal --> Initial : startSignal
 state "Token available" as Authenticated {
   state " " as needsRefreshPin <<inputPin>>
   ' state " " as authenticatedPin <<inputPin>>
-  state " " as backgroundedPin <<inputPin>>
+  ' state " " as backgroundedPin <<inputPin>>
   ' needsRefreshPin --> Restoring
   state WaitForDataLoaded <<choice>>
   needsRefreshPin --> InitialLoad : TokenLoaded
   ' authenticatedPin --> AuthenticatedOnline
-  backgroundedPin --> Backgrounded
+  ' backgroundedPin --> Backgrounded
   state "Restoring" as InitialLoad: token is available\nload any data for\nthe app from storage
   ' state "Needs Refresh" as NeedsRefresh: token may no longer be valid
-  state "Dispatch" as NeedsRefresh #aaaaff: token and connection\nneed to be evaluated
+  state "Dispatching" as NeedsRefresh #aaaaff: token and connection\nneed to be evaluated
   state Refreshing: refresh endpoint being called\nwaiting on response
-  state "Fresh Token" as FreshToken: got a new token
+  state "Usable Token" as FreshToken: the token can be\nused for API calls
   state FreshTokenWait <<choice>>
   state "Online" as AuthenticatedOnline: token available\ntoken not expired\nconnection available
   state "Backend Inaccessible" as BackendInaccessible: connection to the backend\nis not available
   state "Backend Failure" as BackendFailure: refresh failed\ndue to backend error
   state "Token Removal" as TokenRemoval <<join>>
-  state "Backgrounded" as Backgrounded: app is no longer active
+  ' state "Backgrounded" as Backgrounded: app is no longer active
 
   note bottom of TokenRemoval
     token is being removed
@@ -48,7 +48,7 @@ state "Token available" as Authenticated {
   Refreshing --[#8B8000]-> BackendFailure : 500 received\nconnection failure
   BackendFailure --> NeedsRefresh : failure retry timeout
   AuthenticatedOnline --> TokenRemoval : sign out
-  Backgrounded --> [*]: app activated\ngo back and wait for start signal
+  ' Backgrounded --> [*]: app activated\ngo back and wait for start signal
   ' Backgrounded -> Restoring: app activated
   ' Restoring -> NeedsRefresh: app restored
   note bottom of FreshTokenWait
@@ -77,8 +77,8 @@ TokenRemoval --> unauthenticatedPin
 
 ' state AppActivate <<start>>
 ' AppActivate --> needsRefreshPin : app was activated\nfrom memory
-state AppBackgrounded <<start>>
-AppBackgrounded --> backgroundedPin : app was sent\nto background\nand token available
+' state AppBackgrounded <<start>>
+' AppBackgrounded --> backgroundedPin : app was sent\nto background\nand token available
 
 @enduml
 

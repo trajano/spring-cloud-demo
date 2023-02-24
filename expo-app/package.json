@@ -69,6 +69,7 @@
     "expo-localization": "~14.0.0",
     "expo-random": "~13.0.0",
     "expo-screen-orientation": "~5.0.1",
+    "expo-sensors": "~12.0.1",
     "expo-splash-screen": "~0.17.5",
     "expo-sqlite": "~11.0.0",
     "expo-standard-web-crypto": "^1.4.0",

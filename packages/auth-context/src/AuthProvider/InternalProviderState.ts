@@ -23,6 +23,7 @@ export type InternalProviderState<T = unknown> = {
   signaled: boolean;
   /** When does the token expire */
   tokenExpiresAt: Date;
+  tokenProcessed: boolean;
   /**
    * Time in milliseconds to consider refreshing the access token. Defaults to
    * 10 seconds.
@@ -36,6 +37,11 @@ export type InternalProviderState<T = unknown> = {
 
   /** Indicates that restoring from data needs a signal before moving to FSM */
   waitForSignalWhenDataIsLoaded: boolean;
+  /**
+   * Indicates that a new token needs a signal to indicate process complete
+   * before moving to FSM
+   */
+  waitForSignalWhenNewTokenIsProcessed: boolean;
 
   /**
    * Notifies subscribers. There's a specific handler if it is "Unauthenticated"
@@ -44,8 +50,11 @@ export type InternalProviderState<T = unknown> = {
    * anyway and we're not optimizing from the return value either.
    */
   notify: (event: AuthEvent) => void;
-  setAppDataLoaded: Dispatch<boolean>;
   setAuthState: Dispatch<AuthState>;
   setOAuthToken: Dispatch<OAuthToken | null>;
   setTokenExpiresAt: Dispatch<Date>;
+  signalAppDataLoaded: () => void;
+  signalTokenProcessed: () => void;
+  resetAppDataLoaded: () => void;
+  resetTokenProcessed: () => void;
 };

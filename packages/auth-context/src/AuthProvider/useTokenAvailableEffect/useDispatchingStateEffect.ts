@@ -5,7 +5,7 @@ import { AuthState } from '../../AuthState';
 import type { InternalProviderState } from '../InternalProviderState';
 import { isTokenExpired } from '../isTokenExpired';
 
-export const useNeedsRefreshStateEffect = ({
+export const useDispatchingStateEffect = ({
   authState,
   backendReachable,
   oauthToken,
@@ -15,7 +15,7 @@ export const useNeedsRefreshStateEffect = ({
   tokenExpiresAt,
 }: InternalProviderState) => {
   useEffect(() => {
-    if (authState !== AuthState.NEEDS_REFRESH) {
+    if (authState !== AuthState.DISPATCHING) {
       return noop;
     }
 
@@ -31,15 +31,15 @@ export const useNeedsRefreshStateEffect = ({
       !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&
       oauthToken
     ) {
-      notify({
-        type: 'Authenticated',
-        authState,
-        reason: 'from NeedsRefeshStateEffect',
-        accessToken: oauthToken.access_token,
-        authorization: `Bearer ${oauthToken.access_token}`,
-        tokenExpiresAt,
-      });
-      setAuthState(AuthState.AUTHENTICATED);
+      // notify({
+      //   type: 'Authenticated',
+      //   authState,
+      //   reason: 'from NeedsRefeshStateEffect',
+      //   accessToken: oauthToken.access_token,
+      //   authorization: `Bearer ${oauthToken.access_token}`,
+      //   tokenExpiresAt,
+      // });
+      setAuthState(AuthState.USABLE_TOKEN);
     } else {
       notify({
         type: 'Refreshing',

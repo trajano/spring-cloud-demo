@@ -21,6 +21,7 @@ import { useStoredEndpointConfigurationEffect } from "./useStoredEndpointConfigu
 import { LoadingScreen } from "../../screens/LoadingScreen";
 import { AppProvider } from "../app-context";
 import { AppLoading } from "../lib/app-loading";
+import { AppLogProvider } from "../lib/app-log";
 import {
   ActivityIndicator,
   StatusBar,
@@ -90,60 +91,67 @@ export default function App() {
         },
       }}
     >
-      <AuthProvider
-        defaultEndpointConfiguration={defaultEndpointConfiguration}
-        waitForSignalToStart
-        waitForSignalWhenDataIsLoaded
+      <AppLogProvider
+        logAuthEventFilterPredicate={(event) =>
+          event.type !== "Connection" && event.type !== "CheckRefresh"
+        }
       >
-        <ThemeProvider
-          colorScheme={initialColorScheme}
-          locale={initialLocale}
-          defaultColorScheme="light"
-          fontModules={[
-            NotoSans,
-            IBMPlexSans,
-            NotoSansMono,
-            Lexend,
-            IBMPlexMono,
-            IslandMoments,
-            FontAwesome.font,
-          ]}
-          textRoles={{
-            mono: { fontFamily: "IBMPlexMono" },
-            "sans-serif": { fontFamily: "Lexend" },
-          }}
-          translations={{
-            en: require("../i18n/en.json") as Dict,
-            "en-US": require("../i18n/en-US.json") as Dict,
-            "en-CA": require("../i18n/en-CA.json") as Dict,
-            ja: require("../i18n/ja.json") as Dict,
-          }}
-          onColorSchemeChange={setStoredColorScheme}
-          onLocaleChange={setStoredLocale}
+        <AuthProvider
+          defaultEndpointConfiguration={defaultEndpointConfiguration}
+          waitForSignalToStart
+          waitForSignalWhenDataIsLoaded
+          waitForSignalWhenNewTokenIsProcessed
         >
-          {/* <HeaderTestNavigationContainer /> */}
-          <AppProvider>
-            <AppLoading
-              initialAssets={[
-                // require("../../assets/lottie/28839-ikura-sushi.json"),
-                require("../../assets/images/icon.png"),
-              ]}
-              LoadingComponent={LoadingScreen}
-            >
-              <Suspense fallback={<SuspenseView />}>
-                {TEXT_TEST ? (
-                  <TextTest />
-                ) : (
-                  <OverflowMenuProvider>
-                    <Navigation />
-                  </OverflowMenuProvider>
-                )}
-              </Suspense>
-              <StatusBar />
-            </AppLoading>
-          </AppProvider>
-        </ThemeProvider>
-      </AuthProvider>
+          <ThemeProvider
+            colorScheme={initialColorScheme}
+            locale={initialLocale}
+            defaultColorScheme="light"
+            fontModules={[
+              NotoSans,
+              IBMPlexSans,
+              NotoSansMono,
+              Lexend,
+              IBMPlexMono,
+              IslandMoments,
+              FontAwesome.font,
+            ]}
+            textRoles={{
+              mono: { fontFamily: "IBMPlexMono" },
+              "sans-serif": { fontFamily: "Lexend" },
+            }}
+            translations={{
+              en: require("../i18n/en.json") as Dict,
+              "en-US": require("../i18n/en-US.json") as Dict,
+              "en-CA": require("../i18n/en-CA.json") as Dict,
+              ja: require("../i18n/ja.json") as Dict,
+            }}
+            onColorSchemeChange={setStoredColorScheme}
+            onLocaleChange={setStoredLocale}
+          >
+            {/* <HeaderTestNavigationContainer /> */}
+            <AppProvider>
+              <AppLoading
+                initialAssets={[
+                  // require("../../assets/lottie/28839-ikura-sushi.json"),
+                  require("../../assets/images/icon.png"),
+                ]}
+                LoadingComponent={LoadingScreen}
+              >
+                <Suspense fallback={<SuspenseView />}>
+                  {TEXT_TEST ? (
+                    <TextTest />
+                  ) : (
+                    <OverflowMenuProvider>
+                      <Navigation />
+                    </OverflowMenuProvider>
+                  )}
+                </Suspense>
+                <StatusBar />
+              </AppLoading>
+            </AppProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </AppLogProvider>
     </SafeAreaProvider>
   );
 }

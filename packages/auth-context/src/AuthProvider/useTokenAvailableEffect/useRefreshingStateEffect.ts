@@ -1,3 +1,4 @@
+import { differenceInSeconds } from 'date-fns';
 import noop from 'lodash/noop';
 import { useEffect, useRef } from 'react';
 
@@ -38,16 +39,17 @@ export const useRefreshingStateEffect = ({
         const nextTokenExpiresAt =
           await authStorage.storeOAuthTokenAndGetExpiresAtAsync(nextOAuthToken);
         notify({
-          type: 'Authenticated',
+          type: 'CheckRefresh',
           authState,
-          accessToken: nextOAuthToken.access_token,
-          authorization: `Bearer ${nextOAuthToken.access_token}`,
           tokenExpiresAt: nextTokenExpiresAt,
-          reason: 'from refresh',
+          reason: `from refresh expiring in ${differenceInSeconds(
+            nextTokenExpiresAt,
+            Date.now()
+          )}`,
         });
         setOAuthToken(nextOAuthToken);
         setTokenExpiresAt(nextTokenExpiresAt);
-        setAuthState(AuthState.AUTHENTICATED);
+        setAuthState(AuthState.DISPATCHING);
       } catch (error: unknown) {
         if (
           error instanceof AuthenticationClientError &&

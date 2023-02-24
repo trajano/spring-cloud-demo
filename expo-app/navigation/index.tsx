@@ -12,7 +12,13 @@ import {
   AuthState,
   useAuth,
 } from "@trajano/spring-docker-auth-context";
-import { ComponentProps, useCallback, useEffect, useState } from "react";
+import {
+  ComponentProps,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Linking, Platform, StyleSheet } from "react-native";
 
 import LinkingConfiguration from "./LinkingConfiguration";
@@ -44,21 +50,23 @@ function cleanAuthEvent({
 export default function Navigation() {
   const auth = useAuth();
   const { reactNavigationTheme } = useTheming();
-  const [authNavigationState, setAuthNavigationState] = useState(
-    auth.authState
+  const authNavigationState = useMemo(
+    () =>
+      auth.accessToken ? AuthState.AUTHENTICATED : AuthState.UNAUTHENTICATED,
+    [auth.accessToken]
   );
   const [ready, setReady] = useState(false);
   const [initialState, setInitialState] = useState<NavigationState>();
 
-  const authEventHandler = useCallback((event: AuthEvent) => {
-    console.log(cleanAuthEvent(event));
+  // const authEventHandler = useCallback((event: AuthEvent) => {
+  //   console.log(cleanAuthEvent(event));
 
-    if (event.type === "Unauthenticated") {
-      setAuthNavigationState(AuthState.UNAUTHENTICATED);
-    } else if (event.type === "Authenticated") {
-      setAuthNavigationState(AuthState.AUTHENTICATED);
-    }
-  }, []);
+  //   if (event.type === "Unauthenticated") {
+  //     setAuthNavigationState(AuthState.UNAUTHENTICATED);
+  //   } else if (event.type === "Authenticated") {
+  //     setAuthNavigationState(AuthState.AUTHENTICATED);
+  //   }
+  // }, []);
 
   useEffect(() => {
     const restoreState = async () => {
@@ -92,7 +100,7 @@ export default function Navigation() {
     );
   }, []);
 
-  useEffect(() => auth.subscribe(authEventHandler), [auth, authEventHandler]);
+  // useEffect(() => auth.subscribe(authEventHandler), [auth, authEventHandler]);
 
   const endpointConfiguration =
     auth.endpointConfiguration as AuthenticatedEndpointConfiguration;

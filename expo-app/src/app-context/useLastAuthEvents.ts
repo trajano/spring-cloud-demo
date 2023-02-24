@@ -1,7 +1,7 @@
 import { useReducer } from "react";
 
-import { AppEvent } from "./AppEvent";
-import { LoggedAuthEvent } from "./LoggedAuthEvent";
+import { AppEvent } from "../lib/app-log/AppEvent";
+import { LoggedAuthEvent } from "../lib/app-log/LoggedAuthEvent";
 
 export function useLastAuthEvents(
   logAuthEventFilterPredicate: (event: AppEvent) => boolean,
@@ -12,7 +12,9 @@ export function useLastAuthEvents(
       current: LoggedAuthEvent[],
       nextAuthEvent: AppEvent
     ): LoggedAuthEvent[] => {
-      if (logAuthEventFilterPredicate(nextAuthEvent)) {
+      if (nextAuthEvent.type === "App" && nextAuthEvent.reason === "CLEAR") {
+        return [];
+      } else if (logAuthEventFilterPredicate(nextAuthEvent)) {
         return [
           {
             ...nextAuthEvent,

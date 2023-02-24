@@ -77,6 +77,19 @@ type TokenExpirationEvent = CommonAuthEvent & {
 type TokenLoadedEvent = CommonAuthEvent & {
   type: 'TokenLoaded';
 };
+/**
+ * This event is fired when the token is deemed to be valid and usable. Not
+ * necessarily that is is not expired and the backend is available
+ */
+export type UsableTokenEvent = CommonAuthEvent & {
+  type: 'UsableToken';
+  /** The raw access token. */
+  accessToken: string;
+  /** A value suitable for Authorization HTTP header. */
+  authorization: string;
+  tokenExpiresAt: Date;
+  signalTokenProcessed: () => void;
+};
 type PingFailedEvent = CommonAuthEvent & {
   type: 'PingFailed';
   backendReachable: boolean;
@@ -91,6 +104,8 @@ type PingSucceededEvent = CommonAuthEvent & {
  */
 export type WaitForDataLoadedEvent = CommonAuthEvent & {
   type: 'WaitForDataLoaded';
+  /** This should be false in this state. */
+  appDataLoaded: boolean;
   /**
    * This method should be called by a listener to indicate that the data is
    * loaded
@@ -135,4 +150,5 @@ export type AuthEvent =
   | TokenLoadedEvent
   | TokenExpirationEvent
   | UnauthenticatedEvent
+  | UsableTokenEvent
   | WaitForDataLoadedEvent;

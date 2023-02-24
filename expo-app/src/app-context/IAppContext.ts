@@ -1,4 +1,4 @@
-import { LoggedAuthEvent } from "./LoggedAuthEvent";
+import { LoggedAuthEvent } from "../lib/app-log/LoggedAuthEvent";
 
 /**
  * Interface that the context would provide. `interface` instead of `type`, this
@@ -22,4 +22,5 @@ export interface IAppContext {
    * the user was forcefully logged out.
    */
   lastAuthEvents: LoggedAuthEvent[];
+  clearLastAuthEvents: () => void;
 }

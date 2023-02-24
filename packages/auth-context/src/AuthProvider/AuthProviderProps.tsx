@@ -29,11 +29,26 @@ export type AuthProviderProps = PropsWithChildren<{
   waitForSignalToStart?: boolean;
   /**
    * If true (false default), it will wait for
-   * {@link WaitForDataLoadedEvent.signalDataLoaded} to be called before it
-   * acknowledges that the token is present.
+   * {@link UsableTokenEvent.signalTokenProcessed} or
+   * {@link IAuth.signalTokenProcessed} to be called before it acknowledges that
+   * the token is present before starts going from
+   * {@link AuthState.UsableTokenEvent} to {@link AuthState.AUTHENTICATED} state.
    *
-   * This is used to allow children to register authentication handlers before
-   * leaving {@link AuthState.INITIAL} state.
+   * This is used to allow children to handle the scenario where an Axios
+   * instance configured prior to being considered authenticated. If the client
+   * is generated using data from the context at the moment of request creation
+   * then this should be `false`.
+   */
+  waitForSignalWhenNewTokenIsProcessed?: boolean;
+  /**
+   * If true (false default), it will wait for
+   * {@link WaitForDataLoadedEvent.signalDataLoaded} or
+   * {@link IAuth.signalAppDataLoaded} to be called before it acknowledges that
+   * the token is present before starts going from {@link AuthState.RESTORING} to
+   * {@link AuthState.NEEDS_REFRESH} state.
+   *
+   * This is used to allow children to perform data load prior to being
+   * considered authenticated.
    */
   waitForSignalWhenDataIsLoaded?: boolean;
 }>;

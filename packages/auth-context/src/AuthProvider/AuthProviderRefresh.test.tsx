@@ -22,7 +22,7 @@ import { useAuth } from '../useAuth';
 const specimenInstant = new Date('2022-11-11T12:00:00Z');
 let globalFetch: typeof fetch;
 beforeEach(() => {
-  jest.useFakeTimers({ advanceTimers: true });
+  jest.useFakeTimers({ advanceTimers: false });
   jest.setSystemTime(specimenInstant);
   AppState.currentState = 'active';
   AsyncStorage.clear().catch(console.error);
@@ -112,7 +112,7 @@ it('Refresh two times', async () => {
       } as Partial<AuthEvent>)
     )
   );
-  expect(notifications).toHaveBeenCalledWith(
+  expect(notifications).not.toHaveBeenCalledWith(
     expect.objectContaining({
       type: 'Authenticated',
       accessToken: 'freshAccessToken',
@@ -121,6 +121,8 @@ it('Refresh two times', async () => {
   expect(screen.getByTestId('accessToken')).toHaveTextContent(
     'freshAccessToken'
   );
+  expect(screen.getByTestId('hello')).toHaveTextContent('RESTORING');
+  await act(() => Promise.resolve());
   expect(screen.getByTestId('hello')).toHaveTextContent('AUTHENTICATED');
   notifications.mockClear();
 
@@ -141,7 +143,7 @@ it('Refresh two times', async () => {
   expect(notifications).toHaveBeenCalledWith(
     expect.objectContaining({
       type: 'Refreshing',
-      authState: AuthState.NEEDS_REFRESH,
+      authState: AuthState.DISPATCHING,
     }) as Partial<AuthEvent>
   );
   await waitFor(() =>
@@ -178,7 +180,7 @@ it('Refresh two times', async () => {
     expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'Refreshing',
-        authState: AuthState.NEEDS_REFRESH,
+        authState: AuthState.DISPATCHING,
       } as Partial<AuthEvent>)
     )
   );
@@ -281,7 +283,7 @@ it('Refresh 500 then successful', async () => {
     expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'Refreshing',
-        authState: AuthState.NEEDS_REFRESH,
+        authState: AuthState.DISPATCHING,
       } as Partial<AuthEvent>)
     )
   );
@@ -332,7 +334,7 @@ it('Refresh 500 then successful', async () => {
     expect(notifications).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'Refreshing',
-        authState: AuthState.NEEDS_REFRESH,
+        authState: AuthState.DISPATCHING,
       } as Partial<AuthEvent>)
     )
   );
