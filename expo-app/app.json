@@ -42,6 +42,7 @@
     },
     "runtimeVersion": {
       "policy": "sdkVersion"
-    }
+    },
+    "plugins": ["expo-localization"]
   }
 }

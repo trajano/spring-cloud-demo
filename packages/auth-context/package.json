@@ -54,15 +54,15 @@
     "*.{json,md}": "prettier --check"
   },
   "prettier": {
+    "plugins": [
+      "prettier-plugin-jsdoc",
+      "prettier-plugin-packagejson"
+    ],
     "quoteProps": "consistent",
     "singleQuote": true,
     "tabWidth": 2,
     "trailingComma": "es5",
-    "useTabs": false,
-    "plugins": [
-      "prettier-plugin-jsdoc",
-      "prettier-plugin-packagejson"
-    ]
+    "useTabs": false
   },
   "eslintConfig": {
     "extends": [
@@ -110,9 +110,9 @@
     "jest-environment-node": "^29.4.2",
     "jest-fetch-mock": "^3.0.3",
     "pod-install": "^0.1.0",
-    "react": "18.1.0",
-    "react-dom": "18.1.0",
-    "react-native": "0.70.5",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-native": "0.71.3",
     "react-native-builder-bob": "^0.20.3",
     "release-it": "^15.5.1",
     "typedoc": "^0.23.25",

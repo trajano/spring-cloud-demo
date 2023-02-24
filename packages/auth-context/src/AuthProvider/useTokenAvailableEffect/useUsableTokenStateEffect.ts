@@ -12,7 +12,17 @@ export const useUsableTokenStateEffect = ({
   tokenExpiresAt,
   tokenProcessed,
   waitForSignalWhenNewTokenIsProcessed,
-}: InternalProviderState) => {
+}: Pick<
+  InternalProviderState,
+  | 'authState'
+  | 'oauthToken'
+  | 'notify'
+  | 'setAuthState'
+  | 'tokenExpiresAt'
+  | 'signalTokenProcessed'
+  | 'tokenProcessed'
+  | 'waitForSignalWhenNewTokenIsProcessed'
+>) => {
   if (authState !== AuthState.USABLE_TOKEN) {
     return noop;
   }

@@ -32,7 +32,7 @@
     "*.json": "prettier --write"
   },
   "resolutions": {
-    "@babel/core": "^7.20.2",
+    "@babel/core": "^7.21.0",
     "babel-loader": "^8.3.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -40,8 +40,8 @@
     "react-test-renderer": "18.2.0"
   },
   "devDependencies": {
-    "@commitlint/config-conventional": "^17.4.3",
-    "commitlint": "^17.4.3",
+    "@commitlint/config-conventional": "^17.4.4",
+    "commitlint": "^17.4.4",
     "husky": "^8.0.0",
     "lint-staged": "^13.1.2",
     "prettier": "^2.8.4",

@@ -9,7 +9,10 @@ export const useBackendInaccessibleStateEffect = ({
   backendReachable,
   notify,
   setAuthState,
-}: InternalProviderState) => {
+}: Pick<
+  InternalProviderState,
+  'authState' | 'backendReachable' | 'notify' | 'setAuthState'
+>) => {
   useEffect(() => {
     if (authState !== AuthState.BACKEND_INACCESSIBLE) {
       return noop;
