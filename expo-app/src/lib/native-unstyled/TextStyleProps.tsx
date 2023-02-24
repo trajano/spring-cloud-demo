@@ -4,10 +4,12 @@ export type TextStyleProps = Omit<RN.TextStyle, "testID"> & {
   /** Foreground color. Alias for `color` */
   fg?: string;
   /**
-   * Role. This is the role for the text. Though nothing is specified it could
-   * be something like `headline`, `title`, `label`.
+   * A type scale is a selection of font styles that can be used across an app,
+   * ensuring a flexible, yet consistent, style that accommodates a range of
+   * purposes. They typically provide the font, size, weight, tracking and line
+   * height.
    */
-  role?: string;
+  typeScale?: string;
   /** Size associated with the role. */
   size?: string;
 

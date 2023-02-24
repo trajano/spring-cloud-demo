@@ -112,8 +112,8 @@ export function JustScrollView() {
       refreshControl={refreshControl}
     >
       <Text backgroundColor={accessTokenBackgroundColor}>
-        Access token <Text role="mono">{accessToken?.slice(-5)}</Text> expires
-        on{" "}
+        Access token <Text typeScale="mono">{accessToken?.slice(-5)}</Text>{" "}
+        expires on{" "}
         <Text fontWeight="bold">
           {formatISO(tokenExpiresAt, { representation: "time" })}
         </Text>

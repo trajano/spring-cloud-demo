@@ -7,9 +7,9 @@ pushd packages/react-hooks
 git clean -fdx .
 popd
 # rm -f package-lock.json
-pnpm i
+# pnpm i
 # npm run prepare --workspaces
 # npm run prepare
-# yarn
-# yarn workspaces run prepare
+yarn
+yarn workspaces run prepare
 
