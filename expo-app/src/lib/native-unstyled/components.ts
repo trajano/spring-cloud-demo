@@ -11,7 +11,6 @@ import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import {
   ActivityIndicator as RNActivityIndicator,
   FlatList as RNFlatList,
-  Image as RNImage,
   Modal as RNModal,
   Pressable as RNPressable,
   RefreshControl as RNRefreshControl,
@@ -24,6 +23,8 @@ import {
   TextProps,
   View as RNView,
 } from "react-native";
+
+import {Image as EXImage } from 'expo-image';
 
 import {
   withI18n,
@@ -38,7 +39,7 @@ import {
 
 export const ActivityIndicator = withStyled(withI18n(RNActivityIndicator));
 export const FlatList = withStyledScrollView(withI18n(RNFlatList));
-export const Image = withStyled(withI18n(RNImage));
+export const Image = withStyled(withI18n(EXImage));
 export const Modal = withStyled(withI18n(RNModal));
 export const Pressable = withStyled(RNPressable);
 export const RefreshControl = withStyled(withI18n(RNRefreshControl));

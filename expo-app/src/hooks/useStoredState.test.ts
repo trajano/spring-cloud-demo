@@ -1,17 +1,30 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
-
+import { useState } from "react";
 import { useStoredState } from "./useStoredState";
 afterEach(async () => {
   await AsyncStorage.clear();
 });
-it("should work like normal", async () => {
+it("validate useState", async () => {
+  const { result, unmount } = renderHook(() => useState<string>("bar"));
+  let [state, setState] = result.current;
+  expect(state).toBe("bar");
+  await act(async () => {
+    setState("foo");
+  });
+  [state] = result.current;
+  expect(state).toBe("foo");
+  unmount();
+});
+it("should work like useState", async () => {
   const { result, unmount } = renderHook(() =>
     useStoredState<string>("foo", "bar")
   );
   let [state, setState] = result.current;
   expect(state).toBe("bar");
-  await act(() => setState("foo"));
+  await act(async () => {
+    setState("foo");
+  });
   [state] = result.current;
   expect(state).toBe("foo");
   unmount();

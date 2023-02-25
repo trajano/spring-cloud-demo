@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import * as jose from "node-jose";
 describe("jwt", () => {
   test("verify", async () => {

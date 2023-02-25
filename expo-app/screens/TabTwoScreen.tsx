@@ -94,14 +94,14 @@ export default function TabTwoScreen({
       action.eventName === "clear"
         ? []
         : [
-            ...prevState,
-            {
-              name: action.eventName,
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-              event: action.event,
-              key: `${action.eventName}-${Date.now()}`,
-            },
-          ],
+          ...prevState,
+          {
+            name: action.eventName,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            event: action.event,
+            key: `${action.eventName}-${Date.now()}`,
+          },
+        ],
     []
   );
 
@@ -232,8 +232,8 @@ export default function TabTwoScreen({
         {scrollInfo.contentOffset.x} {scrollInfo.contentOffset.y}
       </Text>
       <Text>{JSON.stringify(scrollViewLayout)}</Text>
-      <Text>
-        Hello {username} <Text style={{ fontWeight: "bold" }}>bold</Text>{" "}
+      <Text style={{ fontSize: 30, fontFamily:"Noto", color:"yellow" }}>
+        Hello {username} <Text style={{ fontWeight: "bold", fontSize: 30 }}>bold</Text>{" "}
         <Text style={{ fontStyle: "italic" }}>italic</Text>
       </Text>
       <TextInput

@@ -24,7 +24,40 @@ it("should i18n Text", () => {
   unmount();
 });
 
-it("should i18n Text and preseve other styles", () => {
+
+it("should i18n Text and handle bold with the system font", () => {
+  const { toJSON, unmount } = render(
+    <ThemeProvider
+      translations={{ en: { key: "hello" } }}
+    >
+      <Text
+        testID="eval"
+        _t="key"
+        _tp={{ prop: "val", prop2: "val" }}
+        bold
+        backgroundColor="red"
+      />
+    </ThemeProvider>
+  );
+  const { toJSON: toExpectedJson } = render(
+    <RNText
+      testID="eval"
+      style={{
+        backgroundColor: "red",
+        color: defaultLightColorSchemeColors.default[0],
+        fontWeight: "bold",
+      }}
+    >
+      hello
+    </RNText>
+  );
+
+  expect(screen.getByTestId("eval")).toHaveTextContent("hello");
+  expect(toJSON()).toStrictEqual(toExpectedJson());
+  unmount();
+});
+
+it("should i18n Text and preserve other styles", () => {
   const mockFont = {
     useFonts: jest.fn(),
 
