@@ -34,7 +34,7 @@ export function StackNavigatorScrollViewScreen() {
             paddingTop={index === 0 ? 0 : 16}
             paddingBottom={16}
           >
-            <View flexDirection="row" alignContent="center">
+            <View flexDirection="row" alignItems="center">
               <Text fontSize={16}>{format(on, "HH:mm:ss")}</Text>
               <Text fontSize={16}>{authState ? AuthState[authState] : ""}</Text>
               <FontAwesome name="arrow-circle-right" color="#ffffff" />

@@ -10,6 +10,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  useTheming,
   View as HocView,
 } from "../src/lib/native-unstyled";
 import { propsToStyleSheet } from "../src/lib/native-unstyled/propsToStyleSheet";
@@ -26,6 +27,7 @@ export function TextTest() {
   const [username, setUsername] = useState("");
   const now = useClockState();
   const today = useDayClockState();
+  const {colorScheme, colors} = useTheming()
   const textRef = useRef<RNText>(null);
   return (
     <ScrollView
@@ -33,7 +35,7 @@ export function TextTest() {
       marginLeft={marginLeft}
       marginBottom={marginBottom}
       marginRight={marginRight}
-      backgroundColor="silver"
+      backgroundColor={colors.default[1]}
     >
       <View testID="clock">
         <Text>{format(today, "PPP")}</Text>
@@ -42,8 +44,11 @@ export function TextTest() {
       <View testID="rnTextOne">
         <RNText>rnTextOne</RNText>
       </View>
+      <View testID="textOne">
+        <Text>native-unstyled text one</Text><Text bold>BOLD</Text>
+      </View>
       <View testID="animatedOne" style={{ backgroundColor: "red" }}>
-        <Animated.Text>USTextOne</Animated.Text>
+        <Animated.Text>USTextOne {colorScheme}</Animated.Text>
       </View>
       <HocView testID="hocOne" backgroundColor="yellow">
         <Text ref={textRef} color="blue">
@@ -51,7 +56,7 @@ export function TextTest() {
         </Text>
       </HocView>
       <View testID="usTextOne">
-        <Text>USTextOne</Text>
+        <Text>US Text One</Text>
       </View>
       <View testID="rnText">
         <RNText>
