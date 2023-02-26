@@ -23,7 +23,9 @@ type Node = TextNode | FormatNode;
  * This uses React Native Text with the withReplacedWithNativeFonts HoC so that
  * it will handle custom fonts.
  */
-const FontSubsitutedText = withReplacedWithNativeFonts(Text);
+const FontSubsitutedText = withReplacedWithNativeFonts(Text, {
+  displayName: "FontSubsitutedText",
+});
 
 /**
  * Converts a limitted markdown string into text components. The input is

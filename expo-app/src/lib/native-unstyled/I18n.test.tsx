@@ -24,12 +24,9 @@ it("should i18n Text", () => {
   unmount();
 });
 
-
 it("should i18n Text and handle bold with the system font", () => {
   const { toJSON, unmount } = render(
-    <ThemeProvider
-      translations={{ en: { key: "hello" } }}
-    >
+    <ThemeProvider translations={{ en: { key: "hello" } }}>
       <Text
         testID="eval"
         _t="key"

@@ -10,6 +10,7 @@ import {
 } from "react";
 import { TextProps } from "react-native";
 
+import { HocOptions } from "./HocOptions";
 import { hocDisplayName } from "./hocDisplayName";
 import { useTheming } from "../ThemeContext";
 
@@ -33,7 +34,8 @@ export function withTextRole<
   Q extends TextProps,
   T
 >(
-  Component: ComponentType<Q>
+  Component: ComponentType<Q>,
+  options: HocOptions = {}
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
   function useWrapped(
     { role, typeScale, style, ...rest }: P,
@@ -60,6 +62,6 @@ export function withTextRole<
       return <Component {...(rest as any)} ref={ref} />;
     }
   }
-  useWrapped.displayName = hocDisplayName("withTextRole", Component);
+  useWrapped.displayName = hocDisplayName("withTextRole", Component, options);
   return forwardRef(useWrapped);
 }

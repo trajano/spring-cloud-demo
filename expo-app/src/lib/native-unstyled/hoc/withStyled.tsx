@@ -9,12 +9,13 @@ import {
 } from "react";
 import { StyleProp } from "react-native";
 
+import type { HocOptions } from "./HocOptions";
 import { doStyleWrap } from "./doStyleWrap";
 import { hocDisplayName } from "./hocDisplayName";
 import { StyleProps } from "../StyleProps";
 import { useTheming } from "../ThemeContext";
 
-export interface WithStyledProps {
+export interface WithStyledProps extends HocOptions {
   /**
    * Specifies that the style props are stripped out before calling the
    * component. This is disabled by default on production for performance, but
@@ -38,7 +39,11 @@ export function withStyled<
   T
 >(
   Component: ComponentType<Q>,
-  { stripStyledPropsToWrappedComponent }: WithStyledProps = {
+  {
+    displayName,
+    defaultDisplayName,
+    stripStyledPropsToWrappedComponent,
+  }: WithStyledProps = {
     stripStyledPropsToWrappedComponent: __DEV__,
   }
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
@@ -52,6 +57,9 @@ export function withStyled<
       !!stripStyledPropsToWrappedComponent
     );
   }
-  useWrapped.displayName = hocDisplayName("withStyled", Component);
+  useWrapped.displayName = hocDisplayName("withStyled", Component, {
+    displayName,
+    defaultDisplayName,
+  });
   return forwardRef(useWrapped);
 }

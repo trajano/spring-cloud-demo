@@ -2,6 +2,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
 import { useState } from "react";
+
 import { useStoredState } from "./useStoredState";
 afterEach(async () => {
   await AsyncStorage.clear();
@@ -10,7 +11,7 @@ it("validate useState", async () => {
   const { result, unmount } = renderHook(() => useState<string>("bar"));
   let [state, setState] = result.current;
   expect(state).toBe("bar");
-  await act(async () => {
+  await act(() => {
     setState("foo");
   });
   [state] = result.current;
@@ -128,7 +129,9 @@ it("should allow clearing an item", async () => {
 
   // update it as usual
   setStateAsync = result.current[1];
-  await act(async () => { await setStateAsync(null) });
+  await act(async () => {
+    await setStateAsync(null);
+  });
   [state, setStateAsync] = result.current;
   expect(state).toBe(null);
   expect(await AsyncStorage.getItem("foo")).toBeNull();

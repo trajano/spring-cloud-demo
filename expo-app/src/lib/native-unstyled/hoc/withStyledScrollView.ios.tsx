@@ -32,7 +32,11 @@ export function withStyledScrollView<
   T
 >(
   Component: ComponentType<Q>,
-  { stripStyledPropsToWrappedComponent }: WithStyledProps = {
+  {
+    displayName,
+    defaultDisplayName,
+    stripStyledPropsToWrappedComponent,
+  }: WithStyledProps = {
     stripStyledPropsToWrappedComponent: __DEV__,
   }
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
@@ -54,6 +58,9 @@ export function withStyledScrollView<
       !!stripStyledPropsToWrappedComponent
     );
   }
-  useWrapped.displayName = hocDisplayName("withStyledScrollView", Component);
+  useWrapped.displayName = hocDisplayName("withStyledScrollView", Component, {
+    displayName,
+    defaultDisplayName,
+  });
   return forwardRef(useWrapped);
 }

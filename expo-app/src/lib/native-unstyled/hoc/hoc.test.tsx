@@ -68,7 +68,7 @@ function hocTemplate<P extends Q, Q extends object, T, O = object>(
   function useWrapped(props: P, ref: Ref<T>): ReactElement<Q> {
     return wrapper(props, ref);
   }
-  useWrapped.displayName = hocDisplayName(name, Component);
+  useWrapped.displayName = hocDisplayName(name, Component, {});
   return forwardRef(useWrapped);
 }
 

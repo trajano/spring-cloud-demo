@@ -9,6 +9,7 @@ import {
 } from "react";
 import { TextInputProps, TextProps } from "react-native";
 
+import { HocOptions } from "./HocOptions";
 import { hocDisplayName } from "./hocDisplayName";
 import { useTheming } from "../ThemeContext";
 
@@ -16,19 +17,25 @@ interface I18nProps {
   _t?: string;
   /** Key for `accessibilityLabel` */
   _a?: string;
+  /**
+   * Key for `alt`. Will not do anything yet but getting ready for
+   * https://expo.canny.io/feature-requests/p/expo-image-alt-prop
+   */
+  _alt?: string;
   /** Key for `placeholder` */
   _p?: string;
   /** Key for `returnKeyLabel`. This is Android only. */
   _rkl?: string;
   _tp?: Record<string, unknown>;
 }
-interface I18nHocOptions {
+interface I18nHocOptions extends HocOptions {
   /**
    * This is a mapping of localization key props to the real prop. This is added
    * in addition to
    *
    *     {
    *       "_a": "accessibilityLabel",
+   *       "_alt": "alt",
    *       "_p": "placeholder",
    *       "_rkl": "returnKeyLabel"
    *     }
@@ -40,6 +47,8 @@ interface I18nHocOptions {
 export function withI18n<P extends Q & I18nProps, Q extends TextProps, T>(
   Component: ComponentType<Q>,
   {
+    displayName,
+    defaultDisplayName,
     _tIsChild = false,
     localizedMap = {
       _a: "accessibilityLabel",
@@ -74,6 +83,9 @@ export function withI18n<P extends Q & I18nProps, Q extends TextProps, T>(
       );
     }
   }
-  useWrapped.displayName = hocDisplayName("withI18n", Component);
+  useWrapped.displayName = hocDisplayName("withI18n", Component, {
+    displayName,
+    defaultDisplayName,
+  });
   return forwardRef(useWrapped);
 }

@@ -4,14 +4,14 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor
+  waitFor,
 } from "@testing-library/react-native";
 import { Text as RNText, View as RNView, ViewProps } from "react-native";
 
+import { ThemeProvider } from "./ThemeContext";
 import { Text, TextInput, View } from "./components";
 import { defaultDarkColorSchemeColors } from "./defaultColorSchemes/defaultDarkColorSchemeColors";
 import { withStyled } from "./hoc";
-import { ThemeProvider } from "./ThemeContext";
 
 it("should i18n Text and preserve other styles and remap font", async () => {
   const mockFont = {
@@ -61,7 +61,7 @@ it("should i18n Text and preserve other styles and remap font", async () => {
       hello
     </RNText>
   );
-  await act(() => Promise.resolve())
+  await act(() => Promise.resolve());
   await waitFor(() => expect(toJSON()).toStrictEqual(toExpectedJson()));
   expect(screen.getByTestId("eval")).toHaveTextContent("hello");
   unmount();
@@ -117,7 +117,7 @@ it("should i18n Text and preserve other styles and remap font while wrapped in a
       </RNText>
     </RNView>
   );
-  await act(() => Promise.resolve())
+  await act(() => Promise.resolve());
 
   await waitFor(() => expect(toJSON()).toStrictEqual(toExpectedJson()));
   expect(screen.getByTestId("eval")).toHaveTextContent("hello");
@@ -130,7 +130,7 @@ it("should provide a TextInput that is configured to match theme", async () => {
       <TextInput testID="input" />
     </ThemeProvider>
   );
-  await act(() => Promise.resolve())
+  await act(() => Promise.resolve());
   await waitFor(() =>
     expect(screen.getByTestId("input").props.style).toStrictEqual({
       color: defaultDarkColorSchemeColors.input.default[0],
@@ -172,7 +172,7 @@ it("should provide a disabled TextInput that is configured to match theme", asyn
       <TextInput testID="input" editable={false} />
     </ThemeProvider>
   );
-  await act(() => Promise.resolve())
+  await act(() => Promise.resolve());
   await waitFor(() =>
     expect(screen.getByTestId("input").props.style).toStrictEqual({
       color: defaultDarkColorSchemeColors.input.disabled[0],
@@ -233,7 +233,7 @@ it("should support a custom component", async () => {
       <RNText>My Text</RNText>
     </RNView>
   );
-  await act(() => Promise.resolve())
+  await act(() => Promise.resolve());
   await waitFor(() => expect(toJSON()).toStrictEqual(toExpectedJson()));
   await waitFor(() => expect(toJSON()).toStrictEqual(toExpectedNativeJson()));
 });

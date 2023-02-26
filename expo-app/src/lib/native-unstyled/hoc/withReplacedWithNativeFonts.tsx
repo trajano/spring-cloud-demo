@@ -13,6 +13,7 @@ import {
 } from "react";
 import { StyleProp, StyleSheet, TextStyle } from "react-native";
 
+import { HocOptions } from "./HocOptions";
 import { hocDisplayName } from "./hocDisplayName";
 import { useTheming } from "../ThemeContext";
 
@@ -69,7 +70,8 @@ export function withReplacedWithNativeFonts<
   Q extends { style?: StyleProp<TextStyle>; children?: ReactNode },
   T
 >(
-  Component: ComponentType<Q>
+  Component: ComponentType<Q>,
+  options: HocOptions
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
   function useWrapped(
     { style: inStyle, children: inChildren, ...rest }: P,
@@ -84,7 +86,8 @@ export function withReplacedWithNativeFonts<
   }
   useWrapped.displayName = hocDisplayName(
     "withReplacedWithNativeFonts",
-    Component
+    Component,
+    options
   );
   return forwardRef(useWrapped);
 }

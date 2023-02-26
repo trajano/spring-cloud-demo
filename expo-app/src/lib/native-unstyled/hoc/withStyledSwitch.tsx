@@ -34,7 +34,11 @@ export function withStyledSwitch<
   T
 >(
   Component: ComponentType<Q>,
-  { stripStyledPropsToWrappedComponent }: WithStyledProps = {
+  {
+    displayName,
+    defaultDisplayName,
+    stripStyledPropsToWrappedComponent,
+  }: WithStyledProps = {
     stripStyledPropsToWrappedComponent: __DEV__,
   }
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
@@ -86,6 +90,9 @@ export function withStyledSwitch<
       !!stripStyledPropsToWrappedComponent
     );
   }
-  useWrapped.displayName = hocDisplayName("withStyledSwitch", Component);
+  useWrapped.displayName = hocDisplayName("withStyledSwitch", Component, {
+    displayName,
+    defaultDisplayName,
+  });
   return forwardRef(useWrapped);
 }

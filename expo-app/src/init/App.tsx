@@ -18,7 +18,9 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { OverflowMenuProvider } from "react-navigation-header-buttons";
 
 import { useStoredEndpointConfigurationEffect } from "./useStoredEndpointConfigurationEffect";
+import Navigation from "../../navigation";
 import { LoadingScreen } from "../../screens/LoadingScreen";
+import { TextTest } from "../../screens/TextTest";
 import { AppProvider } from "../app-context";
 import { AppLoading } from "../lib/app-loading";
 import { AppLogProvider } from "../lib/app-log";
@@ -29,17 +31,7 @@ import {
   View,
 } from "../lib/native-unstyled";
 
-const TextTest = lazy(() => import("../../screens/TextTest"));
-const Navigation = lazy(() => import("../../navigation"));
-
 LogBox.ignoreLogs([/^Could not find Fiber with id/]);
-function SuspenseView() {
-  return (
-    <View flex={1} justifyContent="center" alignItems="center">
-      <ActivityIndicator size="large" />
-    </View>
-  );
-}
 export default function App() {
   const defaultEndpointConfiguration = useStoredEndpointConfigurationEffect();
   useEffect(() => {
@@ -137,15 +129,13 @@ export default function App() {
                 ]}
                 LoadingComponent={LoadingScreen}
               >
-                <Suspense fallback={<SuspenseView />}>
-                  {TEXT_TEST ? (
-                    <TextTest />
-                  ) : (
-                    <OverflowMenuProvider>
-                      <Navigation />
-                    </OverflowMenuProvider>
-                  )}
-                </Suspense>
+                {TEXT_TEST ? (
+                  <TextTest />
+                ) : (
+                  <OverflowMenuProvider>
+                    <Navigation />
+                  </OverflowMenuProvider>
+                )}
                 <StatusBar />
               </AppLoading>
             </AppProvider>

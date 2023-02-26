@@ -7,6 +7,7 @@
  * @module
  */
 import { BlurView as ExpoBlurView } from "expo-blur";
+import { Image as EXImage } from "expo-image";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 import {
   ActivityIndicator as RNActivityIndicator,
@@ -24,8 +25,6 @@ import {
   View as RNView,
 } from "react-native";
 
-import {Image as EXImage } from 'expo-image';
-
 import {
   withI18n,
   withReplacedWithNativeFonts,
@@ -39,7 +38,16 @@ import {
 
 export const ActivityIndicator = withStyled(withI18n(RNActivityIndicator));
 export const FlatList = withStyledScrollView(withI18n(RNFlatList));
-export const Image = withStyled(withI18n(EXImage));
+export const Image = withStyled(
+  withI18n(EXImage, {
+    displayName: "Image",
+    localizedMap: {
+      _a: "accessibilityLabel",
+      _p: "placeholder",
+      // _alt: "alt",
+    },
+  })
+);
 export const Modal = withStyled(withI18n(RNModal));
 export const Pressable = withStyled(RNPressable);
 export const RefreshControl = withStyled(withI18n(RNRefreshControl));
@@ -59,7 +67,10 @@ export const TextInput = withStyledTextInput(
   withI18n(
     withTextRole(
       withReplacedWithNativeFonts<TextInputProps, TextInputProps, RNTextInput>(
-        RNTextInput
+        RNTextInput,
+        {
+          displayName: "TextInput",
+        }
       )
     ),
     {
@@ -80,7 +91,9 @@ export const TextInput = withStyledTextInput(
 export const Text = withStyledText(
   withI18n(
     withTextRole(
-      withReplacedWithNativeFonts<TextProps, TextProps, RNText>(RNText)
+      withReplacedWithNativeFonts<TextProps, TextProps, RNText>(RNText, {
+        displayName: "Text",
+      })
     ),
     {
       _tIsChild: true,
@@ -88,4 +101,8 @@ export const Text = withStyledText(
   )
 );
 
-export const View = withStyled(withI18n(RNView));
+export const View = withStyled(
+  withI18n(RNView, {
+    displayName: "View",
+  })
+);

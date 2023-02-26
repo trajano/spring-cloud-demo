@@ -32,7 +32,11 @@ export function withStyledText<
   T
 >(
   Component: ComponentType<Q>,
-  { stripStyledPropsToWrappedComponent }: WithStyledProps = {
+  {
+    displayName,
+    defaultDisplayName,
+    stripStyledPropsToWrappedComponent,
+  }: WithStyledProps = {
     stripStyledPropsToWrappedComponent: __DEV__,
   }
 ): NamedExoticComponent<PropsWithoutRef<P> & RefAttributes<T>> {
@@ -46,6 +50,9 @@ export function withStyledText<
       !!stripStyledPropsToWrappedComponent
     );
   }
-  useWrapped.displayName = hocDisplayName("withStyledText", Component);
+  useWrapped.displayName = hocDisplayName("withStyledText", Component, {
+    displayName,
+    defaultDisplayName,
+  });
   return forwardRef(useWrapped);
 }

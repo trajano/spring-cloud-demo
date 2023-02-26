@@ -27,7 +27,7 @@ export function TextTest() {
   const [username, setUsername] = useState("");
   const now = useClockState();
   const today = useDayClockState();
-  const {colorScheme, colors} = useTheming()
+  const { colorScheme, colors } = useTheming();
   const textRef = useRef<RNText>(null);
   return (
     <ScrollView
@@ -45,7 +45,8 @@ export function TextTest() {
         <RNText>rnTextOne</RNText>
       </View>
       <View testID="textOne">
-        <Text>native-unstyled text one</Text><Text bold>BOLD</Text>
+        <Text>native-unstyled text one</Text>
+        <Text bold>BOLD</Text>
       </View>
       <View testID="animatedOne" style={{ backgroundColor: "red" }}>
         <Animated.Text>USTextOne {colorScheme}</Animated.Text>

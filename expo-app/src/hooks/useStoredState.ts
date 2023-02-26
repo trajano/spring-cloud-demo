@@ -1,8 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  useCallback,
-  useEffect, useState
-} from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type NullableString<T extends string> = T | null | undefined;
 function resolveInitialState<T extends string>(
@@ -58,7 +55,7 @@ export function useStoredState<T extends string>(
         }
       })();
     }
-  }, [state]);
+  }, [state, initialState, storageKey]);
 
   if (state === undefined) {
     const nextState = resolveInitialState(initialState);
