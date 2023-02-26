@@ -87,7 +87,6 @@
   "dependencies": {
     "@trajano/react-hooks": "^2.0.1",
     "date-fns": "^2.29.3",
-    "eslint": "^8.34.0",
     "js-base64": "^3.7.5",
     "lodash": "^4.17.21",
     "react-test-renderer": "18.1.0"
@@ -95,7 +94,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.12",
     "@react-native-async-storage/async-storage": "^1.17.11",
-    "@react-native-community/netinfo": "9.3.5",
+    "@react-native-community/netinfo": "^9.3.7",
     "@release-it/conventional-changelog": "^5.0.0",
     "@testing-library/jest-native": "^5.4.1",
     "@testing-library/react-native": "^11.5.2",
