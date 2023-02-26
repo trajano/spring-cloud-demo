@@ -1,4 +1,9 @@
+# Spring Docker Expo Mish Mash
+
+This is my play around repo to test ideas out for my RL stuff and to provide references for [my StackOverflow questions and answers](https://stackoverflow.com/users/242042/archimedes-trajano) .  Don't expect anything to work here as it's pretty random and chaotic with ideas switching left and right over time.
+
 This complements my other project [docker-swarm-aws-terraform-module](https://registry.terraform.io/modules/trajano/swarm-aws/docker)
+
 ## Components
 
 * `gateway` the gateway
