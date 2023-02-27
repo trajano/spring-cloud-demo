@@ -1,21 +1,22 @@
 import { BASE_URL } from "@env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Picker } from '@react-native-picker/picker';
 import {
   buildSimpleEndpointConfiguration,
-  useAuth,
+  useAuth
 } from "@trajano/spring-docker-auth-context";
 import { format, hoursToMilliseconds, Locale } from "date-fns";
 import * as dateFnsLocales from "date-fns/locale";
 import * as Localization from "expo-localization";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Platform, ScrollView, StyleSheet, View } from "react-native";
-import { Menu, Provider } from "react-native-paper";
+// import { Menu, Provider } from "react-native-paper";
 
+import { Text, TextInput } from "../../src/lib/native-unstyled";
 import type {
   AuthenticatedEndpointConfiguration,
-  LoginStackScreenProps,
+  LoginStackScreenProps
 } from "./types";
-import { Text, TextInput } from "../../src/lib/native-unstyled";
 
 export function LoginForm() {
   const { loginAsync, backendReachable, baseUrl, setEndpointConfiguration } =
@@ -70,28 +71,21 @@ export function LoginForm() {
       <Text style={styles.title} _t="asdf">
         Login Screen
       </Text>
-      <Menu
-        visible={visible}
-        onDismiss={closeMenu}
-        anchor={<Button onPress={openMenu} title={baseUrl.toString()} />}
+      <Picker
+        selectedValue={baseUrl}
+        onValueChange={(nextSelectedItem: string) => setAndSaveBaseUrlAsync(nextSelectedItem)}
       >
-        <Menu.Item
-          onPress={() => {
-            setAndSaveBaseUrlAsync(BASE_URL!).catch(console.error);
-          }}
-          title={BASE_URL}
+        <Picker.Item
+          value={BASE_URL!}
+          label={BASE_URL!}
         />
         {Platform.OS === "web" && (
-          <Menu.Item
-            onPress={() => {
-              setAndSaveBaseUrlAsync("http://localhost:28082/").catch(
-                console.error
-              );
-            }}
-            title="Local server"
+          <Picker.Item
+            value={"http://localhost:28082/"}
+            label="Local server"
           />
         )}
-      </Menu>
+      </Picker>
       <TextInput
         placeholder="Username"
         defaultValue={username}
@@ -141,16 +135,14 @@ export default function LoginScreen({
     return () => clearInterval(c);
   }, [locale]);
   return (
-    <Provider>
-      <View style={{ flex: 1 }}>
-        <LoginForm />
-        <ScrollView>
-          <Text>
-            {JSON.stringify({ isConnected: auth.backendReachable, now })}
-          </Text>
-        </ScrollView>
-      </View>
-    </Provider>
+    <View style={{ flex: 1 }}>
+      <LoginForm />
+      <ScrollView>
+        <Text>
+          {JSON.stringify({ isConnected: auth.backendReachable, now })}
+        </Text>
+      </ScrollView>
+    </View>
   );
 }
 

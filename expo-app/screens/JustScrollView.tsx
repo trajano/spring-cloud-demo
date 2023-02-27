@@ -14,12 +14,12 @@ import {
 } from "date-fns";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Animated, ColorValue, StyleSheet, View } from "react-native";
-import { Button } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAuthenticated } from "../authenticated-context";
 import { AuthenticatedEndpointConfiguration } from "../navigation/login/types";
-import { Text, useRefreshControl } from "../src/lib/native-unstyled";
+import { Button } from "../src/components/Button";
+import {  Text, useRefreshControl } from "../src/lib/native-unstyled";
 export function JustScrollView() {
   const safeAreaInsets = useSafeAreaInsets();
   const {
@@ -140,7 +140,7 @@ export function JustScrollView() {
       <Button onPress={updateWhoAmI}>
         {
           (endpointConfiguration as AuthenticatedEndpointConfiguration)
-            .whoamiEndpoint
+            .whoamiEndpoint ?? "whoami"
         }
       </Button>
 

@@ -4,7 +4,7 @@
  */
 import { FontAwesome } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer, NavigationState } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import {
@@ -176,7 +176,7 @@ function RootNavigator() {
  * A bottom tab navigator displays tab buttons on the bottom of the display to
  * switch screens. https://reactnavigation.org/docs/bottom-tab-navigator
  */
-const BottomTab = createMaterialBottomTabNavigator<RootTabParamList>();
+const BottomTab = createBottomTabNavigator<RootTabParamList>();
 function BottomTabNavigator() {
   const MainDrawerTabIcon = useCallback(
     ({ color }: { color: string }) => (
@@ -197,8 +197,6 @@ function BottomTabNavigator() {
   return (
     <BottomTab.Navigator
       initialRouteName="MainDrawer"
-      shifting
-      barStyle={styles.bar}
       screenOptions={{}}
     >
       <BottomTab.Screen
