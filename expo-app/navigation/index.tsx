@@ -195,10 +195,7 @@ function BottomTabNavigator() {
     []
   );
   return (
-    <BottomTab.Navigator
-      initialRouteName="MainDrawer"
-      screenOptions={{}}
-    >
+    <BottomTab.Navigator initialRouteName="MainDrawer" screenOptions={{}}>
       <BottomTab.Screen
         name="MainDrawer"
         component={DrawerNavigator}

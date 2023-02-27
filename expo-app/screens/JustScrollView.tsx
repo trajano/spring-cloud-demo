@@ -1,13 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import {
-  OAuthToken,
-  AuthState,
-  useAuth,
-} from "@trajano/spring-docker-auth-context";
+import { AuthState, useAuth } from "@trajano/spring-docker-auth-context";
 import {
   addSeconds,
-  formatISO,
+  format,
   getTime,
   millisecondsToSeconds,
   startOfSecond,
@@ -19,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthenticated } from "../authenticated-context";
 import { AuthenticatedEndpointConfiguration } from "../navigation/login/types";
 import { Button } from "../src/components/Button";
-import {  Text, useRefreshControl } from "../src/lib/native-unstyled";
+import { Text, useRefreshControl } from "../src/lib/native-unstyled";
 export function JustScrollView() {
   const safeAreaInsets = useSafeAreaInsets();
   const {
@@ -114,16 +110,13 @@ export function JustScrollView() {
       <Text backgroundColor={accessTokenBackgroundColor}>
         Access token <Text typeScale="mono">{accessToken?.slice(-5)}</Text>{" "}
         expires on{" "}
-        <Text fontWeight="bold">
-          {formatISO(tokenExpiresAt, { representation: "time" })}
-        </Text>
+        <Text fontWeight="bold">{format(tokenExpiresAt, "HH:mm")}</Text>
       </Text>
       <Text>
         Time remaining <Text fontWeight="bold">{timeRemaining} seconds</Text>
       </Text>
       <Text style={{ fontFamily: "NotoSansMono", fontSize: 16 }}>
-        Last check{" "}
-        <Text bold>{formatISO(lastCheckAt, { representation: "time" })}</Text>
+        Last check <Text bold>{format(lastCheckAt, "HH:mm")}</Text>
       </Text>
       <Text backgroundColor={backendReachable ? undefined : "red"}>
         {backendReachable ? `${baseUrl} reachable` : `${baseUrl} NOT REACHABLE`}
@@ -138,10 +131,8 @@ export function JustScrollView() {
       <Button onPress={expire}>Expire {baseUrl.toString()}</Button>
       <Button onPress={breakToken}>Break Token</Button>
       <Button onPress={updateWhoAmI}>
-        {
-          (endpointConfiguration as AuthenticatedEndpointConfiguration)
-            .whoamiEndpoint ?? "whoami"
-        }
+        {(endpointConfiguration as AuthenticatedEndpointConfiguration)
+          .whoamiEndpoint ?? "whoami"}
       </Button>
 
       <View

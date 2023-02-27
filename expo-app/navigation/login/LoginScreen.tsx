@@ -1,9 +1,9 @@
 import { BASE_URL } from "@env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Picker } from '@react-native-picker/picker';
+import { Picker } from "@react-native-picker/picker";
 import {
   buildSimpleEndpointConfiguration,
-  useAuth
+  useAuth,
 } from "@trajano/spring-docker-auth-context";
 import { format, hoursToMilliseconds, Locale } from "date-fns";
 import * as dateFnsLocales from "date-fns/locale";
@@ -12,11 +12,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Platform, ScrollView, StyleSheet, View } from "react-native";
 // import { Menu, Provider } from "react-native-paper";
 
-import { Text, TextInput } from "../../src/lib/native-unstyled";
 import type {
   AuthenticatedEndpointConfiguration,
-  LoginStackScreenProps
+  LoginStackScreenProps,
 } from "./types";
+import { Text, TextInput } from "../../src/lib/native-unstyled";
 
 export function LoginForm() {
   const { loginAsync, backendReachable, baseUrl, setEndpointConfiguration } =
@@ -73,17 +73,13 @@ export function LoginForm() {
       </Text>
       <Picker
         selectedValue={baseUrl}
-        onValueChange={(nextSelectedItem: string) => setAndSaveBaseUrlAsync(nextSelectedItem)}
+        onValueChange={(nextSelectedItem: string) => {
+          setAndSaveBaseUrlAsync(nextSelectedItem).catch(console.error);
+        }}
       >
-        <Picker.Item
-          value={BASE_URL!}
-          label={BASE_URL!}
-        />
+        <Picker.Item value={BASE_URL!} label={BASE_URL!} />
         {Platform.OS === "web" && (
-          <Picker.Item
-            value={"http://localhost:28082/"}
-            label="Local server"
-          />
+          <Picker.Item value="http://localhost:28082/" label="Local server" />
         )}
       </Picker>
       <TextInput
