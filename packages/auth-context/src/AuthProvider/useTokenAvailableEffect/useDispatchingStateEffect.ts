@@ -31,14 +31,12 @@ export const useDispatchingStateEffect = ({
       !isTokenExpired(tokenExpiresAt, timeBeforeExpirationRefresh) &&
       oauthToken
     ) {
-      // notify({
-      //   type: 'Authenticated',
-      //   authState,
-      //   reason: 'from NeedsRefeshStateEffect',
-      //   accessToken: oauthToken.access_token,
-      //   authorization: `Bearer ${oauthToken.access_token}`,
-      //   tokenExpiresAt,
-      // });
+      notify({
+        type: 'CheckRefresh',
+        authState,
+        reason: 'routing to Usable Token from NeedsRefeshStateEffect',
+        tokenExpiresAt,
+      });
       setAuthState(AuthState.USABLE_TOKEN);
     } else {
       notify({

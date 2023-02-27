@@ -23,6 +23,7 @@ export const AuthContext = createContext<IAuth<any>>({
   setEndpointConfiguration: noop,
   signalAppDataLoaded: noop,
   signalStart: noop,
+  signalTokenProcessed: noop,
   subscribe: () => noop,
   tokenExpiresAt: new Date(0),
 });

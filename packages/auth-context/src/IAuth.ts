@@ -137,6 +137,11 @@ export interface IAuth<A = unknown> {
    */
   signalAppDataLoaded: () => void;
   /**
+   * Signals the provider that the token was processed during the
+   * {@link AuthState.USABLE_TOKEN} state.
+   */
+  signalTokenProcessed: () => void;
+  /**
    * Signals the provider that all initialization is done for the provider
    * (namely calls to {@link IAuth.subscribe}) before the token is determined to
    * exist and leave {@link AuthState.INITIAL} state.
