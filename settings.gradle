@@ -1,5 +1,5 @@
 plugins {
-        id "com.gradle.enterprise" version "3.9"
+    id "com.gradle.enterprise" version "3.9"
 }
 rootProject.name = 'spring-docker-swarm'
 include(
@@ -11,4 +11,15 @@ include(
         'dynamic-grpc-client',
         'spring-redis-region',
         'jwks-provider'
-        )
+)
+
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            plugin('springBoot', 'org.springframework.boot').version('3.0.3')
+            plugin('springDependencyManagement', 'io.spring.dependency-management').version('1.1.0')
+            plugin('graalvm', 'org.graalvm.buildtools.native').version('0.9.18')
+        }
+    }
+}

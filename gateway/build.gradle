@@ -1,6 +1,7 @@
 plugins {
-    id 'org.springframework.boot' version '3.0.3'
-    id 'io.spring.dependency-management' version '1.1.0'
+    alias(libs.plugins.springBoot)
+    alias(libs.plugins.springDependencyManagement)
+    alias(libs.plugins.graalvm)
     id 'net.trajano.swarm.conventions'
     id 'jacoco'
     id "com.diffplug.spotless"

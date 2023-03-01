@@ -27,7 +27,8 @@ import reactor.core.publisher.Mono;
 @Component
 public class WellKnownReactiveOidcService implements ReactiveOidcService, InitializingBean {
 
-  @Value("${auth.oidc.allowed-issuers:}") private String allowedIssuersCommaSeparatedList;
+  @Value("${auth.oidc.allowed-issuers:}")
+  private String allowedIssuersCommaSeparatedList;
 
   /** Allowed issuers set. */
   private Set<URI> allowedIssuersSet;

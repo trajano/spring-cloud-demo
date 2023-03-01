@@ -28,7 +28,8 @@ public class CoreRoutes {
 
   private final CorsConfigurer corsConfigurer;
 
-  @Value("${gateway.root-html-redirect-uri:#{null}}") private URI rootHtmlRedirectUri;
+  @Value("${gateway.root-html-redirect-uri:#{null}}")
+  private URI rootHtmlRedirectUri;
 
   private static Set<String> getRequestedHeaders(ServerRequest.Headers headers) {
 

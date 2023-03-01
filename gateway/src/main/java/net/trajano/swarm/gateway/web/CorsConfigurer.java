@@ -23,13 +23,16 @@ import org.springframework.web.server.ServerWebExchange;
 public class CorsConfigurer {
 
   @Getter
-  @Value("${cors.allowed-headers:authorization,content-type,cache-control,x-requested-with}") private Set<String> allowedHeaders;
+  @Value("${cors.allowed-headers:authorization,content-type,cache-control,x-requested-with}")
+  private Set<String> allowedHeaders;
 
   @Getter
-  @Value("${cors.allowed-methods:HEAD,GET,POST,DELETE,PATCH}") private Set<String> allowedMethods;
+  @Value("${cors.allowed-methods:HEAD,GET,POST,DELETE,PATCH}")
+  private Set<String> allowedMethods;
 
   @Getter
-  @Value("${cors.allowed-origins:*}") private Set<String> allowedOrigins;
+  @Value("${cors.allowed-origins:*}")
+  private Set<String> allowedOrigins;
   //    @Value("${cors.allowed-headers:authorization,content-type}") private String[]
   // allowedHeaders;
   //
